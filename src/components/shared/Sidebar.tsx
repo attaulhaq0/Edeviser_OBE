@@ -72,32 +72,54 @@ const Sidebar = () => {
       to !== `/${role}` &&
       location.pathname.startsWith(to));
 
+  // The prototype companion item route per role: the one primary item that keeps
+  // a colorful circular icon even when inactive (Tutor for student, Studio for
+  // teacher, etc.).
+  const companionRoute: Record<UserRole, string> = {
+    student: "/student/tutor",
+    teacher: "/teacher/modules",
+    parent: "/parent/support",
+    coordinator: "/coordinator/matrix",
+    admin: "/admin/governance",
+  };
+  const isCompanion = (to: string) => companionRoute[role] === to;
+
   const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
     const isActive = section === "primary" && isItemActive(item.to);
+    const itemIsCompanion = section === "primary" && isCompanion(item.to);
 
+    // --- Primary section styling ---
+    // Active: full-width rounded light-blue pill, blue text
+    // Companion (inactive): transparent bg, faded label (icon stays colorful)
+    // Normal inactive: transparent bg, muted icon + faded label
     const itemClassName = cn(
-      "flex items-center rounded-[12px] px-[18px] text-[14px] transition-all duration-150",
-      section === "primary" ? "gap-[14px] py-[10px]" : "gap-3 py-[9px]",
+      "flex items-center transition-all duration-150",
+      section === "primary"
+        ? "rounded-[13px] px-[16px] gap-[12px] min-h-[47px]"
+        : "rounded-[10px] px-[18px] gap-3 py-[8px]",
       isActive
-        ? "font-bold text-[#2563eb] dark:text-sky-400"
+        ? "font-bold"
+        : section === "primary"
+        ? "font-semibold text-[#64748b] opacity-[0.72] hover:opacity-100 hover:bg-slate-50 dark:text-gray-300 dark:hover:bg-slate-800"
         : item.deEmphasized
-        ? "font-semibold text-gray-400 opacity-60 hover:bg-slate-100 hover:opacity-100 dark:text-gray-500 dark:hover:bg-slate-800"
-        : role === "student"
-        ? "font-semibold text-[#64748b] opacity-80 hover:bg-[#eef9ff] hover:text-[#075985] hover:opacity-100 dark:text-gray-300 dark:hover:bg-slate-800"
-        : "font-semibold text-[#64748b] opacity-80 hover:bg-slate-100 hover:opacity-100 dark:text-gray-300 dark:hover:bg-slate-800"
+        ? "font-medium text-gray-400 opacity-60 hover:bg-slate-100 hover:opacity-100 dark:text-gray-500"
+        : "font-medium text-[#64748b] opacity-[0.82] hover:opacity-100 hover:bg-slate-50 dark:text-gray-300 dark:hover:bg-slate-800"
     );
 
     const IconComponent = item.icon;
-    const isTutorRoute = item.to === "/student/tutor";
 
     const content = (
       <>
         {isActive ? <span className="sr-only">(current page)</span> : null}
-        {isTutorRoute ? (
+
+        {/* Icon rendering: 3 distinct treatments */}
+        {itemIsCompanion ? (
+          /* Companion: colorful circular icon badge (always visible) */
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
-            <span className="text-xs">🤖</span>
+            <span className="text-xs">{item.emoji}</span>
           </div>
         ) : section === "more" && item.emoji ? (
+          /* MORE section: small colorful emoji */
           <span
             className="flex size-5 shrink-0 items-center justify-center bg-transparent text-[16px] leading-none"
             aria-hidden="true"
@@ -105,17 +127,16 @@ const Sidebar = () => {
             {item.emoji}
           </span>
         ) : IconComponent ? (
+          /* Primary section: Lucide outline icon */
           <IconComponent
             className={cn(
-              "shrink-0 transition-colors",
-              section === "primary" ? "h-5 w-5" : "h-4 w-4",
-              isActive
-                ? "text-[#2563eb] dark:text-sky-400 stroke-[2.2]"
-                : "text-[#94a3b8] stroke-[1.75]"
+              "h-[22px] w-[22px] shrink-0 transition-colors",
+              isActive ? "stroke-[2.2]" : "text-[#94a3b8] stroke-[1.6]"
             )}
             aria-hidden="true"
           />
         ) : item.emoji ? (
+          /* Fallback: emoji */
           <span
             className="flex size-[22px] shrink-0 items-center justify-center bg-transparent text-[20px] leading-none"
             aria-hidden="true"
@@ -123,9 +144,18 @@ const Sidebar = () => {
             {item.emoji}
           </span>
         ) : null}
-        <span className="truncate">{t(item.labelKey)}</span>
+
+        <span
+          className={cn(
+            "truncate",
+            section === "primary" ? "text-[14px]" : "text-[13px]"
+          )}
+        >
+          {t(item.labelKey)}
+        </span>
       </>
     );
+
     const sharedProps = getIntentHandlers(item.to, () =>
       prefetchRoute(item.to)
     );
@@ -211,15 +241,15 @@ const Sidebar = () => {
             </nav>
 
             {moreItems.length > 0 ? (
-              <div className="sidebar-extra mt-[6px] flex min-h-0 flex-1 flex-col gap-[2px]">
+              <div className="sidebar-extra mt-[10px] flex min-h-0 flex-1 flex-col">
                 <div
-                  className="side-sep mx-2 mb-1 mt-2 h-px bg-[#eef2f6]"
+                  className="side-sep mx-3 mb-2 mt-3 h-px bg-[#eef2f6]"
                   aria-hidden="true"
                 />
-                <p className="side-label px-[18px] pb-1 text-[10px] font-black uppercase tracking-[0.1em] text-[#94a3b8]">
+                <p className="side-label px-[18px] pb-[6px] pt-[4px] text-[10px] font-[800] uppercase tracking-[0.12em] leading-[14px] text-[#94a3b8]">
                   {t("nav.more")}
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-[2px]">
                   {moreItems.map((item) => renderItem(item, "more"))}
                 </div>
                 {role === "student" ? <StudentSidebarExtras /> : null}
