@@ -529,31 +529,33 @@ const StudentDashboardScreen = () => {
         </div>
       </div>
 
-      {/* ── My Courses strip (per-course mastery ring) ── */}
-      <section>
-        <div className="mb-2 flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-sm">
-            📚
-          </span>
-          <p className="text-[13px] font-black tracking-tight text-slate-900">
-            {t("dashboard.myCourses", "My Courses")}
-          </p>
+      {/* ── My Courses section (responsive fluid grid) ── */}
+      <section className="my-courses-section w-full min-w-0 max-w-none">
+        <div className="my-courses-header mb-3 flex w-full items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-sm">
+              📚
+            </span>
+            <p className="text-[13px] font-black tracking-tight text-slate-900">
+              {t("dashboard.myCourses", "My Courses")}
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => navigate("/student/courses")}
-            className="ms-auto text-xs font-bold text-sky-700 hover:underline"
+            className="text-xs font-bold text-sky-700 hover:underline"
           >
             {t("dashboard.seeAll", "See all →")}
           </button>
         </div>
         {courses.isPending ? (
-          <div className="flex gap-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Shimmer key={i} className="h-[72px] min-w-[210px] rounded-xl" />
+          <div className="my-courses-grid grid w-full min-w-0 gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Shimmer key={i} className="h-[76px] w-full min-w-0 rounded-xl" />
             ))}
           </div>
         ) : courseList.length > 0 ? (
-          <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+          <div className="my-courses-grid grid w-full min-w-0 gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
             {courseList.map((c) => {
               const ring = c.attainment_percent ?? c.progress_percent;
               return (
@@ -561,15 +563,17 @@ const StudentDashboardScreen = () => {
                   key={c.id}
                   type="button"
                   onClick={() => navigate(`/student/courses/${c.id}`)}
-                  className="flex min-w-[210px] flex-shrink-0 items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-start shadow-sm transition-transform active:scale-[.99]"
+                  className="course-card flex h-full w-full min-w-0 items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-start shadow-xs transition-all hover:border-slate-200 hover:shadow-md active:scale-[.99]"
                 >
-                  <ProgressRing percent={ring} size={48} stroke={3}>
-                    <span className="text-[11px] font-black text-blue-600">
-                      {Math.round(ring)}%
-                    </span>
-                  </ProgressRing>
-                  <div className="min-w-0">
-                    <span className="text-[9px] font-bold tracking-wide text-gray-400">
+                  <div className="course-card-progress flex-shrink-0">
+                    <ProgressRing percent={ring} size={48} stroke={3}>
+                      <span className="text-[11px] font-black text-blue-600">
+                        {Math.round(ring)}%
+                      </span>
+                    </ProgressRing>
+                  </div>
+                  <div className="course-card-details min-w-0 flex-1">
+                    <span className="text-[9px] font-bold tracking-wide text-gray-400 uppercase">
                       {c.code}
                     </span>
                     <p className="truncate text-[13px] font-bold leading-tight text-gray-900">
@@ -586,7 +590,7 @@ const StudentDashboardScreen = () => {
             })}
           </div>
         ) : (
-          <p className="rounded-xl bg-white p-4 text-center text-sm text-gray-500 shadow-sm">
+          <p className="w-full rounded-xl bg-white p-4 text-center text-sm text-gray-500 shadow-xs">
             {t(
               "dashboard.noCourses",
               "You are not enrolled in any courses yet."

@@ -222,7 +222,7 @@ const StudentCoursesNew = () => {
             >
               MY COURSES
             </h2>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 w-full">
+            <div className="grid w-full min-w-0 gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
               <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

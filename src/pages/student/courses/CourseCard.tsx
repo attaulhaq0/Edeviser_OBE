@@ -41,7 +41,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
   const hasAttainment = course.attainment_percent !== null;
 
   return (
-    <PCard className="relative h-full overflow-hidden transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)] focus-within:ring-2 focus-within:ring-blue-500">
+    <PCard className="relative h-full w-full min-w-0 overflow-hidden transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)] focus-within:ring-2 focus-within:ring-blue-500">
       {/* Course color identifier (R9.3) */}
       <div
         className="absolute inset-y-0 start-0 w-1.5"
