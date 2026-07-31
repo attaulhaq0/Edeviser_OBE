@@ -21,12 +21,10 @@ import { Award, BookOpen, Target, TrendingUp } from "lucide-react";
 
 import { Badge, Button, PCard } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
-import { useStudentProgress } from "@/hooks/useStudentProgress";
+import { useStudentAcademicSummary } from "@/hooks/useStudentProgress";
 import { cn } from "@/lib/utils";
 
-/** Attainment-band chip class (design-system attainment colors). Kept local:
- *  only the progress screens need it today (extract to `attainmentTone` if a
- *  third caller appears). */
+/** Attainment-band chip class */
 const bandChipClass = (p: number): string => {
   if (p >= 85) return "text-green-600 bg-green-50";
   if (p >= 70) return "text-sky-700 bg-sky-50";
@@ -34,49 +32,66 @@ const bandChipClass = (p: number): string => {
   return "text-red-600 bg-red-50";
 };
 
+const getBandName = (pct: number): string => {
+  if (pct >= 85) return "Excellent";
+  if (pct >= 70) return "Satisfactory";
+  if (pct >= 50) return "Developing";
+  return "Not Yet";
+};
+
 const StudentProgressNew = () => {
   const { t } = useTranslation("student");
   const { user } = useAuth();
-  const { data } = useStudentProgress(user?.id);
+  const summary = useStudentAcademicSummary(user?.id);
 
-  const courseList = [
-    {
-      code: "CS301",
-      name: "Database Design",
-      band: "Satisfactory",
-      pct: 78,
-      clos: 5,
-      evidence: 12,
-      color: "bg-blue-600",
-    },
-    {
-      code: "AI101",
-      name: "AI Fundamentals",
-      band: "Excellent",
-      pct: 92,
-      clos: 4,
-      evidence: 9,
-      color: "bg-teal-500",
-    },
-    {
-      code: "CS205",
-      name: "Web Development",
-      band: "Developing",
-      pct: 62,
-      clos: 8,
-      evidence: 6,
-      color: "bg-blue-600",
-    },
-    {
-      code: "SE400",
-      name: "Software Engineering",
-      band: "Not Yet",
-      pct: 45,
-      clos: 6,
-      evidence: 3,
-      color: "bg-blue-600",
-    },
-  ];
+  const courseList = summary.data?.perCourse.length
+    ? summary.data.perCourse.map((c) => ({
+        code: c.course_code,
+        name: c.course_name,
+        band: getBandName(c.attainment_percent),
+        pct: c.attainment_percent,
+        clos: c.clo_count || 5,
+        evidence: c.evidence_count || 12,
+        color: c.attainment_percent >= 85 ? "bg-teal-500" : "bg-blue-600",
+      }))
+    : [
+        {
+          code: "CS301",
+          name: "Database Design",
+          band: "Satisfactory",
+          pct: 78,
+          clos: 5,
+          evidence: 12,
+          color: "bg-blue-600",
+        },
+        {
+          code: "AI101",
+          name: "AI Fundamentals",
+          band: "Excellent",
+          pct: 92,
+          clos: 4,
+          evidence: 9,
+          color: "bg-teal-500",
+        },
+        {
+          code: "CS205",
+          name: "Web Development",
+          band: "Developing",
+          pct: 62,
+          clos: 8,
+          evidence: 6,
+          color: "bg-blue-600",
+        },
+        {
+          code: "SE400",
+          name: "Software Engineering",
+          band: "Not Yet",
+          pct: 45,
+          clos: 6,
+          evidence: 3,
+          color: "bg-blue-600",
+        },
+      ];
 
   const closAttention = [
     { title: "Normalization (CLO3)", pct: 62, color: "bg-rose-500" },
@@ -111,7 +126,7 @@ const StudentProgressNew = () => {
               COURSES
             </p>
             <p className="text-xl font-black text-slate-900">
-              {data?.totalCourses || 4}
+              {summary.data?.activeCourseCount ?? 4}
             </p>
           </div>
         </PCard>
@@ -125,7 +140,7 @@ const StudentProgressNew = () => {
               AVERAGE
             </p>
             <p className="text-xl font-black text-emerald-600">
-              {data?.averageAttainment || 88}%{" "}
+              {summary.data?.averageMastery ?? 88}%{" "}
               <span className="text-xs text-emerald-500 font-bold">↑4</span>
             </p>
           </div>
@@ -140,7 +155,7 @@ const StudentProgressNew = () => {
               EXCELLENT
             </p>
             <p className="text-xl font-black text-slate-900">
-              {data?.excellentCount || 2}
+              {summary.data?.excellentCount ?? 2}
             </p>
           </div>
         </PCard>
@@ -154,7 +169,7 @@ const StudentProgressNew = () => {
               FOCUS ON
             </p>
             <p className="text-xl font-black text-rose-600">
-              {data?.notYetCount || 2}
+              {summary.data?.notYetCount ?? 2}
             </p>
           </div>
         </PCard>
@@ -171,7 +186,8 @@ const StudentProgressNew = () => {
             <p className="text-xs text-slate-600 font-medium mt-0.5">
               Spend 20 min on{" "}
               <span className="font-bold text-slate-900">
-                Database Normalization (CLO3)
+                {summary.data?.weakestClo?.title ??
+                  "Database Normalization (CLO3)"}
               </span>{" "}
               to reach Satisfactory. You're only 8% away!
             </p>
@@ -185,154 +201,86 @@ const StudentProgressNew = () => {
         </Button>
       </div>
 
-      {/* Main Grid + Right Rail */}
-      <div className="grid items-start gap-6 min-[1050px]:grid-cols-[minmax(0,1fr)_300px]">
-        {/* Course Progress & CLOs Needing Attention Grid */}
-        <div className="grid items-start gap-5 md:grid-cols-2">
-          {/* Progress by Course */}
-          <PCard className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="flex size-6 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                <BookOpen className="size-3.5" />
-              </span>
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                Progress by Course
-              </h2>
-            </div>
-            <div className="space-y-4">
-              {courseList.map((course) => (
-                <div key={course.code} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="text-[9px] font-bold py-0"
-                      >
-                        {course.code}
-                      </Badge>
-                      <Badge
-                        className={cn(
-                          "text-[9px] font-bold py-0",
-                          bandChipClass(course.pct)
-                        )}
-                      >
-                        {course.band}
-                      </Badge>
-                    </div>
-                    <span className="font-black text-slate-900">
-                      {course.pct}%
-                    </span>
+      {/* Course Progress & CLOs Needing Attention Grid (Main Content Only) */}
+      <div className="progress-main-grid grid items-start gap-5 grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.9fr)] w-full">
+        {/* Progress by Course */}
+        <PCard className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex size-6 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <BookOpen className="size-3.5" />
+            </span>
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
+              Progress by Course
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {courseList.map((course) => (
+              <div key={course.code} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="text-[9px] font-bold py-0"
+                    >
+                      {course.code}
+                    </Badge>
+                    <Badge
+                      className={cn(
+                        "text-[9px] font-bold py-0",
+                        bandChipClass(course.pct)
+                      )}
+                    >
+                      {course.band}
+                    </Badge>
                   </div>
-                  <p className="text-xs font-bold text-slate-900">
-                    {course.name}
-                  </p>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className={cn("h-full rounded-full", course.color)}
-                      style={{ width: `${course.pct}%` }}
-                    />
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    {course.clos} CLOs · {course.evidence} evidence
-                  </p>
+                  <span className="font-black text-slate-900">
+                    {course.pct}%
+                  </span>
                 </div>
-              ))}
-            </div>
-          </PCard>
-
-          {/* CLOs Needing Attention */}
-          <PCard className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="flex size-6 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
-                <Target className="size-3.5" />
-              </span>
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                CLOs Needing Attention
-              </h2>
-            </div>
-            <div className="space-y-4">
-              {closAttention.map((clo) => (
-                <div key={clo.title} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-900">
-                      {clo.title}
-                    </span>
-                    <span className="font-black text-rose-600">{clo.pct}%</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-rose-500"
-                      style={{ width: `${clo.pct}%` }}
-                    />
-                  </div>
+                <p className="text-xs font-bold text-slate-900">
+                  {course.name}
+                </p>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className={cn("h-full rounded-full", course.color)}
+                    style={{ width: `${course.pct}%` }}
+                  />
                 </div>
-              ))}
-            </div>
-          </PCard>
-        </div>
+                <p className="text-[10px] text-slate-400">
+                  {course.clos} CLOs · {course.evidence} evidence
+                </p>
+              </div>
+            ))}
+          </div>
+        </PCard>
 
-        {/* Right Rail */}
-        <div className="space-y-4">
-          {/* Focus Next */}
-          <PCard className="p-4 border-rose-100 bg-rose-50/20">
-            <p className="text-[10px] font-black uppercase tracking-wider text-rose-700">
-              🎯 FOCUS NEXT
-            </p>
-            <div className="mt-2.5 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-700">
-                  Normalization (CLO3)
-                </span>
-                <span className="font-black text-rose-600">62%</span>
+        {/* CLOs Needing Attention */}
+        <PCard className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex size-6 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+              <Target className="size-3.5" />
+            </span>
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
+              CLOs Needing Attention
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {closAttention.map((clo) => (
+              <div key={clo.title} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-900">{clo.title}</span>
+                  <span className="font-black text-rose-600">{clo.pct}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-rose-500"
+                    style={{ width: `${clo.pct}%` }}
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-700">
-                  REST APIs (CLO5)
-                </span>
-                <span className="font-black text-rose-600">48%</span>
-              </div>
-            </div>
-            <Link
-              to="/student/today"
-              className="mt-3 inline-block text-xs font-bold text-blue-600 hover:underline"
-            >
-              Review these →
-            </Link>
-          </PCard>
-
-          {/* Vs. Last Term */}
-          <PCard className="p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-              📈 VS. LAST TERM
-            </p>
-            <div className="mt-2.5 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">
-                  Avg attainment
-                </span>
-                <span className="font-black text-emerald-600">+9%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">On-time rate</span>
-                <span className="font-black text-emerald-600">+6%</span>
-              </div>
-            </div>
-          </PCard>
-
-          {/* Class Standing */}
-          <PCard className="p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-              ⏳ CLASS STANDING
-            </p>
-            <p className="mt-2 text-base font-black text-slate-900">Top 15%</p>
-            <Link
-              to="/student/leaderboard"
-              className="mt-2 inline-block text-xs font-bold text-blue-600 hover:underline"
-            >
-              See leaderboard →
-            </Link>
-          </PCard>
-        </div>
+            ))}
+          </div>
+        </PCard>
       </div>
     </div>
   );

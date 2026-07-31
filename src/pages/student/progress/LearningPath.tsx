@@ -17,6 +17,13 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PCard, Shimmer } from "@/design-system";
 import { useLearningPath } from "@/hooks/useLearningPath";
 import type { LearningPathNode } from "@/hooks/useLearningPath";
@@ -588,9 +595,6 @@ const JourneyView = ({
   return (
     <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
       <div className="min-w-0 space-y-4">
-        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
-          🏔️ {t("learningPath.bloomJourney", "BLOOM LEVELS • YOUR JOURNEY")}
-        </p>
         <PCard className="p-4 sm:p-5">
           {stages.map((stage, index) => (
             <JourneyStage
@@ -789,11 +793,18 @@ const KnowledgeTreeView = ({
 export interface LearningPathProps {
   courseId: string;
   studentId: string;
+  courses?: Array<{ id: string; code: string; name: string }>;
+  onSelectCourseId?: (id: string) => void;
 }
 
 import { LearningPathContext } from "./LearningPathContext";
 
-const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
+const LearningPath = ({
+  courseId,
+  studentId,
+  courses,
+  onSelectCourseId,
+}: LearningPathProps) => {
   const { t } = useTranslation("student");
   const [view, setView] = useState<PathView>("journey");
   const [selectedStageKey, setSelectedStageKey] =
@@ -806,7 +817,7 @@ const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
   const contextValue = useMemo(
     () => ({
       selectedCourseId: courseId,
-      setSelectedCourseId: () => {},
+      setSelectedCourseId: onSelectCourseId ?? (() => {}),
       selectedStageKey,
       setSelectedStageKey,
       stages,
@@ -815,7 +826,15 @@ const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
       setView,
       isLoading,
     }),
-    [courseId, selectedStageKey, stages, currentStage, view, isLoading]
+    [
+      courseId,
+      onSelectCourseId,
+      selectedStageKey,
+      stages,
+      currentStage,
+      view,
+      isLoading,
+    ]
   );
 
   if (isLoading) {
@@ -847,7 +866,8 @@ const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
 
   return (
     <LearningPathContext.Provider value={contextValue}>
-      <div className="space-y-4">
+      <div className="learning-path-page space-y-3">
+        {/* View Mode Tabs: Journey | Knowledge Tree */}
         <div className="inline-flex gap-1 rounded-[14px] border border-slate-200 bg-white p-1 shadow-2xs">
           <Button
             type="button"
@@ -881,6 +901,40 @@ const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
             <TreePine className="me-1.5 size-3.5" aria-hidden="true" />
             {t("learningPath.views.tree")}
           </Button>
+        </div>
+
+        {/* Toolbar: Section Heading + Far-Right Course Selector */}
+        <div className="learning-path-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full my-2">
+          <div className="learning-path-section-title flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
+            <span>🏔️</span>
+            <span>
+              {t("learningPath.bloomJourney", "BLOOM LEVELS · YOUR JOURNEY")}
+            </span>
+          </div>
+
+          {courses && courses.length > 0 && onSelectCourseId && (
+            <div className="learning-path-course-selector w-full sm:w-64 shrink-0">
+              <Select value={courseId} onValueChange={onSelectCourseId}>
+                <SelectTrigger
+                  className="h-8 w-full border-slate-200 bg-white font-extrabold text-slate-800 shadow-2xs text-xs rounded-xl"
+                  aria-label={t("learningPath.coursePicker")}
+                >
+                  <SelectValue placeholder={t("learningPath.coursePicker")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((c) => (
+                    <SelectItem
+                      key={c.id}
+                      value={c.id}
+                      className="text-xs font-bold"
+                    >
+                      {c.code} — {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {view === "journey" ? (

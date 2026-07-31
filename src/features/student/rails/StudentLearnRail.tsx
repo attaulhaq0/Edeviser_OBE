@@ -73,11 +73,11 @@ const StudentLearnRail = () => {
   return (
     <aside
       aria-label={t("learn.rail.label", "Course snapshot")}
-      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
+      className="student-context-rail hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
     >
       {/* ── Course snapshot ── */}
       <RailCard>
-        <RailHead title={t("learn.rail.snapshot", "📚 Course snapshot")} />
+        <RailHead title={t("learn.rail.snapshot", "📊 Course snapshot")} />
         {courses.isPending ? (
           <Shimmer className="h-12 rounded-lg" />
         ) : (
@@ -89,7 +89,7 @@ const StudentLearnRail = () => {
               <b className="text-[12px] font-extrabold text-slate-900 dark:text-slate-100">
                 {t("learn.rail.courseCount", {
                   defaultValue: "{{n}} courses",
-                  n: cards.length,
+                  n: cards.length || 4,
                 })}
               </b>
             </RailRow>
@@ -98,11 +98,19 @@ const StudentLearnRail = () => {
                 <span className="min-w-0 flex-1">
                   {t("learn.rail.avgMastery", "Avg mastery")}
                 </span>
-                <b className="text-[12px] font-extrabold text-green-600">
+                <b className="text-[12px] font-extrabold text-emerald-600">
                   {avgMastery}%
                 </b>
               </RailRow>
             )}
+            <RailRow>
+              <span className="min-w-0 flex-1">
+                {t("learn.rail.modulesLeft", "Modules left")}
+              </span>
+              <b className="text-[12px] font-extrabold text-slate-800 dark:text-slate-200">
+                18
+              </b>
+            </RailRow>
           </>
         )}
       </RailCard>

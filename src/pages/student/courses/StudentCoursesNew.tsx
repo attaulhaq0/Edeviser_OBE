@@ -16,6 +16,8 @@ import { Check, ChevronRight, FileText } from "lucide-react";
 import { isAfter, isThisWeek, isToday, startOfDay } from "date-fns";
 
 import { Button, PCard, Shimmer } from "@/design-system";
+import { useAuth } from "@/hooks/useAuth";
+import { useStudentCourses } from "@/hooks/useStudentCourses";
 import { useStudentAssignments } from "@/hooks/useSubmissions";
 import type { StudentAssignment } from "@/hooks/useSubmissions";
 
@@ -29,7 +31,9 @@ const assignmentDue = (assignment: StudentAssignment): Date | null => {
 
 const StudentCoursesNew = () => {
   const { t } = useTranslation("student");
+  const { user } = useAuth();
   const assignments = useStudentAssignments();
+  const enrolledCourses = useStudentCourses(user?.id);
 
   const taskGroups = useMemo(() => {
     const today = startOfDay(new Date());
@@ -97,25 +101,24 @@ const StudentCoursesNew = () => {
         </div>
       </div>
 
-      <div className="w-full space-y-6">
-        {/* Main Content Column */}
-        <div className="space-y-6 min-w-0 w-full">
-          {/* Due Today & This Week */}
-          <div className="grid items-start gap-5 lg:grid-cols-2">
-            <section aria-labelledby="due-today-heading">
-              <div className="mb-2.5 flex items-center gap-2">
-                <span className="size-2 rounded-full bg-amber-500" />
-                <h2
-                  id="due-today-heading"
-                  className="text-xs font-black uppercase tracking-widest text-amber-600"
-                >
-                  DUE TODAY ({taskGroups.dueToday.length || 1})
-                </h2>
-              </div>
-              {assignments.isLoading ? (
-                <Shimmer className="h-44 rounded-2xl" />
-              ) : (
-                <PCard className="border-amber-200 bg-gradient-to-br from-amber-50/60 to-white p-4 shadow-sm">
+      <div className="w-full space-y-6 min-w-0">
+        {/* Urgent Work Area: Due Today & This Week */}
+        <div className="tasks-priority-grid grid items-stretch gap-5 grid-cols-1 md:grid-cols-2">
+          <section aria-labelledby="due-today-heading">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="size-2 rounded-full bg-amber-500" />
+              <h2
+                id="due-today-heading"
+                className="text-xs font-black uppercase tracking-widest text-amber-600"
+              >
+                DUE TODAY ({taskGroups.dueToday.length || 1})
+              </h2>
+            </div>
+            {assignments.isLoading ? (
+              <Shimmer className="h-44 rounded-2xl" />
+            ) : (
+              <PCard className="border-amber-200 bg-gradient-to-br from-amber-50/60 to-white p-4 shadow-sm h-[calc(100%-1.75rem)] flex flex-col justify-between">
+                <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <span className="inline-flex rounded-full bg-amber-100/90 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-700">
@@ -135,325 +138,266 @@ const StudentCoursesNew = () => {
                       <FileText className="size-5" aria-hidden="true" />
                     </span>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      asChild
-                      variant="tactile"
-                      className="flex-1 bg-cyan-600 text-white font-bold h-9"
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    asChild
+                    variant="tactile"
+                    className="flex-1 bg-cyan-600 text-white font-bold h-9"
+                  >
+                    <Link
+                      to={
+                        dueToday
+                          ? `/student/assignments/${dueToday.id}`
+                          : "/student/assignments"
+                      }
                     >
-                      <Link
-                        to={
-                          dueToday
-                            ? `/student/assignments/${dueToday.id}`
-                            : "/student/assignments"
-                        }
-                      >
-                        Submit now → +25 XP
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="h-9 border-teal-200 bg-teal-50 text-teal-700 font-bold"
-                    >
-                      <Link to="/student/tutor">🤖 Help</Link>
-                    </Button>
-                  </div>
-                </PCard>
-              )}
-            </section>
+                      Submit now → +25 XP
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-9 border-teal-200 bg-teal-50 text-teal-700 font-bold"
+                  >
+                    <Link to="/student/tutor">🤖 Help</Link>
+                  </Button>
+                </div>
+              </PCard>
+            )}
+          </section>
 
-            <section aria-labelledby="this-week-heading">
-              <h2
-                id="this-week-heading"
-                className="mb-2.5 text-xs font-black uppercase tracking-widest text-slate-400"
-              >
-                THIS WEEK ({taskGroups.thisWeek.length || 3})
-              </h2>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-slate-800">
-                      Web Dev Quiz
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      Wednesday · 15 marks
-                    </p>
-                  </div>
-                  <span className="text-xs font-black text-amber-600">
-                    +15 XP
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-slate-800">
-                      AI Research Essay
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      Friday · 30 marks
-                    </p>
-                  </div>
-                  <span className="text-xs font-black text-amber-600">
-                    +30 XP
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-slate-800">
-                      SE Project Milestone
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      Next Monday · 50 marks
-                    </p>
-                  </div>
-                  <span className="text-xs font-black text-amber-600">
-                    +50 XP
-                  </span>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          {/* My Courses 2x2 Grid */}
-          <section aria-labelledby="my-courses-heading">
+          <section
+            aria-labelledby="this-week-heading"
+            className="flex flex-col"
+          >
             <h2
-              id="my-courses-heading"
-              className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400"
+              id="this-week-heading"
+              className="mb-2.5 text-xs font-black uppercase tracking-widest text-slate-400"
             >
-              MY COURSES
+              THIS WEEK ({taskGroups.thisWeek.length || 3})
             </h2>
-            <div className="grid w-full min-w-0 gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full bg-blue-600" />
-                    <h3 className="text-sm font-bold text-slate-900">
-                      Database Design
-                    </h3>
-                  </div>
-                  <span className="text-sm font-black text-blue-600">72%</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-blue-600"
-                    style={{ width: "72%" }}
-                  />
-                </div>
-                <div className="mt-2.5 flex items-center justify-between text-xs">
-                  <p className="text-slate-400 text-[11px]">
-                    Next: Assignment 3 (today) · Prof. Ahmed
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-slate-800">
+                    Web Dev Quiz
                   </p>
-                  <Link
-                    to="/student/courses"
-                    className="font-bold text-blue-600 hover:underline"
-                  >
-                    Continue →
-                  </Link>
+                  <p className="text-[10px] text-slate-400">
+                    Wednesday · 15 marks
+                  </p>
                 </div>
+                <span className="text-xs font-black text-amber-600">
+                  +15 XP
+                </span>
               </div>
-
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full bg-blue-600" />
-                    <h3 className="text-sm font-bold text-slate-900">
-                      Web Development
-                    </h3>
-                  </div>
-                  <span className="text-sm font-black text-blue-600">45%</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-blue-600"
-                    style={{ width: "45%" }}
-                  />
-                </div>
-                <div className="mt-2.5 flex items-center justify-between text-xs">
-                  <p className="text-slate-400 text-[11px]">
-                    Next: Quiz (Wed) · Prof. Fatima
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-slate-800">
+                    AI Research Essay
                   </p>
-                  <Link
-                    to="/student/courses"
-                    className="font-bold text-blue-600 hover:underline"
-                  >
-                    Continue →
-                  </Link>
+                  <p className="text-[10px] text-slate-400">
+                    Friday · 30 marks
+                  </p>
                 </div>
+                <span className="text-xs font-black text-amber-600">
+                  +30 XP
+                </span>
               </div>
-
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full bg-teal-500" />
-                    <h3 className="text-sm font-bold text-slate-900">
-                      AI Fundamentals
-                    </h3>
-                  </div>
-                  <span className="text-sm font-black text-teal-600">88%</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-teal-500"
-                    style={{ width: "88%" }}
-                  />
-                </div>
-                <div className="mt-2.5 flex items-center justify-between text-xs">
-                  <p className="text-slate-400 text-[11px]">
-                    Next: Essay (Fri) · Prof. Khalid
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-slate-800">
+                    SE Project Milestone
                   </p>
-                  <Link
-                    to="/student/courses"
-                    className="font-bold text-blue-600 hover:underline"
-                  >
-                    Continue →
-                  </Link>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full bg-blue-600" />
-                    <h3 className="text-sm font-bold text-slate-900">
-                      Software Engineering
-                    </h3>
-                  </div>
-                  <span className="text-sm font-black text-blue-600">30%</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-blue-600"
-                    style={{ width: "30%" }}
-                  />
-                </div>
-                <div className="mt-2.5 flex items-center justify-between text-xs">
-                  <p className="text-slate-400 text-[11px]">
-                    Next: Milestone (Mon) · Prof. Noor
+                  <p className="text-[10px] text-slate-400">
+                    Next Monday · 50 marks
                   </p>
-                  <Link
-                    to="/student/courses"
-                    className="font-bold text-blue-600 hover:underline"
-                  >
-                    Continue →
-                  </Link>
                 </div>
+                <span className="text-xs font-black text-amber-600">
+                  +50 XP
+                </span>
               </div>
             </div>
+            <div className="mt-2.5 text-end">
+              <Link
+                to="/student/assignments"
+                className="text-xs font-extrabold text-blue-600 hover:underline"
+              >
+                View all tasks →
+              </Link>
+            </div>
           </section>
+        </div>
 
-          {/* Recently Graded */}
-          <section aria-labelledby="recently-graded-heading">
-            <PCard className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex size-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                    <Check className="size-3.5 stroke-[3]" />
-                  </span>
-                  <h2
-                    id="recently-graded-heading"
-                    className="text-xs font-black uppercase tracking-wider text-slate-900"
-                  >
-                    Recently graded
-                  </h2>
-                </div>
-                <Link
-                  to="/student/grading"
-                  className="text-xs font-bold text-blue-600 hover:underline"
-                >
-                  All results →
-                </Link>
-              </div>
-
-              <div className="divide-y divide-slate-100">
-                {recentGraded.map((item) => (
+        {/* My Courses Full-Width Responsive Auto-Fit Grid */}
+        <section aria-labelledby="my-courses-heading">
+          <h2
+            id="my-courses-heading"
+            className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400"
+          >
+            MY COURSES
+          </h2>
+          {enrolledCourses.isLoading ? (
+            <div className="grid w-full min-w-0 gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))]">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Shimmer key={i} className="h-32 rounded-2xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="my-courses-grid grid w-full min-w-0 gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))]">
+              {(enrolledCourses.data && enrolledCourses.data.length > 0
+                ? enrolledCourses.data
+                : [
+                    {
+                      id: "c1",
+                      code: "CS301",
+                      name: "Database Design",
+                      attainment_percent: 72,
+                      teacher_name: "Prof. Ahmed",
+                      next_assignment: {
+                        title: "Assignment 3",
+                        due_at: "today",
+                      },
+                    },
+                    {
+                      id: "c2",
+                      code: "CS205",
+                      name: "Web Development",
+                      attainment_percent: 45,
+                      teacher_name: "Prof. Fatima",
+                      next_assignment: { title: "Quiz", due_at: "Wed" },
+                    },
+                    {
+                      id: "c3",
+                      code: "AI101",
+                      name: "AI Fundamentals",
+                      attainment_percent: 88,
+                      teacher_name: "Prof. Khalid",
+                      next_assignment: { title: "Essay", due_at: "Fri" },
+                    },
+                    {
+                      id: "c4",
+                      code: "SE400",
+                      name: "Software Engineering",
+                      attainment_percent: 30,
+                      teacher_name: "Prof. Noor",
+                      next_assignment: { title: "Milestone", due_at: "Mon" },
+                    },
+                  ]
+              ).map((c) => {
+                const pct = c.attainment_percent ?? 0;
+                return (
                   <div
-                    key={item.id}
-                    className="flex items-center justify-between py-3"
+                    key={c.id}
+                    className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs flex flex-col justify-between"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-bold text-slate-900">
-                        {item.title}
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        {item.course} · {item.date} ·{" "}
-                        <span className="text-emerald-600 font-bold">
-                          {item.xp}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="size-2.5 rounded-full shrink-0"
+                            style={{
+                              backgroundColor:
+                                pct >= 80
+                                  ? "#0d9488"
+                                  : pct >= 60
+                                  ? "#2563eb"
+                                  : "#d97706",
+                            }}
+                          />
+                          <h3 className="text-sm font-bold text-slate-900 truncate">
+                            {c.name}
+                          </h3>
+                        </div>
+                        <span className="text-sm font-black text-blue-600 shrink-0 ms-2">
+                          {pct}%
                         </span>
-                      </p>
+                      </div>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor:
+                              pct >= 80
+                                ? "#0d9488"
+                                : pct >= 60
+                                ? "#2563eb"
+                                : "#d97706",
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-emerald-600">
-                        {item.score}
-                      </span>
-                      <ChevronRight className="size-4 text-slate-300" />
+                    <div className="mt-3 flex items-center justify-between text-xs pt-1 border-t border-slate-50">
+                      <p className="text-slate-400 text-[11px] truncate min-w-0 flex-1 me-2">
+                        Next: {c.next_assignment?.title ?? "Assignment"}
+                        {c.teacher_name ? ` · ${c.teacher_name}` : ""}
+                      </p>
+                      <Link
+                        to={`/student/courses/${c.id}`}
+                        className="font-bold text-blue-600 hover:underline shrink-0"
+                      >
+                        Continue →
+                      </Link>
                     </div>
                   </div>
-                ))}
-              </div>
-            </PCard>
-          </section>
-        </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-        {/* Right Rail Column */}
-        <div className="space-y-4">
-          {/* Course Snapshot */}
+        {/* Recently Graded */}
+        <section aria-labelledby="recently-graded-heading">
           <PCard className="p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-              📊 COURSE SNAPSHOT
-            </p>
-            <div className="mt-3 space-y-2.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Enrolled</span>
-                <span className="font-black text-slate-800">5 courses</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="flex size-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <Check className="size-3.5 stroke-[3]" />
+                </span>
+                <h2
+                  id="recently-graded-heading"
+                  className="text-xs font-black uppercase tracking-wider text-slate-900"
+                >
+                  Recently graded
+                </h2>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Avg mastery</span>
-                <span className="font-black text-emerald-600">59%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Modules left</span>
-                <span className="font-black text-slate-800">18</span>
-              </div>
+              <Link
+                to="/student/grading"
+                className="text-xs font-bold text-blue-600 hover:underline"
+              >
+                All results →
+              </Link>
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {recentGraded.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-slate-900">
+                      {item.title}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {item.course} · {item.date} ·{" "}
+                      <span className="text-emerald-600 font-bold">
+                        {item.xp}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-emerald-600">
+                      {item.score}
+                    </span>
+                    <ChevronRight className="size-4 text-slate-300" />
+                  </div>
+                </div>
+              ))}
             </div>
           </PCard>
-
-          {/* Next Deadline */}
-          <PCard className="p-4 border-amber-100 bg-amber-50/40">
-            <p className="text-[10px] font-black uppercase tracking-wider text-amber-700">
-              🚨 NEXT DEADLINE
-            </p>
-            <h3 className="mt-2 text-sm font-black text-slate-900">
-              DB Assignment 3
-            </h3>
-            <p className="text-[10px] text-slate-500">
-              Due in 4 hours ·{" "}
-              <span className="font-bold text-amber-600">+25 XP</span>
-            </p>
-            <Button
-              asChild
-              className="mt-3 w-full bg-cyan-600 text-white font-bold h-8 text-xs"
-            >
-              <Link to="/student/assignments">Start now →</Link>
-            </Button>
-          </PCard>
-
-          {/* Weakest CLO */}
-          <PCard className="p-4 border-rose-100 bg-rose-50/30">
-            <p className="text-[10px] font-black uppercase tracking-wider text-rose-700">
-              🎯 WEAKEST CLO
-            </p>
-            <div className="mt-2 flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-800">Normalization</span>
-              <span className="font-black text-rose-600">62%</span>
-            </div>
-            <Link
-              to="/student/learning-path"
-              className="mt-2 inline-block text-xs font-bold text-blue-600 hover:underline"
-            >
-              Fix it on your path →
-            </Link>
-          </PCard>
-        </div>
+        </section>
       </div>
     </div>
   );
