@@ -11,7 +11,8 @@ describe("prototype application shell layout", () => {
 
     expect(tokens).toContain("--app-content-max: 82.5rem");
     expect(tokens).not.toContain("--app-content-max: 48rem");
-    expect(shell).toContain("max-w-[var(--app-content-max)]");
+    // max-width is only applied when a rail is present
+    expect(shell).toContain("max-w-[var(--app-content-max)] mx-auto");
     expect(shell).toContain(
       "grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)_var(--app-rail-w)]"
     );
@@ -30,13 +31,17 @@ describe("prototype application shell layout", () => {
     expect(rail).not.toContain("min-[1100px]:block");
   });
 
-  it("does not add a fourth rail beside the Learning Path detail panel", () => {
+  it("renders the Learning Path without the app shell rail (own internal layout)", () => {
     const studentLayout = source("../../pages/student/StudentLayout.tsx");
 
+    // The learning path route has a dedicated no-rail code path
     expect(studentLayout).toContain(
       'location.pathname === "/student/learning-path"'
     );
+    // It renders without a rail prop
     expect(studentLayout).toContain('<RoleAppShell userRole="student">');
+    // It does NOT use the StudentLearningPathRail in the STUDENT_RAILS array
+    expect(studentLayout).not.toContain("StudentLearningPathRail");
   });
 
   it("owns page-view logging once in the shared shell", () => {

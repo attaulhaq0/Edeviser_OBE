@@ -56,8 +56,8 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
             >
               <div
                 className={cn(
-                  "w-full max-w-[var(--app-content-max)]",
-                  hasRail && "mx-auto"
+                  "w-full min-w-0",
+                  hasRail && "max-w-[var(--app-content-max)] mx-auto"
                 )}
               >
                 {children}

@@ -11,7 +11,6 @@ import StudentFallbackRail from "@/features/student/rails/StudentFallbackRail";
 import StudentProfileRail from "@/features/student/rails/StudentProfileRail";
 import StudentLearningProfileRail from "@/features/student/rails/StudentLearningProfileRail";
 import StudentSettingsRail from "@/features/student/rails/StudentSettingsRail";
-import StudentLearningPathRail from "@/features/student/rails/StudentLearningPathRail";
 
 const OnboardingWizard = lazy(
   () => import("@/pages/student/onboarding/OnboardingWizard")
@@ -29,7 +28,7 @@ const STUDENT_RAILS: ReadonlyArray<{
 }> = [
   { test: /^\/student\/dashboard$/, Rail: StudentDashboardRail },
   { test: /^\/student\/courses(\/[^/]+)?$/, Rail: StudentLearnRail },
-  { test: /^\/student\/learning-path$/, Rail: StudentLearningPathRail },
+
   { test: /^\/student\/progress$/, Rail: StudentProgressRail },
   { test: /^\/student\/journal$/, Rail: StudentJournalRail },
   { test: /^\/student\/assignments\/[^/]+$/, Rail: StudentAssignmentRail },
@@ -72,8 +71,19 @@ const StudentLayout = () => {
     );
   }
 
+  // The learning path page manages its own internal 2-column layout (journey
+  // timeline + stage detail panel) so it renders WITHOUT the app shell rail.
+  // This gives its content the full viewport width after the sidebar.
+  if (location.pathname === "/student/learning-path") {
+    return (
+      <RoleAppShell userRole="student">
+        <Outlet />
+      </RoleAppShell>
+    );
+  }
+
   // Select the contextual right rail for the current student route (if any) and
-  // reserve its width (xl:me-80) so the feed sits in a true 3-column shell
+  // reserve its width so the feed sits in a true 3-column shell
   // (sidebar · feed · rail) instead of stretching under the rail.
   const ActiveRail =
     STUDENT_RAILS.find((r) => r.test.test(location.pathname))?.Rail ??
