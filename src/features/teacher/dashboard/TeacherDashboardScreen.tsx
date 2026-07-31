@@ -492,64 +492,65 @@ const TeacherDashboardScreen = () => {
             {t("dashboard.triage.error", "Couldn't load student triage.")}
           </div>
         ) : visibleTriage.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {visibleTriage.map((s) => {
               const sev = severityOf(s);
               const style = SEVERITY_STYLE[sev];
               return (
                 <div
                   key={s.id}
-                  className="overflow-hidden rounded-[20px] border border-[#eef2f6] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]"
+                  className="student-triage-row flex flex-col gap-3 rounded-2xl border border-[#eef2f6] bg-white p-3.5 shadow-xs transition-all hover:border-slate-200 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={cn(
-                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-black",
-                          style.lead
-                        )}
-                      >
-                        {initials(s.full_name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-gray-900">
-                            {s.full_name}
-                          </p>
-                          <span
-                            className={cn(
-                              "rounded-full border px-2 py-0.5 text-[10px] font-bold",
-                              style.pill
-                            )}
-                          >
-                            {style.label}
-                          </span>
-                        </div>
-                        {s.risk_reasons.length > 0 && (
-                          <p className="mt-1 text-xs text-gray-600">
-                            {s.risk_reasons.join(" · ")}
-                          </p>
-                        )}
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <Button
-                            variant="tactile"
-                            className="h-8 px-3 text-xs"
-                            disabled={sendNudge.isPending}
-                            onClick={() => nudge(s.id, s.full_name)}
-                          >
-                            <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-                            {t("dashboard.triage.nudge", "Send nudge")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="h-8 px-3 text-xs"
-                            onClick={() => navigate("/teacher/students")}
-                          >
-                            {t("dashboard.triage.view", "View student")}
-                          </Button>
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      className={cn(
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black",
+                        style.lead
+                      )}
+                    >
+                      {initials(s.full_name)}
                     </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {s.full_name}
+                        </p>
+                        <span
+                          className={cn(
+                            "rounded-full border px-2 py-0.5 text-[10px] font-bold shrink-0",
+                            style.pill
+                          )}
+                        >
+                          {style.label}
+                        </span>
+                      </div>
+                      {s.risk_reasons.length > 0 && (
+                        <p className="mt-0.5 truncate text-xs text-gray-600">
+                          {s.risk_reasons.join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="tactile"
+                      className="h-8 px-3 text-xs flex-1 sm:flex-none justify-center"
+                      disabled={sendNudge.isPending}
+                      onClick={() => nudge(s.id, s.full_name)}
+                      aria-label={`Send nudge to ${s.full_name}`}
+                    >
+                      <Bell className="h-3.5 w-3.5 me-1" aria-hidden="true" />
+                      {t("dashboard.triage.nudge", "Send nudge")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-8 px-3 text-xs flex-1 sm:flex-none justify-center"
+                      onClick={() => navigate("/teacher/students")}
+                      aria-label={`View ${s.full_name}`}
+                    >
+                      {t("dashboard.triage.view", "View student")}
+                    </Button>
                   </div>
                 </div>
               );
@@ -586,19 +587,20 @@ const TeacherDashboardScreen = () => {
         <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={AlertTriangle}
-            title={t(
-              "dashboard.prediction.title",
-              "At-risk students · AI prediction"
-            )}
+            title={t("dashboard.prediction.title", "Student risk signals")}
             action={
               predictions.data && predictions.data.length > 0 ? (
-                <span className="rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                <span className="rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                   {t("dashboard.prediction.flagged", {
-                    defaultValue: "{{n}} flagged",
+                    defaultValue: "{{n}} AI model flagged",
                     n: predictions.data.length,
                   })}
                 </span>
-              ) : undefined
+              ) : (
+                <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                  Standard rules active
+                </span>
+              )
             }
           />
           <div className="mt-3">
@@ -699,7 +701,7 @@ const TeacherDashboardScreen = () => {
                         <Button
                           variant="outline"
                           className="h-8 px-3 text-xs"
-                          onClick={() => navigate("/teacher/gradebook")}
+                          onClick={() => navigate("/teacher/students")}
                         >
                           {t("dashboard.triage.view", "View student")}
                         </Button>
@@ -709,12 +711,20 @@ const TeacherDashboardScreen = () => {
                 })}
               </div>
             ) : (
-              <p className="py-6 text-center text-sm text-gray-500">
-                {t(
-                  "dashboard.prediction.empty",
-                  "No AI risk predictions right now."
-                )}
-              </p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-center">
+                <p className="text-xs font-bold text-slate-700">
+                  {t(
+                    "dashboard.prediction.emptyTitle",
+                    `Rule-based risk: ${triageStudents.length} students flagged`
+                  )}
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {t(
+                    "dashboard.prediction.emptySubtitle",
+                    "AI predictive model: Not configured · Active signals are tracked via standard attendance & CLO rules."
+                  )}
+                </p>
+              </div>
             )}
           </div>
         </div>

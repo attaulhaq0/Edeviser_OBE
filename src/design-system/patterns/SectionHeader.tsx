@@ -30,11 +30,8 @@ const SectionHeader = ({
 }: SectionHeaderProps) => (
   <div className={cn("flex items-center gap-2", className)}>
     {Icon && (
-      // Prototype `.sec-h .chip`: 26px gradient chip, 9px radius, 14px glyph,
-      // teal-tinted drop shadow (verbatim from shared.css).
       <span
-        className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[9px] text-white shadow-[0_3px_8px_rgba(20,184,166,0.25)]"
-        style={{ background: "var(--brand-gradient)" }}
+        className="inline-flex size-[28px] shrink-0 items-center justify-center rounded-[9px] border border-slate-200/80 bg-white/80 text-sky-700 backdrop-blur-xs shadow-none"
         aria-hidden="true"
       >
         <Icon className="h-3.5 w-3.5" />

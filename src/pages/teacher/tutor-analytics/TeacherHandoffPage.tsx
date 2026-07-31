@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { GradientCardHeader, Shimmer } from "@/design-system";
 import { InlineNoData } from "@/components/shared/EmptyState";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeacherCourses } from "@/hooks/useCourses";
 import {
@@ -107,6 +108,9 @@ const TeacherHandoffPage = () => {
   const { data: paginatedCourses, isLoading: coursesLoading } =
     useTeacherCourses();
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [statusTab, setStatusTab] = useState<
+    "pending" | "resolved" | "dismissed"
+  >("pending");
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
   const [selectedHandoff, setSelectedHandoff] =
     useState<TeacherHandoffRequest | null>(null);
@@ -128,10 +132,20 @@ const TeacherHandoffPage = () => {
     useTutorAnalytics(effectiveCourseId);
   const respondMutation = useRespondToHandoff();
 
-  const pendingHandoffs = useMemo(
-    () => (handoffs ?? []).filter((h) => h.status === "pending"),
-    [handoffs]
+  const filteredHandoffs = useMemo(
+    () => (handoffs ?? []).filter((h) => h.status === statusTab),
+    [handoffs, statusTab]
   );
+
+  const pendingCount = (handoffs ?? []).filter(
+    (h) => h.status === "pending"
+  ).length;
+  const resolvedCount = (handoffs ?? []).filter(
+    (h) => h.status === "resolved"
+  ).length;
+  const dismissedCount = (handoffs ?? []).filter(
+    (h) => h.status === "dismissed"
+  ).length;
 
   const isLoading = coursesLoading || handoffsLoading || analyticsLoading;
 
@@ -199,31 +213,97 @@ const TeacherHandoffPage = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">AI Tutor Handoffs</h1>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            AI Tutor Handoffs
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Review escalated student requests where AI tutor assistance required
+            human intervention.
+          </p>
+        </div>
+
+        {/* Course Selector */}
+        {coursesLoading ? (
+          <Shimmer className="h-9 w-56" />
+        ) : teacherCourses.length > 1 ? (
+          <Select value={effectiveCourseId} onValueChange={setSelectedCourseId}>
+            <SelectTrigger className="w-56 bg-white">
+              <SelectValue placeholder="Select course" />
+            </SelectTrigger>
+            <SelectContent>
+              {teacherCourses.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
+                  {course.code} — {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
       </div>
 
-      {/* Course Selector */}
-      {coursesLoading ? (
-        <Shimmer className="h-9 w-56" />
-      ) : teacherCourses.length > 1 ? (
-        <Select value={effectiveCourseId} onValueChange={setSelectedCourseId}>
-          <SelectTrigger className="w-56 bg-white">
-            <SelectValue placeholder="Select course" />
-          </SelectTrigger>
-          <SelectContent>
-            {teacherCourses.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
-                {course.code} — {course.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ) : null}
+      {/* Information / Consent Banner */}
+      <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 text-xs text-blue-900 shadow-xs flex items-start gap-3">
+        <ShieldAlert
+          className="h-5 w-5 text-blue-600 shrink-0 mt-0.5"
+          aria-hidden="true"
+        />
+        <div>
+          <p className="font-bold">Student Consent & Safeguarding Notice</p>
+          <p className="mt-0.5 leading-relaxed text-blue-800">
+            Escalated conversation context is shared in compliance with
+            institutional guidelines and student consent. Responses you submit
+            are sent directly to the student's tutor workspace.
+          </p>
+        </div>
+      </div>
 
-      {/* 18.5.1: Pending Handoff Requests */}
+      {/* Status Tabs: Pending | Resolved | Dismissed */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+        {[
+          { key: "pending" as const, label: "Pending", count: pendingCount },
+          { key: "resolved" as const, label: "Resolved", count: resolvedCount },
+          {
+            key: "dismissed" as const,
+            label: "Dismissed",
+            count: dismissedCount,
+          },
+        ].map(({ key, label, count }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setStatusTab(key)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors",
+              statusTab === key
+                ? "bg-slate-900 text-white border-slate-900"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            )}
+          >
+            {label}
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0.5 text-[10px] font-black",
+                statusTab === key
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-100 text-slate-600"
+              )}
+            >
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Requests List */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={Handshake} title="Pending Handoff Requests" />
+        <GradientCardHeader
+          icon={Handshake}
+          title={`${
+            statusTab.charAt(0).toUpperCase() + statusTab.slice(1)
+          } Handoff Requests`}
+        />
         <div className="p-6">
           {isLoading ? (
             <div className="space-y-3">
@@ -231,13 +311,13 @@ const TeacherHandoffPage = () => {
                 <Shimmer key={i} className="h-24 rounded-lg" />
               ))}
             </div>
-          ) : pendingHandoffs.length === 0 ? (
+          ) : filteredHandoffs.length === 0 ? (
             <div className="flex items-center justify-center h-32 text-sm text-gray-500">
-              No pending handoff requests.
+              No {statusTab} handoff requests.
             </div>
           ) : (
             <div className="space-y-3">
-              {pendingHandoffs.map((handoff) => (
+              {filteredHandoffs.map((handoff) => (
                 <div
                   key={handoff.id}
                   className="border border-slate-200 rounded-lg p-4 space-y-2"
@@ -259,21 +339,31 @@ const TeacherHandoffPage = () => {
                       Suggested: {handoff.suggested_intervention}
                     </p>
                   )}
+                  {handoff.teacher_response && (
+                    <div className="rounded-md bg-green-50 p-2.5 text-xs text-green-900 border border-green-100">
+                      <span className="font-bold">Teacher Response: </span>
+                      {handoff.teacher_response}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 pt-1">
-                    <Button
-                      size="sm"
-                      onClick={() => handleRespond(handoff)}
-                      variant="tactile"
-                    >
-                      Respond
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDismiss(handoff)}
-                    >
-                      Dismiss
-                    </Button>
+                    {handoff.status === "pending" && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handleRespond(handoff)}
+                          variant="tactile"
+                        >
+                          Respond & Resolve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDismiss(handoff)}
+                        >
+                          Dismiss
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
