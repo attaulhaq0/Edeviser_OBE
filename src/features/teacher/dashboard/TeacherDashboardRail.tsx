@@ -158,7 +158,7 @@ const TeacherDashboardRail = () => {
               </RailRow>
             ))}
             <RailLink
-              to="/teacher/gradebook"
+              to="/teacher/students"
               label={t("dashboard.rail.viewAllAtRisk", "View all at-risk →")}
             />
           </div>

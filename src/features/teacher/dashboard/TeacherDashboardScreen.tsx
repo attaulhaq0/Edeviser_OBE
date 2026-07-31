@@ -221,7 +221,7 @@ const TeacherDashboardScreen = () => {
     getDisplayFirstName(profile?.full_name) ??
     t("dashboard.teacherFallback", "Teacher");
 
-  // ── Triage grouping (real data, derived severity) ──
+  // ── Triage grouping (real data, derived severity, MAX 3 ON DASHBOARD) ──
   const [triTab, setTriTab] = useState<Severity | null>(null);
   const triageStudents = useMemo(() => atRisk.data ?? [], [atRisk.data]);
   const buckets = useMemo(() => {
@@ -229,7 +229,10 @@ const TeacherDashboardScreen = () => {
     for (const s of triageStudents) b[severityOf(s)].push(s);
     return b;
   }, [triageStudents]);
-  const visibleTriage = triTab ? buckets[triTab] : triageStudents;
+  const visibleTriage = useMemo(() => {
+    const list = triTab ? buckets[triTab] : triageStudents;
+    return list.slice(0, 3);
+  }, [triTab, buckets, triageStudents]);
 
   const nudge = (studentId: string, name: string) => {
     sendNudge.mutate(
@@ -434,10 +437,10 @@ const TeacherDashboardScreen = () => {
           action={
             <button
               type="button"
-              onClick={() => navigate("/teacher/gradebook")}
+              onClick={() => navigate("/teacher/students")}
               className="text-xs font-bold text-sky-700 hover:underline"
             >
-              {t("dashboard.triage.all", "All students →")}
+              {t("dashboard.triage.all", "View all students →")}
             </button>
           }
           className="mb-3"
@@ -540,7 +543,7 @@ const TeacherDashboardScreen = () => {
                           <Button
                             variant="outline"
                             className="h-8 px-3 text-xs"
-                            onClick={() => navigate("/teacher/gradebook")}
+                            onClick={() => navigate("/teacher/students")}
                           >
                             {t("dashboard.triage.view", "View student")}
                           </Button>
@@ -551,6 +554,21 @@ const TeacherDashboardScreen = () => {
                 </div>
               );
             })}
+
+            {triageStudents.length > 3 && (
+              <div className="pt-1 text-end">
+                <button
+                  type="button"
+                  onClick={() => navigate("/teacher/students")}
+                  className="text-xs font-extrabold text-blue-600 hover:underline"
+                >
+                  {t("dashboard.triage.viewAllCount", {
+                    defaultValue: "View all {{count}} at-risk students →",
+                    count: triageStudents.length,
+                  })}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="rounded-[20px] border border-[#eef2f6] bg-white p-6 text-center text-sm text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
