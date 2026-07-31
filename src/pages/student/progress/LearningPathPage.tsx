@@ -48,29 +48,37 @@ const LearningPathPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <Map className="size-5 text-teal-600" aria-hidden="true" />
-            <h1 className="text-2xl font-bold tracking-tight">
+    <div className="space-y-4">
+      {/* Integrated compact header bar combining Title, Subtitle, and Course Selector */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/80">
+            <Map className="size-4" aria-hidden="true" />
+          </span>
+          <div>
+            <h1 className="text-base font-black tracking-tight text-slate-900 leading-none">
               {t("learningPath.title")}
             </h1>
+            <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+              {t("learningPath.subtitle")}
+            </p>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
-            {t("learningPath.subtitle")}
-          </p>
         </div>
+
         <Select value={courseId} onValueChange={setSelectedCourseId}>
           <SelectTrigger
-            className="w-full sm:w-64"
+            className="h-9 w-full sm:w-64 border-slate-200 bg-white font-extrabold text-slate-800 shadow-2xs text-xs"
             aria-label={t("learningPath.coursePicker")}
           >
             <SelectValue placeholder={t("learningPath.coursePicker")} />
           </SelectTrigger>
           <SelectContent>
             {courses.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
+              <SelectItem
+                key={course.id}
+                value={course.id}
+                className="text-xs font-bold"
+              >
                 {course.code} — {course.name}
               </SelectItem>
             ))}

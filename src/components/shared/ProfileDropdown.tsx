@@ -90,10 +90,23 @@ const ProfileDropdown = () => {
       .join("")
       .toUpperCase() ?? "U";
 
-  // Get avatar URL with CDN transformation for 64px display
+  const defaultAvatarsByRole: Record<string, string> = {
+    student:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+    teacher:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80",
+    coordinator:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80",
+    admin:
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80",
+    parent:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80",
+  };
+
+  // Get avatar URL with CDN transformation or default role avatar
   const avatarUrl = profile.avatar_url
     ? `${profile.avatar_url}?width=64&height=64&resize=cover`
-    : undefined;
+    : defaultAvatarsByRole[profile.role] ?? defaultAvatarsByRole.student;
 
   const profileSubtitle = (() => {
     if (profile.role === "student") {

@@ -72,36 +72,19 @@ const Sidebar = () => {
       to !== `/${role}` &&
       location.pathname.startsWith(to));
 
-  const renderItem = (
-    item: PresentedNavItem,
-    section: "primary" | "more",
-    index = 0
-  ) => {
+  const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
     const isActive = section === "primary" && isItemActive(item.to);
 
-    const primaryStaggerOffsets = [
-      "ps-[14px]",
-      "ps-[22px]",
-      "ps-[16px]",
-      "ps-[24px]",
-      "ps-[18px]",
-    ];
-    const staggerClass =
-      section === "primary"
-        ? primaryStaggerOffsets[index % 5] ?? "ps-[18px]"
-        : "ps-[18px]";
-
     const itemClassName = cn(
-      "flex items-center rounded-[12px] pe-[18px] text-[14px] transition-colors",
-      staggerClass,
-      section === "primary" ? "gap-[14px] py-3" : "gap-3 py-[9px]",
+      "flex items-center rounded-[12px] px-[18px] text-[14px] transition-all duration-150",
+      section === "primary" ? "gap-[14px] py-[10px]" : "gap-3 py-[9px]",
       isActive
-        ? "font-bold"
+        ? "font-bold text-[#2563eb] dark:text-sky-400"
         : item.deEmphasized
-        ? "font-semibold text-gray-400 hover:bg-slate-100 dark:text-gray-500 dark:hover:bg-slate-800"
+        ? "font-semibold text-gray-400 opacity-60 hover:bg-slate-100 hover:opacity-100 dark:text-gray-500 dark:hover:bg-slate-800"
         : role === "student"
-        ? "font-semibold text-[#64748b] hover:bg-[#eef9ff] hover:text-[#075985] dark:text-gray-300 dark:hover:bg-slate-800"
-        : "font-semibold text-[#64748b] hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-slate-800"
+        ? "font-semibold text-[#64748b] opacity-80 hover:bg-[#eef9ff] hover:text-[#075985] hover:opacity-100 dark:text-gray-300 dark:hover:bg-slate-800"
+        : "font-semibold text-[#64748b] opacity-80 hover:bg-slate-100 hover:opacity-100 dark:text-gray-300 dark:hover:bg-slate-800"
     );
 
     const IconComponent = item.icon;
@@ -114,14 +97,9 @@ const Sidebar = () => {
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
             <span className="text-xs">🤖</span>
           </div>
-        ) : item.emoji ? (
+        ) : section === "more" && item.emoji ? (
           <span
-            className={cn(
-              "flex shrink-0 items-center justify-center bg-transparent leading-none",
-              section === "primary"
-                ? "size-[22px] text-[20px]"
-                : "size-5 text-[16px]"
-            )}
+            className="flex size-5 shrink-0 items-center justify-center bg-transparent text-[16px] leading-none"
             aria-hidden="true"
           >
             {item.emoji}
@@ -131,10 +109,19 @@ const Sidebar = () => {
             className={cn(
               "shrink-0 transition-colors",
               section === "primary" ? "h-5 w-5" : "h-4 w-4",
-              isActive ? "text-[#0284c7]" : "text-[#94a3b8]"
+              isActive
+                ? "text-[#2563eb] dark:text-sky-400 stroke-[2.2]"
+                : "text-[#94a3b8] stroke-[1.75]"
             )}
             aria-hidden="true"
           />
+        ) : item.emoji ? (
+          <span
+            className="flex size-[22px] shrink-0 items-center justify-center bg-transparent text-[20px] leading-none"
+            aria-hidden="true"
+          >
+            {item.emoji}
+          </span>
         ) : null}
         <span className="truncate">{t(item.labelKey)}</span>
       </>
@@ -219,9 +206,7 @@ const Sidebar = () => {
             {/* Nav items */}
             <nav role="navigation" aria-label={t("header.primaryNav.label")}>
               <div className="space-y-1">
-                {primaryItems.map((item, index) =>
-                  renderItem(item, "primary", index)
-                )}
+                {primaryItems.map((item) => renderItem(item, "primary"))}
               </div>
             </nav>
 
@@ -235,9 +220,7 @@ const Sidebar = () => {
                   {t("nav.more")}
                 </p>
                 <div className="space-y-1">
-                  {moreItems.map((item, index) =>
-                    renderItem(item, "more", index)
-                  )}
+                  {moreItems.map((item) => renderItem(item, "more"))}
                 </div>
                 {role === "student" ? <StudentSidebarExtras /> : null}
               </div>

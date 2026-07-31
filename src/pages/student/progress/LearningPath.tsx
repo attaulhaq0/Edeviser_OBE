@@ -39,7 +39,7 @@ interface BloomDefinition {
   titleColor: string;
 }
 
-interface BloomStage extends BloomDefinition, BloomStageSummary {}
+export interface BloomStage extends BloomDefinition, BloomStageSummary {}
 
 const BLOOM_DEFINITIONS: readonly BloomDefinition[] = [
   {
@@ -375,7 +375,7 @@ const JourneyStage = ({
   );
 };
 
-const StageDetail = ({
+export const StageDetail = ({
   stage,
   stageIndex = 2,
 }: {
@@ -522,7 +522,7 @@ const StageDetail = ({
   );
 };
 
-const BloomOverviewCard = ({ stages }: { stages: BloomStage[] }) => {
+export const BloomOverviewCard = ({ stages }: { stages: BloomStage[] }) => {
   const { t } = useTranslation("student");
   const overallMastery = Math.round(
     stages.reduce((acc, s) => acc + s.attainment, 0) / (stages.length || 1)
@@ -586,7 +586,7 @@ const JourneyView = ({
   if (!currentStage) return null;
 
   return (
-    <div className="grid gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
       <div className="min-w-0 space-y-4">
         <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
           🏔️ {t("learningPath.bloomJourney", "BLOOM LEVELS • YOUR JOURNEY")}
@@ -674,8 +674,8 @@ const KnowledgeTreeView = ({
     stages.find((s) => s.key === selectedStageKey) ?? stages[0];
 
   return (
-    <div>
-      <div className="mb-4">
+    <div className="w-full space-y-4">
+      <div className="mb-2">
         <h2 className="text-xl font-black tracking-tight text-slate-900">
           {t("learningPath.tree.title", "Knowledge Tree")}
         </h2>
@@ -686,89 +686,82 @@ const KnowledgeTreeView = ({
           )}
         </p>
       </div>
-      <div className="grid gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
-        <PCard className="p-2">
-          <div className="relative min-h-[560px] overflow-hidden rounded-[18px] bg-[radial-gradient(120%_85%_at_50%_100%,#dcfce7_0%,#ecfdf5_38%,#f0fdfa_66%,#ffffff_90%)]">
-            <svg
-              className="absolute inset-0 size-full"
-              viewBox="0 0 400 560"
-              preserveAspectRatio="none"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M200 530 L200 55"
-                stroke="#86efac"
-                strokeWidth="14"
-                strokeLinecap="round"
-              />
-              <path
-                d="M200 530 L200 55"
-                stroke="#4ade80"
-                strokeWidth="5"
-                strokeLinecap="round"
-                opacity=".75"
-              />
-              <path
-                d="M200 380 C145 330 120 285 126 220"
-                stroke="#86efac"
-                strokeWidth="10"
-                strokeLinecap="round"
-              />
-              <path
-                d="M200 345 C250 300 275 250 270 165"
-                stroke="#86efac"
-                strokeWidth="10"
-                strokeLinecap="round"
-              />
-            </svg>
-            {stages.map((stage, index) => (
-              <button
-                key={stage.key}
-                type="button"
-                onClick={() => onSelectStage(stage.key)}
-                className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center focus:outline-none transition-transform hover:scale-110"
-                style={TREE_POSITIONS[index]}
-              >
-                <div
-                  className={cn(
-                    "relative flex size-[74px] flex-col items-center justify-center rounded-full border-[3px] border-white text-white shadow-[0_12px_26px_rgba(16,24,40,0.18)] transition-all",
-                    stage.status === "done" &&
-                      "bg-gradient-to-br from-green-400 to-green-600",
-                    stage.status === "current" &&
-                      "bg-gradient-to-br from-teal-400 to-teal-600",
-                    stage.status === "locked" &&
-                      "bg-gradient-to-br from-slate-300 to-slate-400",
-                    stage.key === currentStage?.key &&
-                      "ring-4 ring-teal-500/40 scale-105"
-                  )}
-                >
-                  <span className="text-base font-black">
-                    {stage.status === "locked"
-                      ? stage.emoji
-                      : `${stage.attainment}%`}
-                  </span>
-                  {stage.status === "locked" ? (
-                    <span className="absolute -end-1 -top-1 flex size-6 items-center justify-center rounded-full bg-white text-slate-400 shadow">
-                      <Lock className="size-3" aria-hidden="true" />
-                    </span>
-                  ) : null}
-                </div>
-                <span className="mt-1.5 whitespace-nowrap text-[11px] font-black text-slate-700">
-                  {t(stage.titleKey)}
-                </span>
-              </button>
-            ))}
-          </div>
-        </PCard>
 
-        {currentStage ? (
-          <aside className="sticky top-[calc(var(--app-header-h)+1.25rem)] space-y-4">
-            <StageDetail stage={currentStage} />
-            <BloomOverviewCard stages={stages} />
-          </aside>
-        ) : null}
-      </div>
+      <PCard className="p-2">
+        <div className="relative min-h-[560px] overflow-hidden rounded-[18px] bg-[radial-gradient(120%_85%_at_50%_100%,#dcfce7_0%,#ecfdf5_38%,#f0fdfa_66%,#ffffff_90%)]">
+          <svg
+            className="absolute inset-0 size-full"
+            viewBox="0 0 400 560"
+            preserveAspectRatio="none"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M200 530 L200 55"
+              stroke="#86efac"
+              strokeWidth="14"
+              strokeLinecap="round"
+            />
+            <path
+              d="M200 530 L200 55"
+              stroke="#4ade80"
+              strokeWidth="5"
+              strokeLinecap="round"
+              opacity=".75"
+            />
+            <path
+              d="M200 380 C145 330 120 285 126 220"
+              stroke="#86efac"
+              strokeWidth="10"
+              strokeLinecap="round"
+            />
+            <path
+              d="M200 345 C250 300 275 250 270 165"
+              stroke="#86efac"
+              strokeWidth="10"
+              strokeLinecap="round"
+            />
+          </svg>
+          {stages.map((stage, index) => (
+            <button
+              key={stage.key}
+              type="button"
+              onClick={() => onSelectStage(stage.key)}
+              className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center focus:outline-none transition-transform hover:scale-110"
+              style={TREE_POSITIONS[index]}
+            >
+              <div
+                className={cn(
+                  "relative flex size-[74px] flex-col items-center justify-center rounded-full border-[3px] border-white text-white shadow-[0_12px_26px_rgba(16,24,40,0.18)] transition-all",
+                  stage.status === "done" &&
+                    "bg-gradient-to-br from-green-400 to-green-600",
+                  stage.status === "current" &&
+                    "bg-gradient-to-br from-teal-400 to-teal-600",
+                  stage.status === "locked" &&
+                    "bg-gradient-to-br from-slate-300 to-slate-400",
+                  stage.key === currentStage?.key &&
+                    "ring-4 ring-teal-500/40 scale-105"
+                )}
+              >
+                <span className="text-base font-black">
+                  {stage.status === "locked"
+                    ? stage.emoji
+                    : `${stage.attainment}%`}
+                </span>
+                {stage.status === "locked" ? (
+                  <span className="absolute -end-1 -top-1 flex size-6 items-center justify-center rounded-full bg-white text-slate-400 shadow">
+                    <Lock className="size-3" aria-hidden="true" />
+                  </span>
+                ) : null}
+              </div>
+              <span className="mt-1.5 whitespace-nowrap text-[11px] font-black text-slate-700">
+                {t(stage.titleKey)}
+              </span>
+            </button>
+          ))}
+        </div>
+      </PCard>
+
       <PCard className="mt-4 flex items-center gap-3 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
         <Mountain
           className="size-5 shrink-0 text-green-700"
@@ -781,6 +774,14 @@ const KnowledgeTreeView = ({
           )}
         </p>
       </PCard>
+
+      {/* Mobile/Tablet Fallback (< xl) */}
+      {currentStage ? (
+        <div className="mt-6 space-y-4 xl:hidden">
+          <StageDetail stage={currentStage} />
+          <BloomOverviewCard stages={stages} />
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -790,6 +791,8 @@ export interface LearningPathProps {
   studentId: string;
 }
 
+import { LearningPathContext } from "./LearningPathContext";
+
 const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
   const { t } = useTranslation("student");
   const [view, setView] = useState<PathView>("journey");
@@ -797,81 +800,104 @@ const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
     useState<string>("remembering");
   const { data: nodes, isLoading } = useLearningPath(courseId, studentId);
   const stages = useMemo(() => buildPresentedStages(nodes ?? []), [nodes]);
+  const currentStage =
+    stages.find((s) => s.key === selectedStageKey) ?? stages[0];
+
+  const contextValue = useMemo(
+    () => ({
+      selectedCourseId: courseId,
+      setSelectedCourseId: () => {},
+      selectedStageKey,
+      setSelectedStageKey,
+      stages,
+      currentStage,
+      view,
+      setView,
+      isLoading,
+    }),
+    [courseId, selectedStageKey, stages, currentStage, view, isLoading]
+  );
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         <Shimmer className="h-11 w-64 rounded-xl" />
-        <div className="grid gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_400px]">
-          <Shimmer className="h-[620px] rounded-[20px]" />
-          <Shimmer className="h-[420px] rounded-[20px]" />
-        </div>
+        <Shimmer className="h-[620px] rounded-[20px]" />
       </div>
     );
   }
 
   if (!nodes || nodes.length === 0) {
     return (
-      <PCard className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
-        <span className="flex size-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
-          <GitBranch className="size-7" aria-hidden="true" />
-        </span>
-        <h2 className="mt-4 text-base font-black text-slate-900">
-          {t("learningPath.emptyTitle")}
-        </h2>
-        <p className="mt-1 max-w-md text-sm text-slate-500">
-          {t("learningPath.emptyDescription")}
-        </p>
-      </PCard>
+      <LearningPathContext.Provider value={contextValue}>
+        <PCard className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
+          <span className="flex size-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+            <GitBranch className="size-7" aria-hidden="true" />
+          </span>
+          <h2 className="mt-4 text-base font-black text-slate-900">
+            {t("learningPath.emptyTitle")}
+          </h2>
+          <p className="mt-1 max-w-md text-sm text-slate-500">
+            {t("learningPath.emptyDescription")}
+          </p>
+        </PCard>
+      </LearningPathContext.Provider>
     );
   }
 
   return (
-    <div>
-      <div className="mb-[18px] inline-flex gap-1 rounded-[14px] border border-slate-200 bg-white p-1 shadow-sm">
-        <Button
-          type="button"
-          size="sm"
-          variant={view === "journey" ? "default" : "ghost"}
-          className={cn(
-            "rounded-[10px] px-4 font-black",
-            view === "journey" && "bg-[image:var(--brand-gradient)] text-white"
-          )}
-          onClick={() => setView("journey")}
-          aria-pressed={view === "journey"}
-        >
-          <MapIcon className="size-4" aria-hidden="true" />
-          {t("learningPath.views.journey")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={view === "tree" ? "default" : "ghost"}
-          className={cn(
-            "rounded-[10px] px-4 font-black",
-            view === "tree" && "bg-[image:var(--brand-gradient)] text-white"
-          )}
-          onClick={() => setView("tree")}
-          aria-pressed={view === "tree"}
-        >
-          <TreePine className="size-4" aria-hidden="true" />
-          {t("learningPath.views.tree")}
-        </Button>
+    <LearningPathContext.Provider value={contextValue}>
+      <div className="space-y-4">
+        <div className="inline-flex gap-1 rounded-[14px] border border-slate-200 bg-white p-1 shadow-2xs">
+          <Button
+            type="button"
+            size="sm"
+            variant={view === "journey" ? "default" : "ghost"}
+            className={cn(
+              "rounded-[10px] px-4 font-black text-xs h-8",
+              view === "journey"
+                ? "bg-[image:var(--brand-gradient)] text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            )}
+            onClick={() => setView("journey")}
+            aria-pressed={view === "journey"}
+          >
+            <MapIcon className="me-1.5 size-3.5" aria-hidden="true" />
+            {t("learningPath.views.journey")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={view === "tree" ? "default" : "ghost"}
+            className={cn(
+              "rounded-[10px] px-4 font-black text-xs h-8",
+              view === "tree"
+                ? "bg-[image:var(--brand-gradient)] text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            )}
+            onClick={() => setView("tree")}
+            aria-pressed={view === "tree"}
+          >
+            <TreePine className="me-1.5 size-3.5" aria-hidden="true" />
+            {t("learningPath.views.tree")}
+          </Button>
+        </div>
+
+        {view === "journey" ? (
+          <JourneyView
+            stages={stages}
+            selectedStageKey={selectedStageKey}
+            onSelectStage={setSelectedStageKey}
+          />
+        ) : (
+          <KnowledgeTreeView
+            stages={stages}
+            selectedStageKey={selectedStageKey}
+            onSelectStage={setSelectedStageKey}
+          />
+        )}
       </div>
-      {view === "journey" ? (
-        <JourneyView
-          stages={stages}
-          selectedStageKey={selectedStageKey}
-          onSelectStage={setSelectedStageKey}
-        />
-      ) : (
-        <KnowledgeTreeView
-          stages={stages}
-          selectedStageKey={selectedStageKey}
-          onSelectStage={setSelectedStageKey}
-        />
-      )}
-    </div>
+    </LearningPathContext.Provider>
   );
 };
 

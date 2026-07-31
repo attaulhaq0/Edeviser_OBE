@@ -11,6 +11,7 @@ import StudentFallbackRail from "@/features/student/rails/StudentFallbackRail";
 import StudentProfileRail from "@/features/student/rails/StudentProfileRail";
 import StudentLearningProfileRail from "@/features/student/rails/StudentLearningProfileRail";
 import StudentSettingsRail from "@/features/student/rails/StudentSettingsRail";
+import StudentLearningPathRail from "@/features/student/rails/StudentLearningPathRail";
 
 const OnboardingWizard = lazy(
   () => import("@/pages/student/onboarding/OnboardingWizard")
@@ -28,6 +29,7 @@ const STUDENT_RAILS: ReadonlyArray<{
 }> = [
   { test: /^\/student\/dashboard$/, Rail: StudentDashboardRail },
   { test: /^\/student\/courses(\/[^/]+)?$/, Rail: StudentLearnRail },
+  { test: /^\/student\/learning-path$/, Rail: StudentLearningPathRail },
   { test: /^\/student\/progress$/, Rail: StudentProgressRail },
   { test: /^\/student\/journal$/, Rail: StudentJournalRail },
   { test: /^\/student\/assignments\/[^/]+$/, Rail: StudentAssignmentRail },
@@ -76,17 +78,6 @@ const StudentLayout = () => {
   const ActiveRail =
     STUDENT_RAILS.find((r) => r.test.test(location.pathname))?.Rail ??
     StudentFallbackRail;
-
-  // The approved Learning Path owns its 400px level-detail column and therefore
-  // uses the prototype's data-norail layout. Rendering the fallback rail here
-  // would squeeze the journey into a narrow fourth column.
-  if (location.pathname === "/student/learning-path") {
-    return (
-      <RoleAppShell userRole="student">
-        <Outlet />
-      </RoleAppShell>
-    );
-  }
 
   return (
     <RoleAppShell userRole="student" rail={<ActiveRail />}>

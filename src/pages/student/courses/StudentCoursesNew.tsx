@@ -97,9 +97,9 @@ const StudentCoursesNew = () => {
         </div>
       </div>
 
-      <div className="grid items-start gap-6 min-[1050px]:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="w-full space-y-6">
         {/* Main Content Column */}
-        <div className="space-y-6 min-w-0">
+        <div className="space-y-6 min-w-0 w-full">
           {/* Due Today & This Week */}
           <div className="grid items-start gap-5 lg:grid-cols-2">
             <section aria-labelledby="due-today-heading">
@@ -222,7 +222,7 @@ const StudentCoursesNew = () => {
             >
               MY COURSES
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 w-full">
               <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
