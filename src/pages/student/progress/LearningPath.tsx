@@ -391,7 +391,7 @@ const StageDetail = ({
   );
 
   return (
-    <PCard className="sticky top-[calc(var(--app-header-h)+1.25rem)] p-5 shadow-lg border-teal-100 rounded-2xl">
+    <PCard className="p-5 shadow-md border-teal-100/80 rounded-2xl bg-white">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
@@ -522,6 +522,49 @@ const StageDetail = ({
   );
 };
 
+const BloomOverviewCard = ({ stages }: { stages: BloomStage[] }) => {
+  const { t } = useTranslation("student");
+  const overallMastery = Math.round(
+    stages.reduce((acc, s) => acc + s.attainment, 0) / (stages.length || 1)
+  );
+
+  return (
+    <PCard className="p-4 border-slate-200/80 bg-white/90 shadow-sm rounded-2xl">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">🎯</span>
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+            {t("learningPath.bloomMasteryOverview", "Bloom's Mastery Summary")}
+          </h3>
+        </div>
+        <Badge
+          variant="outline"
+          className="border-teal-200 bg-teal-50 text-[10px] font-bold text-teal-700"
+        >
+          {overallMastery}% {t("nav.xp", "Overall")}
+        </Badge>
+      </div>
+
+      <div className="space-y-2">
+        {stages.map((stg) => (
+          <div key={stg.key} className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-semibold text-slate-700 truncate flex items-center gap-1.5">
+                <span>{stg.emoji}</span>
+                <span>{t(stg.titleKey)}</span>
+              </span>
+              <span className="font-bold text-slate-500 tabular-nums">
+                {stg.attainment}%
+              </span>
+            </div>
+            <PathProgress value={stg.attainment} className="h-1.5" />
+          </div>
+        ))}
+      </div>
+    </PCard>
+  );
+};
+
 const JourneyView = ({
   stages,
   selectedStageKey,
@@ -543,9 +586,9 @@ const JourneyView = ({
   if (!currentStage) return null;
 
   return (
-    <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
-      <div className="min-w-0">
-        <p className="mb-4 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+    <div className="grid gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="min-w-0 space-y-4">
+        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
           🏔️ {t("learningPath.bloomJourney", "BLOOM LEVELS • YOUR JOURNEY")}
         </p>
         <PCard className="p-4 sm:p-5">
@@ -561,7 +604,7 @@ const JourneyView = ({
           ))}
         </PCard>
 
-        <PCard className="mt-4 flex items-center gap-3 p-4">
+        <PCard className="flex items-center gap-3 p-4">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700">
             <Lock className="size-4" aria-hidden="true" />
           </span>
@@ -576,7 +619,7 @@ const JourneyView = ({
           </span>
         </PCard>
 
-        <PCard className="mt-4 p-4">
+        <PCard className="p-4">
           <div className="flex items-center gap-2">
             <Clock3 className="size-4 text-teal-600" aria-hidden="true" />
             <h2 className="text-sm font-black text-slate-900">
@@ -608,7 +651,11 @@ const JourneyView = ({
           </div>
         </PCard>
       </div>
-      <StageDetail stage={currentStage} />
+
+      <aside className="sticky top-[calc(var(--app-header-h)+1.25rem)] space-y-4">
+        <StageDetail stage={currentStage} />
+        <BloomOverviewCard stages={stages} />
+      </aside>
     </div>
   );
 };
@@ -639,7 +686,7 @@ const KnowledgeTreeView = ({
           )}
         </p>
       </div>
-      <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
         <PCard className="p-2">
           <div className="relative min-h-[560px] overflow-hidden rounded-[18px] bg-[radial-gradient(120%_85%_at_50%_100%,#dcfce7_0%,#ecfdf5_38%,#f0fdfa_66%,#ffffff_90%)]">
             <svg
@@ -715,7 +762,12 @@ const KnowledgeTreeView = ({
           </div>
         </PCard>
 
-        {currentStage ? <StageDetail stage={currentStage} /> : null}
+        {currentStage ? (
+          <aside className="sticky top-[calc(var(--app-header-h)+1.25rem)] space-y-4">
+            <StageDetail stage={currentStage} />
+            <BloomOverviewCard stages={stages} />
+          </aside>
+        ) : null}
       </div>
       <PCard className="mt-4 flex items-center gap-3 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
         <Mountain
