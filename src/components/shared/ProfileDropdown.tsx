@@ -154,7 +154,7 @@ const ProfileDropdown = () => {
                 aria-label={`Level progress ${level.data.progressPercent}%`}
               >
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-500"
+                  className="h-full rounded-full bg-[image:var(--brand-gradient)] transition-all duration-500"
                   style={{ width: `${level.data.progressPercent}%` }}
                 />
               </div>

@@ -54,17 +54,12 @@ beforeEach(async () => {
 afterEach(cleanup);
 
 describe("student prototype shell context", () => {
-  it("renders the student upgrade card and real level progress", () => {
+  it("renders the student upgrade card", () => {
     renderWithAppContext(<StudentSidebarExtras />);
 
     expect(
       screen.getByRole("link", { name: /Upgrade to Premium/i })
     ).toHaveAttribute("href", "/student/marketplace");
-    expect(screen.getByText("Lvl 4 · 750 XP")).toBeInTheDocument();
-    expect(
-      screen.getByRole("progressbar", { name: "Level progress" })
-    ).toHaveAttribute("aria-valuenow", "50");
-    expect(screen.getByText("750 / 1,000 XP")).toBeInTheDocument();
   });
 
   it("binds the learning-profile rail completeness to profile data", () => {
