@@ -62,6 +62,14 @@
   --radius: 0.75rem; /* prototype interactive radius (btn3d 12px); cards use explicit 20px */
   --background: #f8fafc; /* prototype body — slate-50 */
   --foreground: #0f172a; /* slate-900 */
+
+  /* === SIDEBAR TYPOGRAPHY TOKENS === */
+  --sidebar-font-family: "Noto Sans", sans-serif;
+  --sidebar-label-size: 14px;
+  --sidebar-label-weight: 600;
+  --sidebar-active-color: #075985;
+  --sidebar-primary-muted: #94a3b8;
+  --sidebar-secondary-color: #64748b;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
@@ -131,9 +139,69 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    font-family: var(--sidebar-font-family);
+    @apply bg-background text-foreground antialiased;
   }
+}
+
+/* === CANONICAL SIDEBAR TYPOGRAPHY SYSTEM === */
+
+.app-sidebar {
+  font-family: var(--sidebar-font-family);
+}
+
+.sidebar-nav-label {
+  font-family: var(--sidebar-font-family);
+  font-size: var(--sidebar-label-size);
+  font-weight: var(--sidebar-label-weight);
+  font-style: normal;
+  font-stretch: 100%;
+  font-kerning: auto;
+  font-optical-sizing: auto;
+  font-variant: normal;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  text-decoration: none;
+  text-align: start;
+  opacity: 1;
+}
+
+.sidebar-item[data-active="true"] .sidebar-nav-label {
+  color: var(--sidebar-active-color);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-item[data-group="primary"][data-active="false"] .sidebar-nav-label {
+  color: var(--sidebar-primary-muted);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-item[data-variant="companion"][data-active="false"]
+  .sidebar-nav-label {
+  color: var(--sidebar-primary-muted);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-item[data-group="secondary"] .sidebar-nav-label {
+  color: var(--sidebar-secondary-color);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-section-label {
+  font-family: var(--sidebar-font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  opacity: 1;
 }
 
 /* ─── Brand Design Tokens ─────────────────────────────────────────────────── */

@@ -87,29 +87,19 @@ const Sidebar = () => {
   const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
     const isActive = section === "primary" && isItemActive(item.to);
     const itemIsCompanion = section === "primary" && isCompanion(item.to);
+    const group = section === "primary" ? "primary" : "secondary";
+    const variant = itemIsCompanion ? "companion" : "standard";
 
     // --- Primary section styling ---
     // Active: full-width rounded light-blue pill, dark blue text
     // Inactive primary: transparent bg, lighter muted label (#94a3b8)
     // Secondary (below MORE): transparent bg, stronger slate-blue label (#64748b)
     const itemClassName = cn(
-      "flex items-center transition-colors duration-150",
+      "sidebar-item flex items-center transition-colors duration-150",
       section === "primary"
         ? "rounded-[13px] px-[16px] gap-[12px] min-h-[47px]"
         : "rounded-[10px] px-[18px] gap-3 py-[8px]",
       isActive ? "font-semibold" : "hover:bg-slate-50 dark:hover:bg-slate-800"
-    );
-
-    const labelClassName = cn(
-      "truncate transition-colors",
-      section === "primary" ? "text-[14px]" : "text-[13px]",
-      isActive
-        ? "font-semibold"
-        : section === "primary"
-        ? "font-medium text-[#94a3b8] dark:text-slate-400"
-        : item.deEmphasized
-        ? "font-medium text-gray-400 dark:text-gray-500"
-        : "font-medium text-[#64748b] dark:text-slate-300"
     );
 
     const IconComponent = item.icon;
@@ -151,7 +141,7 @@ const Sidebar = () => {
           </span>
         ) : null}
 
-        <span className={labelClassName}>{t(item.labelKey)}</span>
+        <span className="sidebar-nav-label truncate">{t(item.labelKey)}</span>
       </>
     );
 
@@ -165,6 +155,9 @@ const Sidebar = () => {
         to={item.to}
         onClick={close}
         viewTransition
+        data-group={group}
+        data-variant={variant}
+        data-active={isActive ? "true" : "false"}
         {...sharedProps}
         style={isActive ? activeNavStyleByRole[role] : undefined}
         className={itemClassName}
@@ -177,6 +170,9 @@ const Sidebar = () => {
         to={item.to}
         onClick={close}
         viewTransition
+        data-group={group}
+        data-variant={variant}
+        data-active="false"
         {...sharedProps}
         className={itemClassName}
       >
@@ -202,7 +198,7 @@ const Sidebar = () => {
       <aside
         data-tour="primary-nav"
         className={cn(
-          "fixed start-0 top-0 z-[99] flex h-screen w-[var(--app-sidebar-w)] overflow-y-auto overflow-x-hidden border-e border-[#e2e8f0] transition-transform duration-200 ease-in-out dark:border-border dark:bg-background",
+          "app-sidebar fixed start-0 top-0 z-[99] flex h-screen w-[var(--app-sidebar-w)] overflow-y-auto overflow-x-hidden border-e border-[#e2e8f0] transition-transform duration-200 ease-in-out dark:border-border dark:bg-background",
           role === "student"
             ? "bg-[linear-gradient(180deg,#ffffff_0%,#f5fdff_100%)]"
             : "bg-white",
