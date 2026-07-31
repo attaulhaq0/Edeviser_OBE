@@ -72,11 +72,28 @@ const Sidebar = () => {
       to !== `/${role}` &&
       location.pathname.startsWith(to));
 
-  const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
+  const renderItem = (
+    item: PresentedNavItem,
+    section: "primary" | "more",
+    index = 0
+  ) => {
     const isActive = section === "primary" && isItemActive(item.to);
 
+    const primaryStaggerOffsets = [
+      "ps-[14px]",
+      "ps-[22px]",
+      "ps-[16px]",
+      "ps-[24px]",
+      "ps-[18px]",
+    ];
+    const staggerClass =
+      section === "primary"
+        ? primaryStaggerOffsets[index % 5] ?? "ps-[18px]"
+        : "ps-[18px]";
+
     const itemClassName = cn(
-      "flex items-center rounded-[12px] px-[18px] text-[14px] transition-colors",
+      "flex items-center rounded-[12px] pe-[18px] text-[14px] transition-colors",
+      staggerClass,
       section === "primary" ? "gap-[14px] py-3" : "gap-3 py-[9px]",
       isActive
         ? "font-bold"
@@ -97,6 +114,18 @@ const Sidebar = () => {
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
             <span className="text-xs">🤖</span>
           </div>
+        ) : item.emoji ? (
+          <span
+            className={cn(
+              "flex shrink-0 items-center justify-center bg-transparent leading-none",
+              section === "primary"
+                ? "size-[22px] text-[20px]"
+                : "size-5 text-[16px]"
+            )}
+            aria-hidden="true"
+          >
+            {item.emoji}
+          </span>
         ) : IconComponent ? (
           <IconComponent
             className={cn(
@@ -106,19 +135,7 @@ const Sidebar = () => {
             )}
             aria-hidden="true"
           />
-        ) : (
-          <span
-            className={cn(
-              "flex shrink-0 items-center justify-center leading-none",
-              section === "primary"
-                ? "size-[22px] text-[20px]"
-                : "size-5 text-[16px]"
-            )}
-            aria-hidden="true"
-          >
-            {item.emoji}
-          </span>
-        )}
+        ) : null}
         <span className="truncate">{t(item.labelKey)}</span>
       </>
     );
@@ -202,7 +219,9 @@ const Sidebar = () => {
             {/* Nav items */}
             <nav role="navigation" aria-label={t("header.primaryNav.label")}>
               <div className="space-y-1">
-                {primaryItems.map((item) => renderItem(item, "primary"))}
+                {primaryItems.map((item, index) =>
+                  renderItem(item, "primary", index)
+                )}
               </div>
             </nav>
 
@@ -216,7 +235,9 @@ const Sidebar = () => {
                   {t("nav.more")}
                 </p>
                 <div className="space-y-1">
-                  {moreItems.map((item) => renderItem(item, "more"))}
+                  {moreItems.map((item, index) =>
+                    renderItem(item, "more", index)
+                  )}
                 </div>
                 {role === "student" ? <StudentSidebarExtras /> : null}
               </div>
