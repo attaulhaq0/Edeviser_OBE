@@ -110,31 +110,33 @@ const Sidebar = () => {
 
         {/* Icon rendering: 3 distinct treatments */}
         {itemIsCompanion ? (
-          /* Companion: colorful circular icon badge (always visible) */
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
-            <span className="text-xs">{item.emoji}</span>
+          /* Companion: prominent colorful circular icon badge (always visible) */
+          <div className="sidebar-icon-wrapper flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
+            <span className="sidebar-icon text-[16px] leading-none">
+              {item.emoji}
+            </span>
           </div>
         ) : section === "more" && item.emoji ? (
           /* MORE section: small colorful emoji */
           <span
-            className="flex size-5 shrink-0 items-center justify-center bg-transparent text-[16px] leading-none"
+            className="sidebar-icon flex size-5 shrink-0 items-center justify-center bg-transparent text-[16px] leading-none"
             aria-hidden="true"
           >
             {item.emoji}
           </span>
         ) : IconComponent ? (
-          /* Primary section: Lucide outline icon */
+          /* Primary section: Lucide outline icon (20px standard) */
           <IconComponent
             className={cn(
-              "h-[22px] w-[22px] shrink-0 transition-colors",
-              isActive ? "stroke-[2.2]" : "text-[#94a3b8] stroke-[1.6]"
+              "sidebar-icon h-[20px] w-[20px] shrink-0 transition-colors",
+              isActive ? "stroke-[2.2]" : "stroke-[1.6]"
             )}
             aria-hidden="true"
           />
         ) : item.emoji ? (
           /* Fallback: emoji */
           <span
-            className="flex size-[22px] shrink-0 items-center justify-center bg-transparent text-[20px] leading-none"
+            className="sidebar-icon flex size-[20px] shrink-0 items-center justify-center bg-transparent text-[18px] leading-none"
             aria-hidden="true"
           >
             {item.emoji}

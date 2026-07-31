@@ -63,13 +63,14 @@
   --background: #f8fafc; /* prototype body — slate-50 */
   --foreground: #0f172a; /* slate-900 */
 
-  /* === SIDEBAR TYPOGRAPHY TOKENS === */
+  /* === SIDEBAR TYPOGRAPHY & ICON TOKENS === */
   --sidebar-font-family: "Noto Sans", sans-serif;
   --sidebar-label-size: 14px;
   --sidebar-label-weight: 600;
   --sidebar-active-color: #075985;
-  --sidebar-primary-muted: #94a3b8;
-  --sidebar-secondary-color: #64748b;
+  --sidebar-primary-muted: #7c8da6;
+  --sidebar-secondary-color: #5f7390;
+  --sidebar-icon-muted: #91a4bd;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
@@ -146,7 +147,7 @@
   }
 }
 
-/* === CANONICAL SIDEBAR TYPOGRAPHY SYSTEM === */
+/* === CANONICAL SIDEBAR TYPOGRAPHY & ICON SYSTEM === */
 
 .app-sidebar {
   font-family: var(--sidebar-font-family);
@@ -176,20 +177,20 @@
 }
 
 .sidebar-item[data-group="primary"][data-active="false"] .sidebar-nav-label {
-  color: var(--sidebar-primary-muted);
+  color: var(--sidebar-primary-muted); /* #7c8da6 */
   font-weight: 600;
   opacity: 1;
 }
 
 .sidebar-item[data-variant="companion"][data-active="false"]
   .sidebar-nav-label {
-  color: var(--sidebar-primary-muted);
+  color: var(--sidebar-primary-muted); /* #7c8da6 */
   font-weight: 600;
   opacity: 1;
 }
 
 .sidebar-item[data-group="secondary"] .sidebar-nav-label {
-  color: var(--sidebar-secondary-color);
+  color: var(--sidebar-secondary-color); /* #5f7390 */
   font-weight: 600;
   opacity: 1;
 }
@@ -201,6 +202,35 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #94a3b8;
+  opacity: 1;
+}
+
+/* --- Special Companion Icon Prominence (Requirement 1 & 3) --- */
+.sidebar-item[data-variant="companion"] .sidebar-icon-wrapper {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9999px;
+  opacity: 1;
+  filter: none;
+}
+
+.sidebar-item[data-variant="companion"] .sidebar-icon {
+  width: 22px;
+  height: 22px;
+  opacity: 1;
+  filter: none;
+}
+
+/* --- Standard Inactive Primary Icons (Requirement 4) --- */
+.sidebar-item[data-group="primary"][data-active="false"] .sidebar-icon {
+  color: var(--sidebar-icon-muted); /* #91a4bd */
+  opacity: 1;
+}
+
+/* --- Active Icons (Requirement 5) --- */
+.sidebar-item[data-active="true"] .sidebar-icon {
+  color: #2563eb;
   opacity: 1;
 }
 
