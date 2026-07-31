@@ -36,8 +36,8 @@ describe("design-system patterns", () => {
     expect(
       screen.getByRole("heading", { name: "History" })
     ).toBeInTheDocument();
-    // the icon chip carries the brand gradient
-    const chip = container.querySelector('[style*="--brand-gradient"]');
+    // the icon chip carries the liquid glass icon wrapper
+    const chip = container.querySelector('span[aria-hidden="true"]');
     expect(chip).not.toBeNull();
   });
 
