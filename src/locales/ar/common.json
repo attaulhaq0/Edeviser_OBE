@@ -1,4 +1,4 @@
-﻿{
+{
   "carousel": {
     "previous": "الشريحة السابقة",
     "next": "الشريحة التالية",
@@ -82,6 +82,7 @@
     "growthWellbeing": "النمو والعافية",
     "supportMessages": "الدعم والرسائل",
     "feesPayments": "الرسوم والمدفوعات",
+    "gradesReports": "الدرجات والتقارير",
     "outcomeAttainment": "تحصيل المخرجات",
     "curriculumMatrix": "مصفوفة المنهج",
     "courseFileGenerator": "مولد ملف المقرر",

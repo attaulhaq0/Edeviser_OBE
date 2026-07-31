@@ -1,4 +1,4 @@
-﻿{
+{
   "carousel": {
     "previous": "Previous slide",
     "next": "Next slide",
@@ -82,6 +82,7 @@
     "growthWellbeing": "Growth & Wellbeing",
     "supportMessages": "Support & Messages",
     "feesPayments": "Fees & Payments",
+    "gradesReports": "Grades & Reports",
     "outcomeAttainment": "Outcome Attainment",
     "curriculumMatrix": "Curriculum Matrix",
     "courseFileGenerator": "Course File Generator",

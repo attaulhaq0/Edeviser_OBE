@@ -175,6 +175,9 @@ const ParentPlannerView = lazy(
 const ParentProfilePage = lazy(
   () => import("@/pages/parent/settings/ParentProfilePage")
 );
+const ParentCommunicationsPage = lazy(
+  () => import("@/pages/parent/communications/ParentCommunicationsPage")
+);
 const AdminProfilePage = lazy(
   () => import("@/pages/admin/settings/AdminProfilePage")
 );
@@ -1014,7 +1017,14 @@ const AppRouter = () => (
               element={<Navigate to="/parent/dashboard" replace />}
             />
             <Route path="dashboard" element={<ParentDashboard />} />
-            <Route path="notifications" element={<NotificationsFeedPage />} />
+            <Route
+              path="notifications"
+              element={<ParentCommunicationsPage />}
+            />
+            <Route
+              path="communications"
+              element={<ParentCommunicationsPage />}
+            />
             <Route path="children" element={<ParentChildrenPage />} />
             <Route path="support" element={<ParentSupportPage />} />
             <Route path="progress" element={<ParentProgressPage />} />

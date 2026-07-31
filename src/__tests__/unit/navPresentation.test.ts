@@ -131,11 +131,11 @@ describe("navPresentation", () => {
       "nav.notifications",
     ]);
     expect(getMoreNavItems("parent").map((item) => item.labelKey)).toEqual([
-      "nav.growthWellbeing",
-      "nav.supportMessages",
+      "nav.attendance",
+      "nav.gradesReports",
       "nav.feesPayments",
       "nav.announcements",
-      "nav.notifications",
+      "nav.settings",
     ]);
     expect(getMoreNavItems("coordinator").map((item) => item.labelKey)).toEqual(
       [

@@ -143,7 +143,18 @@ const Sidebar = () => {
           </span>
         ) : null}
 
-        <span className="sidebar-nav-label truncate">{t(item.labelKey)}</span>
+        <span className="sidebar-nav-label truncate">
+          {(() => {
+            const raw = t(item.labelKey);
+            if (typeof raw === "string" && raw.startsWith("nav.")) {
+              return raw
+                .replace("nav.", "")
+                .replace(/([A-Z])/g, " $1")
+                .replace(/^./, (s) => s.toUpperCase());
+            }
+            return raw;
+          })()}
+        </span>
       </>
     );
 

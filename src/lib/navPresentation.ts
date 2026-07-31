@@ -128,11 +128,15 @@ const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
     },
   ],
   parent: [
-    { to: "/parent/progress", labelKey: "nav.growthWellbeing", emoji: "🌱" },
-    { to: "/parent/support", labelKey: "nav.supportMessages", emoji: "💬" },
+    { to: "/parent/attendance", labelKey: "nav.attendance", emoji: "🗓️" },
+    { to: "/parent/progress", labelKey: "nav.gradesReports", emoji: "📊" },
     { to: "/parent/fees", labelKey: "nav.feesPayments", emoji: "💳" },
-    { to: "/parent/notifications", labelKey: "nav.announcements", emoji: "📣" },
-    { to: "/parent/notifications", labelKey: "nav.notifications", emoji: "🔔" },
+    {
+      to: "/parent/communications",
+      labelKey: "nav.announcements",
+      emoji: "📣",
+    },
+    { to: "/parent/profile", labelKey: "nav.settings", emoji: "⚙️" },
   ],
   coordinator: [
     { to: "/coordinator/plos", labelKey: "nav.outcomeAttainment", emoji: "🎯" },

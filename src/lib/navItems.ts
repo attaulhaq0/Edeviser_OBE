@@ -51,7 +51,6 @@ import {
   Star,
   FileQuestion,
   Swords,
-  GraduationCap as GraduationCapIcon,
   Workflow,
   UserCog,
   Wallet,
@@ -394,15 +393,16 @@ const studentNavItems: NavItem[] = [
 
 const parentNavItems: NavItem[] = [
   { to: "/parent/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
-  { to: "/parent/children", labelKey: "nav.children", icon: GraduationCapIcon },
   { to: "/parent/progress", labelKey: "nav.progress", icon: TrendingUp },
+  { to: "/parent/support", labelKey: "nav.support", icon: Megaphone },
+  { to: "/parent/profile", labelKey: "nav.me", icon: UserCog },
   { to: "/parent/attendance", labelKey: "nav.attendance", icon: CalendarDays },
   { to: "/parent/fees", labelKey: "nav.fees", icon: Wallet },
-  { to: "/parent/support", labelKey: "nav.support", icon: Megaphone },
-  { to: "/parent/planner", labelKey: "nav.studyPlan", icon: BookOpen },
-  { to: "/parent/profile", labelKey: "nav.me", icon: UserCog },
-  { to: "/parent/notifications", labelKey: "nav.notifications", icon: Bell },
-  { to: "/parent/settings/profile", labelKey: "nav.settings", icon: UserCog },
+  {
+    to: "/parent/communications",
+    labelKey: "nav.announcements",
+    icon: Megaphone,
+  },
 ];
 
 export const navItems: Record<UserRole, NavItem[]> = {

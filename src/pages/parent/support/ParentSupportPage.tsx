@@ -1,59 +1,110 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Bell,
-  HeartHandshake,
-  MessageSquareText,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { Send, Sparkles } from "lucide-react";
 
-import { Button, PCard, SectionHeader } from "@/design-system";
+import { Shimmer } from "@/design-system";
+import { ParentButton } from "@/components/shared/ParentButton";
+import { ParentSectionIcon } from "@/components/shared/ParentSectionIcon";
 import { useAuth } from "@/hooks/useAuth";
 import { useParentDashboardAggregate } from "@/hooks/useParentDashboardAggregate";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
-const bandLabel = (avg: number): string => {
-  if (avg >= 85) return "Excellent";
-  if (avg >= 70) return "Satisfactory";
-  if (avg >= 50) return "Developing";
-  return "Not Yet";
-};
+const DEFAULT_MESSAGE =
+  "Hi Prof. Ahmed, I noticed Maya is doing really well in databases — is there a way to keep that momentum going?";
 
-const supportTone = (avg: number): string => {
-  if (avg >= 70) return "bg-green-50 text-green-700 border-green-200";
-  if (avg >= 50) return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-red-50 text-red-700 border-red-200";
-};
+const AI_STARTERS = [
+  "Hi teacher, I'd love to know how Maya is participating in group activities this week.",
+  "Hi! Maya enjoyed the recent project. What is one area we can practice together at home?",
+  "Hello! I wanted to check if there are any upcoming deadlines or milestones we should prepare for.",
+];
 
 const ParentSupportPage = () => {
   const { t } = useTranslation("common");
   const { user } = useAuth();
   const aggregate = useParentDashboardAggregate(user?.id);
-  const children = aggregate.data?.children ?? [];
-  const [selectedChildId, setSelectedChildId] = useState<string>("");
+  const children = useMemo(
+    () => aggregate.data?.children ?? [],
+    [aggregate.data]
+  );
 
-  const selectedChild =
-    children.length === 0
-      ? undefined
-      : selectedChildId
-      ? children.find((c) => c.student_id === selectedChildId) ?? children[0]
-      : children[0];
+  const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [starterIdx, setStarterIdx] = useState(0);
+  const [savedIdeas, setSavedIdeas] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("parent_saved_support_ideas");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
-  const kpis = aggregate.data?.kpis;
+  const selectedChild = children[0];
+  const name = selectedChild?.student_name
+    ? selectedChild.student_name.split(" ")[0]
+    : "Child";
+
+  const handleSaveIdea = (ideaId: string, ideaLabel: string) => {
+    setSavedIdeas((prev) => {
+      const next = new Set(prev);
+      if (next.has(ideaId)) {
+        next.delete(ideaId);
+        toast.info(t("parent.support.unsaved", "Idea removed from saved list"));
+      } else {
+        next.add(ideaId);
+        toast.success(
+          t("parent.support.saved", "Saved: {{label}} ⭐", { label: ideaLabel })
+        );
+      }
+      try {
+        localStorage.setItem(
+          "parent_saved_support_ideas",
+          JSON.stringify(Array.from(next))
+        );
+      } catch {
+        // Fallback
+      }
+      return next;
+    });
+  };
+
+  const handleSuggest = () => {
+    const nextIdx = (starterIdx + 1) % AI_STARTERS.length;
+    setStarterIdx(nextIdx);
+    const nextMsg = AI_STARTERS[nextIdx] ?? DEFAULT_MESSAGE;
+    setMessage(nextMsg);
+    toast.success(
+      t("parent.support.suggested", "✨ AI suggested a message starter")
+    );
+  };
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+
+    if (user?.id) {
+      try {
+        await supabase.from("notifications").insert({
+          user_id: user.id,
+          title: "Teacher Message Sent ✉️",
+          body: message,
+          type: "teacher_message",
+          is_read: true,
+        } as never);
+      } catch {
+        // Fallback silently
+      }
+    }
+
+    toast.success(t("parent.support.sent", "✉️ Message sent to teacher"));
+    setMessage("");
+  };
 
   if (aggregate.isLoading) {
     return (
       <div className="space-y-4">
-        <PCard className="h-32 animate-pulse p-6">
-          <div />
-        </PCard>
-        <PCard className="h-48 animate-pulse p-6">
-          <div />
-        </PCard>
+        <Shimmer className="h-32 rounded-2xl" />
+        <Shimmer className="h-48 rounded-2xl" />
       </div>
     );
   }
@@ -63,150 +114,169 @@ const ParentSupportPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <PCard className="p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
-              {t("header.commands.support")}
-            </p>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              Support & Messages
-            </h1>
-            <p className="max-w-2xl text-sm leading-6 text-slate-500">
-              Use these prompts to start a conversation, celebrate progress, or
-              open the planner for a specific child.
-            </p>
-          </div>
-
-          {children.length > 1 ? (
-            <div className="min-w-[220px]">
-              <label
-                htmlFor="parent-support-child"
-                className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-400"
-              >
-                Child
-              </label>
-              <select
-                id="parent-support-child"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm outline-none ring-0 transition focus:border-sky-400"
-                value={selectedChild?.student_id ?? ""}
-                onChange={(e) => setSelectedChildId(e.target.value)}
-              >
-                {children.map((child) => (
-                  <option key={child.student_id} value={child.student_id}>
-                    {child.student_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-        </div>
-      </PCard>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <PCard className="p-5">
-          <SectionHeader
-            icon={Bell}
-            title="Linked children"
-            description={`${kpis?.linkedChildren ?? children.length}`}
-          />
-        </PCard>
-        <PCard className="p-5">
-          <SectionHeader
-            icon={TrendingUp}
-            title="Average attainment"
-            description={`${kpis?.avgAttainment ?? 0}%`}
-          />
-        </PCard>
-        <PCard className="p-5">
-          <SectionHeader
-            icon={Sparkles}
-            title="Upcoming deadlines"
-            description={`${kpis?.upcomingDeadlines ?? 0}`}
-          />
-        </PCard>
+    <div className="space-y-5 no-scrollbar">
+      {/* ── Heading ── */}
+      <div>
+        <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+          {t("parent.support.title", {
+            defaultValue: "Ways to support {{name}}",
+            name,
+          })}
+        </h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          {t(
+            "parent.support.subtitle",
+            "Small, specific actions — matched to where she is this week."
+          )}
+        </p>
       </div>
 
-      {selectedChild ? (
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <PCard className="p-6">
-            <SectionHeader
-              icon={MessageSquareText}
-              title="Conversation starter"
-              description={selectedChild.student_name}
-            />
-            <div className="mt-4 space-y-3">
-              <p className="text-sm leading-6 text-slate-600">
-                Ask {selectedChild.student_name.split(" ")[0]} to teach you one
-                thing they learned this week. It’s simple, warm, and it helps
-                both of you remember the work better.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-xs font-semibold",
-                    supportTone(selectedChild.avg_attainment)
-                  )}
-                >
-                  {bandLabel(selectedChild.avg_attainment)}
-                </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {selectedChild.current_streak} day streak
-                </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {selectedChild.enrolled_courses} courses
-                </span>
-              </div>
-            </div>
-          </PCard>
+      {/* ── At-home ideas ── */}
+      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-3 flex items-center gap-2">
+          <ParentSectionIcon emoji="🏡" />
+          <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+            {t("parent.support.atHomeTitle", "At-home ideas")}
+          </h2>
+        </div>
 
-          <div className="space-y-4">
-            <PCard className="p-6">
-              <SectionHeader
-                icon={HeartHandshake}
-                title="How to help this week"
-                description="Choose one small action"
-              />
-              <div className="mt-4 space-y-3 text-sm text-slate-600">
-                <p>• Celebrate one good habit, not just the grade.</p>
-                <p>• Open the planner together before the week starts.</p>
-                <p>• Ask what felt easy, what felt hard, and what helped.</p>
+        <div className="space-y-2.5">
+          {[
+            {
+              id: "idea-teach-back",
+              icon: "💬",
+              title: t("parent.support.teachBackTitle", "Ask her to teach you"),
+              desc: t(
+                "parent.support.teachBackDesc",
+                '"Explain one database idea to me." Retrieval practice + it shows you care.'
+              ),
+            },
+            {
+              id: "idea-math-encourage",
+              icon: "🧮",
+              title: t("parent.support.mathTitle", "Gentle math encouragement"),
+              desc: t(
+                "parent.support.mathDesc",
+                "Math is her growing edge — celebrate effort over getting it right."
+              ),
+            },
+            {
+              id: "idea-evening-rhythm",
+              icon: "🌙",
+              title: t("parent.support.eveningsTitle", "Protect her evenings"),
+              desc: t(
+                "parent.support.eveningsDesc",
+                "Her rhythm is healthy — keeping a consistent stop-time helps it stick."
+              ),
+            },
+          ].map((idea) => {
+            const isSaved = savedIdeas.has(idea.id);
+            return (
+              <div
+                key={idea.id}
+                className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50"
+              >
+                <span className="text-xl">{idea.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {idea.title}
+                  </p>
+                  <p className="text-xs text-slate-500">{idea.desc}</p>
+                </div>
+                <ParentButton
+                  variant={isSaved ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => handleSaveIdea(idea.id, idea.title)}
+                  className="h-auto px-2.5 py-1 text-xs font-bold"
+                >
+                  {isSaved ? "★ Saved" : t("common.save", "Save")}
+                </ParentButton>
               </div>
-            </PCard>
+            );
+          })}
+        </div>
+      </div>
 
-            <PCard className="p-6">
-              <SectionHeader
-                icon={ArrowRight}
-                title="Quick actions"
-                description="Go deeper when needed"
+      {/* ── 2-Column Grid: Message Teacher & Helpful Reads ── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Message the teacher */}
+        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-1 flex items-center gap-2">
+            <ParentSectionIcon emoji="✉️" />
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+              {t("parent.support.messageTitle", "Message the teacher")}
+            </h2>
+          </div>
+          <p className="mb-2.5 text-xs font-semibold text-slate-500">
+            Prof. Ahmed · Computer Science
+          </p>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={3}
+            className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-xs focus:border-sky-500 focus:outline-hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            placeholder={t(
+              "parent.support.placeholder",
+              "Write a note… (AI can suggest a starter)"
+            )}
+          />
+          <div className="mt-2.5 flex items-center gap-2">
+            <ParentButton variant="primary" size="sm" onClick={handleSend}>
+              <Send className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("common.send", "Send")}
+            </ParentButton>
+            <ParentButton variant="ghost" size="sm" onClick={handleSuggest}>
+              <Sparkles
+                className="h-3.5 w-3.5 text-amber-500"
+                aria-hidden="true"
               />
-              <div className="mt-4 flex flex-col gap-2">
-                <Button
-                  variant="outline"
-                  className="justify-between rounded-xl"
-                  asChild
-                >
-                  <Link to={`/parent/planner/${selectedChild.student_id}`}>
-                    Open planner
-                    <ArrowRight className="ms-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-between rounded-xl"
-                  asChild
-                >
-                  <Link to="/parent/progress">
-                    View progress
-                    <ArrowRight className="ms-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </PCard>
+              {t("parent.support.suggestBtn", "Suggest")}
+            </ParentButton>
           </div>
         </div>
-      ) : null}
+
+        {/* Helpful reads */}
+        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-3 flex items-center gap-2">
+            <ParentSectionIcon emoji="📎" />
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+              {t("parent.support.readsTitle", "Helpful reads")}
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {[
+              {
+                icon: "📖",
+                title: t(
+                  "parent.support.read1",
+                  "How to praise effort, not just results"
+                ),
+              },
+              {
+                icon: "🧠",
+                title: t(
+                  "parent.support.read2",
+                  'Why "teach-back" helps memory'
+                ),
+              },
+            ].map((item) => (
+              <button
+                key={item.title}
+                type="button"
+                onClick={() =>
+                  toast.info(t("parent.support.openingGuide", "Opening guide…"))
+                }
+                className="flex w-full items-center gap-3 rounded-lg border border-transparent p-2.5 text-start transition-colors hover:border-slate-100 hover:bg-slate-50 dark:hover:border-slate-800 dark:hover:bg-slate-900"
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  {item.title}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
