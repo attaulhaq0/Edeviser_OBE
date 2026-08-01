@@ -201,7 +201,17 @@ export interface StudentAssignment {
   late_window_hours: number;
   prerequisites: Array<{ clo_id: string; required_attainment: number }> | null;
   created_at: string;
-  submissions: Pick<Submission, "id" | "is_late">[] | null;
+  submissions:
+    | (Pick<Submission, "id" | "is_late" | "submitted_at"> & {
+        grades: Pick<Grade, "id" | "score_percent" | "graded_at">[] | null;
+      })[]
+    | null;
+}
+
+interface Grade {
+  id: string;
+  score_percent: number;
+  graded_at: string;
 }
 
 // ─── useCreateSubmission — insert a submission record ───────────────────────
@@ -325,7 +335,9 @@ export const useStudentAssignments = (courseId?: string) => {
 
       let query = supabase
         .from("assignments")
-        .select("*, submissions(id, is_late, submitted_at)")
+        .select(
+          "*, submissions(id, is_late, submitted_at, grades(id, score_percent, graded_at))"
+        )
         .in("course_id", courseIds)
         .eq("submissions.student_id", user.id)
         .order("due_date", { ascending: true });

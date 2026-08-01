@@ -58,32 +58,27 @@ const StudentCoursesNew = () => {
 
   const dueToday = taskGroups.dueToday[0];
 
-  const recentGraded = [
-    {
-      id: "g1",
-      title: "DB Assignment 2",
-      course: "Database Design",
-      date: "Jul 5",
-      xp: "+25 XP",
-      score: "92%",
-    },
-    {
-      id: "g2",
-      title: "Web Dev Lab 4",
-      course: "Web Development",
-      date: "Jul 3",
-      xp: "+15 XP",
-      score: "85%",
-    },
-    {
-      id: "g3",
-      title: "AI Quiz 1",
-      course: "AI Fundamentals",
-      date: "Jul 1",
-      xp: "+10 XP",
-      score: "78%",
-    },
-  ];
+  const recentGraded = useMemo(
+    () =>
+      (assignments.data ?? [])
+        .flatMap((assignment) =>
+          (assignment.submissions ?? []).flatMap((submission) =>
+            (submission.grades ?? []).map((grade) => ({
+              id: grade.id,
+              title: assignment.title,
+              course:
+                enrolledCourses.data?.find(
+                  (course) => course.id === assignment.course_id
+                )?.name ?? "",
+              date: new Date(grade.graded_at).toLocaleDateString(),
+              score: `${Math.round(grade.score_percent)}%`,
+            }))
+          )
+        )
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 5),
+    [assignments.data, enrolledCourses.data]
+  );
 
   return (
     <div className="space-y-6">
@@ -111,7 +106,7 @@ const StudentCoursesNew = () => {
                 id="due-today-heading"
                 className="text-xs font-black uppercase tracking-widest text-amber-600"
               >
-                DUE TODAY ({taskGroups.dueToday.length || 1})
+                DUE TODAY ({taskGroups.dueToday.length})
               </h2>
             </div>
             {assignments.isLoading ? (
@@ -125,10 +120,16 @@ const StudentCoursesNew = () => {
                         ⏰ DUE 5:00 PM · IN 4H
                       </span>
                       <h3 className="mt-2 text-base font-black leading-tight text-slate-900">
-                        {dueToday ? dueToday.title : "Database Assignment 3"}
+                        {dueToday?.title ?? "No incomplete work due today"}
                       </h3>
                       <p className="mt-0.5 text-xs text-slate-500">
-                        Database Design · Prof. Ahmed
+                        {dueToday
+                          ? `${
+                              enrolledCourses.data?.find(
+                                (course) => course.id === dueToday.course_id
+                              )?.name ?? ""
+                            }`
+                          : "Your live assignment queue is clear."}
                       </p>
                     </div>
                     <span
@@ -152,7 +153,7 @@ const StudentCoursesNew = () => {
                           : "/student/assignments"
                       }
                     >
-                      Submit now → +25 XP
+                      {dueToday ? "Submit now" : "View all tasks"}
                     </Link>
                   </Button>
                   <Button
@@ -175,48 +176,29 @@ const StudentCoursesNew = () => {
               id="this-week-heading"
               className="mb-2.5 text-xs font-black uppercase tracking-widest text-slate-400"
             >
-              THIS WEEK ({taskGroups.thisWeek.length || 3})
+              THIS WEEK ({taskGroups.thisWeek.length})
             </h2>
             <div className="space-y-2 flex-1">
-              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-bold text-slate-800">
-                    Web Dev Quiz
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    Wednesday · 15 marks
-                  </p>
+              {taskGroups.thisWeek.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 p-4 text-xs text-slate-500">
+                  No incomplete assignments due this week.
                 </div>
-                <span className="text-xs font-black text-amber-600">
-                  +15 XP
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-bold text-slate-800">
-                    AI Research Essay
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    Friday · 30 marks
-                  </p>
-                </div>
-                <span className="text-xs font-black text-amber-600">
-                  +30 XP
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs">
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-bold text-slate-800">
-                    SE Project Milestone
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    Next Monday · 50 marks
-                  </p>
-                </div>
-                <span className="text-xs font-black text-amber-600">
-                  +50 XP
-                </span>
-              </div>
+              ) : (
+                taskGroups.thisWeek.map((assignment) => (
+                  <Link
+                    key={assignment.id}
+                    to={`/student/assignments/${assignment.id}`}
+                    className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-xs"
+                  >
+                    <span className="truncate text-xs font-bold text-slate-800">
+                      {assignment.title}
+                    </span>
+                    <span className="ms-3 text-xs font-black text-amber-600">
+                      {assignment.total_marks} marks
+                    </span>
+                  </Link>
+                ))
+              )}
             </div>
             <div className="mt-2.5 text-end">
               <Link
@@ -245,46 +227,7 @@ const StudentCoursesNew = () => {
             </div>
           ) : (
             <div className="my-courses-grid grid w-full min-w-0 gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,230px),1fr))]">
-              {(enrolledCourses.data && enrolledCourses.data.length > 0
-                ? enrolledCourses.data
-                : [
-                    {
-                      id: "c1",
-                      code: "CS301",
-                      name: "Database Design",
-                      attainment_percent: 72,
-                      teacher_name: "Prof. Ahmed",
-                      next_assignment: {
-                        title: "Assignment 3",
-                        due_at: "today",
-                      },
-                    },
-                    {
-                      id: "c2",
-                      code: "CS205",
-                      name: "Web Development",
-                      attainment_percent: 45,
-                      teacher_name: "Prof. Fatima",
-                      next_assignment: { title: "Quiz", due_at: "Wed" },
-                    },
-                    {
-                      id: "c3",
-                      code: "AI101",
-                      name: "AI Fundamentals",
-                      attainment_percent: 88,
-                      teacher_name: "Prof. Khalid",
-                      next_assignment: { title: "Essay", due_at: "Fri" },
-                    },
-                    {
-                      id: "c4",
-                      code: "SE400",
-                      name: "Software Engineering",
-                      attainment_percent: 30,
-                      teacher_name: "Prof. Noor",
-                      next_assignment: { title: "Milestone", due_at: "Mon" },
-                    },
-                  ]
-              ).map((c) => {
+              {(enrolledCourses.data ?? []).map((c) => {
                 const pct = c.attainment_percent ?? 0;
                 return (
                   <div
@@ -371,30 +314,33 @@ const StudentCoursesNew = () => {
             </div>
 
             <div className="divide-y divide-slate-100">
-              {recentGraded.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between py-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-slate-900">
-                      {item.title}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      {item.course} · {item.date} ·{" "}
-                      <span className="text-emerald-600 font-bold">
-                        {item.xp}
+              {recentGraded.length === 0 ? (
+                <p className="py-4 text-xs text-slate-500">
+                  No released grades yet.
+                </p>
+              ) : (
+                recentGraded.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold text-slate-900">
+                        {item.title}
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        {item.course} · {item.date}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-emerald-600">
+                        {item.score}
                       </span>
-                    </p>
+                      <ChevronRight className="size-4 text-slate-300" />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-emerald-600">
-                      {item.score}
-                    </span>
-                    <ChevronRight className="size-4 text-slate-300" />
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </PCard>
         </section>

@@ -116,17 +116,7 @@ export const useAdminSemesters = () => {
         .select("id, name, academic_year, is_active")
         .order("start_date", { ascending: false });
 
-      if (error) {
-        // Fallback for default semester if semesters table is not yet migrated
-        return [
-          {
-            id: "fall-2026",
-            name: "Fall 2026",
-            academic_year: "2026-2027",
-            is_active: true,
-          },
-        ];
-      }
+      if (error) throw error;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (data ?? []).map((s: any) => ({
@@ -151,34 +141,32 @@ export const useAdminAccreditationSummary = (programId?: string) => {
       );
 
       let summaryData = {
-        readinessPercent: 82,
-        documented: 2,
-        partial: 1,
-        blocked: 1,
-        notStarted: 1,
+        readinessPercent: 0,
+        documented: 0,
+        partial: 0,
+        blocked: 0,
+        notStarted: 0,
         courses: [] as CourseFileItem[],
-        packChecklist: [
-          { label: "Syllabi & course files", ready: true },
-          { label: "CLO ↔ PLO mappings", ready: true },
-          { label: "Assessment instruments", ready: true },
-          { label: "Sample student work", ready: true },
-          { label: "Attainment analysis", ready: true },
-          { label: "Faculty reflections", ready: true },
-          { label: "CQI recommendations", ready: false },
-        ],
+        packChecklist: [] as Array<{ label: string; ready: boolean }>,
       };
 
-      if (!rpcErr && rpcData) {
+      if (rpcErr) throw rpcErr;
+      if (rpcData) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const raw = rpcData as any;
         summaryData = {
-          readinessPercent: Number(raw.readinessPercent ?? 82),
-          documented: Number(raw.documented ?? 2),
-          partial: Number(raw.partial ?? 1),
-          blocked: Number(raw.blocked ?? 1),
-          notStarted: Number(raw.notStarted ?? 1),
+          readinessPercent: Number(raw.readinessPercent ?? 0),
+          documented: Number(raw.documented ?? 0),
+          partial: Number(raw.partial ?? 0),
+          blocked: Number(raw.blocked ?? 0),
+          notStarted: Number(raw.notStarted ?? 0),
           courses: Array.isArray(raw.courses) ? raw.courses : [],
-          packChecklist: summaryData.packChecklist,
+          packChecklist: Array.isArray(raw.pack)
+            ? raw.pack.map((item: { key?: string; state?: string }) => ({
+                label: item.key ?? "Evidence item",
+                ready: item.state === "done",
+              }))
+            : [],
         };
       }
 
@@ -191,38 +179,33 @@ export const useAdminAccreditationSummary = (programId?: string) => {
         courseQuery = courseQuery.eq("program_id", programId);
       }
 
-      const { data: coursesData } = await courseQuery;
+      const { data: coursesData, error: coursesError } = await courseQuery;
+      if (coursesError) throw coursesError;
 
-      const courseFiles: CourseFileItem[] = (coursesData ?? []).map(
-        (c, idx) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const los = (c as any).learning_outcomes;
-          const cloCount = Array.isArray(los) ? los.length : 0;
-          const statuses: CourseFileItem["status"][] = [
-            "documented",
-            "documented",
-            "partial",
-            "blocked",
-            "not_started",
-          ];
-          const status = statuses[idx % statuses.length] ?? "not_started";
-          const subtitles: Record<CourseFileItem["status"], string> = {
-            documented: "All artifacts present & signed",
-            partial: "Syllabus · CLO-PLO map · sample work",
-            blocked: "Missing Concurrency (PLO4) evidence",
-            not_started: "Course file not started yet",
-          };
+      const courseFiles: CourseFileItem[] = (coursesData ?? []).map((c) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const los = (c as any).learning_outcomes;
+        const cloCount = Array.isArray(los) ? los.length : 0;
+        const persisted = summaryData.courses.find(
+          (course) => course.id === c.id
+        );
+        const status = persisted?.status ?? "not_started";
+        const subtitles: Record<CourseFileItem["status"], string> = {
+          documented: "Persisted evidence is complete",
+          partial: "Persisted evidence is incomplete",
+          blocked: "Persisted evidence has a blocking gap",
+          not_started: "No persisted evidence status",
+        };
 
-          return {
-            id: c.id,
-            code: c.code,
-            name: c.name,
-            status,
-            subtitle: subtitles[status],
-            clo_count: cloCount,
-          };
-        }
-      );
+        return {
+          id: c.id,
+          code: c.code,
+          name: c.name,
+          status,
+          subtitle: subtitles[status],
+          clo_count: cloCount,
+        };
+      });
 
       if (courseFiles.length > 0) {
         summaryData.courses = courseFiles;
@@ -346,27 +329,9 @@ export const useAccreditationCQIPlans = (programId?: string) => {
         }));
       }
 
-      return [
-        {
-          id: "cqi-1",
-          action_title: "Add worked examples to 3NF",
-          target_outcome: "CLO4",
-          status: "completed",
-          impact_note: "Completed · +8%",
-        },
-        {
-          id: "cqi-2",
-          action_title: "REST APIs remediation",
-          target_outcome: "CLO5",
-          status: "in_progress",
-        },
-        {
-          id: "cqi-3",
-          action_title: "Introduce Concurrency assessment",
-          target_outcome: "PLO4",
-          status: "planned",
-        },
-      ];
+      // Empty means no persisted CQI plan exists. Do not manufacture plans for
+      // the accreditation screen.
+      return [];
     },
   });
 };

@@ -22,6 +22,48 @@ export interface CoordinatorKPIData {
   teacherCompliancePercent: number;
 }
 
+export interface CoordinatorWorkspaceData {
+  assignedPrograms: number;
+  courseCount: number;
+  ploCount: number;
+  targetAttainment: number;
+  belowTargetCount: number;
+  ploAttainment: Array<{
+    id: string;
+    title: string;
+    program: string;
+    attainment: number | null;
+    evidenceCount: number;
+    belowTarget: boolean;
+  }>;
+  coverage: {
+    totalClos: number;
+    mappedClos: number;
+    coveragePercent: number;
+    status: "complete" | "gaps" | "insufficientEvidence";
+  };
+  cqi: {
+    planned: number;
+    inProgress: number;
+    evaluated: number;
+    total: number;
+    closed: number;
+  };
+  accreditation: {
+    configurations: number;
+    approvedStages: number;
+    pendingStages: number;
+    reportJobs: number;
+    generatedReports: number;
+  };
+  teacherCompliance: {
+    courses: number;
+    coursesWithClo: number;
+    percent: number;
+  };
+  calculatedAt: string;
+}
+
 /** At-risk threshold: students whose mean attainment is below this are flagged. */
 const AT_RISK_THRESHOLD = 50;
 

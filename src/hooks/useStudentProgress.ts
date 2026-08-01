@@ -226,28 +226,45 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
       );
       const strongest = sorted[0];
 
-      // Derive weakest CLO summary from perCourse attainment
+      // Derive the weakest configured outcome from the same canonical
+      // attainment source used by Progress. A missing row is an honest empty
+      // state, not a fabricated CLO or score.
       let weakestClo: StudentAcademicSummary["weakestClo"] | undefined =
         undefined;
       const courseIds = pData.perCourse.map((c) => c.course_id);
-      if (sorted.length > 0 && sorted[sorted.length - 1]) {
-        const lowestCourse = sorted[sorted.length - 1]!;
-        weakestClo = {
-          cloId: `clo-${lowestCourse.course_code.toLowerCase()}`,
-          courseId: lowestCourse.course_id,
-          title: "Database Normalization (CLO3)",
-          mastery: lowestCourse.attainment_percent || 62,
-        };
-      }
+      if (courseIds.length > 0) {
+        const { data: weakestOutcome, error: weakestOutcomeError } =
+          await supabase
+            .from("outcome_attainment")
+            .select(
+              "outcome_id, course_id, attainment_percent, learning_outcomes!inner(id, title, blooms_level)"
+            )
+            .eq("student_id", studentId)
+            .eq("scope", "student_course")
+            .in("course_id", courseIds)
+            .order("attainment_percent", { ascending: true })
+            .limit(1)
+            .maybeSingle();
 
-      // Default weakest CLO fallback if no courses yet
-      if (!weakestClo) {
-        weakestClo = {
-          cloId: "clo-db-norm",
-          courseId: courseIds[0] ?? "",
-          title: "Database Normalization (CLO3)",
-          mastery: 62,
-        };
+        if (weakestOutcomeError) throw weakestOutcomeError;
+        const outcome = weakestOutcome?.learning_outcomes as unknown as {
+          id: string;
+          title: string;
+          blooms_level: string | null;
+        } | null;
+
+        if (weakestOutcome?.course_id && outcome) {
+          const lowestCourse = pData.perCourse.find(
+            (course) => course.course_id === weakestOutcome.course_id
+          );
+          weakestClo = {
+            cloId: outcome.id,
+            courseId: weakestOutcome.course_id,
+            title: outcome.title,
+            mastery: weakestOutcome.attainment_percent,
+          };
+          if (!lowestCourse) weakestClo = undefined;
+        }
       }
 
       // Fetch next upcoming deadline
@@ -270,19 +287,10 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
           nextDeadline = {
             assignmentId: aRow.id,
             title: aRow.title,
-            courseName: matchedCourse?.course_name ?? "Database Design",
+            courseName: matchedCourse?.course_name ?? "",
             dueAt: aRow.due_date,
           };
         }
-      }
-
-      if (!nextDeadline) {
-        nextDeadline = {
-          assignmentId: "asgn-db-3",
-          title: "Database Assignment 3",
-          courseName: "Database Design",
-          dueAt: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
-        };
       }
 
       return {
@@ -301,16 +309,8 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
           : undefined,
         weakestClo,
         nextDeadline,
-        classStanding: {
-          rank: 3,
-          percentile: 85,
-          cohortSize: 20,
-          band: "Top 15%",
-        },
-        termComparison: {
-          masteryDelta: 9,
-          onTimeDelta: 6,
-        },
+        classStanding: undefined,
+        termComparison: undefined,
         perCourse: pData.perCourse,
       };
     },

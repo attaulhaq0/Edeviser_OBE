@@ -123,10 +123,26 @@ export const useAdminAnalytics = (
       const now = new Date();
       const weeklyActiveLearners: WeeklyActiveLearnersPoint[] = [];
 
-      // Query study sessions for distinct active students per week
-      const { data: studySessions } = await supabase
-        .from("study_sessions")
-        .select("student_id, created_at");
+      // Weekly activity is based on dated activity events, never on active
+      // enrolments or fabricated ratios.
+      const { data: studentsInInstitution } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("institution_id", institutionId)
+        .eq("role", "student");
+      const institutionStudentIds = (studentsInInstitution ?? []).map(
+        (student) => student.id
+      );
+      const { data: activityEvents } = institutionStudentIds.length
+        ? await supabase
+            .from("student_activity_log")
+            .select("student_id, created_at")
+            .in("student_id", institutionStudentIds)
+            .gte(
+              "created_at",
+              new Date(now.getTime() - 35 * 86400000).toISOString()
+            )
+        : { data: [] };
 
       const activeStudentSetPerWeek: Array<Set<string>> = [
         new Set(),
@@ -136,7 +152,7 @@ export const useAdminAnalytics = (
         new Set(),
       ];
 
-      (studySessions ?? []).forEach((sess) => {
+      (activityEvents ?? []).forEach((sess) => {
         if (sess.created_at && sess.student_id) {
           const sessDate = new Date(sess.created_at);
           const diffDays =
@@ -152,15 +168,9 @@ export const useAdminAnalytics = (
       });
 
       const weekLabels = ["W1", "W2", "W3", "W4", "Now"];
-      const baseRatios = [0.75, 0.8, 0.85, 0.9, 0.925];
-
       for (let w = 0; w < 5; w++) {
         const weekSet = activeStudentSetPerWeek[w];
-        const realCount = weekSet ? weekSet.size : 0;
-        const activeCount =
-          realCount > 0
-            ? realCount
-            : Math.round(totalStudents * (baseRatios[w] ?? 0.8));
+        const activeCount = weekSet?.size ?? 0;
         const pct =
           totalStudents > 0
             ? Math.round((activeCount / totalStudents) * 100)
@@ -177,7 +187,7 @@ export const useAdminAnalytics = (
       // 3. Mastery Distribution & Outcome Attainment
       const { data: attainments } = await supabase
         .from("outcome_attainment")
-        .select("student_id, attainment_percent");
+        .select("student_id, outcome_id, attainment_percent");
 
       const studentMasteryMap: Record<string, number[]> = {};
       (attainments ?? []).forEach((a) => {
@@ -223,12 +233,32 @@ export const useAdminAnalytics = (
       };
 
       // 4. Retention Risk (sums strictly to total student count)
-      const onTrackCount = Math.round(totalStudents * 0.75);
-      const watchCount = Math.round(totalStudents * 0.18);
-      const atRiskCount = Math.max(
-        0,
-        totalStudents - onTrackCount - watchCount
+      const recentActivity = new Set(
+        (activityEvents ?? [])
+          .filter(
+            (event) =>
+              new Date(event.created_at).getTime() >=
+              now.getTime() - 14 * 86400000
+          )
+          .map((event) => event.student_id)
       );
+      const studentAverages = new Map<string, number>();
+      for (const [studentId, scores] of Object.entries(studentMasteryMap)) {
+        studentAverages.set(
+          studentId,
+          scores.reduce((sum, score) => sum + score, 0) / scores.length
+        );
+      }
+      let onTrackCount = 0;
+      let watchCount = 0;
+      let atRiskCount = 0;
+      for (const studentId of institutionStudentIds) {
+        const average = studentAverages.get(studentId);
+        if (average == null) continue;
+        if (average < 50 || !recentActivity.has(studentId)) atRiskCount++;
+        else if (average < 70) watchCount++;
+        else onTrackCount++;
+      }
 
       const retentionRisk: RetentionRiskData = {
         onTrack: onTrackCount,
@@ -266,9 +296,22 @@ export const useAdminAnalytics = (
           return {
             departmentName: d.name,
             learners: isSuppressed ? 0 : learnerCount,
-            activePercent: learnerCount > 0 ? 92 : 0,
-            masteryPercent: learnerCount > 0 ? 78 : 0,
-            trend: "up",
+            activePercent:
+              learnerCount > 0
+                ? Math.round(
+                    ([
+                      ...new Set(
+                        (activityEvents ?? [])
+                          .filter((event) => studentSet.has(event.student_id))
+                          .map((event) => event.student_id)
+                      ),
+                    ].length /
+                      learnerCount) *
+                      100
+                  )
+                : 0,
+            masteryPercent: 0,
+            trend: "down",
           };
         }
       );
@@ -299,16 +342,16 @@ export const useAdminAnalytics = (
         .eq("type", "PLO")
         .order("title", { ascending: true });
 
-      const ploAttainment: PLOHeatmapCard[] = (plos ?? []).map((plo, idx) => {
+      const ploAttainment: PLOHeatmapCard[] = (plos ?? []).map((plo) => {
         const ploScores = (attainments ?? [])
-          .filter((a) => a.student_id)
+          .filter((a) => a.student_id && a.outcome_id === plo.id)
           .map((a) => a.attainment_percent)
           .filter((v): v is number => v != null);
 
         const hasScores = ploScores.length > 0;
         const meanAtt = hasScores
           ? Math.round(ploScores.reduce((a, b) => a + b, 0) / ploScores.length)
-          : 85 - idx * 6;
+          : -1;
 
         let statusBand: PLOHeatmapCard["statusBand"] = "unmeasured";
         if (meanAtt >= 85) statusBand = "excellent";
@@ -320,7 +363,9 @@ export const useAdminAnalytics = (
           ploId: plo.id,
           ploCodeTitle: plo.title,
           meanAttainment: meanAtt,
-          derivationLabel: "program · 4 courses",
+          derivationLabel: hasScores
+            ? "live attainment evidence"
+            : "unmeasured",
           statusBand,
         };
       });

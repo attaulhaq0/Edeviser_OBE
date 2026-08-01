@@ -187,8 +187,8 @@ export const AdminAccreditationReportsPage: React.FC = () => {
               Evidence readiness
             </p>
             <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-              Live status across all required evidence. One blocker (Concurrency
-              gap) stands between you and a generated pack.
+              Live status across all required evidence. Resolve persisted gaps
+              before generating a report pack.
             </p>
           </div>
         </div>
@@ -577,8 +577,8 @@ export const AdminAccreditationReportsPage: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-slate-500 mt-4 pt-3 border-t border-slate-100">
-              Currently with the <b>Head of Department</b>. Resolve the
-              Concurrency blocker to unlock QA sign-off.
+              Currently with the <b>Head of Department</b>. Resolve persisted
+              approval blockers to unlock QA sign-off.
             </p>
           </PCard>
 

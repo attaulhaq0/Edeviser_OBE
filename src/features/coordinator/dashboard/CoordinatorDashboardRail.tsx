@@ -10,7 +10,7 @@
 //   - useCoordinatorAccreditationReadiness → readiness %
 //
 // Faithful to the dashboard's "no invented gap" rule: the prototype's specific
-// "Concurrency has no mapped assessment" line has no backend, so the curriculum
+// Curriculum gap copy must be derived from the live coverage contract.
 // card shows the REAL coverage % + a link to the matrix instead of naming a gap.
 // =============================================================================
 

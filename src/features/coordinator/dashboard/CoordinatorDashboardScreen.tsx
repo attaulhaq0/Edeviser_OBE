@@ -225,12 +225,14 @@ const CoordinatorDashboardScreen = () => {
   const { data: paginatedPrograms } = usePrograms(undefined, {
     enabled: !!institutionId,
   });
-  const programsCount = paginatedPrograms?.data?.length ?? 0;
+  const programsCount =
+    aggregate.data?.assignedPrograms ?? paginatedPrograms?.data?.length ?? 0;
 
   const ai = useCoordinatorAiInsights(institutionId);
 
   const attainment = useCoordinatorOutcomeAttainment(institutionId);
-  const threshold = attainment.data?.successThreshold ?? 70;
+  const threshold =
+    aggregate.data?.targetAttainment ?? attainment.data?.successThreshold ?? 80;
   const measuredPlos = useMemo(
     () => (attainment.data?.plos ?? []).filter((p) => p.attainment != null),
     [attainment.data]
@@ -242,7 +244,8 @@ const CoordinatorDashboardScreen = () => {
         .sort((a, b) => (a.attainment as number) - (b.attainment as number)),
     [measuredPlos, threshold]
   );
-  const belowTargetCount = belowTargetPlos.length;
+  const belowTargetCount =
+    aggregate.data?.belowTargetCount ?? belowTargetPlos.length;
   const lowestPlo = useMemo(
     () =>
       measuredPlos.reduce<AttainmentPLO | null>(

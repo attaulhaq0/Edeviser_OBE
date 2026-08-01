@@ -44,59 +44,25 @@ const StudentProgressNew = () => {
   const { user } = useAuth();
   const summary = useStudentAcademicSummary(user?.id);
 
-  const courseList = summary.data?.perCourse.length
-    ? summary.data.perCourse.map((c) => ({
-        code: c.course_code,
-        name: c.course_name,
-        band: getBandName(c.attainment_percent),
-        pct: c.attainment_percent,
-        clos: c.clo_count || 5,
-        evidence: c.evidence_count || 12,
-        color: c.attainment_percent >= 85 ? "bg-teal-500" : "bg-blue-600",
-      }))
-    : [
-        {
-          code: "CS301",
-          name: "Database Design",
-          band: "Satisfactory",
-          pct: 78,
-          clos: 5,
-          evidence: 12,
-          color: "bg-blue-600",
-        },
-        {
-          code: "AI101",
-          name: "AI Fundamentals",
-          band: "Excellent",
-          pct: 92,
-          clos: 4,
-          evidence: 9,
-          color: "bg-teal-500",
-        },
-        {
-          code: "CS205",
-          name: "Web Development",
-          band: "Developing",
-          pct: 62,
-          clos: 8,
-          evidence: 6,
-          color: "bg-blue-600",
-        },
-        {
-          code: "SE400",
-          name: "Software Engineering",
-          band: "Not Yet",
-          pct: 45,
-          clos: 6,
-          evidence: 3,
-          color: "bg-blue-600",
-        },
-      ];
+  const courseList = (summary.data?.perCourse ?? []).map((c) => ({
+    code: c.course_code,
+    name: c.course_name,
+    band: getBandName(c.attainment_percent),
+    pct: c.attainment_percent,
+    clos: c.clo_count || 5,
+    evidence: c.evidence_count || 12,
+    color: c.attainment_percent >= 85 ? "bg-teal-500" : "bg-blue-600",
+  }));
 
-  const closAttention = [
-    { title: "Normalization (CLO3)", pct: 62, color: "bg-rose-500" },
-    { title: "REST APIs (CLO5)", pct: 48, color: "bg-rose-500" },
-  ];
+  const closAttention = summary.data?.weakestClo
+    ? [
+        {
+          title: summary.data.weakestClo.title,
+          pct: summary.data.weakestClo.mastery,
+          color: "bg-rose-500",
+        },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -126,7 +92,7 @@ const StudentProgressNew = () => {
               COURSES
             </p>
             <p className="text-xl font-black text-slate-900">
-              {summary.data?.activeCourseCount ?? 4}
+              {summary.data?.activeCourseCount ?? 0}
             </p>
           </div>
         </PCard>
@@ -140,8 +106,7 @@ const StudentProgressNew = () => {
               AVERAGE
             </p>
             <p className="text-xl font-black text-emerald-600">
-              {summary.data?.averageMastery ?? 88}%{" "}
-              <span className="text-xs text-emerald-500 font-bold">↑4</span>
+              {summary.data?.averageMastery ?? 0}%
             </p>
           </div>
         </PCard>
@@ -155,7 +120,7 @@ const StudentProgressNew = () => {
               EXCELLENT
             </p>
             <p className="text-xl font-black text-slate-900">
-              {summary.data?.excellentCount ?? 2}
+              {summary.data?.excellentCount ?? 0}
             </p>
           </div>
         </PCard>
@@ -169,7 +134,7 @@ const StudentProgressNew = () => {
               FOCUS ON
             </p>
             <p className="text-xl font-black text-rose-600">
-              {summary.data?.notYetCount ?? 2}
+              {summary.data?.notYetCount ?? 0}
             </p>
           </div>
         </PCard>
@@ -186,10 +151,11 @@ const StudentProgressNew = () => {
             <p className="text-xs text-slate-600 font-medium mt-0.5">
               Spend 20 min on{" "}
               <span className="font-bold text-slate-900">
-                {summary.data?.weakestClo?.title ??
-                  "Database Normalization (CLO3)"}
-              </span>{" "}
-              to reach Satisfactory. You're only 8% away!
+                {summary.data?.weakestClo?.title ?? "a configured outcome"}
+              </span>
+              {summary.data?.weakestClo
+                ? ` currently measures ${summary.data.weakestClo.mastery}%.`
+                : " when live evidence is available."}
             </p>
           </div>
         </div>
