@@ -5,11 +5,15 @@ import { describe, expect, it } from "vitest";
 const source = (path: string) => readFileSync(resolve(__dirname, path), "utf8");
 
 describe("prototype application shell layout", () => {
-  it("allows the middle feed to use the wide prototype content area", () => {
+  it("uses compact chrome while preserving a wide content area", () => {
     const tokens = source("../../design-system/tokens.css");
     const shell = source("../../app/RoleAppShell.tsx");
 
-    expect(tokens).toContain("--app-content-max: 82.5rem");
+    expect(tokens).toContain("--app-header-h: 52px");
+    expect(tokens).toContain("--app-sidebar-w: 13.5rem");
+    expect(tokens).toContain("--app-rail-w: 16.5rem");
+    expect(tokens).toContain("--app-content-max: 96rem");
+    expect(tokens).toContain("--app-gutter: 0.875rem");
     expect(tokens).not.toContain("--app-content-max: 48rem");
     // max-width is only applied when a rail is present
     expect(shell).toContain("max-w-(--app-content-max) mx-auto");

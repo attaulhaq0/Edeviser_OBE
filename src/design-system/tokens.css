@@ -128,13 +128,13 @@
      These are deliberately separate from the raw prototype measurements above:
      the application shell uses one consistent grid across every role, while
      individual prototype cards can still use their captured dimensions. */
-  --app-header-h: 56px;
-  --app-sidebar-w: 16.5rem;
-  --app-rail-w: 20rem;
-  /* The prototype feed grows with the viewport. 48rem was only correct around
-     a 1440px three-column viewport and left a large void on wide screens. */
-  --app-content-max: 82.5rem;
-  --app-gutter: 1.5rem;
+  --app-header-h: 52px;
+  --app-sidebar-w: 13.5rem;
+  --app-rail-w: 16.5rem;
+  /* Compact application chrome gives the working feed the same usable area
+     users previously reached by reducing browser zoom, without shrinking text. */
+  --app-content-max: 96rem;
+  --app-gutter: 0.875rem;
   --app-gutter-mobile: 1rem;
 
   /* === DOMAIN: BLOOM'S TAXONOMY (design-system steering) === */

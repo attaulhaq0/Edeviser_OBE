@@ -898,6 +898,26 @@ html.font-x-large {
   background-color: #030f26;
 }
 
+@media (min-width: 1024px) {
+  .auth-page {
+    direction: ltr;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    grid-template-columns:
+      minmax(0, min(calc(100dvh * 4 / 3), calc(100vw - 420px)))
+      minmax(420px, 1fr);
+  }
+
+  .auth-brand-panel {
+    height: 100dvh;
+  }
+
+  html[dir="rtl"] .auth-form-panel {
+    direction: rtl;
+  }
+}
+
 @media (max-width: 900px) {
   .auth-page {
     grid-template-columns: 1fr !important;

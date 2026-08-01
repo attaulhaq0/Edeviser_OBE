@@ -97,8 +97,8 @@ const Sidebar = () => {
     const itemClassName = cn(
       "sidebar-item flex items-center transition-colors duration-150",
       section === "primary"
-        ? "rounded-[13px] px-[16px] gap-[12px] min-h-[47px]"
-        : "rounded-[10px] px-[18px] gap-3 py-[8px]",
+        ? "min-h-[47px] gap-[12px] rounded-[13px] px-[16px] min-[1024px]:min-h-[42px]"
+        : "gap-3 rounded-[10px] px-[18px] py-[8px] min-[1024px]:py-[6px]",
       isActive ? "font-semibold" : "hover:bg-slate-50 dark:hover:bg-slate-800"
     );
 
@@ -221,7 +221,7 @@ const Sidebar = () => {
             : "max-[639px]:-translate-x-full max-[639px]:rtl:translate-x-full"
         )}
       >
-        <div className="relative flex h-full min-h-0 flex-1 flex-col px-3.5 pb-5 pt-4 min-[640px]:pt-18.5">
+        <div className="relative flex h-full min-h-0 flex-1 flex-col px-3.5 pb-5 pt-4 min-[640px]:pt-18.5 min-[1024px]:px-3 min-[1024px]:pb-4 min-[1024px]:pt-16">
           <span className="hidden min-[640px]:block absolute inset-s-5.5 top-5.5 text-[18px] font-black tracking-[-0.01em] text-slate-900 dark:text-foreground">
             Edeviser
           </span>

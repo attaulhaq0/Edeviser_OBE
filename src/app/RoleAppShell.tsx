@@ -35,7 +35,7 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
       <div
         data-role={userRole}
         data-norail={hasRail ? undefined : "true"}
-        className="min-h-screen bg-slate-50 dark:bg-background"
+        className="role-app-shell min-h-screen bg-slate-50 dark:bg-background"
       >
         <GlobalHeader />
         <div
@@ -52,7 +52,7 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
             <main
               id="main-content"
               tabIndex={-1}
-              className="min-h-[calc(100vh-var(--app-header-h))] py-5 min-[640px]:ps-(--app-gutter) min-[640px]:pe-(--app-gutter) xl:py-6"
+              className="min-h-[calc(100vh-var(--app-header-h))] py-4 min-[640px]:ps-(--app-gutter) min-[640px]:pe-(--app-gutter)"
             >
               <div
                 className={cn(

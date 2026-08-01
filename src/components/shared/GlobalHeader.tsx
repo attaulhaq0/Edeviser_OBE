@@ -30,7 +30,7 @@ const GlobalHeader = () => {
     <header className="sticky top-0 z-[100] h-(--app-header-h) w-full border-b border-slate-200/80 bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.06)] backdrop-blur-md dark:border-border dark:bg-background/95">
       <div
         data-tour="top-bar"
-        className="mx-auto flex h-full w-full items-center justify-between gap-4 px-4 lg:px-6"
+        className="mx-auto flex h-full w-full items-center justify-between gap-3 px-4"
       >
         {/* Left: Mobile Toggle & Brand Logo */}
         <div className="flex items-center gap-3 shrink-0">

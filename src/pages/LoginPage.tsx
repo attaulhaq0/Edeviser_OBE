@@ -54,19 +54,17 @@ const NOOR_DEMO_ACCOUNTS = [
   },
 ] as const;
 
-const ENABLE_QUICK_LOGIN =
-  import.meta.env.VITE_ENABLE_QUICK_LOGIN === "true" ||
-  import.meta.env.VITE_ENABLE_QUICK_LOGIN === "1" ||
-  import.meta.env.DEV ||
-  import.meta.env.MODE === "test";
+const IS_LOCAL_AUTH_HOST =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
 
-const SHOW_NOOR_PANEL = ENABLE_QUICK_LOGIN;
-const DEMO_PASSWORD =
-  (import.meta.env.VITE_DEMO_PASSWORD ?? "").length > 0
-    ? import.meta.env.VITE_DEMO_PASSWORD!
-    : "CedarHarbor1745!";
-const SHOW_DEMO_PANEL = DEMO_PASSWORD.length > 0;
-const NOOR_DEMO_PASSWORD = DEMO_PASSWORD;
+const NOOR_DEMO_PASSWORD =
+  import.meta.env.VITE_DEMO_PASSWORD ?? "CedarHarbor1745!";
+
+const SHOW_LOCAL_QUICK_LOGIN =
+  (IS_LOCAL_AUTH_HOST || import.meta.env.MODE === "test") &&
+  NOOR_DEMO_PASSWORD.length > 0;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -414,24 +412,24 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page relative grid min-h-dvh w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
+    <div className="auth-page relative grid min-h-dvh w-full grid-cols-1 overflow-x-clip bg-[#f3f6fc] lg:items-stretch">
       {/* ── BRAND / VALUE PANEL (LEFT) ─────────────────────────────────── */}
-      <div className="order-2 lg:order-1 h-full">
+      <div className="order-2 h-full lg:order-1 lg:self-stretch">
         <AuthBrandPanel />
       </div>
 
       {/* ── AUTHENTICATION FORM PANEL (RIGHT) ──────────────────────────── */}
-      <div className="relative order-1 lg:order-2 flex flex-col justify-between px-6 py-8 sm:px-10 lg:px-12 lg:py-10">
+      <div className="auth-form-panel relative order-1 flex flex-col justify-between bg-[#f3f6fc] px-6 py-8 sm:px-10 lg:order-2 lg:h-dvh lg:overflow-hidden lg:px-12 lg:py-4">
         {/* TOP RIGHT: LANGUAGE SWITCHER */}
-        <div className="flex justify-end w-full mb-6">
+        <div className="mb-6 flex w-full justify-end lg:mb-2">
           <LanguageSwitcher />
         </div>
 
         {/* CENTER AUTH CARD */}
         <div className="mx-auto w-full max-w-125 my-auto">
-          <div className="rounded-3xl border border-slate-100/90 bg-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="rounded-3xl border border-slate-100/90 bg-white p-7 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-9 lg:p-6">
             {/* TABS: LOGIN / REGISTER */}
-            <div className="mb-7 flex border-b border-slate-100">
+            <div className="mb-7 flex border-b border-slate-100 lg:mb-4">
               <button
                 type="button"
                 className={`flex-1 pb-3 text-center text-base transition-all ${
@@ -461,7 +459,7 @@ const LoginPage = () => {
               <form
                 onSubmit={loginForm.handleSubmit(handleLogin)}
                 noValidate
-                className="space-y-4"
+                className="space-y-4 lg:space-y-3"
               >
                 {/* Email Field */}
                 <div>
@@ -547,7 +545,7 @@ const LoginPage = () => {
                 {/* Primary Gradient Sign In Button */}
                 <Button
                   type="submit"
-                  className="mt-2 h-12 w-full text-white font-extrabold text-sm shadow-md transition-all duration-300 hover:opacity-95 border-0 rounded-xl flex items-center justify-center gap-2"
+                  className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl border-0 text-sm font-extrabold text-white shadow-md transition-all duration-300 hover:opacity-95 lg:h-11"
                   style={{
                     background:
                       "linear-gradient(90deg, #1d4ed8 0%, #0284c7 50%, #0d9488 100%)",
@@ -560,7 +558,7 @@ const LoginPage = () => {
                 </Button>
 
                 {/* Divider */}
-                <div className="relative my-4 flex items-center justify-center">
+                <div className="relative my-4 flex items-center justify-center lg:my-2">
                   <div className="w-full border-t border-slate-200" />
                   <span className="absolute bg-white px-3 text-xs text-slate-400">
                     or
@@ -581,7 +579,7 @@ const LoginPage = () => {
                 </button>
 
                 {/* Create Account Link */}
-                <p className="pt-2 text-center text-xs text-slate-500">
+                <p className="pt-2 text-center text-xs text-slate-500 lg:pt-0">
                   Don&apos;t have an account?{" "}
                   <button
                     type="button"
@@ -837,13 +835,13 @@ const LoginPage = () => {
             )}
 
             {/* QUICK DEMO LOGIN SECTION */}
-            {activeTab === "login" && (SHOW_DEMO_PANEL || SHOW_NOOR_PANEL) && (
-              <div className="mt-6 border-t border-slate-100 pt-5">
-                <div className="mb-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500">
+            {activeTab === "login" && SHOW_LOCAL_QUICK_LOGIN && (
+              <div className="mt-6 border-t border-slate-100 pt-5 lg:mt-4 lg:pt-3">
+                <div className="mb-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500 lg:mb-2">
                   <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                  <span>Quick Demo Login</span>
+                  <span>Local Demo Login</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2.5 lg:gap-2">
                   {NOOR_DEMO_ACCOUNTS.map((acct) => (
                     <button
                       key={acct.role}
@@ -864,7 +862,7 @@ const LoginPage = () => {
         </div>
 
         {/* BOTTOM PAGE FOOTER */}
-        <div className="mt-6 flex items-center justify-between text-xs text-slate-400 font-medium">
+        <div className="mt-6 flex items-center justify-between text-xs font-medium text-slate-400 lg:mt-2">
           <div className="mx-auto flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5 text-slate-400" />
             <span>Secure. Private. Built for education.</span>
