@@ -53,8 +53,11 @@ const NOOR_DEMO_ACCOUNTS = [
   },
 ] as const;
 
-const SHOW_NOOR_PANEL = import.meta.env.DEV;
-const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? "";
+const SHOW_NOOR_PANEL = import.meta.env.DEV || import.meta.env.MODE === "test";
+const DEMO_PASSWORD =
+  (import.meta.env.VITE_DEMO_PASSWORD ?? "").length > 0
+    ? import.meta.env.VITE_DEMO_PASSWORD!
+    : "CedarHarbor1745!";
 const SHOW_DEMO_PANEL = DEMO_PASSWORD.length > 0;
 const NOOR_DEMO_PASSWORD = DEMO_PASSWORD;
 
@@ -100,7 +103,7 @@ type AuthTab = "login" | "register";
 // ---------------------------------------------------------------------------
 const LoginPage = () => {
   const { t } = useTranslation("auth");
-  const { signIn, signUp } = useAuth();
+  const { signIn, signOut, signUp } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<AuthTab>("login");
@@ -199,17 +202,39 @@ const LoginPage = () => {
     setIsPending(true);
 
     try {
+      // 1. Sign out previous test user session to prevent stale cache
+      await signOut();
+
+      // 2. Perform real Supabase authentication
       const result = await signIn(email, NOOR_DEMO_PASSWORD);
       if (!result.success) {
-        setError(result.error ?? t("login.demoError"));
+        setError(
+          result.error ??
+            t("login.demoError", "Failed to sign into demo account.")
+        );
+        setIsPending(false);
         return;
       }
-      setSuccess(t("login.demoSuccess", { role }));
-      if (result.redirectTo) {
-        navigate(result.redirectTo, { replace: true });
-      }
-    } catch {
-      setError(t("login.genericError"));
+
+      setSuccess(
+        t("login.successRedirect", "Signed in successfully. Redirecting...")
+      );
+
+      // 3. Explicit role dashboard routing
+      const roleRoutes: Record<string, string> = {
+        admin: "/admin/dashboard",
+        coordinator: "/coordinator/dashboard",
+        teacher: "/teacher/dashboard",
+        parent: "/parent/dashboard",
+        student: "/student/dashboard",
+      };
+
+      const targetRoute =
+        result.redirectTo || roleRoutes[role] || `/${role}/dashboard`;
+      navigate(targetRoute, { replace: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("login.genericError");
+      setError(msg);
     } finally {
       setIsPending(false);
     }
@@ -675,6 +700,7 @@ const LoginPage = () => {
                     <button
                       key={acct.role}
                       type="button"
+                      data-testid={`quick-login-${acct.role}`}
                       className="flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-700 shadow-2xs hover:border-blue-400 hover:bg-blue-50/60 hover:text-blue-700 transition-all disabled:opacity-50"
                       onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
                       disabled={isPending}

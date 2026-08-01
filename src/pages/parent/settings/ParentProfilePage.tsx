@@ -191,6 +191,11 @@ const ParentProfilePage = () => {
               >
                 ✏️ {t("profile.editProfile", "Edit profile")}
               </ParentButton>
+              <Link to="/parent/support">
+                <ParentButton variant="ghost" size="sm">
+                  🎧 {t("profile.support", "Support")}
+                </ParentButton>
+              </Link>
               <ParentButton
                 variant="primary"
                 size="sm"

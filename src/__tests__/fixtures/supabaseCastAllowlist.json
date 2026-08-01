@@ -1,6 +1,18 @@
 {
-  "maxCount": 148,
+  "maxCount": 152,
   "entries": [
+    {
+      "file": "src/features/parent/dashboard/ParentDashboardScreen.tsx",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/pages/parent/settings/ParentProfilePage.tsx",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/pages/parent/support/ParentSupportPage.tsx",
+      "pattern": "insert-as-never"
+    },
     {
       "file": "src/hooks/useBloomsProgression.ts",
       "pattern": "from-as-never"

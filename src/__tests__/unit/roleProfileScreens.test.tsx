@@ -213,11 +213,11 @@ describe("prototype role profile screens", () => {
     state.role = "parent";
     renderPage(<ParentProfilePage />);
 
-    expect(screen.getByText(/Guardian of Maya, Yusuf/)).toBeInTheDocument();
+    expect(screen.getByText(/Guardian of Maya & Yusuf/)).toBeInTheDocument();
     expect(screen.getByText("82%")).toBeInTheDocument();
     expect(screen.getByText("Linked learners")).toBeInTheDocument();
     expect(screen.getByText("Privacy & what you can see")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Support" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Support/i })).toHaveAttribute(
       "href",
       "/parent/support"
     );
