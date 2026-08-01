@@ -245,6 +245,12 @@
   --gradient-start: #14b8a6; /* Teal */
   --gradient-end: #0382bd; /* Blue */
 
+  /* === GLOBAL PRIMARY ACTION BUTTON TOKENS === */
+  --action-primary: #0382bd;
+  --action-primary-hover: #026fa3;
+  --action-primary-active: #025c88;
+  --action-primary-text: #ffffff;
+
   /* === GRADIENTS === */
   /* prettier-ignore */
   --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%); /* prototype-exact (adopted Path A) */
@@ -652,11 +658,11 @@ html.font-x-large {
 
 :root {
   /* Darkened brand blue for the tactile button's pressable bottom edge. */
-  --tactile-edge: #026a9a;
+  --tactile-edge: #025c88;
 }
 
 .dark {
-  --tactile-edge: #01344c;
+  --tactile-edge: #025c88;
 }
 
 /* Elevated card: soft layered shadow + subtle hover lift. Apply alongside the
@@ -682,25 +688,28 @@ html.font-x-large {
   }
 }
 
-/* Tactile (pressable) button surface — a solid brand bottom edge that
-   compresses on :active (Duolingo-style). Applied via the Button `tactile`
-   variant. Keyboard focus ring is inherited from the Button base. */
+/* Tactile (pressable) button surface — solid action palette (#0382bd / #026fa3 / #025c88).
+   Applied via the Button `tactile` variant. Keyboard focus ring is inherited from Button base. */
 .btn-tactile {
-  background: var(--brand-gradient);
-  color: #fff;
-  box-shadow: 0 4px 0 0 var(--tactile-edge);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+  background-color: var(--action-primary, #0382bd);
+  color: var(--action-primary-text, #ffffff);
+  box-shadow: 0 4px 0 0 var(--action-primary-active, #025c88);
+  transition: transform 0.1s ease, box-shadow 0.1s ease,
+    background-color 0.1s ease;
 }
 
 @media (hover: hover) {
   .btn-tactile:hover {
-    filter: brightness(1.05);
+    background-color: var(--action-primary-hover, #026fa3);
+    color: var(--action-primary-text, #ffffff);
   }
 }
 
 .btn-tactile:active {
+  background-color: var(--action-primary-active, #025c88);
   transform: translateY(2px);
-  box-shadow: 0 1px 0 0 var(--tactile-edge);
+  box-shadow: 0 1px 0 0 var(--action-primary-active, #025c88);
+  color: var(--action-primary-text, #ffffff);
 }
 
 @media (prefers-reduced-motion: reduce) {

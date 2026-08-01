@@ -429,7 +429,8 @@ const QuestionDialog = ({
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              variant="tactile"
+              className="w-full"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
               {existingQuestion ? "Update Question" : "Add Question"}
@@ -853,11 +854,7 @@ const QuizBuilder = () => {
               )}
             />
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-            >
+            <Button type="submit" disabled={isPending} variant="tactile">
               {isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
               {isEditMode ? "Update Quiz" : "Create Quiz"}
             </Button>

@@ -288,7 +288,8 @@ const InviteUsersPage = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 rounded-lg bg-gradient-to-r from-[#14b8a6] to-[#3b82f6] hover:from-[#0d9488] hover:to-[#2563eb] text-white font-bold"
+                  variant="tactile"
+                  className="flex-1 font-bold"
                   disabled={isSending}
                 >
                   {isSending && (

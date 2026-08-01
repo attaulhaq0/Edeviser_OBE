@@ -44,7 +44,7 @@ const noorGoldenGraph = {
 };
 
 async function seedNoorGoldenGraph() {
-  console.log("🚀 Starting Noor International Golden Data Graph Completion...");
+  console.log("🚀 Starting Live Supabase Noor Data Population...");
 
   // Step 1: Protect existing profile counts
   const { count: initialProfileCount } = await supabase
@@ -81,123 +81,138 @@ async function seedNoorGoldenGraph() {
 
   console.log("✅ Golden Profile IDs verified in Noor International database.");
 
-  // Step 2: Seed Announcements & Reads
-  console.log("📢 Seeding Announcements & Read Tracking...");
-  const { data: ann, error: annErr } = await supabase
-    .from("announcements")
+  // Step 2: Ensure Courses Exist
+  console.log("🏫 Ensuring Golden Courses Exist...");
+  await supabase.from("courses").upsert(
+    [
+      {
+        id: noorGoldenGraph.courseIds.eng7,
+        institution_id: NOOR_INSTITUTION_ID,
+        program_id: noorGoldenGraph.programIds[1],
+        teacher_id: noorGoldenGraph.teacherId,
+        code: "ENG701",
+        name: "English Language Arts 7",
+        description: "Middle school English literature and composition.",
+      },
+      {
+        id: noorGoldenGraph.courseIds.math6,
+        institution_id: NOOR_INSTITUTION_ID,
+        program_id: noorGoldenGraph.programIds[0],
+        teacher_id: noorGoldenGraph.teacherKimId,
+        code: "MATH601",
+        name: "Mathematics 6",
+        description: "Grade 6 foundational mathematics and problem solving.",
+      },
+    ],
+    { onConflict: "id" }
+  );
+
+  // Step 3: Seed Storage Avatars for Noor Profiles
+  console.log("🖼️ Uploading & Linking Avatars in Storage...");
+  const pngBuffer = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64"
+  );
+
+  const teacherAvatarPath = `${noorGoldenGraph.teacherId}/avatar`;
+  const { error: avatarUploadErr } = await supabase.storage
+    .from("avatars")
+    .upload(teacherAvatarPath, pngBuffer, {
+      contentType: "image/png",
+      upsert: true,
+    });
+
+  if (!avatarUploadErr) {
+    const { data: urlData } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(teacherAvatarPath);
+
+    await supabase
+      .from("profiles")
+      .update({ avatar_url: urlData.publicUrl })
+      .eq("id", noorGoldenGraph.teacherId);
+  }
+
+  // Step 4: Seed Question Bank
+  console.log("❓ Seeding Question Bank...");
+  await supabase
+    .from("question_bank")
+    .delete()
+    .eq("institution_id", NOOR_INSTITUTION_ID);
+  await supabase.from("question_bank").insert([
+    {
+      institution_id: NOOR_INSTITUTION_ID,
+      created_by: noorGoldenGraph.teacherId,
+      course_id: noorGoldenGraph.courseIds.eng7,
+      question_text:
+        "Which literary device is primarily used to create suspense in gothic literature?",
+      question_type: "multiple_choice",
+      blooms_taxonomy_level: "analysis",
+      status: "approved",
+      options: ["Foreshadowing", "Alliteration", "Onomatopoeia", "Hyperbole"],
+      correct_answer: "Foreshadowing",
+      created_at: new Date().toISOString(),
+    },
+    {
+      institution_id: NOOR_INSTITUTION_ID,
+      created_by: noorGoldenGraph.teacherId,
+      course_id: noorGoldenGraph.courseIds.eng7,
+      question_text:
+        "Define the central thesis statement of a persuasive essay.",
+      question_type: "short_answer",
+      blooms_taxonomy_level: "understanding",
+      status: "draft",
+      options: [],
+      correct_answer: "A concise summary of the main point or claim.",
+      created_at: new Date().toISOString(),
+    },
+  ]);
+
+  // Step 5: Seed Course Modules & Materials
+  console.log("📚 Seeding Curriculum Course Modules & Materials...");
+  const { data: moduleData, error: modErr } = await supabase
+    .from("course_modules")
     .insert([
       {
         course_id: noorGoldenGraph.courseIds.eng7,
-        author_id: noorGoldenGraph.teacherId,
-        title: "English 7 — Spring Reading Response Guidelines",
-        content:
-          "Students, please refer to the attached guidelines for the upcoming Compare-and-Contrast Essay due next week.",
-        is_pinned: true,
+        title: "Module 1: Analytical Essay Writing",
+        description:
+          "Mastering thesis statements, evidence integration, and transitions.",
+        sort_order: 1,
+        is_published: true,
         created_at: new Date().toISOString(),
       },
       {
-        course_id: noorGoldenGraph.courseIds.math6,
-        author_id: noorGoldenGraph.teacherKimId,
-        title: "Math 6 — Mid-Term Problem Solving Review",
-        content:
-          "Practice problem sets for Unit 4 have been uploaded. Please review before Friday's quiz.",
-        is_pinned: false,
+        course_id: noorGoldenGraph.courseIds.eng7,
+        title: "Module 2: Gothic Literature Studies",
+        description: "Exploring themes, motifs, and character archetypes.",
+        sort_order: 2,
+        is_published: false,
         created_at: new Date().toISOString(),
       },
     ])
     .select();
 
-  if (annErr) console.error("Announcement insert note:", annErr.message);
+  if (modErr) console.error("Module insert error:", modErr.message);
 
-  const instAnnId = ann?.[0]?.id;
-
-  if (instAnnId) {
-    await supabase.from("announcement_reads").upsert(
-      [
-        {
-          announcement_id: instAnnId,
-          student_id: noorGoldenGraph.primaryStudentId,
-          read_at: new Date().toISOString(),
-        },
-        {
-          announcement_id: instAnnId,
-          student_id: noorGoldenGraph.parentId,
-          read_at: new Date().toISOString(),
-        },
-      ],
-      { onConflict: "announcement_id,student_id" }
-    );
+  if (moduleData && moduleData[0]) {
+    const { error: matErr } = await supabase.from("course_materials").insert([
+      {
+        module_id: moduleData[0].id,
+        title: "Essay Rubric & Transition Guide",
+        type: "file",
+        content_url: "https://example.com/essay-guide.pdf",
+        description: "Comprehensive guide for analytical writing.",
+        sort_order: 1,
+        is_published: true,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    if (matErr) console.error("Material insert error:", matErr.message);
   }
 
-  // Step 3: Seed Study Sessions & Wellness Preferences / Logs
-  console.log("⏳ Seeding Historical Study Sessions & Wellness Logs...");
-  const pastWeeks = 6;
-  const studyLogs = [];
-  const now = new Date();
-
-  for (let w = pastWeeks; w >= 0; w--) {
-    const date = new Date(now.getTime() - w * 7 * 86400000);
-    studyLogs.push({
-      student_id: noorGoldenGraph.primaryStudentId,
-      course_id: noorGoldenGraph.courseIds.eng7,
-      duration_minutes: 45 + Math.floor(Math.random() * 30),
-      session_type: "study",
-      completed_at: date.toISOString(),
-      created_at: date.toISOString(),
-    });
-    studyLogs.push({
-      student_id: noorGoldenGraph.primaryStudentId,
-      course_id: noorGoldenGraph.courseIds.math6,
-      duration_minutes: 60,
-      session_type: "review",
-      completed_at: new Date(date.getTime() + 86400000).toISOString(),
-      created_at: new Date(date.getTime() + 86400000).toISOString(),
-    });
-  }
-
-  await supabase.from("study_sessions").insert(studyLogs);
-
-  // Wellness Preferences & Parent Visibility Config
-  await supabase.from("student_wellness_preferences").upsert(
-    [
-      {
-        student_id: noorGoldenGraph.primaryStudentId,
-        parent_visibility: true,
-        daily_reminders: true,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        student_id: noorGoldenGraph.comparisonStudentId,
-        parent_visibility: false,
-        daily_reminders: true,
-        updated_at: new Date().toISOString(),
-      },
-    ],
-    { onConflict: "student_id" }
-  );
-
-  // Parent-visible Wellness Logs for Primary Student
-  await supabase.from("student_wellness_logs").insert([
-    {
-      student_id: noorGoldenGraph.primaryStudentId,
-      mood_score: 4,
-      study_break_balance: "healthy",
-      late_night_study: "rare",
-      stress_level: "low",
-      created_at: new Date().toISOString(),
-    },
-    {
-      student_id: noorGoldenGraph.comparisonStudentId,
-      mood_score: 3,
-      study_break_balance: "moderate",
-      late_night_study: "frequent",
-      stress_level: "moderate",
-      created_at: new Date().toISOString(),
-    },
-  ]);
-
-  // Step 4: Seed Tutor Conversations & Messages
-  console.log("🤖 Seeding AI Tutor Conversations...");
+  // Step 6: Seed Tutor Conversations & Handoff Requests
+  console.log("🤖 Seeding AI Tutor Handoffs & Requests...");
   const { data: conv } = await supabase
     .from("tutor_conversations")
     .insert([
@@ -224,12 +239,11 @@ async function seedNoorGoldenGraph() {
         conversation_id: conv[0].id,
         sender_type: "assistant",
         content:
-          "Great question, Aarav! A strong introduction starts with a hook, introduces both subjects, and ends with a clear thesis statement comparing their key similarities or differences.",
+          "Great question, Aarav! A strong introduction starts with a hook, introduces both subjects, and ends with a clear thesis statement.",
         created_at: new Date().toISOString(),
       },
     ]);
 
-    // Seed Tutor Handoff for Teacher
     await supabase.from("tutor_handoffs").insert([
       {
         conversation_id: conv[0].id,
@@ -241,81 +255,96 @@ async function seedNoorGoldenGraph() {
         created_at: new Date().toISOString(),
       },
     ]);
-  }
 
-  // Step 5: Financial Ledger (Fee Account, Invoices, Receipts)
-  console.log("💳 Seeding Financial Ledger & Invoices...");
-  await supabase.from("fee_structures").upsert(
-    [
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("teacher_handoff_requests").insert([
       {
+        conversation_id: conv[0].id,
+        student_id: noorGoldenGraph.primaryStudentId,
+        teacher_id: noorGoldenGraph.teacherId,
         institution_id: NOOR_INSTITUTION_ID,
-        name: "Tuition & Academic Fee — Spring 2026",
-        amount: 4500,
-        currency: "QAR",
-        due_date: "2026-07-20",
+        course_id: noorGoldenGraph.courseIds.eng7,
+        conversation_summary:
+          "Student asked for help on thesis statement in compare/contrast essay.",
+        suggested_intervention:
+          "Review thesis sentence structure and give feedback.",
+        trigger_reason: "low_satisfaction",
+        student_consent: true,
+        status: "pending",
         created_at: new Date().toISOString(),
       },
-    ],
-    { onConflict: "id" }
-  );
+    ]);
+  }
 
-  await supabase.from("fee_payments").insert([
-    {
-      student_id: noorGoldenGraph.primaryStudentId,
-      amount_paid: 4000,
-      payment_method: "credit_card",
-      status: "paid",
-      receipt_number: "REC-2025-0891",
-      created_at: new Date(Date.now() - 120 * 86400000).toISOString(),
-    },
-  ]);
+  // Step 7: Seed Course Discussion Threads
+  console.log("💬 Seeding Course Discussion Threads...");
+  const { data: disc, error: discErr } = await supabase
+    .from("discussion_threads")
+    .insert([
+      {
+        course_id: noorGoldenGraph.courseIds.eng7,
+        author_id: noorGoldenGraph.primaryStudentId,
+        title: "Peer Feedback on Essay Outlines",
+        content:
+          "Hey everyone! Share your working thesis statement here for peer feedback.",
+        is_pinned: true,
+        is_resolved: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select();
 
-  // Step 6: Teacher AI Feedback & Question Bank
-  console.log("✍️ Seeding Teacher AI Feedback & Question Bank...");
-  await supabase.from("ai_feedback").insert([
-    {
-      teacher_id: noorGoldenGraph.teacherId,
-      course_id: noorGoldenGraph.courseIds.eng7,
-      student_id: noorGoldenGraph.primaryStudentId,
-      feedback_text:
-        "Excellent analysis of character motives in Chapter 3. Work on transition words between paragraphs.",
-      status: "approved",
-      created_at: new Date().toISOString(),
-    },
-  ]);
+  if (discErr) console.error("Discussion insert error:", discErr.message);
 
-  await supabase.from("question_bank").insert([
-    {
-      institution_id: NOOR_INSTITUTION_ID,
-      created_by: noorGoldenGraph.teacherId,
-      course_id: noorGoldenGraph.courseIds.eng7,
-      question_text:
-        "Which literary device is primarily used to create suspense in gothic literature?",
-      question_type: "multiple_choice",
-      blooms_taxonomy_level: "analysis",
-      status: "approved",
-      options: ["Foreshadowing", "Alliteration", "Onomatopoeia", "Hyperbole"],
-      correct_answer: "Foreshadowing",
-      created_at: new Date().toISOString(),
-    },
-  ]);
+  if (disc && disc[0]) {
+    await supabase.from("discussion_replies").insert([
+      {
+        thread_id: disc[0].id,
+        author_id: noorGoldenGraph.teacherId,
+        content:
+          "Excellent initiative, Aarav! Make sure to focus on specific evidence.",
+        is_answer: true,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+  }
 
-  // Step 7: Coordinator Accreditation Stages & CQI Actions
-  console.log("📋 Seeding Coordinator Accreditation & CQI Plans...");
-  await supabase.from("cqi_plans").insert([
-    {
-      institution_id: NOOR_INSTITUTION_ID,
-      program_id: noorGoldenGraph.programIds[0],
-      coordinator_id: noorGoldenGraph.coordinatorId,
-      title: "Improvement Plan for Quantitative Reasoning Outcome",
-      action_items:
-        "Incorporate weekly problem-solving labs in Math 6 & Math 7.",
-      status: "active",
-      created_at: new Date().toISOString(),
-    },
-  ]);
+  // Step 8: Seed Ungraded Submissions (Teacher Grading Queue)
+  console.log("📝 Seeding Ungraded Submissions in Teacher Grading Queue...");
+  const { data: newAssign } = await supabase
+    .from("assignments")
+    .insert([
+      {
+        course_id: noorGoldenGraph.courseIds.eng7,
+        title: "Analytical Essay First Draft",
+        description: "Submit a 500-word essay analyzing Chapter 3 themes.",
+        total_marks: 100,
+        due_date: new Date(Date.now() + 86400000 * 3).toISOString(),
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select();
 
-  // Step 8: Assert final profile counts remain strictly unchanged
+  if (newAssign && newAssign[0]) {
+    await supabase.from("submissions").insert([
+      {
+        assignment_id: newAssign[0].id,
+        student_id: noorGoldenGraph.primaryStudentId,
+        content_url: "https://example.com/aarav-essay.docx",
+        is_late: false,
+        submitted_at: new Date().toISOString(),
+      },
+      {
+        assignment_id: newAssign[0].id,
+        student_id: noorGoldenGraph.comparisonStudentId,
+        content_url: "https://example.com/mei-essay.docx",
+        is_late: true,
+        submitted_at: new Date().toISOString(),
+      },
+    ]);
+  }
+
+  // Step 9: Assert final profile counts remain strictly unchanged
   const { count: finalProfileCount } = await supabase
     .from("profiles")
     .select("*", { count: "exact", head: true })
@@ -330,7 +359,7 @@ async function seedNoorGoldenGraph() {
   }
 
   console.log(
-    "🎉 Noor International Golden Data Graph Completion SUCCESSFULLY Executed!"
+    "🎉 Noor International Live Supabase Data Population SUCCESSFULLY Completed!"
   );
 }
 
