@@ -52,8 +52,19 @@ vi.mock("@/lib/supabase", () => ({
 import { AuthProvider } from "@/providers/AuthProvider";
 import LoginPage from "@/pages/LoginPage";
 
-const setupMocks = () => {
-  mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
+const setupMocks = (
+  role = "student",
+  email = "student01@noor-international.test",
+  userId = "user-1"
+) => {
+  mockGetSession.mockResolvedValue({
+    data: {
+      session: {
+        user: { id: userId, email },
+      },
+    },
+    error: null,
+  });
   mockSignOut.mockImplementation(() => Promise.resolve({ error: null }));
   mockOnAuthStateChange.mockReturnValue({
     data: { subscription: { unsubscribe: vi.fn() } },
@@ -61,26 +72,75 @@ const setupMocks = () => {
   mockSignInWithPassword.mockImplementation(() =>
     Promise.resolve({
       data: {
-        user: { id: "user-1", email: "student01@noor-international.test" },
-        session: { user: { id: "user-1" } },
+        user: { id: userId, email },
+        session: { user: { id: userId, email } },
       },
       error: null,
     })
   );
-  mockFrom.mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: {
-            id: "user-1",
-            role: "student",
-            full_name: "Aarav Sharma",
-            institution_id: "4de6a0a2-758b-47f3-ab7e-984bb974d88b",
-          },
-          error: null,
+
+  mockFrom.mockImplementation((tableName: string) => {
+    if (tableName === "profiles") {
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                id: userId,
+                role,
+                full_name: "Test User",
+                institution_id: "4de6a0a2-758b-47f3-ab7e-984bb974d88b",
+                status: "active",
+              },
+              error: null,
+            }),
+            single: vi.fn().mockResolvedValue({
+              data: {
+                id: userId,
+                role,
+                full_name: "Test User",
+                institution_id: "4de6a0a2-758b-47f3-ab7e-984bb974d88b",
+                status: "active",
+              },
+              error: null,
+            }),
+          }),
         }),
+      };
+    }
+
+    // Role-specific verification tables
+    if (tableName === "parent_student_links") {
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ count: 1, error: null }),
+          }),
+        }),
+      };
+    }
+
+    if (tableName === "courses") {
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ count: 2, error: null }),
+        }),
+      };
+    }
+
+    if (tableName === "programs") {
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ count: 1, error: null }),
+        }),
+      };
+    }
+
+    return {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ count: 1, error: null }),
       }),
-    }),
+    };
   });
 };
 
@@ -118,7 +178,8 @@ describe("Quick Login for Noor International Testing", () => {
     expect(screen.getByTestId("quick-login-parent")).toBeInTheDocument();
   });
 
-  it("authenticates student and navigates to /student", async () => {
+  it("authenticates student and navigates to /student/dashboard", async () => {
+    setupMocks("student", "student01@noor-international.test", "student-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -131,11 +192,12 @@ describe("Quick Login for Noor International Testing", () => {
 
     await waitFor(
       () => {
+        expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
           email: "student01@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/student", {
+        expect(mockNavigate).toHaveBeenCalledWith("/student/dashboard", {
           replace: true,
         });
       },
@@ -143,7 +205,8 @@ describe("Quick Login for Noor International Testing", () => {
     );
   });
 
-  it("authenticates parent and navigates to /student", async () => {
+  it("authenticates parent with verified child link and navigates to /parent/dashboard", async () => {
+    setupMocks("parent", "parent01@noor-international.test", "parent-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -156,11 +219,12 @@ describe("Quick Login for Noor International Testing", () => {
 
     await waitFor(
       () => {
+        expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
           email: "parent01@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/student", {
+        expect(mockNavigate).toHaveBeenCalledWith("/parent/dashboard", {
           replace: true,
         });
       },
@@ -168,7 +232,8 @@ describe("Quick Login for Noor International Testing", () => {
     );
   });
 
-  it("authenticates teacher and navigates to /student", async () => {
+  it("authenticates teacher with assigned courses and navigates to /teacher/dashboard", async () => {
+    setupMocks("teacher", "okonkwo@noor-international.test", "teacher-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -181,15 +246,95 @@ describe("Quick Login for Noor International Testing", () => {
 
     await waitFor(
       () => {
+        expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
           email: "okonkwo@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/student", {
+        expect(mockNavigate).toHaveBeenCalledWith("/teacher/dashboard", {
           replace: true,
         });
       },
       { timeout: 4000 }
     );
+  });
+
+  it("authenticates coordinator with program access and navigates to /coordinator/dashboard", async () => {
+    setupMocks(
+      "coordinator",
+      "curriculum@noor-international.test",
+      "coord-id-1"
+    );
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("quick-login-coordinator")).not.toBeDisabled();
+    });
+
+    const coordBtn = screen.getByTestId("quick-login-coordinator");
+    await user.click(coordBtn);
+
+    await waitFor(
+      () => {
+        expect(mockSignOut).toHaveBeenCalled();
+        expect(mockSignInWithPassword).toHaveBeenCalledWith({
+          email: "curriculum@noor-international.test",
+          password: expect.any(String),
+        });
+        expect(mockNavigate).toHaveBeenCalledWith("/coordinator/dashboard", {
+          replace: true,
+        });
+      },
+      { timeout: 4000 }
+    );
+  });
+
+  it("authenticates admin and navigates to /admin/dashboard", async () => {
+    setupMocks("admin", "principal@noor-international.test", "admin-id-1");
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("quick-login-admin")).not.toBeDisabled();
+    });
+
+    const adminBtn = screen.getByTestId("quick-login-admin");
+    await user.click(adminBtn);
+
+    await waitFor(
+      () => {
+        expect(mockSignOut).toHaveBeenCalled();
+        expect(mockSignInWithPassword).toHaveBeenCalledWith({
+          email: "principal@noor-international.test",
+          password: expect.any(String),
+        });
+        expect(mockNavigate).toHaveBeenCalledWith("/admin/dashboard", {
+          replace: true,
+        });
+      },
+      { timeout: 4000 }
+    );
+  });
+
+  it("aborts redirect and displays error when account role mismatch occurs", async () => {
+    setupMocks("student", "parent01@noor-international.test", "mismatch-id-1");
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("quick-login-parent")).not.toBeDisabled();
+    });
+
+    const parentBtn = screen.getByTestId("quick-login-parent");
+    await user.click(parentBtn);
+
+    await waitFor(() => {
+      expect(mockSignOut).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(/does not match requested Quick Login role/i)
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +54,13 @@ const NOOR_DEMO_ACCOUNTS = [
   },
 ] as const;
 
-const SHOW_NOOR_PANEL = import.meta.env.DEV || import.meta.env.MODE === "test";
+const ENABLE_QUICK_LOGIN =
+  import.meta.env.VITE_ENABLE_QUICK_LOGIN === "true" ||
+  import.meta.env.VITE_ENABLE_QUICK_LOGIN === "1" ||
+  import.meta.env.DEV ||
+  import.meta.env.MODE === "test";
+
+const SHOW_NOOR_PANEL = ENABLE_QUICK_LOGIN;
 const DEMO_PASSWORD =
   (import.meta.env.VITE_DEMO_PASSWORD ?? "").length > 0
     ? import.meta.env.VITE_DEMO_PASSWORD!
@@ -104,6 +111,7 @@ type AuthTab = "login" | "register";
 const LoginPage = () => {
   const { t } = useTranslation("auth");
   const { signIn, signOut, signUp } = useAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<AuthTab>("login");
@@ -202,7 +210,8 @@ const LoginPage = () => {
     setIsPending(true);
 
     try {
-      // 1. Sign out previous test user session to prevent stale cache
+      // 1. Flush cached TanStack Query state & sign out previous test user session
+      queryClient.clear();
       await signOut();
 
       // 2. Perform real Supabase authentication
@@ -216,11 +225,150 @@ const LoginPage = () => {
         return;
       }
 
+      // 3. Refresh session & verify authenticated user identity
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user) {
+        await signOut();
+        setError(
+          t(
+            "login.sessionError",
+            "Unable to establish secure authenticated session."
+          )
+        );
+        setIsPending(false);
+        return;
+      }
+
+      const userId = session.user.id;
+
+      // 4. Verify profile in Supabase (institution, role match, active status, user ID match)
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, role, institution_id, status")
+        .eq("id", userId)
+        .single();
+
+      if (profileError || !profile) {
+        await signOut();
+        setError(
+          t(
+            "login.profileNotFound",
+            "Noor International profile not found for this account in Supabase."
+          )
+        );
+        setIsPending(false);
+        return;
+      }
+
+      if (profile.id !== userId) {
+        await signOut();
+        setError(
+          t(
+            "login.identityMismatch",
+            "Authenticated user ID does not match profile ID."
+          )
+        );
+        setIsPending(false);
+        return;
+      }
+
+      if (profile.role !== role) {
+        await signOut();
+        setError(
+          t(
+            "login.roleMismatch",
+            `Account role (${profile.role}) does not match requested Quick Login role (${role}).`
+          )
+        );
+        setIsPending(false);
+        return;
+      }
+
+      if (profile.status === "inactive") {
+        await signOut();
+        setError(
+          t("login.accountInactive", "Account is inactive. Access denied.")
+        );
+        setIsPending(false);
+        return;
+      }
+
+      // 5. Role-specific Supabase verifications
+      if (role === "parent") {
+        const { count, error: parentLinkErr } = await supabase
+          .from("parent_student_links")
+          .select("*", { count: "exact", head: true })
+          .eq("parent_id", userId)
+          .eq("verified", true);
+
+        if (parentLinkErr || (count ?? 0) === 0) {
+          await signOut();
+          setError(
+            t(
+              "login.noVerifiedChild",
+              "Parent account has no verified Noor child links in Supabase."
+            )
+          );
+          setIsPending(false);
+          return;
+        }
+      } else if (role === "teacher") {
+        const { count, error: teacherCourseErr } = await supabase
+          .from("courses")
+          .select("*", { count: "exact", head: true })
+          .eq("teacher_id", userId);
+
+        if (teacherCourseErr || (count ?? 0) === 0) {
+          await signOut();
+          setError(
+            t(
+              "login.noAssignedCourses",
+              "Teacher account has no assigned Noor courses or sections in Supabase."
+            )
+          );
+          setIsPending(false);
+          return;
+        }
+      } else if (role === "coordinator") {
+        const { count, error: coordProgErr } = await supabase
+          .from("programs")
+          .select("*", { count: "exact", head: true })
+          .eq("coordinator_id", userId);
+
+        if (coordProgErr || (count ?? 0) === 0) {
+          await signOut();
+          setError(
+            t(
+              "login.noProgramAccess",
+              "Coordinator account has no authorized Noor program access in Supabase."
+            )
+          );
+          setIsPending(false);
+          return;
+        }
+      } else if (role === "admin") {
+        if (!profile.institution_id) {
+          await signOut();
+          setError(
+            t(
+              "login.noInstitutionAccess",
+              "Admin account does not belong to Noor International School."
+            )
+          );
+          setIsPending(false);
+          return;
+        }
+      }
+
       setSuccess(
         t("login.successRedirect", "Signed in successfully. Redirecting...")
       );
 
-      // 3. Explicit role dashboard routing
+      // 6. Explicit role dashboard routing
       const roleRoutes: Record<string, string> = {
         admin: "/admin/dashboard",
         coordinator: "/coordinator/dashboard",
@@ -229,10 +377,10 @@ const LoginPage = () => {
         student: "/student/dashboard",
       };
 
-      const targetRoute =
-        result.redirectTo || roleRoutes[role] || `/${role}/dashboard`;
+      const targetRoute = roleRoutes[role] || `/${role}/dashboard`;
       navigate(targetRoute, { replace: true });
     } catch (err: unknown) {
+      await signOut();
       const msg = err instanceof Error ? err.message : t("login.genericError");
       setError(msg);
     } finally {
