@@ -111,9 +111,10 @@ export const useCommunications = (userId: string | undefined) => {
         user_id: userId,
       } as unknown as Record<string, unknown>;
 
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from("announcement_reads")
-        .upsert(payload as never, { onConflict: "announcement_id,student_id" });
+        .upsert(payload, { onConflict: "announcement_id,student_id" });
       if (error) {
         // Fallback for schemas with strict FK to students table
         await supabase.from("announcement_reads").insert({

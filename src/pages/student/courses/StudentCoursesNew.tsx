@@ -117,7 +117,7 @@ const StudentCoursesNew = () => {
             {assignments.isLoading ? (
               <Shimmer className="h-44 rounded-2xl" />
             ) : (
-              <PCard className="border-amber-200 bg-gradient-to-br from-amber-50/60 to-white p-4 shadow-sm h-[calc(100%-1.75rem)] flex flex-col justify-between">
+              <PCard className="border-amber-200 bg-linear-to-br from-amber-50/60 to-white p-4 shadow-sm h-[calc(100%-1.75rem)] flex flex-col justify-between">
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -238,13 +238,13 @@ const StudentCoursesNew = () => {
             MY COURSES
           </h2>
           {enrolledCourses.isLoading ? (
-            <div className="grid w-full min-w-0 gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))]">
+            <div className="grid w-full min-w-0 gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,230px),1fr))]">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Shimmer key={i} className="h-32 rounded-2xl" />
               ))}
             </div>
           ) : (
-            <div className="my-courses-grid grid w-full min-w-0 gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))]">
+            <div className="my-courses-grid grid w-full min-w-0 gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,230px),1fr))]">
               {(enrolledCourses.data && enrolledCourses.data.length > 0
                 ? enrolledCourses.data
                 : [
@@ -353,7 +353,7 @@ const StudentCoursesNew = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="flex size-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                  <Check className="size-3.5 stroke-[3]" />
+                  <Check className="size-3.5 stroke-3" />
                 </span>
                 <h2
                   id="recently-graded-heading"

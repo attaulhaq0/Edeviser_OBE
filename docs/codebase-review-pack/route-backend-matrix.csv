@@ -1,0 +1,10 @@
+Route,Page Component,Role,Prototype File,Hook,RPC / Tables,Mutations,RLS Status,Prototype Parity
+/admin/dashboard,AdminDashboard,Admin,prototype/admin-dashboard.html,useAdminDashboardAggregate,get_admin_dashboard(),None,Institution Scoped,Finalized
+/admin/analytics,AdminAnalyticsPage,Admin,prototype/admin-analytics.html,useAdminAnalytics,get_admin_analytics(date, date),None,Institution Scoped,Finalized
+/admin/accreditation-reports,AdminAccreditationReportsPage,Admin,prototype/admin-accreditation.html,useAdminAccreditationReports,program_accreditations / accreditation_report_jobs,create_accreditation_job,Institution Scoped,Finalized
+/admin/fees,AdminFeesPage,Admin,prototype/admin-fees.html,useAdminFees,fee_accounts / fee_invoices,allocate_payment / apply_credit,Institution Scoped,Finalized
+/admin/institution-structure,AdminInstitutionStructurePage,Admin,prototype/admin-institution-structure.html,useAdminInstitutionStructure,departments / programs / courses,create_department / assign_teacher,Institution Scoped,Finalized
+/coordinator/dashboard,CoordinatorDashboard,Coordinator,prototype/coordinator-dashboard.html,useCoordinatorDashboardAggregate,get_coordinator_dashboard(),cqi_action_plans,Program Scoped,Finalized
+/teacher/dashboard,TeacherDashboard,Teacher,prototype/teacher-dashboard.html,useTeacherDashboardAggregate,get_teacher_dashboard(uuid),submit_grades / take_attendance,Teacher Scoped,Finalized
+/student/dashboard,StudentDashboard,Student,prototype/student-dashboard.html,useStudentDashboardAggregate,get_student_dashboard(uuid),submit_assignment,Student Scoped,Finalized
+/parent/dashboard,ParentDashboard,Parent,prototype/parent-dashboard.html,useParentDashboardAggregate,get_parent_dashboard(),send_encouragement / pay_invoice,Verified Link Scoped,Finalized

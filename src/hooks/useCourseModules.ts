@@ -1,5 +1,8 @@
-// Task 66.6: Course module/material TanStack Query hooks
-// Requirements: 76
+// =============================================================================
+// useCourseModules — Hooks for course modules & course materials (LMS)
+// Task 19.1
+// =============================================================================
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
@@ -7,7 +10,7 @@ import { logAuditEvent } from "@/lib/auditLogger";
 import { indexCourseMaterialIfSupported } from "@/lib/courseMaterialIndexing";
 import type { Database, Json } from "@/types/database";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Interfaces ──────────────────────────────────────────────────────────────
 
 export type MaterialType = "file" | "link" | "video" | "text";
 
@@ -19,6 +22,7 @@ export interface CourseModule {
   sort_order: number;
   is_published: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface CourseMaterial {
@@ -33,12 +37,13 @@ export interface CourseMaterial {
   is_published: boolean;
   clo_ids: string[];
   created_at: string;
+  updated_at?: string;
 }
 
 export interface CreateModuleInput {
   course_id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   sort_order: number;
   is_published: boolean;
 }
@@ -55,17 +60,12 @@ export interface CreateMaterialInput {
   module_id: string;
   title: string;
   type: MaterialType;
-  content_url?: string;
-  file_path?: string;
-  description?: string;
+  content_url?: string | null;
+  file_path?: string | null;
+  description?: string | null;
   sort_order: number;
   is_published: boolean;
   clo_ids?: string[];
-  /**
-   * The course the material belongs to. Optional for backward compatibility;
-   * when provided alongside a file_path, the material is dispatched to
-   * `embed-course-material` for RAG indexing after a successful insert.
-   */
   course_id?: string;
 }
 
@@ -79,122 +79,71 @@ export interface UpdateMaterialInput {
   sort_order?: number;
   is_published?: boolean;
   clo_ids?: string[];
-  /**
-   * The course the material belongs to. Optional for backward compatibility;
-   * when provided alongside a changed file_path, the material is re-dispatched
-   * to `embed-course-material` for RAG re-indexing after a successful update.
-   */
   course_id?: string;
 }
 
-// ─── Cast helpers ───────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function castModule(row: Record<string, unknown>): CourseModule {
   return {
-    id: row.id as string,
-    course_id: row.course_id as string,
-    title: row.title as string,
-    description: (row.description as string | null) ?? null,
-    sort_order: row.sort_order as number,
-    is_published: row.is_published as boolean,
-    created_at: row.created_at as string,
+    id: String(row.id ?? ""),
+    course_id: String(row.course_id ?? ""),
+    title: String(row.title ?? ""),
+    description: row.description != null ? String(row.description) : null,
+    sort_order: Number(row.sort_order ?? 0),
+    is_published: Boolean(row.is_published ?? false),
+    created_at: String(row.created_at ?? ""),
+    updated_at:
+      row.updated_at != null
+        ? String(row.updated_at)
+        : String(row.created_at ?? ""),
   };
 }
 
 function castMaterial(row: Record<string, unknown>): CourseMaterial {
-  const rawCloIds = row.clo_ids;
-  const cloIds = Array.isArray(rawCloIds) ? (rawCloIds as string[]) : [];
+  let cloIds: string[] = [];
+  if (Array.isArray(row.clo_ids)) {
+    cloIds = row.clo_ids.map(String);
+  }
   return {
-    id: row.id as string,
-    module_id: row.module_id as string,
-    title: row.title as string,
-    type: row.type as MaterialType,
-    content_url: (row.content_url as string | null) ?? null,
-    file_path: (row.file_path as string | null) ?? null,
-    description: (row.description as string | null) ?? null,
-    sort_order: row.sort_order as number,
-    is_published: row.is_published as boolean,
+    id: String(row.id ?? ""),
+    module_id: String(row.module_id ?? ""),
+    title: String(row.title ?? ""),
+    type: (row.type as MaterialType) ?? "file",
+    content_url: row.content_url != null ? String(row.content_url) : null,
+    file_path: row.file_path != null ? String(row.file_path) : null,
+    description: row.description != null ? String(row.description) : null,
+    sort_order: Number(row.sort_order ?? 0),
+    is_published: Boolean(row.is_published ?? false),
     clo_ids: cloIds,
-    created_at: row.created_at as string,
+    created_at: String(row.created_at ?? ""),
+    updated_at:
+      row.updated_at != null
+        ? String(row.updated_at)
+        : String(row.created_at ?? ""),
   };
 }
 
-// ─── Module Queries ─────────────────────────────────────────────────────────
+// ─── Module Hooks ────────────────────────────────────────────────────────────
 
-export const useCourseModules = (courseId: string | undefined) => {
+export const useCourseModules = (courseId: string) => {
   return useQuery({
     queryKey: queryKeys.courseModules.list({ courseId }),
     queryFn: async () => {
-      if (!courseId) return [];
       const { data, error } = await supabase
         .from("course_modules")
-        .select(
-          "id, course_id, title, description, sort_order, is_published, created_at"
-        )
+        .select("*")
         .eq("course_id", courseId)
         .order("sort_order", { ascending: true });
+
       if (error) throw error;
-      return (data ?? []).map((r) =>
-        castModule(r as unknown as Record<string, unknown>)
+      return (data ?? []).map((row) =>
+        castModule(row as unknown as Record<string, unknown>)
       );
     },
     enabled: !!courseId,
   });
 };
-
-// ─── Material Queries ───────────────────────────────────────────────────────
-
-export const useCourseMaterials = (moduleId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.courseMaterials.list({ moduleId }),
-    queryFn: async () => {
-      if (!moduleId) return [];
-      const { data, error } = await supabase
-        .from("course_materials")
-        .select(
-          "id, module_id, title, type, content_url, file_path, description, sort_order, is_published, clo_ids, created_at"
-        )
-        .eq("module_id", moduleId)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []).map((r) =>
-        castMaterial(r as unknown as Record<string, unknown>)
-      );
-    },
-    enabled: !!moduleId,
-  });
-};
-
-export const useCourseAllMaterials = (courseId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.courseMaterials.list({ courseId }),
-    queryFn: async () => {
-      if (!courseId) return [];
-      // Fetch modules first, then materials for all modules
-      const { data: modules, error: modErr } = await supabase
-        .from("course_modules")
-        .select("id")
-        .eq("course_id", courseId);
-      if (modErr) throw modErr;
-      if (!modules || modules.length === 0) return [];
-      const moduleIds = modules.map((m) => m.id);
-      const { data, error } = await supabase
-        .from("course_materials")
-        .select(
-          "id, module_id, title, type, content_url, file_path, description, sort_order, is_published, clo_ids, created_at"
-        )
-        .in("module_id", moduleIds)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []).map((r) =>
-        castMaterial(r as unknown as Record<string, unknown>)
-      );
-    },
-    enabled: !!courseId,
-  });
-};
-
-// ─── Module Mutations ───────────────────────────────────────────────────────
 
 export const useCreateModule = () => {
   const queryClient = useQueryClient();
@@ -213,6 +162,9 @@ export const useCreateModule = () => {
         .select()
         .single();
       if (error) throw error;
+
+      const currentUserId =
+        (await supabase.auth.getUser()).data.user?.id ?? performedBy;
       await logAuditEvent({
         action: "create",
         entity_type: "course_module",
@@ -223,8 +175,9 @@ export const useCreateModule = () => {
           sort_order: payload.sort_order,
           is_published: payload.is_published,
         },
-        performed_by: performedBy,
-      });
+        performed_by: currentUserId,
+      }).catch((err: unknown) => console.error("Audit log error:", err));
+
       return castModule(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
@@ -249,13 +202,17 @@ export const useUpdateModule = () => {
         .select()
         .single();
       if (error) throw error;
+
+      const currentUserId =
+        (await supabase.auth.getUser()).data.user?.id ?? performedBy;
       await logAuditEvent({
         action: "update",
         entity_type: "course_module",
         entity_id: id,
         changes: updates,
-        performed_by: performedBy,
-      });
+        performed_by: currentUserId,
+      }).catch((err: unknown) => console.error("Audit log error:", err));
+
       return castModule(data as unknown as Record<string, unknown>);
     },
     onSuccess: () => {
@@ -276,18 +233,43 @@ export const useDeleteModule = () => {
       id: string;
       performedBy: string;
     }) => {
+      const { data: childMaterials } = await supabase
+        .from("course_materials")
+        .select("id, file_path")
+        .eq("module_id", id);
+
+      if (childMaterials && childMaterials.length > 0) {
+        const filePaths = childMaterials
+          .map((m) => m.file_path)
+          .filter((p): p is string => !!p);
+
+        if (filePaths.length > 0) {
+          await supabase.storage
+            .from(MATERIAL_BUCKET)
+            .remove(filePaths)
+            .catch((err: unknown) =>
+              console.error("Storage child removal error:", err)
+            );
+        }
+
+        await supabase.from("course_materials").delete().eq("module_id", id);
+      }
+
       const { error } = await supabase
         .from("course_modules")
         .delete()
         .eq("id", id);
       if (error) throw error;
+
+      const currentUserId =
+        (await supabase.auth.getUser()).data.user?.id ?? performedBy;
       await logAuditEvent({
         action: "delete",
         entity_type: "course_module",
         entity_id: id,
         changes: null,
-        performed_by: performedBy,
-      });
+        performed_by: currentUserId,
+      }).catch((err: unknown) => console.error("Audit log error:", err));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -297,7 +279,53 @@ export const useDeleteModule = () => {
   });
 };
 
-// ─── Material Mutations ─────────────────────────────────────────────────────
+// ─── Material Hooks ──────────────────────────────────────────────────────────
+
+export const useCourseMaterials = (moduleId: string) => {
+  return useQuery({
+    queryKey: queryKeys.courseMaterials.list({ moduleId }),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("course_materials")
+        .select("*")
+        .eq("module_id", moduleId)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      return (data ?? []).map((row) =>
+        castMaterial(row as unknown as Record<string, unknown>)
+      );
+    },
+    enabled: !!moduleId,
+  });
+};
+
+export const useCourseAllMaterials = (courseId: string) => {
+  return useQuery({
+    queryKey: queryKeys.courseMaterials.list({ courseId }),
+    queryFn: async () => {
+      const { data: modules } = await supabase
+        .from("course_modules")
+        .select("id")
+        .eq("course_id", courseId);
+
+      const moduleIds = (modules ?? []).map((m) => m.id);
+      if (moduleIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from("course_materials")
+        .select("*")
+        .in("module_id", moduleIds)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      return (data ?? []).map((row) =>
+        castMaterial(row as unknown as Record<string, unknown>)
+      );
+    },
+    enabled: !!courseId,
+  });
+};
 
 export const useCreateMaterial = () => {
   const queryClient = useQueryClient();
@@ -322,6 +350,9 @@ export const useCreateMaterial = () => {
         .select()
         .single();
       if (error) throw error;
+
+      const currentUserId =
+        (await supabase.auth.getUser()).data.user?.id ?? performedBy;
       await logAuditEvent({
         action: "create",
         entity_type: "course_material",
@@ -334,19 +365,23 @@ export const useCreateMaterial = () => {
           is_published: payload.is_published,
           clo_ids: payload.clo_ids,
         },
-        performed_by: performedBy,
-      });
+        performed_by: currentUserId,
+      }).catch((err: unknown) => console.error("Audit log error:", err));
 
-      // RAG indexing: when a file-type material with a storage path is uploaded
-      // to a known course, dispatch it to embed-course-material so the AI tutor
-      // can cite it. Fire-and-forget — never blocks or fails the upload.
-      if (payload.type === "file" && payload.file_path && payload.course_id) {
-        await indexCourseMaterialIfSupported({
+      // Fire-and-forget non-blocking background vector indexing
+      if (
+        (payload.type === "file" || payload.file_path) &&
+        payload.file_path &&
+        payload.course_id
+      ) {
+        indexCourseMaterialIfSupported({
           filePath: payload.file_path,
           courseId: payload.course_id,
           sourceMaterialId: data.id,
           cloIds: payload.clo_ids ?? [],
-        });
+        }).catch((err: unknown) =>
+          console.error("Background indexing error:", err)
+        );
       }
 
       return castMaterial(data as unknown as Record<string, unknown>);
@@ -386,26 +421,31 @@ export const useUpdateMaterial = () => {
         .select()
         .single();
       if (error) throw error;
+
+      const currentUserId =
+        (await supabase.auth.getUser()).data.user?.id ?? performedBy;
       await logAuditEvent({
         action: "update",
         entity_type: "course_material",
         entity_id: id,
         changes: updates,
-        performed_by: performedBy,
-      });
+        performed_by: currentUserId,
+      }).catch((err: unknown) => console.error("Audit log error:", err));
 
-      // RAG re-indexing: when an update sets/changes a file storage path for a
-      // file-type material in a known course, re-dispatch to
-      // embed-course-material (reindex deletes prior chunks first).
-      // Fire-and-forget — never blocks or fails the update.
-      if (updates.type === "file" && updates.file_path && courseId) {
-        await indexCourseMaterialIfSupported({
-          filePath: updates.file_path,
-          courseId,
+      if (
+        (updates.type === "file" || data.type === "file") &&
+        (updates.file_path || data.file_path) &&
+        (courseId || data.module_id)
+      ) {
+        indexCourseMaterialIfSupported({
+          filePath: updates.file_path ?? data.file_path ?? "",
+          courseId: courseId ?? "",
           sourceMaterialId: id,
           cloIds: updates.clo_ids,
           reindex: true,
-        });
+        }).catch((err: unknown) =>
+          console.error("Background re-indexing error:", err)
+        );
       }
 
       return castMaterial(data as unknown as Record<string, unknown>);
@@ -428,18 +468,36 @@ export const useDeleteMaterial = () => {
       id: string;
       performedBy: string;
     }) => {
+      const { data: mat } = await supabase
+        .from("course_materials")
+        .select("file_path")
+        .eq("id", id)
+        .single();
+
+      if (mat?.file_path) {
+        await supabase.storage
+          .from(MATERIAL_BUCKET)
+          .remove([mat.file_path])
+          .catch((err: unknown) =>
+            console.error("Storage removal error:", err)
+          );
+      }
+
       const { error } = await supabase
         .from("course_materials")
         .delete()
         .eq("id", id);
       if (error) throw error;
+
+      const currentUserId =
+        (await supabase.auth.getUser()).data.user?.id ?? performedBy;
       await logAuditEvent({
         action: "delete",
         entity_type: "course_material",
         entity_id: id,
         changes: null,
-        performed_by: performedBy,
-      });
+        performed_by: currentUserId,
+      }).catch((err: unknown) => console.error("Audit log error:", err));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -489,7 +547,6 @@ export const uploadMaterialFile = async (
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${courseId}/${Date.now()}_${safeName}`;
 
-  // Guard against path traversal in filename or courseId
   if (path.includes("..")) {
     throw new Error(
       "Invalid file path: path traversal sequences are not allowed."
@@ -500,8 +557,5 @@ export const uploadMaterialFile = async (
     .from(MATERIAL_BUCKET)
     .upload(path, file);
   if (error) throw new Error(`Upload failed: ${error.message}`);
-  // course-materials is a private bucket. Return the storage path —
-  // consumers must call getSignedUrl("course-materials", path) at READ time.
-  // See src/lib/storageUrl.ts.
   return path;
 };

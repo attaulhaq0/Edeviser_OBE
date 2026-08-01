@@ -27,13 +27,13 @@ const GlobalHeader = () => {
   const dashboardRoute = dashboardRouteByRole[role as UserRole] ?? "/student";
 
   return (
-    <header className="sticky top-0 z-[100] h-[var(--app-header-h)] w-full border-b border-slate-200/80 bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.06)] backdrop-blur-md dark:border-border dark:bg-background/95">
+    <header className="sticky top-0 z-[100] h-(--app-header-h) w-full border-b border-slate-200/80 bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.06)] backdrop-blur-md dark:border-border dark:bg-background/95">
       <div
         data-tour="top-bar"
         className="mx-auto flex h-full w-full items-center justify-between gap-4 px-4 lg:px-6"
       >
         {/* Left: Mobile Toggle & Brand Logo */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <Button
             type="button"
             variant="ghost"
@@ -62,7 +62,7 @@ const GlobalHeader = () => {
         </div>
 
         {/* Center: Search Command */}
-        <div className="absolute left-1/2 -translate-x-1/2 hidden min-[1280px]:block w-[360px]">
+        <div className="absolute left-1/2 -translate-x-1/2 hidden min-[1280px]:block w-90">
           <SearchCommand showTrigger />
         </div>
 

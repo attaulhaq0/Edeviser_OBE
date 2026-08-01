@@ -253,10 +253,10 @@ const StudentDashboardScreen = () => {
   const heroSlides: React.ReactNode[] = [
     <div
       key="greeting"
-      className="relative flex min-h-[116px] items-center overflow-hidden p-3.5"
+      className="relative flex min-h-29 items-center overflow-hidden p-3.5"
     >
       <div
-        className="pointer-events-none absolute -right-8 -top-11 h-[130px] w-[130px]"
+        className="pointer-events-none absolute -right-8 -top-11 h-32.5 w-32.5"
         style={{
           background:
             "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
@@ -299,7 +299,7 @@ const StudentDashboardScreen = () => {
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-blue-400"
+                className="h-full rounded-full bg-linear-to-r from-teal-400 to-blue-400"
                 style={{ width: `${level.progressPercent}%` }}
               />
             </div>
@@ -319,7 +319,7 @@ const StudentDashboardScreen = () => {
 
   if (streak > 0) {
     heroSlides.push(
-      <div key="streak" className="flex min-h-[116px] items-center gap-3 p-3.5">
+      <div key="streak" className="flex min-h-29 items-center gap-3 p-3.5">
         <div
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl"
           aria-hidden="true"
@@ -363,7 +363,7 @@ const StudentDashboardScreen = () => {
 
   if (leagueRank && leagueTotal > 0) {
     heroSlides.push(
-      <div key="league" className="flex min-h-[116px] items-center gap-3 p-3.5">
+      <div key="league" className="flex min-h-29 items-center gap-3 p-3.5">
         <div
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl"
           aria-hidden="true"
@@ -549,13 +549,13 @@ const StudentDashboardScreen = () => {
           </button>
         </div>
         {courses.isPending ? (
-          <div className="my-courses-grid grid w-full min-w-0 gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
+          <div className="my-courses-grid grid w-full min-w-0 gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Shimmer key={i} className="h-[76px] w-full min-w-0 rounded-xl" />
+              <Shimmer key={i} className="h-19 w-full min-w-0 rounded-xl" />
             ))}
           </div>
         ) : courseList.length > 0 ? (
-          <div className="my-courses-grid grid w-full min-w-0 gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
+          <div className="my-courses-grid grid w-full min-w-0 gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]">
             {courseList.map((c) => {
               const ring = c.attainment_percent ?? c.progress_percent;
               return (
@@ -565,7 +565,7 @@ const StudentDashboardScreen = () => {
                   onClick={() => navigate(`/student/courses/${c.id}`)}
                   className="course-card flex h-full w-full min-w-0 items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-start shadow-xs transition-all hover:border-slate-200 hover:shadow-md active:scale-[.99]"
                 >
-                  <div className="course-card-progress flex-shrink-0">
+                  <div className="course-card-progress shrink-0">
                     <ProgressRing percent={ring} size={48} stroke={3}>
                       <span className="text-[11px] font-black text-blue-600">
                         {Math.round(ring)}%

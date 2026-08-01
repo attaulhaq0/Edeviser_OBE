@@ -12,7 +12,7 @@ describe("prototype application shell layout", () => {
     expect(tokens).toContain("--app-content-max: 82.5rem");
     expect(tokens).not.toContain("--app-content-max: 48rem");
     // max-width is only applied when a rail is present
-    expect(shell).toContain("max-w-[var(--app-content-max)] mx-auto");
+    expect(shell).toContain("max-w-(--app-content-max) mx-auto");
     expect(shell).toContain(
       "grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)_var(--app-rail-w)]"
     );

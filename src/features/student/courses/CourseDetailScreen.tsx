@@ -358,8 +358,8 @@ const CourseDetailScreen = () => {
   });
 
   const course = useCourse(courseId);
-  const modules = useCourseModules(courseId);
-  const materials = useCourseAllMaterials(courseId);
+  const modules = useCourseModules(courseId ?? "");
+  const materials = useCourseAllMaterials(courseId ?? "");
   const announcements = useAnnouncements(courseId);
   const studentCourses = useStudentCourses(user?.id);
   const studentAssignments = useStudentAssignments(courseId);

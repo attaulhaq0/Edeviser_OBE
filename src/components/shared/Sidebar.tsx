@@ -111,7 +111,7 @@ const Sidebar = () => {
         {/* Icon rendering: 3 distinct treatments */}
         {itemIsCompanion ? (
           /* Companion: prominent colorful circular icon badge (always visible) */
-          <div className="sidebar-icon-wrapper flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
+          <div className="sidebar-icon-wrapper flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
             <span className="sidebar-icon text-[16px] leading-none">
               {item.emoji}
             </span>
@@ -128,7 +128,7 @@ const Sidebar = () => {
           /* Primary section: Lucide outline icon (20px standard) */
           <IconComponent
             className={cn(
-              "sidebar-icon h-[20px] w-[20px] shrink-0 transition-colors",
+              "sidebar-icon h-5 w-5 shrink-0 transition-colors",
               isActive ? "stroke-[2.2]" : "stroke-[1.6]"
             )}
             aria-hidden="true"
@@ -136,7 +136,7 @@ const Sidebar = () => {
         ) : item.emoji ? (
           /* Fallback: emoji */
           <span
-            className="sidebar-icon flex size-[20px] shrink-0 items-center justify-center bg-transparent text-[18px] leading-none"
+            className="sidebar-icon flex size-5 shrink-0 items-center justify-center bg-transparent text-[18px] leading-none"
             aria-hidden="true"
           >
             {item.emoji}
@@ -201,7 +201,7 @@ const Sidebar = () => {
         <Button
           type="button"
           variant="ghost"
-          className="fixed inset-0 z-[98] h-auto w-auto rounded-none bg-black/30 p-0 hover:bg-black/30 min-[640px]:hidden"
+          className="fixed inset-0 z-98 h-auto w-auto rounded-none bg-black/30 p-0 hover:bg-black/30 min-[640px]:hidden"
           onClick={close}
           aria-label="Close navigation"
         />
@@ -211,7 +211,7 @@ const Sidebar = () => {
       <aside
         data-tour="primary-nav"
         className={cn(
-          "app-sidebar fixed start-0 top-0 z-[99] flex h-screen w-[var(--app-sidebar-w)] overflow-y-auto overflow-x-hidden border-e border-[#e2e8f0] transition-transform duration-200 ease-in-out dark:border-border dark:bg-background",
+          "app-sidebar fixed inset-s-0 top-0 z-99 flex h-screen w-(--app-sidebar-w) overflow-y-auto overflow-x-hidden border-e border-[#e2e8f0] transition-transform duration-200 ease-in-out dark:border-border dark:bg-background",
           role === "student"
             ? "bg-[linear-gradient(180deg,#ffffff_0%,#f5fdff_100%)]"
             : "bg-white",
@@ -221,8 +221,8 @@ const Sidebar = () => {
             : "max-[639px]:-translate-x-full max-[639px]:rtl:translate-x-full"
         )}
       >
-        <div className="relative flex h-full min-h-0 flex-1 flex-col px-[14px] pb-[20px] pt-4 min-[640px]:pt-[74px]">
-          <span className="hidden min-[640px]:block absolute start-[22px] top-[22px] text-[18px] font-black tracking-[-0.01em] text-slate-900 dark:text-foreground">
+        <div className="relative flex h-full min-h-0 flex-1 flex-col px-3.5 pb-5 pt-4 min-[640px]:pt-18.5">
+          <span className="hidden min-[640px]:block absolute inset-s-5.5 top-5.5 text-[18px] font-black tracking-[-0.01em] text-slate-900 dark:text-foreground">
             Edeviser
           </span>
 
@@ -249,15 +249,15 @@ const Sidebar = () => {
             </nav>
 
             {moreItems.length > 0 ? (
-              <div className="sidebar-extra mt-[10px] flex min-h-0 flex-1 flex-col">
+              <div className="sidebar-extra mt-2.5 flex min-h-0 flex-1 flex-col">
                 <div
                   className="side-sep mx-3 mb-2 mt-3 h-px bg-[#eef2f6]"
                   aria-hidden="true"
                 />
-                <p className="side-label px-[18px] pb-[6px] pt-[4px] text-[10px] font-[800] uppercase tracking-[0.12em] leading-[14px] text-[#94a3b8]">
+                <p className="side-label px-4.5 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] leading-3.5 text-[#94a3b8]">
                   {t("nav.more")}
                 </p>
-                <div className="space-y-[2px]">
+                <div className="space-y-0.5">
                   {moreItems.map((item) => renderItem(item, "more"))}
                 </div>
                 {role === "student" ? <StudentSidebarExtras /> : null}

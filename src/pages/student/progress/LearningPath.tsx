@@ -129,7 +129,7 @@ const PathProgress = ({
     className={cn("h-2 overflow-hidden rounded-full bg-slate-100", className)}
   >
     <div
-      className="h-full rounded-full bg-[image:var(--brand-gradient)] transition-[width]"
+      className="h-full rounded-full bg-(image:--brand-gradient) transition-[width]"
       style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
     />
   </div>
@@ -300,7 +300,7 @@ const JourneyStage = ({
             "relative z-10 flex size-11 items-center justify-center rounded-full text-sm font-black transition-transform hover:scale-105 focus:outline-none",
             stage.status === "done" && "bg-green-100 text-green-600",
             stage.status === "current" &&
-              "bg-[image:var(--brand-gradient)] text-white shadow-[0_0_0_5px_rgba(20,184,166,0.16)]",
+              "bg-(image:--brand-gradient) text-white shadow-[0_0_0_5px_rgba(20,184,166,0.16)]",
             stage.status === "locked" && "bg-slate-100 text-slate-400",
             isSelected && "ring-4 ring-teal-500/30"
           )}
@@ -314,7 +314,7 @@ const JourneyStage = ({
         {!isLast ? (
           <span
             className={cn(
-              "min-h-6 w-[3px] flex-1",
+              "min-h-6 w-0.75 flex-1",
               stage.status === "done" ? "bg-green-300" : "bg-slate-200"
             )}
             aria-hidden="true"
@@ -339,7 +339,7 @@ const JourneyStage = ({
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-teal-700">
+            <p className="text-[9px] font-black uppercase tracking-widest text-teal-700">
               {stage.emoji} {t(stage.campKey)}
             </p>
             <h3
@@ -455,7 +455,7 @@ export const StageDetail = ({
                   )}
                 >
                   {node.status === "graded" ? (
-                    <Check className="size-3 stroke-[3]" aria-hidden="true" />
+                    <Check className="size-3 stroke-3" aria-hidden="true" />
                   ) : node.status === "locked" ? (
                     <Lock className="size-2.5" aria-hidden="true" />
                   ) : (
@@ -480,7 +480,7 @@ export const StageDetail = ({
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50/90 to-cyan-50/80 p-3.5">
+      <div className="mt-4 rounded-2xl border border-teal-200/60 bg-linear-to-br from-teal-50/90 to-cyan-50/80 p-3.5">
         <div className="flex items-center gap-2 text-xs font-black text-teal-800">
           <Sparkles className="size-4 text-teal-600" aria-hidden="true" />
           <span>AI Coach Tip</span>
@@ -692,7 +692,7 @@ const KnowledgeTreeView = ({
       </div>
 
       <PCard className="p-2">
-        <div className="relative min-h-[560px] overflow-hidden rounded-[18px] bg-[radial-gradient(120%_85%_at_50%_100%,#dcfce7_0%,#ecfdf5_38%,#f0fdfa_66%,#ffffff_90%)]">
+        <div className="relative min-h-140 overflow-hidden rounded-[18px] bg-[radial-gradient(120%_85%_at_50%_100%,#dcfce7_0%,#ecfdf5_38%,#f0fdfa_66%,#ffffff_90%)]">
           <svg
             className="absolute inset-0 size-full"
             viewBox="0 0 400 560"
@@ -736,13 +736,13 @@ const KnowledgeTreeView = ({
             >
               <div
                 className={cn(
-                  "relative flex size-[74px] flex-col items-center justify-center rounded-full border-[3px] border-white text-white shadow-[0_12px_26px_rgba(16,24,40,0.18)] transition-all",
+                  "relative flex size-18.5 flex-col items-center justify-center rounded-full border-[3px] border-white text-white shadow-[0_12px_26px_rgba(16,24,40,0.18)] transition-all",
                   stage.status === "done" &&
-                    "bg-gradient-to-br from-green-400 to-green-600",
+                    "bg-linear-to-br from-green-400 to-green-600",
                   stage.status === "current" &&
-                    "bg-gradient-to-br from-teal-400 to-teal-600",
+                    "bg-linear-to-br from-teal-400 to-teal-600",
                   stage.status === "locked" &&
-                    "bg-gradient-to-br from-slate-300 to-slate-400",
+                    "bg-linear-to-br from-slate-300 to-slate-400",
                   stage.key === currentStage?.key &&
                     "ring-4 ring-teal-500/40 scale-105"
                 )}
@@ -753,7 +753,7 @@ const KnowledgeTreeView = ({
                     : `${stage.attainment}%`}
                 </span>
                 {stage.status === "locked" ? (
-                  <span className="absolute -end-1 -top-1 flex size-6 items-center justify-center rounded-full bg-white text-slate-400 shadow">
+                  <span className="absolute -inset-e-1 -top-1 flex size-6 items-center justify-center rounded-full bg-white text-slate-400 shadow">
                     <Lock className="size-3" aria-hidden="true" />
                   </span>
                 ) : null}
@@ -766,7 +766,7 @@ const KnowledgeTreeView = ({
         </div>
       </PCard>
 
-      <PCard className="mt-4 flex items-center gap-3 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+      <PCard className="mt-4 flex items-center gap-3 border-green-200 bg-linear-to-br from-green-50 to-emerald-50 p-4">
         <Mountain
           className="size-5 shrink-0 text-green-700"
           aria-hidden="true"
@@ -841,7 +841,7 @@ const LearningPath = ({
     return (
       <div className="space-y-4">
         <Shimmer className="h-11 w-64 rounded-xl" />
-        <Shimmer className="h-[620px] rounded-[20px]" />
+        <Shimmer className="h-155 rounded-4xl" />
       </div>
     );
   }
@@ -876,7 +876,7 @@ const LearningPath = ({
             className={cn(
               "rounded-[10px] px-4 font-black text-xs h-8",
               view === "journey"
-                ? "bg-[image:var(--brand-gradient)] text-white"
+                ? "bg-(image:--brand-gradient) text-white"
                 : "text-slate-600 hover:bg-slate-100"
             )}
             onClick={() => setView("journey")}
@@ -892,7 +892,7 @@ const LearningPath = ({
             className={cn(
               "rounded-[10px] px-4 font-black text-xs h-8",
               view === "tree"
-                ? "bg-[image:var(--brand-gradient)] text-white"
+                ? "bg-(image:--brand-gradient) text-white"
                 : "text-slate-600 hover:bg-slate-100"
             )}
             onClick={() => setView("tree")}

@@ -185,7 +185,7 @@ const ActionTile = ({
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center gap-3 rounded-[20px] border border-[#eef2f6] bg-white p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
+    className="flex items-center gap-3 rounded-4xl border border-[#eef2f6] bg-white p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
   >
     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 shadow-2xs backdrop-blur-xs text-teal-700">
       <Icon className="h-5 w-5" aria-hidden="true" />
@@ -288,9 +288,9 @@ const TeacherDashboardScreen = () => {
         className="rounded-2xl text-white shadow-lg"
         style={{ background: HERO_GRADIENT }}
         slides={[
-          <div key="briefing" className="relative min-h-[116px] p-4">
+          <div key="briefing" className="relative min-h-29 p-4">
             <div
-              className="pointer-events-none absolute -end-8 -top-11 h-[150px] w-[150px]"
+              className="pointer-events-none absolute -inset-e-8 -top-11 h-37.5 w-37.5"
               style={{
                 background:
                   "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
@@ -350,10 +350,7 @@ const TeacherDashboardScreen = () => {
               )}
             </div>
           </div>,
-          <div
-            key="momentum"
-            className="flex min-h-[116px] items-center gap-4 p-4"
-          >
+          <div key="momentum" className="flex min-h-29 items-center gap-4 p-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
               <TrendingUp className="h-6 w-6" aria-hidden="true" />
             </div>
@@ -393,7 +390,7 @@ const TeacherDashboardScreen = () => {
       {aggregate.isPending ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Shimmer key={i} className="h-24 rounded-[20px]" />
+            <Shimmer key={i} className="h-24 rounded-4xl" />
           ))}
         </div>
       ) : (
@@ -484,11 +481,11 @@ const TeacherDashboardScreen = () => {
         {atRisk.isPending ? (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, i) => (
-              <Shimmer key={i} className="h-28 rounded-[20px]" />
+              <Shimmer key={i} className="h-28 rounded-4xl" />
             ))}
           </div>
         ) : atRisk.isError ? (
-          <div className="rounded-[20px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-4xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
             {t("dashboard.triage.error", "Couldn't load student triage.")}
           </div>
         ) : visibleTriage.length > 0 ? (
@@ -572,7 +569,7 @@ const TeacherDashboardScreen = () => {
             )}
           </div>
         ) : (
-          <div className="rounded-[20px] border border-[#eef2f6] bg-white p-6 text-center text-sm text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+          <div className="rounded-4xl border border-[#eef2f6] bg-white p-6 text-center text-sm text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
             {t(
               "dashboard.triage.empty",
               "No students flagged — everyone's on track."
@@ -584,7 +581,7 @@ const TeacherDashboardScreen = () => {
       {/* ── At-risk · AI prediction  +  Bloom's coverage ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* At-risk students · AI prediction (useAtRiskPredictions) */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={AlertTriangle}
             title={t("dashboard.prediction.title", "Student risk signals")}
@@ -730,7 +727,7 @@ const TeacherDashboardScreen = () => {
         </div>
 
         {/* Bloom's coverage (real bloomsDistribution — teacher-wide) */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={Brain}
             title={t("dashboard.bloomsDistribution", "Bloom's coverage")}

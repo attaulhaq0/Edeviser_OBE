@@ -26,7 +26,7 @@ export const ParentFeesRail = ({ onAddPaymentMethod }: ParentFeesRailProps) => {
       className="space-y-4"
     >
       {/* ── Saved payment methods ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-3 flex items-center gap-2">
           <ParentSectionIcon emoji="💳" />
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
@@ -72,7 +72,7 @@ export const ParentFeesRail = ({ onAddPaymentMethod }: ParentFeesRailProps) => {
       </div>
 
       {/* ── Receipts & Tax Statement ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-2 flex items-center gap-2">
           <ParentSectionIcon emoji="🧾" />
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
@@ -101,7 +101,7 @@ export const ParentFeesRail = ({ onAddPaymentMethod }: ParentFeesRailProps) => {
       </div>
 
       {/* ── Need help with fees ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-2 flex items-center gap-2">
           <ParentSectionIcon emoji="❓" />
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">

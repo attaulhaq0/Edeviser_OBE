@@ -20,7 +20,7 @@ export const ParentSectionIcon: React.FC<ParentSectionIconProps> = ({
   return (
     <span
       className={cn(
-        "flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[10px] text-[16px] leading-none text-slate-800 shadow-[0_2px_5px_rgba(15,23,42,0.10),inset_0_1px_0_rgba(255,255,255,0.9)] border border-slate-200 bg-gradient-to-b from-white to-slate-100 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950 dark:text-slate-200 dark:shadow-none",
+        "flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-[10px] text-[16px] leading-none text-slate-800 shadow-[0_2px_5px_rgba(15,23,42,0.10),inset_0_1px_0_rgba(255,255,255,0.9)] border border-slate-200 bg-linear-to-b from-white to-slate-100 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950 dark:text-slate-200 dark:shadow-none",
         className
       )}
     >

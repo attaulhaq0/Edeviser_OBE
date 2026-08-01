@@ -19,7 +19,7 @@ const StudentLearningPathRail = () => {
   return (
     <aside
       aria-label={t("learningPath.rail.label", "Level Details")}
-      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block space-y-4"
+      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-(--app-header-h) xl:col-start-3 xl:row-start-1 xl:block space-y-4"
     >
       <StageDetail stage={ctx.currentStage} />
       <BloomOverviewCard stages={ctx.stages} />

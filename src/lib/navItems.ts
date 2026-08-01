@@ -84,6 +84,11 @@ export interface NavItem {
 const adminNavItems: NavItem[] = [
   { to: "/admin/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { to: "/admin/analytics", labelKey: "nav.analytics", icon: TrendingUp },
+  {
+    to: "/admin/accreditation-reports",
+    labelKey: "nav.accreditationReports",
+    icon: FileText,
+  },
   { to: "/admin/settings/profile", labelKey: "nav.me", icon: UserCog },
   {
     to: "/admin/settings/institution",
@@ -219,6 +224,11 @@ const teacherNavItems: NavItem[] = [
     to: "/teacher/discussions",
     labelKey: "nav.discussions",
     icon: MessageSquare,
+  },
+  {
+    to: "/teacher/announcements",
+    labelKey: "nav.announcements",
+    icon: Megaphone,
   },
   { to: "/teacher/notifications", labelKey: "nav.notifications", icon: Bell },
 ];

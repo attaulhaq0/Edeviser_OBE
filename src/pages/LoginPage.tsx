@@ -414,7 +414,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page relative grid min-h-[100dvh] w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
+    <div className="auth-page relative grid min-h-dvh w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
       {/* ── BRAND / VALUE PANEL (LEFT) ─────────────────────────────────── */}
       <div className="order-2 lg:order-1 h-full">
         <AuthBrandPanel />
@@ -428,7 +428,7 @@ const LoginPage = () => {
         </div>
 
         {/* CENTER AUTH CARD */}
-        <div className="mx-auto w-full max-w-[500px] my-auto">
+        <div className="mx-auto w-full max-w-125 my-auto">
           <div className="rounded-3xl border border-slate-100/90 bg-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
             {/* TABS: LOGIN / REGISTER */}
             <div className="mb-7 flex border-b border-slate-100">
@@ -472,12 +472,12 @@ const LoginPage = () => {
                     {t("login.emailLabel", "Email Address")}
                   </label>
                   <div className="relative">
-                    <Mail className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Mail className="absolute inset-s-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
                       id="login-email"
                       type="email"
                       autoComplete="email"
-                      className="fld !ps-10 ps-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="fld ps-10! h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                       placeholder="you@school.edu"
                       aria-invalid={!!loginForm.formState.errors.email}
                       {...loginForm.register("email")}
@@ -507,12 +507,12 @@ const LoginPage = () => {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute inset-s-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
                       id="login-password"
                       type={showLoginPw ? "text" : "password"}
                       autoComplete="current-password"
-                      className="fld !ps-10 !pe-11 ps-10 pe-11 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="fld ps-10! pe-11! h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                       placeholder="••••••••"
                       aria-invalid={!!loginForm.formState.errors.password}
                       {...loginForm.register("password")}
@@ -520,7 +520,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowLoginPw((v) => !v)}
-                      className="absolute end-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute inset-e-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     >
                       {showLoginPw ? (
                         <EyeOff className="h-4 w-4" />
@@ -735,7 +735,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowSignupPw((v) => !v)}
-                      className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-slate-400"
                     >
                       {showSignupPw ? (
                         <EyeOff className="h-4 w-4" />
@@ -778,7 +778,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowSignupConfirm((v) => !v)}
-                      className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-slate-400"
                     >
                       {showSignupConfirm ? (
                         <EyeOff className="h-4 w-4" />
@@ -870,7 +870,7 @@ const LoginPage = () => {
             <span>Secure. Private. Built for education.</span>
           </div>
 
-          <div className="fixed bottom-4 end-4 hidden sm:block">
+          <div className="fixed bottom-4 inset-e-4 hidden sm:block">
             <img
               src={foxiSmiling}
               alt="Mascot Badge"

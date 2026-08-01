@@ -109,7 +109,7 @@ const ParentProfilePage = () => {
   return (
     <div className="space-y-4 no-scrollbar">
       {/* ── 1 · Profile Header Card (.phdr matching parent-profile.html) ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             {/* Identity row */}
@@ -121,7 +121,7 @@ const ParentProfilePage = () => {
                     t("profile.changePhoto", "Photo update feature coming soon")
                   )
                 }
-                className="group relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-sky-600 text-xl font-black text-white shadow-md"
+                className="group relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-sky-600 text-xl font-black text-white shadow-md"
               >
                 {initials}
                 <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-xs shadow-xs group-hover:bg-slate-100">
@@ -227,7 +227,7 @@ const ParentProfilePage = () => {
       </div>
 
       {/* ── 2 · Linked Learners Card ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ParentSectionIcon emoji="👨‍👩‍👧" />
@@ -325,7 +325,7 @@ const ParentProfilePage = () => {
       {/* ── 4 · 2-Column Grid: Privacy & Notification Preferences ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Privacy & what you can see */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ParentSectionIcon emoji="🔒" />
@@ -398,7 +398,7 @@ const ParentProfilePage = () => {
         </div>
 
         {/* Notification preferences (exact prototype EdvToggle switches) */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-3 flex items-center gap-2">
             <ParentSectionIcon emoji="🔔" />
             <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
@@ -531,7 +531,7 @@ const ParentProfilePage = () => {
       </div>
 
       {/* ── 5 · Security & Access ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-3 flex items-center gap-2">
           <ParentSectionIcon emoji="🔒" />
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">

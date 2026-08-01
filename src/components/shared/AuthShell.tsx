@@ -22,7 +22,7 @@ interface AuthShellProps {
 
 const AuthShell = ({ children }: AuthShellProps) => {
   return (
-    <div className="auth-page relative grid min-h-[100dvh] w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
+    <div className="auth-page relative grid min-h-dvh w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
       {/* Brand / value panel (Left) */}
       <div className="order-2 lg:order-1 h-full">
         <AuthBrandPanel />
@@ -34,7 +34,7 @@ const AuthShell = ({ children }: AuthShellProps) => {
           <LanguageSwitcher />
         </div>
 
-        <div className="mx-auto w-full max-w-[500px] my-auto">
+        <div className="mx-auto w-full max-w-125 my-auto">
           <div className="rounded-3xl border border-slate-100/90 bg-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
             {children}
           </div>

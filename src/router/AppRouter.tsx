@@ -69,6 +69,9 @@ const PendingOnboardingPage = lazy(
 const ReportGeneratorPage = lazy(
   () => import("@/pages/admin/reports/ReportGeneratorPage")
 );
+const AdminAccreditationReportsPage = lazy(
+  () => import("@/pages/admin/reports/AdminAccreditationReportsPage")
+);
 const CoordinatorDashboard = lazy(
   () => import("@/pages/coordinator/CoordinatorDashboard")
 );
@@ -637,6 +640,10 @@ const AppRouter = () => (
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AdminAnalyticsPage />} />
+            <Route
+              path="accreditation-reports"
+              element={<AdminAccreditationReportsPage />}
+            />
             <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="users" element={<UserListPage />} />
             <Route path="users/new" element={<UserForm />} />

@@ -37,7 +37,7 @@ export const ParentAttendanceRail = ({
   return (
     <aside className="space-y-4 w-full">
       {/* ── This Term Summary Card ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-3 flex items-center gap-2">
           <ParentSectionIcon emoji="📅" />
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
@@ -88,7 +88,7 @@ export const ParentAttendanceRail = ({
 
       {/* ── Needs Attention Card (Only rendered when absence concentration exists) ── */}
       {attention && (
-        <div className="rounded-[20px] border border-amber-200 bg-amber-50/70 p-5 shadow-xs dark:border-amber-900/50 dark:bg-amber-950/30">
+        <div className="rounded-4xl border border-amber-200 bg-amber-50/70 p-5 shadow-xs dark:border-amber-900/50 dark:bg-amber-950/30">
           <div className="mb-2 flex items-center gap-2 text-amber-800 dark:text-amber-300">
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <h2 className="text-xs font-extrabold uppercase tracking-wider">
@@ -118,7 +118,7 @@ export const ParentAttendanceRail = ({
       )}
 
       {/* ── Need Help Card ── */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-2 flex items-center gap-2">
           <ParentSectionIcon emoji="💬" />
           <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">

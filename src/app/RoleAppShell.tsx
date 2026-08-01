@@ -40,8 +40,8 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
         <GlobalHeader />
         <div
           className={cn(
-            "grid min-h-[calc(100vh-var(--app-header-h))] grid-cols-1 px-[var(--app-gutter-mobile)] pb-[calc(3.25rem+env(safe-area-inset-bottom))]",
-            "min-[640px]:grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)] min-[640px]:gap-[var(--app-gutter)] min-[640px]:px-0 min-[640px]:pb-0",
+            "grid min-h-[calc(100vh-var(--app-header-h))] grid-cols-1 px-(--app-gutter-mobile) pb-[calc(3.25rem+env(safe-area-inset-bottom))]",
+            "min-[640px]:grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)] min-[640px]:gap-(--app-gutter) min-[640px]:px-0 min-[640px]:pb-0",
             hasRail &&
               "xl:grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)_var(--app-rail-w)]"
           )}
@@ -52,12 +52,12 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
             <main
               id="main-content"
               tabIndex={-1}
-              className="min-h-[calc(100vh-var(--app-header-h))] py-5 min-[640px]:ps-[var(--app-gutter)] min-[640px]:pe-[var(--app-gutter)] xl:py-6"
+              className="min-h-[calc(100vh-var(--app-header-h))] py-5 min-[640px]:ps-(--app-gutter) min-[640px]:pe-(--app-gutter) xl:py-6"
             >
               <div
                 className={cn(
                   "w-full min-w-0",
-                  hasRail && "max-w-[var(--app-content-max)] mx-auto"
+                  hasRail && "max-w-(--app-content-max) mx-auto"
                 )}
               >
                 {children}

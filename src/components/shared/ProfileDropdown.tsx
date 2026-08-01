@@ -147,7 +147,7 @@ const ProfileDropdown = () => {
         >
           <Avatar className="h-9 w-9 border border-slate-200 shadow-2xs dark:border-slate-700">
             <AvatarImage src={avatarUrl} alt={profile.full_name ?? "User"} />
-            <AvatarFallback className="bg-gradient-to-br from-teal-500 to-blue-600 font-extrabold text-xs text-white">
+            <AvatarFallback className="bg-linear-to-br from-teal-500 to-blue-600 font-extrabold text-xs text-white">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -167,7 +167,7 @@ const ProfileDropdown = () => {
                 aria-label={`Level progress ${level.data.progressPercent}%`}
               >
                 <div
-                  className="h-full rounded-full bg-[image:var(--brand-gradient)] transition-all duration-500"
+                  className="h-full rounded-full bg-(image:--brand-gradient) transition-all duration-500"
                   style={{ width: `${level.data.progressPercent}%` }}
                 />
               </div>

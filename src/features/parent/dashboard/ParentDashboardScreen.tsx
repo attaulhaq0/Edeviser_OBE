@@ -155,10 +155,10 @@ const ParentDashboardScreen = () => {
     return (
       <div className="w-full space-y-4">
         <Shimmer className="h-36 rounded-2xl" />
-        <Shimmer className="h-28 rounded-[20px]" />
+        <Shimmer className="h-28 rounded-4xl" />
         <div className="grid gap-4 lg:grid-cols-2">
-          <Shimmer className="h-44 rounded-[20px]" />
-          <Shimmer className="h-44 rounded-[20px]" />
+          <Shimmer className="h-44 rounded-4xl" />
+          <Shimmer className="h-44 rounded-4xl" />
         </div>
       </div>
     );

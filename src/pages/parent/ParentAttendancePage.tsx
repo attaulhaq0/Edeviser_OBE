@@ -172,7 +172,7 @@ const ParentAttendancePage = () => {
           ) : (
             <>
               {/* ── 1 · Compact Attendance Overview ── */}
-              <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ const ParentAttendancePage = () => {
               </div>
 
               {/* ── 2 · Attendance Trend ── */}
-              <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ParentSectionIcon emoji="📈" />
@@ -259,7 +259,7 @@ const ParentAttendancePage = () => {
                     <div key={w.periodLabel} className="space-y-1.5">
                       <div className="relative flex h-24 flex-col justify-end rounded-xl bg-slate-50 p-1 dark:bg-slate-800/50">
                         <div
-                          className="w-full rounded-lg bg-gradient-to-t from-teal-500 to-sky-500 transition-all"
+                          className="w-full rounded-lg bg-linear-to-t from-teal-500 to-sky-500 transition-all"
                           style={{ height: `${w.attendanceRate}%` }}
                         />
                       </div>
@@ -275,7 +275,7 @@ const ParentAttendancePage = () => {
               </div>
 
               {/* ── 3 · Attendance by Course (Compact Desktop Table / Mobile Cards) ── */}
-              <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ParentSectionIcon emoji="📚" />
@@ -417,7 +417,7 @@ const ParentAttendancePage = () => {
               </div>
 
               {/* ── 4 · Recent Attendance (Exceptions & Filter Tabs) ── */}
-              <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-4xl border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-2">
                     <ParentSectionIcon emoji="⏱️" />

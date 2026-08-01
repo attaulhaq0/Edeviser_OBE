@@ -23,6 +23,7 @@ import {
   Star,
   Flag,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import foxiSmiling from "@/design-system/mascot/assets/characters/foxi/foxi-smiling.png";
 
@@ -38,14 +39,14 @@ const AuthBrandPanel = () => {
     >
       {/* Ambient radial glows */}
       <div
-        className="pointer-events-none absolute end-4 top-10 h-80 w-80 rounded-full opacity-40 blur-3xl"
+        className="pointer-events-none absolute inset-e-4 top-10 h-80 w-80 rounded-full opacity-40 blur-3xl"
         style={{
           background:
             "radial-gradient(circle, rgba(56,189,248,0.4) 0%, rgba(20,184,166,0.2) 60%, transparent 80%)",
         }}
       />
       <div
-        className="pointer-events-none absolute -start-10 bottom-16 h-72 w-72 rounded-full opacity-30 blur-3xl"
+        className="pointer-events-none absolute -inset-s-10 bottom-16 h-72 w-72 rounded-full opacity-30 blur-3xl"
         style={{
           background:
             "radial-gradient(circle, rgba(14,165,233,0.3) 0%, rgba(99,102,241,0.2) 70%, transparent 90%)",
@@ -58,52 +59,41 @@ const AuthBrandPanel = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <svg
-              className="h-12 w-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.9)]"
+              className="h-10 w-10 text-cyan-300 drop-shadow-[0_0_18px_rgba(34,211,238,0.85)]"
               viewBox="0 0 60 30"
               fill="none"
             >
               <path
-                d="M12 15 C12 8, 25 8, 30 15 C35 22, 48 22, 48 15 C48 8, 35 8, 30 15 C25 22, 12 22, 12 15 Z"
-                stroke="url(#infinityHeaderGlow)"
+                d="M10 15 C10 7, 25 7, 30 15 C35 23, 50 23, 50 15 C50 7, 35 7, 30 15 C25 23, 10 23, 10 15 Z"
+                stroke="currentColor"
                 strokeWidth="4"
                 strokeLinecap="round"
               />
-              <circle cx="15" cy="13" r="1.5" fill="#38bdf8" />
-              <circle cx="45" cy="17" r="1.5" fill="#2dd4bf" />
-              <defs>
-                <linearGradient
-                  id="infinityHeaderGlow"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="0"
-                >
-                  <stop offset="0%" stopColor="#00d2ff" />
-                  <stop offset="50%" stopColor="#38bdf8" />
-                  <stop offset="100%" stopColor="#00f2fe" />
-                </linearGradient>
-              </defs>
             </svg>
-            <span className="text-2xl font-black tracking-wider text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
-              E DEVISER
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tight text-white">
+                E DEVISER
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-300/90">
+                Education & Habit Engine
+              </span>
+            </div>
           </div>
 
-          {/* Product Positioning Pill Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-3.5 py-1 text-xs font-bold text-teal-300 backdrop-blur-md shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-teal-400 animate-pulse shadow-[0_0_8px_rgba(45,212,191,0.8)]" />
-            {t("brand.badge", "Outcome-Based • Habit-Driven • Future-Ready")}
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-teal-400/40 bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-300 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+            OBE Engine Active
           </div>
         </div>
 
-        {/* HERO SECTION: HEADLINE + MASCOT & LEARNING PATH */}
+        {/* HERO SECTION WITH INTEGRATED MASCOT & JOURNEY */}
         <div className="relative grid grid-cols-1 items-center gap-6 lg:grid-cols-12 mt-2">
           {/* Left Text Column */}
           <div className="lg:col-span-7 space-y-3">
             <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl lg:text-4xl">
               Learning that adapts.
               <br />
-              <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(45,212,191,0.4)]">
+              <span className="bg-linear-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(45,212,191,0.4)]">
                 Outcomes
               </span>{" "}
               that last.
@@ -118,7 +108,7 @@ const AuthBrandPanel = () => {
           </div>
 
           {/* Right Mascot Column */}
-          <div className="hidden lg:col-span-5 lg:flex relative items-center justify-center min-h-[160px]">
+          <div className="hidden lg:col-span-5 lg:flex relative items-center justify-center min-h-40">
             {/* Milestones / Learning Journey Path behind mascot */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <svg
@@ -150,19 +140,19 @@ const AuthBrandPanel = () => {
               </svg>
 
               {/* Path Node 1 */}
-              <div className="absolute start-[25%] bottom-[30%] flex h-6 w-6 items-center justify-center rounded-full border border-cyan-400/50 bg-cyan-950/80 text-cyan-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]">
+              <div className="absolute inset-s-[25%] bottom-[30%] flex h-6 w-6 items-center justify-center rounded-full border border-cyan-400/50 bg-cyan-950/80 text-cyan-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]">
                 <Target className="h-3 w-3" />
               </div>
               {/* Path Node 2 */}
-              <div className="absolute start-[55%] bottom-[50%] flex h-6 w-6 items-center justify-center rounded-full border border-blue-400/50 bg-blue-950/80 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+              <div className="absolute inset-s-[55%] bottom-[50%] flex h-6 w-6 items-center justify-center rounded-full border border-blue-400/50 bg-blue-950/80 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]">
                 <TrendingUp className="h-3 w-3" />
               </div>
               {/* Path Node 3 (Star) */}
-              <div className="absolute start-[78%] bottom-[70%] flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/50 bg-amber-950/80 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]">
+              <div className="absolute inset-s-[78%] bottom-[70%] flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/50 bg-amber-950/80 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]">
                 <Star className="h-3 w-3 fill-amber-300" />
               </div>
               {/* Flag at peak */}
-              <div className="absolute end-[5%] top-[8%] text-teal-300">
+              <div className="absolute inset-e-[5%] top-[8%] text-teal-300">
                 <Flag className="h-5 w-5 fill-teal-400" />
               </div>
             </div>
@@ -179,11 +169,11 @@ const AuthBrandPanel = () => {
         </div>
 
         {/* COMPACT LEFT-ALIGNED CARDS CONTAINER */}
-        <div className="flex w-full max-w-[520px] flex-col gap-4 mt-1">
+        <div className="flex w-full max-w-130 flex-col gap-4 mt-1">
           {/* DUAL ENGINE ARCHITECTURE CARDS */}
           <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* OBE Engine Card */}
-            <div className="relative rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:border-cyan-400/60 hover:shadow-[0_14px_40px_rgba(34,211,238,0.25)]">
+            <div className="relative rounded-2xl border border-cyan-500/30 bg-linear-to-br from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:border-cyan-400/60 hover:shadow-[0_14px_40px_rgba(34,211,238,0.25)]">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-500/20 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.5)]">
                 <GraduationCap className="h-5 w-5" />
               </div>
@@ -196,8 +186,8 @@ const AuthBrandPanel = () => {
             </div>
 
             {/* 3D Glowing Infinity Ribbon Connector Loop */}
-            <div className="absolute start-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 sm:flex">
-              <div className="flex h-10 w-16 items-center justify-center rounded-full border border-cyan-300/50 bg-gradient-to-r from-teal-500 via-cyan-400 to-blue-600 p-1 shadow-[0_0_25px_rgba(34,211,238,0.85)] animate-pulse">
+            <div className="absolute inset-s-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 sm:flex">
+              <div className="flex h-10 w-16 items-center justify-center rounded-full border border-cyan-300/50 bg-linear-to-r from-teal-500 via-cyan-400 to-blue-600 p-1 shadow-[0_0_25px_rgba(34,211,238,0.85)] animate-pulse">
                 <svg
                   className="w-full h-full text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.9)]"
                   viewBox="0 0 60 30"
@@ -214,7 +204,7 @@ const AuthBrandPanel = () => {
             </div>
 
             {/* Habit Engine Card */}
-            <div className="relative rounded-2xl border border-blue-500/30 bg-gradient-to-br from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:border-blue-400/60 hover:shadow-[0_14px_40px_rgba(59,130,246,0.25)]">
+            <div className="relative rounded-2xl border border-blue-500/30 bg-linear-to-br from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:border-blue-400/60 hover:shadow-[0_14px_40px_rgba(59,130,246,0.25)]">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-blue-400/40 bg-blue-500/20 text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
                 <Target className="h-5 w-5" />
               </div>
@@ -228,7 +218,7 @@ const AuthBrandPanel = () => {
           </div>
 
           {/* YOUR LEARNING JOURNEY PROGRESS CARD */}
-          <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-r from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all hover:border-cyan-400/40">
+          <div className="rounded-2xl border border-cyan-500/25 bg-linear-to-r from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all hover:border-cyan-400/40">
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="text-slate-300">Your Learning Journey</span>
               <span className="text-cyan-300">
@@ -243,7 +233,7 @@ const AuthBrandPanel = () => {
               </div>
               <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-slate-800/90 border border-slate-700/60">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-300 shadow-[0_0_14px_rgba(34,211,238,0.8)] transition-all duration-500"
+                  className="h-full rounded-full bg-linear-to-r from-blue-500 via-cyan-400 to-teal-300 shadow-[0_0_14px_rgba(34,211,238,0.8)] transition-all duration-500"
                   style={{ width: "81%" }}
                 />
               </div>
@@ -253,8 +243,8 @@ const AuthBrandPanel = () => {
       </div>
 
       {/* BOTTOM TRUST & SECURE FOOTER */}
-      <div className="relative z-10 mt-6 w-full max-w-[520px]">
-        <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-r from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] space-y-3">
+      <div className="relative z-10 mt-6 w-full max-w-130">
+        <div className="rounded-2xl border border-cyan-500/25 bg-linear-to-r from-[#071d47]/95 via-[#051638]/95 to-[#030e26]/95 p-4 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] space-y-3">
           {/* Security Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
