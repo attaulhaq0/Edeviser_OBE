@@ -25,7 +25,7 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
   const { t } = useTranslation("common");
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { uploadAvatar, isPending } = useAvatarUpload();
+  const { uploadAvatar, deleteAvatar, isPending } = useAvatarUpload();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (file: File) => {
@@ -97,17 +97,41 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
 
         {/* Current avatar display */}
         {currentUrl && !preview && (
-          <div className="flex items-center gap-4">
-            <img
-              src={`${currentUrl}?width=128&height=128&resize=cover`}
-              alt="Current avatar"
-              loading="lazy"
-              decoding="async"
-              className="h-24 w-24 rounded-lg object-cover"
-            />
-            <div>
-              <p className="text-sm text-gray-600">{t("avatar.current")}</p>
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <div className="flex items-center gap-3">
+              <img
+                src={currentUrl}
+                alt="Current avatar"
+                loading="lazy"
+                decoding="async"
+                className="h-14 w-14 rounded-xl object-cover border border-slate-200"
+              />
+              <div>
+                <p className="text-xs font-bold text-slate-800">
+                  {t("avatar.current", "Current photo")}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  {t("avatar.uploaded", "Uploaded avatar active")}
+                </p>
+              </div>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isPending}
+              onClick={async () => {
+                try {
+                  await deleteAvatar();
+                } catch {
+                  // toast handled inside hook
+                }
+              }}
+              className="text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <X className="h-3.5 w-3.5 me-1" />
+              {t("avatar.remove", "Remove")}
+            </Button>
           </div>
         )}
 

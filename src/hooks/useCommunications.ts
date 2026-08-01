@@ -53,6 +53,16 @@ export const useCommunications = (userId: string | undefined) => {
 
       if (annError) throw annError;
 
+      // Fetch read tracking for this user from announcement_reads (supporting user_id or student_id)
+      const { data: readData } = await supabase
+        .from("announcement_reads")
+        .select("announcement_id")
+        .or(`student_id.eq.${userId},user_id.eq.${userId}`);
+
+      const readAnnouncementIds = new Set(
+        (readData ?? []).map((r) => r.announcement_id)
+      );
+
       const notifications: CommunicationItem[] = (notifData ?? []).map((n) => ({
         kind: "notification",
         id: n.id,
@@ -67,7 +77,7 @@ export const useCommunications = (userId: string | undefined) => {
         id: a.id,
         title: a.title ?? "Announcement",
         body: a.content ?? "",
-        isRead: false,
+        isRead: readAnnouncementIds.has(a.id),
         isPinned: a.is_pinned ?? false,
         createdAt: a.created_at,
         attachments: [],
@@ -91,8 +101,36 @@ export const useCommunications = (userId: string | undefined) => {
     },
   });
 
+  const markAnnouncementRead = useMutation({
+    mutationFn: async (announcementId: string) => {
+      if (!userId) return;
+      // Multi-role user-aware insert/upsert into announcement_reads
+      const payload = {
+        announcement_id: announcementId,
+        student_id: userId,
+        user_id: userId,
+      } as unknown as Record<string, unknown>;
+
+      const { error } = await supabase
+        .from("announcement_reads")
+        .upsert(payload as never, { onConflict: "announcement_id,student_id" });
+      if (error) {
+        // Fallback for schemas with strict FK to students table
+        await supabase.from("announcement_reads").insert({
+          announcement_id: announcementId,
+          student_id: userId,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.announcements.all });
+    },
+  });
+
   return {
     ...query,
     markNotificationRead: markNotificationRead.mutate,
+    markAnnouncementRead: markAnnouncementRead.mutate,
   };
 };

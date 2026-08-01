@@ -5,30 +5,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "sonner";
 
-/**
- * Configuration for avatar upload
- */
 interface AvatarUploadConfig {
   file: File;
 }
 
-/**
- * Return type for useAvatarUpload
- */
 interface UseAvatarUploadReturn {
-  /** Upload the avatar file */
   uploadAvatar: (config: AvatarUploadConfig) => Promise<void>;
-  /** Whether the upload is in progress */
+  deleteAvatar: () => Promise<void>;
   isPending: boolean;
-  /** Error message if upload failed */
   error: Error | null;
 }
 
-/**
- * Validate avatar file
- * - Type: png, jpg, jpeg, webp
- * - Size: ≤ 2 MB
- */
 const validateAvatarFile = (file: File): { valid: boolean; error?: string } => {
   const validTypes = ["image/png", "image/jpeg", "image/webp"];
   const maxSize = 2 * 1024 * 1024; // 2 MB
@@ -50,78 +37,29 @@ const validateAvatarFile = (file: File): { valid: boolean; error?: string } => {
   return { valid: true };
 };
 
-/**
- * Resize image to ≤ 512×512 @ ≤ 150 KB
- *
- * Uses browser-image-compression library (installed in Task 35)
- * Falls back to basic validation if library is not available
- */
 const resizeImage = async (file: File): Promise<File> => {
   try {
-    // Dynamic import to avoid bundling the library if not used
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const imageCompression = (await import("browser-image-compression" as any))
       .default;
 
     const options = {
-      maxSizeMB: 0.15, // 150 KB
+      maxSizeMB: 0.15,
       maxWidthOrHeight: 512,
       useWebWorker: true,
     };
 
-    const compressedFile = await imageCompression(file, options);
-    return compressedFile;
+    return await imageCompression(file, options);
   } catch {
-    // If library is not available, return the original file
-    // (will be validated by size check in validateAvatarFile)
-    console.warn(
-      "Image compression library not available, using original file"
-    );
     return file;
   }
 };
 
-/**
- * Hook for uploading user avatars
- *
- * Features:
- * - Validates file type and size
- * - Resizes image to ≤ 512×512 @ ≤ 150 KB
- * - Uploads to Supabase Storage bucket `avatars`
- * - Updates profiles.avatar_url
- * - Invalidates queryKeys.user.profile and queryKeys.user.list
- * - Emits Sonner toasts on success/failure
- *
- * Usage:
- * ```tsx
- * const { uploadAvatar, isPending, error } = useAvatarUpload();
- *
- * const handleFileSelect = async (file: File) => {
- *   try {
- *     await uploadAvatar({ file });
- *   } catch (err) {
- *     console.error('Upload failed:', err);
- *   }
- * };
- *
- * return (
- *   <div>
- *     <input
- *       type="file"
- *       accept="image/*"
- *       onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
- *       disabled={isPending}
- *     />
- *     {error && <p className="text-red-600">{error.message}</p>}
- *   </div>
- * );
- * ```
- */
 export const useAvatarUpload = (): UseAvatarUploadReturn => {
-  const { user } = useAuth();
+  const { user, refetchProfile } = useAuth();
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  const uploadMutation = useMutation({
     mutationFn: async (config: AvatarUploadConfig) => {
       if (!user) {
         throw new Error("User not authenticated");
@@ -129,37 +67,28 @@ export const useAvatarUpload = (): UseAvatarUploadReturn => {
 
       const { file } = config;
 
-      // Validate file
       const validation = validateAvatarFile(file);
       if (!validation.valid) {
         throw new Error(validation.error);
       }
 
-      // Resize image
       const resizedFile = await resizeImage(file);
+      const path = `${user.id}/avatar`;
 
-      // Generate unique filename
-      const ext = resizedFile.name.split(".").pop() || "jpg";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const path = `${user.id}/${filename}`;
-
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(path, resizedFile, {
           cacheControl: "public, max-age=31536000, immutable",
-          upsert: false,
+          upsert: true,
         });
 
       if (uploadError) {
         throw uploadError;
       }
 
-      // Get public URL
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      const avatarUrl = data.publicUrl;
+      const avatarUrl = `${data.publicUrl}?t=${Date.now()}`;
 
-      // Update profiles.avatar_url
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: avatarUrl })
@@ -169,11 +98,11 @@ export const useAvatarUpload = (): UseAvatarUploadReturn => {
         throw updateError;
       }
     },
-    onSuccess: () => {
-      // Invalidate queries so avatar updates across the app
-      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
-      toast.success("Avatar uploaded successfully");
+    onSuccess: async () => {
+      await refetchProfile?.();
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      toast.success("Avatar updated successfully");
     },
     onError: (error: Error) => {
       console.error("Avatar upload error:", error);
@@ -181,16 +110,43 @@ export const useAvatarUpload = (): UseAvatarUploadReturn => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: async () => {
+      await refetchProfile?.();
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      toast.success("Avatar removed");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to remove avatar");
+    },
+  });
+
   const uploadAvatar = useCallback(
     async (config: AvatarUploadConfig) => {
-      return mutation.mutateAsync(config);
+      return uploadMutation.mutateAsync(config);
     },
-    [mutation]
+    [uploadMutation]
   );
+
+  const deleteAvatar = useCallback(async () => {
+    return deleteMutation.mutateAsync();
+  }, [deleteMutation]);
 
   return {
     uploadAvatar,
-    isPending: mutation.isPending,
-    error: mutation.error,
+    deleteAvatar,
+    isPending: uploadMutation.isPending || deleteMutation.isPending,
+    error: uploadMutation.error || deleteMutation.error,
   };
 };
