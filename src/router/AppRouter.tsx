@@ -28,6 +28,9 @@ const ParentLayout = lazy(() => import("@/pages/parent/ParentLayout"));
 // Admin pages (lazy-loaded)
 // ---------------------------------------------------------------------------
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminAnalyticsPage = lazy(
+  () => import("@/pages/admin/analytics/AdminAnalyticsPage")
+);
 const UserListPage = lazy(() => import("@/pages/admin/users/UserListPage"));
 const UserForm = lazy(() => import("@/pages/admin/users/UserForm"));
 const BulkImportPage = lazy(() => import("@/pages/admin/users/BulkImportPage"));
@@ -633,6 +636,7 @@ const AppRouter = () => (
           >
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="analytics" element={<AdminAnalyticsPage />} />
             <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="users" element={<UserListPage />} />
             <Route path="users/new" element={<UserForm />} />

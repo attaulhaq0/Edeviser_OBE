@@ -83,6 +83,7 @@ export interface NavItem {
 
 const adminNavItems: NavItem[] = [
   { to: "/admin/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/admin/analytics", labelKey: "nav.analytics", icon: TrendingUp },
   { to: "/admin/settings/profile", labelKey: "nav.me", icon: UserCog },
   {
     to: "/admin/settings/institution",
