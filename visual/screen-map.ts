@@ -329,7 +329,7 @@ export const SCREENS: VisualScreen[] = [
   {
     id: "admin-analytics",
     prototype: "admin-analytics.html",
-    appPath: "/admin/reports",
+    appPath: "/admin/analytics",
     role: "admin",
   },
   {

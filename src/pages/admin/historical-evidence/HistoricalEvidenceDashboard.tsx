@@ -17,7 +17,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, History } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -169,7 +169,7 @@ const HistoricalEvidenceDashboard = () => {
         </div>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden p-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{ backgroundColor: "#0f172a" }}
@@ -206,7 +206,7 @@ const HistoricalEvidenceDashboard = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

@@ -26,7 +26,6 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ComponentType } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,9 +56,9 @@ import {
   UserCog,
   Users,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -79,7 +78,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorProfileStats } from "@/hooks/useCoordinatorProfileStats";
 import {
@@ -97,45 +96,44 @@ import {
 import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
 
-type IconType = ComponentType<{ className?: string }>;
+type IconType = LucideIcon;
 
 // ── Section card (white surface + inline header) ─────────────────────────────
 const SectionCard = ({
+  icon,
   title,
   subtitle,
   action,
   children,
 }: {
+  icon?: IconType;
   title: string;
   subtitle?: string;
   action?: { label: string; onClick?: () => void };
   children: React.ReactNode;
 }) => (
-  <Card className="card-elevated gap-0 border-0 bg-white py-0">
+  <PCard className="overflow-hidden p-0">
     <div className="flex flex-col p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="text-base font-bold tracking-tight text-gray-900">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
-          )}
-        </div>
-      </div>
+      <SectionHeader
+        icon={icon}
+        title={title}
+        description={subtitle}
+        className="items-start"
+      />
       <div className="mt-4 flex-1">{children}</div>
       {action && (
-        <button
+        <Button
           type="button"
           onClick={action.onClick}
-          className="mt-4 inline-flex items-center gap-1 self-start rounded text-xs font-bold text-sky-700 outline-none hover:text-sky-800 focus-visible:ring-2 focus-visible:ring-sky-300"
+          variant="link"
+          className="mt-4 h-auto self-start p-0 text-xs font-bold text-sky-700 hover:text-sky-800"
         >
           {action.label}
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
+        </Button>
       )}
     </div>
-  </Card>
+  </PCard>
 );
 
 // ── Capability row (allowed / restricted) ────────────────────────────────────
@@ -208,14 +206,15 @@ const ToggleRow = ({
       <Icon className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
       {label}
     </span>
-    <button
+    <Button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={label}
       onClick={onToggle}
+      variant="ghost"
       className={cn(
-        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sky-300",
+        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0 outline-none transition-colors hover:bg-transparent focus-visible:ring-2 focus-visible:ring-sky-300",
         on ? "bg-green-500" : "bg-slate-300"
       )}
     >
@@ -227,7 +226,7 @@ const ToggleRow = ({
             : "translate-x-0.5 rtl:-translate-x-0.5"
         )}
       />
-    </button>
+    </Button>
   </div>
 );
 
@@ -262,13 +261,14 @@ const LinkRow = ({
   }
 
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+      variant="ghost"
+      className="h-auto w-full justify-start gap-3 rounded-lg p-2 text-start hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
     >
       {content}
-    </button>
+    </Button>
   );
 };
 
@@ -423,7 +423,7 @@ const CoordinatorProfileNew = () => {
   return (
     <div className="space-y-6">
       {/* ── Profile header ──────────────────────────────────────────────── */}
-      <Card className="card-elevated gap-0 border-0 bg-white py-0">
+      <PCard className="overflow-hidden p-0">
         <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
             {profile?.avatar_url ? (
@@ -509,7 +509,7 @@ const CoordinatorProfileNew = () => {
             </div>
           </div>
         </div>
-      </Card>
+      </PCard>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* ── Left / main column ──────────────────────────────────────────── */}
@@ -517,6 +517,7 @@ const CoordinatorProfileNew = () => {
           <div className="grid gap-6 md:grid-cols-2">
             {/* AI Assistance Preferences */}
             <SectionCard
+              icon={Bot}
               title={t("me.aiTitle")}
               subtitle={t("me.aiSubtitle")}
               action={{
@@ -549,6 +550,7 @@ const CoordinatorProfileNew = () => {
 
             {/* Role & Permissions */}
             <SectionCard
+              icon={KeyRound}
               title={t("me.roleSectionTitle")}
               subtitle={t("me.roleSectionSubtitle")}
             >
@@ -569,6 +571,7 @@ const CoordinatorProfileNew = () => {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Programs I Manage */}
             <SectionCard
+              icon={GraduationCap}
               title={t("me.programsTitle")}
               subtitle={t("me.programsSubtitle")}
               action={{
@@ -585,12 +588,13 @@ const CoordinatorProfileNew = () => {
                 <ul className="space-y-2">
                   {managedPrograms.map((p) => (
                     <li key={p.id}>
-                      <button
+                      <Button
                         type="button"
                         onClick={() =>
                           navigate(`/coordinator/plos?programId=${p.id}`)
                         }
-                        className="flex w-full items-center gap-3 rounded-xl border border-slate-100 p-3 text-start outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
+                        variant="ghost"
+                        className="h-auto w-full justify-start gap-3 rounded-xl border border-slate-100 p-3 text-start hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
                         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                           <GraduationCap
@@ -611,7 +615,7 @@ const CoordinatorProfileNew = () => {
                           className="h-4 w-4 shrink-0 text-slate-300"
                           aria-hidden="true"
                         />
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -624,6 +628,7 @@ const CoordinatorProfileNew = () => {
 
             {/* Connected Faculty */}
             <SectionCard
+              icon={Users}
               title={t("me.facultyTitle")}
               subtitle={t("me.facultySubtitle")}
               action={{
@@ -667,6 +672,7 @@ const CoordinatorProfileNew = () => {
 
           {/* Profile & Academic Information */}
           <SectionCard
+            icon={GraduationCap}
             title={t("me.academicTitle")}
             action={{ label: t("me.academicEdit"), onClick: openEdit }}
           >
@@ -725,6 +731,7 @@ const CoordinatorProfileNew = () => {
         <div className="space-y-6">
           {/* Notification Preferences */}
           <SectionCard
+            icon={AlertTriangle}
             title={t("me.notifTitle")}
             subtitle={t("me.notifSubtitle")}
             action={{
@@ -768,6 +775,7 @@ const CoordinatorProfileNew = () => {
 
           {/* Security & Access */}
           <SectionCard
+            icon={ShieldCheck}
             title={t("me.securityTitle")}
             action={{
               label: t("me.securitySettings"),
@@ -799,7 +807,7 @@ const CoordinatorProfileNew = () => {
           </SectionCard>
 
           {/* Connected Integrations */}
-          <SectionCard title={t("me.integrationsTitle")}>
+          <SectionCard icon={Calendar} title={t("me.integrationsTitle")}>
             <div className="space-y-2">
               <IntegrationRow
                 icon={Calendar}

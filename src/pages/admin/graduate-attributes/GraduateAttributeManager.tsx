@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -246,7 +246,7 @@ const GraduateAttributeManager = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Graduate Attributes</h1>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden p-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
@@ -279,9 +279,9 @@ const GraduateAttributeManager = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+      <PCard className="max-w-2xl p-6">
         <h2 className="text-lg font-bold tracking-tight mb-4">
           Add Graduate Attribute
         </h2>
@@ -330,7 +330,7 @@ const GraduateAttributeManager = () => {
             </Button>
           </form>
         </Form>
-      </Card>
+      </PCard>
 
       <ConfirmDialog
         open={!!deleteTarget}

@@ -27,7 +27,6 @@ import { usePLOs, useDeletePLO, useReorderPLOs } from "@/hooks/usePLOs";
 import { usePrograms } from "@/hooks/usePrograms";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -35,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shimmer } from "@/design-system";
+import { PCard, Shimmer } from "@/design-system";
 import {
   Plus,
   GripVertical,
@@ -291,7 +290,7 @@ const PLOListPage = () => {
           </Button>
         </NoCourses>
       ) : isDragMode ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+        <PCard className="p-4">
           <p className="text-xs text-gray-500 mb-3">
             Drag items to reorder, then click Save Order.
           </p>
@@ -311,7 +310,7 @@ const PLOListPage = () => {
               </div>
             </SortableContext>
           </DndContext>
-        </Card>
+        </PCard>
       ) : (
         <DataTable
           columns={columns}

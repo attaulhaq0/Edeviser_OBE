@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { PageHeader, StatePanel } from "@/design-system";
+import { PCard, PageHeader, StatePanel } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useBadgeDefinitions,
@@ -298,7 +298,7 @@ const BadgeDefinitionsPage = () => {
           )}
         />
       ) : definitions.length === 0 ? (
-        <div className="rounded-xl bg-white p-6 text-center shadow-md">
+        <PCard className="p-6 text-center">
           <p className="text-sm text-slate-500">
             {t(
               "admin.badges.empty",
@@ -311,16 +311,13 @@ const BadgeDefinitionsPage = () => {
               {t("admin.badges.new", "New badge")}
             </Button>
           </div>
-        </div>
+        </PCard>
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {definitions.map((definition) => (
-            <article
+            <PCard
               key={definition.id}
-              className={cn(
-                "rounded-[14px] border border-slate-200/80 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md",
-                definition.is_archived && "opacity-55"
-              )}
+              className={cn("p-3.5", definition.is_archived && "opacity-55")}
             >
               <div className="flex items-start gap-3">
                 <span
@@ -414,7 +411,7 @@ const BadgeDefinitionsPage = () => {
                   </Button>
                 </div>
               </div>
-            </article>
+            </PCard>
           ))}
         </div>
       )}

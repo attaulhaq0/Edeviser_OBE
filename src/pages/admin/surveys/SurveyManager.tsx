@@ -12,7 +12,7 @@ import {
   EyeOff,
   GripVertical,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -338,7 +338,7 @@ const SurveyFormDialog = ({
               </div>
 
               {fields.map((field, index) => (
-                <Card
+                <PCard
                   key={field.id}
                   className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3"
                 >
@@ -401,7 +401,7 @@ const SurveyFormDialog = ({
                   />
 
                   <McqOptionsField control={form.control} index={index} />
-                </Card>
+                </PCard>
               ))}
             </div>
 
@@ -492,10 +492,7 @@ const SurveyManager = () => {
       ) : (
         <div className="space-y-3">
           {surveys.map((survey) => (
-            <Card
-              key={survey.id}
-              className="bg-white border-0 shadow-md rounded-xl p-4"
-            >
+            <PCard key={survey.id} className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -541,7 +538,7 @@ const SurveyManager = () => {
                   </Button>
                 </div>
               </div>
-            </Card>
+            </PCard>
           ))}
         </div>
       )}

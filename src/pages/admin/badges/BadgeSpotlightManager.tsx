@@ -3,7 +3,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Calendar, Loader2 } from "lucide-react";
@@ -33,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageHeader, SectionCard } from "@/design-system";
 
 const BADGE_CATEGORIES = [
   "streak",
@@ -78,14 +78,10 @@ const BadgeSpotlightManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-purple-500" />
-        <h1 className="text-2xl font-bold tracking-tight">Badge Spotlight</h1>
-      </div>
+      <PageHeader title="Badge Spotlight" />
 
       {/* Schedule Form */}
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <h2 className="text-sm font-bold mb-4">Schedule Spotlight</h2>
+      <SectionCard icon={Sparkles} title="Schedule Spotlight">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSchedule)}
@@ -151,13 +147,10 @@ const BadgeSpotlightManager = () => {
             </Button>
           </form>
         </Form>
-      </Card>
+      </SectionCard>
 
       {/* Category Preview */}
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <h2 className="text-sm font-bold mb-4">
-          Badge Categories & Tier Thresholds
-        </h2>
+      <SectionCard icon={Sparkles} title="Badge Categories & Tier Thresholds">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {BADGE_CATEGORIES.map((cat) => (
             <div
@@ -179,56 +172,41 @@ const BadgeSpotlightManager = () => {
             </div>
           ))}
         </div>
-      </Card>
+      </SectionCard>
 
       {/* Schedule Calendar View */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4"
-          style={{
-            backgroundColor: "#0f172a",
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              Upcoming Schedule
-            </h2>
+      <SectionCard icon={Calendar} title="Upcoming Schedule">
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
           </div>
-        </div>
-        <div className="p-4">
-          {isLoading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-            </div>
-          ) : !schedule || schedule.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No spotlight schedule yet. Auto-rotation will apply.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {schedule.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50"
-                >
-                  <div>
-                    <p className="text-sm font-semibold capitalize">
-                      {entry.category}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Week of {entry.week_start}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {entry.is_manual ? "Manual" : "Auto"}
-                  </Badge>
+        ) : !schedule || schedule.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-8">
+            No spotlight schedule yet. Auto-rotation will apply.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {schedule.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50"
+              >
+                <div>
+                  <p className="text-sm font-semibold capitalize">
+                    {entry.category}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Week of {entry.week_start}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </Card>
+                <Badge variant="outline" className="text-xs">
+                  {entry.is_manual ? "Manual" : "Auto"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
     </div>
   );
 };

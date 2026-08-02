@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { useInviteUsers } from "@/hooks/useInviteUsers";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import {
   Form,
   FormControl,
@@ -185,7 +185,7 @@ const InviteUsersPage = () => {
       </div>
 
       {!showResults ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <PCard className="p-6">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
@@ -300,9 +300,9 @@ const InviteUsersPage = () => {
               </div>
             </form>
           </Form>
-        </Card>
+        </PCard>
       ) : (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <PCard className="p-6">
           {/* Results summary */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -421,7 +421,7 @@ const InviteUsersPage = () => {
               </Button>
             </div>
           </div>
-        </Card>
+        </PCard>
       )}
     </div>
   );

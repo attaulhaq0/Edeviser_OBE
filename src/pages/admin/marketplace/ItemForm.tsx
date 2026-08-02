@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -134,7 +134,7 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
         </h1>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+      <PCard className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -352,7 +352,7 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
             </div>
           </form>
         </Form>
-      </Card>
+      </PCard>
     </div>
   );
 };

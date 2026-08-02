@@ -4,7 +4,6 @@
 // "Outcome Mapping" column layout (the term "Sankey" never appears in that branch).
 
 import { useMemo } from "react";
-import { Card } from "@/components/ui/card";
 import { parseAsString, useQueryState } from "nuqs";
 import { useSankeyData } from "@/hooks/useVisualizationData";
 import { usePrograms } from "@/hooks/usePrograms";
@@ -17,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { NoOutcomes } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
-import { Shimmer } from "@/design-system";
+import { SectionCard, Shimmer } from "@/design-system";
 import { GitBranch } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -237,45 +236,32 @@ const SankeyDiagramView = () => {
         </Select>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            backgroundColor: "#0f172a",
-          }}
-        >
-          <GitBranch className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Outcome Mapping Flow
-          </h2>
-        </div>
-        <div className="p-6">
-          {!programId ? (
-            <p className="text-sm text-slate-400 text-center py-12">
-              Select a program to view the outcome flow diagram.
-            </p>
-          ) : isLoading ? (
-            <Shimmer className="h-64 rounded-lg" />
-          ) : isError ? (
-            <ErrorState
-              message="We couldn't load the outcome flow."
-              onRetry={() => refetch()}
-              className="py-12"
-            />
-          ) : !sankeyData || sankeyData.nodes.length === 0 ? (
-            <NoOutcomes className="py-12" />
-          ) : sankeyData.links.length === 0 ? (
-            // Req 11.3: no links to draw → "Outcome Mapping" relabel fallback.
-            <OutcomeMappingColumns
-              nodes={sankeyData.nodes}
-              links={sankeyData.links}
-            />
-          ) : (
-            // Req 11.2: real recharts Sankey drawing each mapping as a flow.
-            <SankeyFlow nodes={sankeyData.nodes} links={sankeyData.links} />
-          )}
-        </div>
-      </Card>
+      <SectionCard icon={GitBranch} title="Outcome Mapping Flow">
+        {!programId ? (
+          <p className="text-sm text-slate-400 text-center py-12">
+            Select a program to view the outcome flow diagram.
+          </p>
+        ) : isLoading ? (
+          <Shimmer className="h-64 rounded-lg" />
+        ) : isError ? (
+          <ErrorState
+            message="We couldn't load the outcome flow."
+            onRetry={() => refetch()}
+            className="py-12"
+          />
+        ) : !sankeyData || sankeyData.nodes.length === 0 ? (
+          <NoOutcomes className="py-12" />
+        ) : sankeyData.links.length === 0 ? (
+          // Req 11.3: no links to draw → "Outcome Mapping" relabel fallback.
+          <OutcomeMappingColumns
+            nodes={sankeyData.nodes}
+            links={sankeyData.links}
+          />
+        ) : (
+          // Req 11.2: real recharts Sankey drawing each mapping as a flow.
+          <SankeyFlow nodes={sankeyData.nodes} links={sankeyData.links} />
+        )}
+      </SectionCard>
     </div>
   );
 };

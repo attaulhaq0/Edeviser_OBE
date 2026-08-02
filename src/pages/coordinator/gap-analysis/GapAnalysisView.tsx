@@ -7,7 +7,7 @@ import { NoOutcomes } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
 import {
   Badge,
-  Card,
+  PCard,
   KPICard,
   MasteryRing,
   SectionHeader,
@@ -115,7 +115,7 @@ const GapAnalysisView = () => {
       </div>
 
       {summary && (
-        <Card className="card-elevated overflow-hidden border-0 bg-white">
+        <PCard className="overflow-hidden">
           <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
             <div className="flex items-center gap-5">
               <MasteryRing value={fullyMappedPct} size={104} tone="auto" />
@@ -157,10 +157,10 @@ const GapAnalysisView = () => {
               />
             </div>
           </div>
-        </Card>
+        </PCard>
       )}
 
-      <Card className="card-elevated overflow-hidden border-0 bg-white">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader icon={Search} title="Outcome Coverage" />
           <div className="mt-4">
@@ -231,7 +231,7 @@ const GapAnalysisView = () => {
             )}
           </div>
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

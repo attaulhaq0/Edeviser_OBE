@@ -41,7 +41,7 @@ import { toast } from "sonner";
 
 import {
   Button,
-  Card,
+  PCard,
   Label,
   MasteryRing,
   SectionHeader,
@@ -386,7 +386,7 @@ const CoordinatorAccreditationNew = () => {
       </div>
 
       {/* Accreditation Readiness hero */}
-      <Card className="card-elevated gap-0 border-0 bg-white py-0">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={ShieldCheck}
@@ -442,10 +442,10 @@ const CoordinatorAccreditationNew = () => {
             </p>
           )}
         </div>
-      </Card>
+      </PCard>
 
       {/* Course evidence status cards */}
-      <Card className="card-elevated gap-0 border-0 bg-white py-0">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={FileText}
@@ -475,11 +475,11 @@ const CoordinatorAccreditationNew = () => {
             </p>
           )}
         </div>
-      </Card>
+      </PCard>
 
       {/* Pack checklist + Approval workflow */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="card-elevated gap-0 border-0 bg-white py-0">
+        <PCard className="overflow-hidden">
           <div className="p-6">
             <SectionHeader
               icon={CheckCircle2}
@@ -502,9 +502,9 @@ const CoordinatorAccreditationNew = () => {
               </p>
             )}
           </div>
-        </Card>
+        </PCard>
 
-        <Card className="card-elevated gap-0 border-0 bg-white py-0">
+        <PCard className="overflow-hidden">
           <div className="p-6">
             <SectionHeader
               icon={ShieldCheck}
@@ -522,11 +522,11 @@ const CoordinatorAccreditationNew = () => {
               ))}
             </ul>
           </div>
-        </Card>
+        </PCard>
       </div>
 
       {/* Generate Course File (REAL) */}
-      <Card className="card-elevated gap-0 border-0 bg-white py-0">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={FileText}
@@ -656,7 +656,7 @@ const CoordinatorAccreditationNew = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -201,7 +201,7 @@ const CourseFormFields = <
   const { t } = useTranslation("admin");
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+    <PCard className="max-w-2xl p-6">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(
@@ -422,7 +422,7 @@ const CourseFormFields = <
           </div>
         </form>
       </Form>
-    </Card>
+    </PCard>
   );
 };
 

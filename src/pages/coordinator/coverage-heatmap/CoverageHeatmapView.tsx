@@ -1,7 +1,6 @@
 // Task 120.2: Coverage Heatmap View page
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { parseAsString, useQueryState } from "nuqs";
 import { useCoverageHeatmap } from "@/hooks/useVisualizationData";
@@ -23,7 +22,7 @@ import {
 import HeatmapLegend from "@/components/shared/HeatmapLegend";
 import { NoData } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
-import { Shimmer } from "@/design-system";
+import { SectionCard, Shimmer } from "@/design-system";
 import { Grid3X3 } from "lucide-react";
 
 type ColorMode = "evidence" | "attainment";
@@ -81,19 +80,8 @@ const CoverageHeatmapView = () => {
         </div>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            backgroundColor: "#0f172a",
-          }}
-        >
-          <Grid3X3 className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            CLO × Course Matrix
-          </h2>
-        </div>
-        <div className="p-4 overflow-x-auto">
+      <SectionCard icon={Grid3X3} title="CLO × Course Matrix" className="p-4">
+        <div className="overflow-x-auto">
           {!programId ? (
             <p className="text-sm text-slate-400 text-center py-12">
               Select a program to view coverage.
@@ -184,7 +172,7 @@ const CoverageHeatmapView = () => {
             </>
           )}
         </div>
-      </Card>
+      </SectionCard>
     </div>
   );
 };

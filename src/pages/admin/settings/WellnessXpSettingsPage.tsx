@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Loader2, Heart } from "lucide-react";
 import { Shimmer } from "@/design-system";
 import { useEffect } from "react";
@@ -64,7 +64,7 @@ const WellnessXpSettingsPage = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Wellness Settings</h1>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden p-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
@@ -120,7 +120,7 @@ const WellnessXpSettingsPage = () => {
             </form>
           </Form>
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };
