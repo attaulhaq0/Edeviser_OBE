@@ -171,43 +171,13 @@ const ParentCommunicationsPage = () => {
           </div>
 
           {announcements.length === 0 ? (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {[
-                {
-                  id: "ann-sample-1",
-                  title: "Spring Term Parent-Teacher Conference Schedule",
-                  body: "Parent-teacher meetings for Spring 2026 will take place on Thursday, Feb 12th. Booking slots are now open.",
-                  date: "2 hours ago",
-                  pinned: true,
-                },
-                {
-                  id: "ann-sample-2",
-                  title: "Mid-Term Examination Timetable Released",
-                  body: "The official examination timetable has been published. Students are encouraged to review study modules.",
-                  date: "1 day ago",
-                  pinned: false,
-                },
-              ].map((ann) => (
-                <div key={ann.id} className="py-4 first:pt-0 space-y-1">
-                  <div className="flex items-center gap-2">
-                    {ann.pinned && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold text-amber-700 border border-amber-200">
-                        <Pin className="h-3 w-3" aria-hidden="true" /> Pinned
-                      </span>
-                    )}
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      {ann.title}
-                    </h3>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {ann.body}
-                  </p>
-                  <p className="text-[10px] text-slate-400 pt-0.5">
-                    {ann.date}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <StatePanel
+              variant="empty"
+              message={t(
+                "communications.noAnnouncements",
+                "No announcements are available for your linked children."
+              )}
+            />
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {announcements.map((item) => {

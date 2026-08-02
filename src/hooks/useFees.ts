@@ -25,6 +25,13 @@ export interface FeePayment {
   status: string;
   payment_date: string;
   created_at: string;
+  fee_structure?: {
+    id: string;
+    fee_type: string;
+    amount: number;
+    currency: string;
+    due_date: string;
+  } | null;
 }
 
 export const useFeeStructures = (programId?: string) => {
@@ -80,7 +87,9 @@ export const useStudentFees = (studentId?: string) => {
     queryFn: async (): Promise<FeePayment[]> => {
       const { data, error } = await supabase
         .from("fee_payments")
-        .select("*")
+        .select(
+          "*, fee_structure:fee_structures(id, fee_type, amount, currency, due_date)"
+        )
         .eq("student_id", studentId!);
       if (error) throw error;
       return (data ?? []) as FeePayment[];

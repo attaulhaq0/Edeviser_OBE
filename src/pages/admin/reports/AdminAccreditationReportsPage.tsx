@@ -12,7 +12,14 @@ import {
   Layers,
   FileCheck,
 } from "lucide-react";
-import { Button, Badge, PCard, SectionHeader, Shimmer } from "@/design-system";
+import {
+  Button,
+  Badge,
+  PCard,
+  SectionHeader,
+  Shimmer,
+  StatePanel,
+} from "@/design-system";
 import {
   Select,
   SelectContent,
@@ -55,15 +62,49 @@ export const AdminAccreditationReportsPage: React.FC = () => {
   const historyQuery = useAccreditationReportHistory();
   const generateMutation = useGenerateAdminAccreditationReport();
 
-  const summary = summaryQuery.data ?? {
-    readinessPercent: 0,
-    documented: 0,
-    partial: 0,
-    blocked: 0,
-    notStarted: 0,
-    courses: [],
-    packChecklist: [],
-  };
+  const reportQueries = [
+    programsQuery,
+    semestersQuery,
+    summaryQuery,
+    stagesQuery,
+    cqiQuery,
+    historyQuery,
+  ];
+  const reportQueryError = reportQueries.find((query) => query.isError);
+
+  if (reportQueryError) {
+    return (
+      <StatePanel
+        variant="error"
+        message="Accreditation report data could not be loaded."
+      />
+    );
+  }
+
+  if (reportQueries.some((query) => query.isLoading)) {
+    return (
+      <div className="space-y-4">
+        <Shimmer className="h-14 rounded-2xl" />
+        <Shimmer className="h-40 rounded-2xl" />
+        <Shimmer className="h-64 rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (!summaryQuery.data) {
+    return (
+      <StatePanel
+        variant="empty"
+        message={
+          effectiveProgramId
+            ? "No accreditation summary is configured for this program."
+            : "No institution programs are available for accreditation reporting."
+        }
+      />
+    );
+  }
+
+  const summary = summaryQuery.data;
 
   const stages = stagesQuery.data ?? [];
   const cqiPlans = cqiQuery.data ?? [];

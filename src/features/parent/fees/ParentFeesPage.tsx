@@ -13,7 +13,11 @@ import { ParentFeesRail } from "@/features/parent/fees/ParentFeesRail";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
-import { useGenerateFeeReceipt, useStudentFees } from "@/hooks/useFees";
+import {
+  useGenerateFeeReceipt,
+  useStudentFees,
+  type FeePayment,
+} from "@/hooks/useFees";
 
 const HERO_GRADIENT =
   "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)";
@@ -57,9 +61,6 @@ const ParentFeesPage = () => {
   const receipt = useGenerateFeeReceipt();
   const downloadingId = receipt.isPending ? receipt.variables : undefined;
 
-  // Payment gateway provider configuration check
-  const [isGatewayConfigured] = useState(false);
-
   const handleDownload = (paymentId: string) => {
     receipt.mutate(paymentId, {
       onSuccess: (result) => {
@@ -77,19 +78,10 @@ const ParentFeesPage = () => {
   };
 
   const handlePayNow = () => {
-    if (!isGatewayConfigured) {
-      toast.info(
-        t(
-          "fees.unconfiguredGateway",
-          "Online payments are not configured yet. Contact the finance office."
-        )
-      );
-      return;
-    }
     toast.info(
       t(
-        "fees.redirectingGateway",
-        "Redirecting to secure QPAY payment gateway…"
+        "fees.unconfiguredGateway",
+        "Online payments are not configured yet. Contact the finance office."
       )
     );
   };
@@ -134,17 +126,35 @@ const ParentFeesPage = () => {
     );
   }
 
-  // Real data calculations: unpaid vs paid
-  const unpaidPayments = (payments ?? []).filter((p) => p.status !== "paid");
   const paidPayments = (payments ?? []).filter((p) => p.status === "paid");
-
-  // Real balance sum from DB records, defaulting to term tuition if no rows yet
-  const totalOutstanding =
-    unpaidPayments.length > 0
-      ? unpaidPayments.reduce((acc, curr) => acc + (curr.amount_paid ?? 0), 0)
-      : payments && payments.length === 0
-      ? 4500
-      : 0;
+  const currentCharges = (() => {
+    const byStructure = new Map<
+      string,
+      { structure: NonNullable<FeePayment["fee_structure"]>; paid: number }
+    >();
+    for (const payment of payments ?? []) {
+      if (!payment.fee_structure) continue;
+      const existing = byStructure.get(payment.fee_structure_id);
+      byStructure.set(payment.fee_structure_id, {
+        structure: payment.fee_structure,
+        paid: (existing?.paid ?? 0) + (payment.amount_paid ?? 0),
+      });
+    }
+    return Array.from(byStructure.entries())
+      .map(([feeStructureId, entry]) => ({
+        feeStructureId,
+        ...entry,
+        outstanding: Math.max(entry.structure.amount - entry.paid, 0),
+      }))
+      .filter((entry) => entry.outstanding > 0);
+  })();
+  const totalOutstanding = currentCharges.reduce(
+    (total, charge) => total + charge.outstanding,
+    0
+  );
+  const hasFeeLedger = (payments ?? []).some(
+    (payment) => payment.fee_structure
+  );
 
   return (
     <div className="space-y-5 no-scrollbar">
@@ -201,13 +211,18 @@ const ParentFeesPage = () => {
               {t("fees.outstandingBalance", "Outstanding balance")}
             </p>
             <p className="mt-1 text-3xl font-black text-white">
-              QAR {totalOutstanding.toLocaleString()}
+              {!hasFeeLedger ? "—" : `QAR ${totalOutstanding.toLocaleString()}`}
             </p>
             <p className="mt-1 text-xs text-white/75">
               {totalOutstanding > 0
                 ? t("fees.tuitionDue", {
                     defaultValue: "Spring 2026 tuition · due Jul 20",
                   })
+                : !hasFeeLedger
+                ? t(
+                    "fees.balanceUnavailable",
+                    "No fee structure is available in the current ledger."
+                  )
                 : t(
                     "fees.allPaid",
                     "All fees for this term have been settled ✦"
@@ -249,51 +264,32 @@ const ParentFeesPage = () => {
                 variant="error"
                 message={t("fees.error", "Could not load fee records.")}
               />
+            ) : currentCharges.length === 0 ? (
+              <StatePanel
+                variant="empty"
+                message={t(
+                  "fees.noCurrentCharges",
+                  "No current charges are recorded for this child."
+                )}
+              />
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {[
-                  {
-                    title: "Tuition · Spring 2026",
-                    due: "Due Jul 20, 2026",
-                    icon: "🎓",
-                    bg: "bg-blue-50",
-                    amount: "QAR 4,000",
-                  },
-                  {
-                    title: "Lab fee · CS301",
-                    due: "Due Jul 20, 2026",
-                    icon: "🧪",
-                    bg: "bg-teal-50",
-                    amount: "QAR 300",
-                  },
-                  {
-                    title: "Library & materials",
-                    due: "Due Jul 20, 2026",
-                    icon: "📚",
-                    bg: "bg-amber-50",
-                    amount: "QAR 200",
-                  },
-                ].map((item) => (
+                {currentCharges.map((item) => (
                   <div
-                    key={item.title}
+                    key={item.feeStructureId}
                     className="flex items-center gap-3 py-3 text-sm"
                   >
-                    <div
-                      className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg",
-                        item.bg
-                      )}
-                    >
-                      {item.icon}
-                    </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-slate-900 dark:text-slate-100">
-                        {item.title}
+                        {item.structure.fee_type}
                       </p>
-                      <p className="text-[11px] text-slate-500">{item.due}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {t("fees.dueDate", "Due")}: {item.structure.due_date}
+                      </p>
                     </div>
                     <span className="font-black text-slate-900 dark:text-slate-100">
-                      {item.amount}
+                      {item.structure.currency}{" "}
+                      {item.outstanding.toLocaleString()}
                     </span>
                   </div>
                 ))}
@@ -322,54 +318,13 @@ const ParentFeesPage = () => {
             {feesLoading ? (
               <StatePanel variant="loading" />
             ) : paidPayments.length === 0 ? (
-              <div className="space-y-3 divide-y divide-slate-100 dark:divide-slate-800">
-                {[
-                  {
-                    id: "p-sample-1",
-                    title: "Tuition · Fall 2025",
-                    detail: "Paid Jan 10, 2026 · Credit Card",
-                    amount: "QAR 4,500",
-                  },
-                  {
-                    id: "p-sample-2",
-                    title: "Registration & Tech Fee",
-                    detail: "Paid Sep 01, 2025 · QPAY Gateway",
-                    amount: "QAR 500",
-                  },
-                ].map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 pt-3 text-sm first:pt-0"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-lg">
-                      🧾
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-900 dark:text-slate-100">
-                        {p.title}
-                      </p>
-                      <p className="text-[11px] text-slate-500">{p.detail}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-black text-slate-900 dark:text-slate-100">
-                        {p.amount}
-                      </span>
-                      <ParentButton
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          toast.success(
-                            t("fees.receiptReady", "Receipt downloaded")
-                          )
-                        }
-                      >
-                        <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                        {t("fees.receipt", "Receipt")}
-                      </ParentButton>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <StatePanel
+                variant="empty"
+                message={t(
+                  "fees.noPayments",
+                  "No completed payments are recorded for this child."
+                )}
+              />
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {paidPayments.map((p) => (
@@ -382,14 +337,16 @@ const ParentFeesPage = () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-slate-900 dark:text-slate-100">
-                        Tuition & Academic Fees
+                        {t("fees.recordedPayment", "Recorded payment")}
                       </p>
                       <p className="text-[11px] text-slate-500">
                         Paid{" "}
                         {p.payment_date
                           ? new Date(p.payment_date).toLocaleDateString()
-                          : "Jul 2026"}{" "}
-                        · {p.payment_method || "Credit Card"}
+                          : "—"}{" "}
+                        ·{" "}
+                        {p.payment_method ||
+                          t("fees.methodUnknown", "Method not recorded")}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
