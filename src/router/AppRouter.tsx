@@ -484,7 +484,7 @@ const BaselineCoursesListPage = lazy(
   () => import("@/pages/teacher/baseline/BaselineCoursesListPage")
 );
 
-// Institution Settings
+// Institution policy settings (thresholds, grading, language, gamification).
 const InstitutionSettingsPage = lazy(
   () => import("@/pages/admin/settings/InstitutionSettings")
 );
@@ -720,6 +720,10 @@ const AppRouter = () => (
             <Route path="settings/profile" element={<AdminProfilePage />} />
             <Route
               path="settings/institution"
+              element={<DepartmentManager />}
+            />
+            <Route
+              path="settings/configuration"
               element={<InstitutionSettingsPage />}
             />
           </Route>
@@ -778,6 +782,7 @@ const AppRouter = () => (
             />
             <Route path="outcome-chain" element={<OutcomeChainView />} />
             <Route path="timetable" element={<TimetableManager />} />
+            <Route path="sessions" element={<SessionManagement />} />
             <Route path="settings/profile" element={<ProfilePage />} />
           </Route>
 

@@ -42,14 +42,22 @@ export const useCoordinatorDashboardAggregate = (
       // `get_coordinator_workspace` is a canonical JSON contract and is not in
       // generated Database types until regenerated, so cast
       // the rpc call (same pattern as useXPBalance / get_xp_balance).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc(
+      const rpcClient = supabase as unknown as {
+        rpc: (
+          functionName: string,
+          args: Record<string, never>
+        ) => Promise<{
+          data: unknown;
+          error: { message: string } | null;
+        }>;
+      };
+      const { data, error } = await rpcClient.rpc(
         "get_coordinator_workspace",
         {}
       );
       if (error) throw error;
       if (!data) {
-        throw new Error("get_coordinator_dashboard returned no data");
+        throw new Error("get_coordinator_workspace returned no data");
       }
 
       const workspace = data as CoordinatorWorkspaceData;

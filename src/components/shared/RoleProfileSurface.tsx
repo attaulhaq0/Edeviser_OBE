@@ -172,7 +172,7 @@ const RoleProfileSurface = ({
                   alt={fullName}
                   className="object-cover"
                 />
-                <AvatarFallback className="rounded-2xl bg-[image:var(--brand-gradient)] text-xl font-black text-white">
+                <AvatarFallback className="rounded-2xl bg-slate-700 text-xl font-black text-white">
                   {initials || "U"}
                 </AvatarFallback>
               </Avatar>

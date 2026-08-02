@@ -21,6 +21,10 @@ export const coordinatorAcademicSchema = z.object({
       (v) => v === "" || (/^\d{1,2}$/.test(v) && Number(v) <= 80),
       "Enter a whole number of years (0–80)"
     ),
+  phone: z.string().trim().max(80),
+  office_location: z.string().trim().max(160),
+  office_hours: z.string().trim().max(160),
+  bio: z.string().trim().max(1000),
 });
 
 export type CoordinatorAcademicFormValues = z.infer<

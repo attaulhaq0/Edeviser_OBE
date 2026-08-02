@@ -111,7 +111,7 @@ const AdminProfilePage = () => {
             description={t("roleProfile.admin.thresholdDescription")}
             trailing={
               <Button asChild variant="outline" size="sm">
-                <Link to="/admin/settings/institution">
+                <Link to="/admin/settings/configuration">
                   {t("roleProfile.admin.configure")}
                 </Link>
               </Button>

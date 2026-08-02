@@ -1,5 +1,5 @@
 {
-  "maxCount": 152,
+  "maxCount": 151,
   "entries": [
     {
       "file": "src/features/parent/dashboard/ParentDashboardScreen.tsx",
@@ -260,10 +260,6 @@
     {
       "file": "src/hooks/useTieredBadges.ts",
       "pattern": "upsert-as-never"
-    },
-    {
-      "file": "src/hooks/useTodayView.ts",
-      "pattern": "from-as-never"
     },
     {
       "file": "src/hooks/useUsers.ts",

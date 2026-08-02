@@ -151,14 +151,24 @@ const DepartmentManager = () => {
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">
               Departments &amp; programs
             </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={openNewDepartment}
-            >
-              <Plus className="size-4" /> Add Department
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={openNewDepartment}
+              >
+                <Plus className="size-4" /> Add Department
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/settings/configuration")}
+              >
+                Institution settings
+              </Button>
+            </div>
           </div>
           <div className="space-y-3">
             {departments.map((department) => {
