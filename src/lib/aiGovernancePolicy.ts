@@ -17,10 +17,14 @@ export interface GovernanceActionPolicy {
   sensitive: boolean;
 }
 
+export interface InstitutionGovernancePolicy extends GovernanceActionPolicy {
+  isInstitutionOverride: boolean;
+  updatedAt: string | null;
+}
+
 /**
- * Platform policy guardrails represented in the approved prototype.
- * Institution-specific persistence is not available yet, so this is a
- * read-only product policy—not a configurable backend setting.
+ * Platform policy guardrails represented in the approved prototype. These
+ * values are also the defaults used until an institution saves an override.
  */
 export const AI_GOVERNANCE_ACTION_POLICIES: GovernanceActionPolicy[] = [
   {
@@ -95,4 +99,37 @@ export const autonomyBadgeClass = (level: GovernanceAutonomyLevel) => {
     case "A3":
       return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
+};
+
+export const autonomyRank = (level: GovernanceAutonomyLevel): number =>
+  Number(level.slice(1));
+
+export const mergeInstitutionGovernancePolicies = (
+  rows: Array<{
+    action_key: GovernanceActionPolicy["actionKey"];
+    level: GovernanceAutonomyLevel;
+    hard_cap: GovernanceAutonomyLevel | null;
+    sensitive: boolean;
+    updated_at: string | null;
+  }>
+): InstitutionGovernancePolicy[] => {
+  const overrides = new Map(rows.map((row) => [row.action_key, row]));
+  return AI_GOVERNANCE_ACTION_POLICIES.map((platformPolicy) => {
+    const override = overrides.get(platformPolicy.actionKey);
+    return {
+      ...platformPolicy,
+      ...(override
+        ? {
+            level: override.level,
+            hardCap: override.hard_cap,
+            sensitive: override.sensitive,
+            isInstitutionOverride: true,
+            updatedAt: override.updated_at,
+          }
+        : {
+            isInstitutionOverride: false,
+            updatedAt: null,
+          }),
+    };
+  });
 };

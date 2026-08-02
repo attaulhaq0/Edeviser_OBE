@@ -4,6 +4,7 @@ import { aggregateGovernanceUsage } from "@/hooks/useAIGovernance";
 import {
   AI_GOVERNANCE_ACTION_POLICIES,
   autonomyBadgeClass,
+  mergeInstitutionGovernancePolicies,
 } from "@/lib/aiGovernancePolicy";
 
 describe("AI governance presentation", () => {
@@ -59,5 +60,33 @@ describe("AI governance presentation", () => {
     expect(autonomyBadgeClass("A1")).toContain("blue");
     expect(autonomyBadgeClass("A2")).toContain("amber");
     expect(autonomyBadgeClass("A3")).toContain("emerald");
+  });
+
+  it("merges institution overrides without dropping platform actions", () => {
+    const policies = mergeInstitutionGovernancePolicies([
+      {
+        action_key: "suggestAction",
+        level: "A0",
+        hard_cap: null,
+        sensitive: false,
+        updated_at: "2026-08-02T00:00:00Z",
+      },
+    ]);
+
+    expect(policies).toHaveLength(AI_GOVERNANCE_ACTION_POLICIES.length);
+    expect(
+      policies.find((policy) => policy.actionKey === "suggestAction")
+    ).toMatchObject({
+      level: "A0",
+      isInstitutionOverride: true,
+      updatedAt: "2026-08-02T00:00:00Z",
+    });
+    expect(
+      policies.find((policy) => policy.actionKey === "showInsights")
+    ).toMatchObject({
+      level: "A0",
+      isInstitutionOverride: false,
+      updatedAt: null,
+    });
   });
 });

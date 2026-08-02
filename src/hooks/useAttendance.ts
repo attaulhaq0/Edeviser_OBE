@@ -38,7 +38,7 @@ export interface StudentAttendanceSummary {
   lateCount: number;
   absentCount: number;
   excusedCount: number;
-  attendancePercent: number;
+  attendancePercent: number | null;
   isBelowThreshold: boolean;
 }
 
@@ -66,8 +66,8 @@ export function calculateAttendancePercent(
   presentCount: number,
   lateCount: number,
   totalSessions: number
-): number {
-  if (totalSessions === 0) return 100;
+): number | null {
+  if (totalSessions === 0) return null;
   return Math.round(((presentCount + lateCount) / totalSessions) * 100);
 }
 
@@ -314,7 +314,7 @@ export const useAttendanceSummary = (
           absentCount: counts.absent,
           excusedCount: counts.excused,
           attendancePercent: percent,
-          isBelowThreshold: percent < ATTENDANCE_THRESHOLD,
+          isBelowThreshold: percent !== null && percent < ATTENDANCE_THRESHOLD,
         };
       });
     },
@@ -327,7 +327,7 @@ export const useAttendanceSummary = (
 export interface StudentCourseAttendance {
   courseId: string;
   courseName: string;
-  attendancePercent: number;
+  attendancePercent: number | null;
   totalSessions: number;
   attended: number;
 }
@@ -348,7 +348,7 @@ interface StudentAttendanceCourse {
  *   - `attended` = count of this student's `present`|`late` records in those
  *     sessions;
  *   - `attendancePercent` = calculateAttendancePercent(attended, 0, totalSessions),
- *     so a course with zero sessions renders 100% (matching the old early-return).
+ *     so a course with zero sessions remains explicitly unmeasured.
  */
 export function aggregateStudentAttendance(
   courses: StudentAttendanceCourse[],
@@ -415,7 +415,7 @@ export const useStudentAttendance = (
       if (!studentId) return [];
 
       // 1) Active enrollments — the complete course list (incl. zero-session
-      //    courses, which render at 100% / 0 sessions, preserving prior behavior).
+      //    courses, which remain explicitly unmeasured until sessions exist).
       const { data: enrollments, error: enrErr } = await supabase
         .from("student_courses")
         .select("course_id, courses:course_id(name)")

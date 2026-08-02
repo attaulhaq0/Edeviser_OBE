@@ -63,9 +63,13 @@ const AttendanceReport = () => {
   );
 
   const avgAttendance = useMemo(() => {
-    if (!summary || summary.length === 0) return 0;
+    const measured = (summary ?? []).filter(
+      (row) => row.attendancePercent !== null
+    );
+    if (measured.length === 0) return null;
     return Math.round(
-      summary.reduce((s, r) => s + r.attendancePercent, 0) / summary.length
+      measured.reduce((s, r) => s + (r.attendancePercent ?? 0), 0) /
+        measured.length
     );
   }, [summary]);
 
@@ -131,7 +135,9 @@ const AttendanceReport = () => {
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                 Avg Attendance
               </p>
-              <p className="text-2xl font-black mt-1">{avgAttendance}%</p>
+              <p className="text-2xl font-black mt-1">
+                {avgAttendance === null ? "—" : `${avgAttendance}%`}
+              </p>
             </Card>
             <Card className="bg-white border-0 shadow-md rounded-xl p-4">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -231,7 +237,9 @@ const AttendanceReport = () => {
                           {s.excusedCount}
                         </TableCell>
                         <TableCell className="text-center font-bold">
-                          {s.attendancePercent}%
+                          {s.attendancePercent === null
+                            ? "—"
+                            : `${s.attendancePercent}%`}
                         </TableCell>
                         <TableCell className="text-center">
                           {s.isBelowThreshold ? (

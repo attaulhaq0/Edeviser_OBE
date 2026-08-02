@@ -13,6 +13,13 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -22,13 +29,18 @@ import {
 } from "@/components/ui/table";
 import { PageHeader, SectionCard, StatePanel } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
-import { useAIGovernanceUsage } from "@/hooks/useAIGovernance";
+import {
+  useAIGovernancePolicies,
+  useAIGovernanceUsage,
+  useUpdateAIGovernancePolicy,
+} from "@/hooks/useAIGovernance";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import {
-  AI_GOVERNANCE_ACTION_POLICIES,
   autonomyBadgeClass,
+  type GovernanceAutonomyLevel,
 } from "@/lib/aiGovernancePolicy";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const Metric = ({
   label,
@@ -52,6 +64,8 @@ const AIGovernancePage = () => {
   const { t } = useTranslation("common");
   const { institutionId } = useAuth();
   const usage = useAIGovernanceUsage(institutionId ?? undefined);
+  const policies = useAIGovernancePolicies(institutionId);
+  const updatePolicy = useUpdateAIGovernancePolicy(institutionId);
   const performance = useAIPerformance();
   const isLoading = usage.isLoading || performance.isLoading;
   const isError = usage.isError || performance.isError;
@@ -90,14 +104,14 @@ const AIGovernancePage = () => {
             variant="outline"
             className="border-amber-200 bg-amber-50 text-amber-700"
           >
-            {t("admin.governance.roadmap", "Read-only policy · roadmap")}
+            {t("admin.governance.livePolicy", "Live institution policy")}
           </Badge>
         }
       >
         <p className="text-xs text-slate-500">
           {t(
             "admin.governance.roadmapNote",
-            "Institution-specific policy storage is not available yet. The current product guardrail is shown transparently and cannot be changed on this screen."
+            "Institution policy levels are stored in Supabase and remain bounded by the platform hard caps."
           )}
         </p>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
@@ -291,54 +305,123 @@ const AIGovernancePage = () => {
         title={t("admin.governance.perAction", "What AI may do, per action")}
         className="overflow-hidden"
       >
-        <div className="overflow-x-auto">
-          <Table className="min-w-[620px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("admin.governance.action", "Action")}</TableHead>
-                <TableHead>
-                  {t("admin.governance.level", "Current level")}
-                </TableHead>
-                <TableHead>
-                  {t("admin.governance.hardCap", "Hard cap")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {AI_GOVERNANCE_ACTION_POLICIES.map((policy) => (
-                <TableRow key={policy.actionKey}>
-                  <TableCell className="font-medium">
-                    {t(`admin.governance.actions.${policy.actionKey}`)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={autonomyBadgeClass(policy.level)}
-                    >
-                      {policy.level}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {policy.hardCap ? (
-                      <span
-                        className={cn(
-                          "text-xs",
-                          policy.sensitive
-                            ? "font-semibold text-red-700"
-                            : "text-slate-500"
-                        )}
-                      >
-                        {policy.sensitive && "🔒 "}≤ {policy.hardCap}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">—</span>
-                    )}
-                  </TableCell>
+        {policies.isLoading ? (
+          <StatePanel variant="loading" />
+        ) : policies.isError ? (
+          <StatePanel
+            variant="error"
+            message={t(
+              "admin.governance.policyLoadError",
+              "Could not load institution AI policy settings."
+            )}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <Table className="min-w-[760px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    {t("admin.governance.action", "Action")}
+                  </TableHead>
+                  <TableHead>
+                    {t("admin.governance.level", "Institution level")}
+                  </TableHead>
+                  <TableHead>
+                    {t("admin.governance.hardCap", "Hard cap")}
+                  </TableHead>
+                  <TableHead>
+                    {t("admin.governance.source", "Source")}
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {(policies.data ?? []).map((policy) => (
+                  <TableRow key={policy.actionKey}>
+                    <TableCell className="font-medium">
+                      {t(`admin.governance.actions.${policy.actionKey}`)}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={policy.level}
+                        disabled={updatePolicy.isPending}
+                        onValueChange={(value) => {
+                          updatePolicy.mutate(
+                            {
+                              actionKey: policy.actionKey,
+                              level: value as GovernanceAutonomyLevel,
+                            },
+                            {
+                              onSuccess: () =>
+                                toast.success(
+                                  t(
+                                    "admin.governance.policySaved",
+                                    "AI policy updated"
+                                  )
+                                ),
+                              onError: (error) => toast.error(error.message),
+                            }
+                          );
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(["A0", "A1", "A2", "A3"] as const)
+                            .filter(
+                              (level) =>
+                                !policy.hardCap ||
+                                Number(level.slice(1)) <=
+                                  Number(policy.hardCap.slice(1))
+                            )
+                            .map((level) => (
+                              <SelectItem key={level} value={level}>
+                                <Badge
+                                  variant="outline"
+                                  className={autonomyBadgeClass(level)}
+                                >
+                                  {level}
+                                </Badge>
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {policy.hardCap ? (
+                        <span
+                          className={cn(
+                            "text-xs",
+                            policy.sensitive
+                              ? "font-semibold text-red-700"
+                              : "text-slate-500"
+                          )}
+                        >
+                          {policy.sensitive && "🔒 "}≤ {policy.hardCap}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-slate-500">
+                        {policy.isInstitutionOverride
+                          ? t(
+                              "admin.governance.institutionOverride",
+                              "Institution"
+                            )
+                          : t(
+                              "admin.governance.platformDefault",
+                              "Platform default"
+                            )}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </SectionCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -399,7 +482,7 @@ const AIGovernancePage = () => {
           <p className="text-xs leading-5 text-slate-600">
             {t(
               "admin.governance.reviewNote",
-              "Administrative actions are written to the audit log. AI-specific action approvals will appear here when the roadmap policy store is implemented."
+              "Administrative policy changes are institution-scoped and remain subject to the platform hard caps. Administrative actions are written to the audit log."
             )}
           </p>
           <Button asChild variant="outline" size="sm">

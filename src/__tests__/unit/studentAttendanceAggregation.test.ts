@@ -73,12 +73,12 @@ describe("aggregateStudentAttendance", () => {
     expect(c2.attendancePercent).toBe(50);
   });
 
-  it("renders a zero-session course at 100% / 0 (matches the prior early-return)", () => {
+  it("renders a zero-session course as unmeasured", () => {
     const result = aggregateStudentAttendance(courses, sections, sessions, []);
     const c3 = result.find((r) => r.courseId === "c3")!;
     expect(c3.totalSessions).toBe(0);
     expect(c3.attended).toBe(0);
-    expect(c3.attendancePercent).toBe(100);
+    expect(c3.attendancePercent).toBeNull();
   });
 
   it("ignores attendance records for sessions outside the enrolled courses", () => {
