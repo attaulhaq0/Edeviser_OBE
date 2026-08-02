@@ -15,7 +15,7 @@ import {
   adminCardClass,
   adminPageClass,
   adminTableClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
 import { useSoftDeleteUser, useUsers } from "@/hooks/useUsers";

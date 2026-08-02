@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Shimmer } from "@/design-system";
-import { AdminCardHeader } from "@/components/shared/AdminPrototypePrimitives";
+import { AdminCardHeader } from "@/design-system";
 import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "react-i18next";

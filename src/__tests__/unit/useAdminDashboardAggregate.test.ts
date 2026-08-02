@@ -25,6 +25,13 @@ vi.mock("@/lib/supabase", () => ({
   },
 }));
 
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({
+    institutionId: INSTITUTION_ID,
+    profile: { role: "admin" },
+  }),
+}));
+
 const makeFromBuilder = () => {
   const builder: Record<string, unknown> = {
     select: () => builder,
@@ -98,7 +105,9 @@ describe("useAdminDashboardAggregate (Phase 8 Task 35)", () => {
     );
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(
-      client.getQueryData<AdminKPIData>(queryKeys.adminDashboard.list({}))
+      client.getQueryData<AdminKPIData>(
+        queryKeys.adminDashboard.list({ institutionId: INSTITUTION_ID })
+      )
     ).toEqual(FIXTURE_KPIS);
   });
 

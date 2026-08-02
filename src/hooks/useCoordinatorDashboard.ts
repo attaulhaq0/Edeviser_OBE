@@ -231,7 +231,7 @@ export const useCoordinatorKPIs = (options?: {
         teacherCompliancePercent,
       };
     },
-    enabled: options?.enabled ?? true,
+    enabled: !!institutionId && (options?.enabled ?? true),
     staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };

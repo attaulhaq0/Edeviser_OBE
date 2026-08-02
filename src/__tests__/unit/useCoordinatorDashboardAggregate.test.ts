@@ -143,7 +143,7 @@ describe("useCoordinatorDashboardAggregate (Phase 8 Task 34)", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(
       client.getQueryData<CoordinatorKPIData>(
-        queryKeys.coordinatorDashboard.list({})
+        queryKeys.coordinatorDashboard.list({ institutionId: INSTITUTION_ID })
       )
     ).toMatchObject(FIXTURE_KPIS);
   });

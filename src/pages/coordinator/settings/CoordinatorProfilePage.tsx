@@ -6,7 +6,7 @@ import {
   AdminCardHeader,
   adminCardClass,
   adminPageClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 
 /**
  * Coordinator profile page with avatar upload.

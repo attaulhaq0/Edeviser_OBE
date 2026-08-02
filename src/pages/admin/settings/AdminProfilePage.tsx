@@ -10,7 +10,7 @@ import {
   AdminSectionHeader,
   AdminStatusPill,
   adminCardClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import RoleProfileSurface, {

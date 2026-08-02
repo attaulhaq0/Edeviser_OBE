@@ -13,7 +13,7 @@ import {
   adminCardClass,
   adminPageClass,
   adminTableClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 
 const IMPORT_TYPES = [
   {

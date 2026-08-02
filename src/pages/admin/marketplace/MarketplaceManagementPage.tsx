@@ -12,7 +12,7 @@ import {
   adminCardClass,
   adminPageClass,
   adminTableClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 import { useAdminKnowledgeQuests } from "@/hooks/useKnowledgeQuestAdmin";
 import {
   useAdminMarketplaceItems,

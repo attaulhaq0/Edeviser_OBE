@@ -23,7 +23,7 @@ import {
   AdminStatusPill,
   adminCardClass,
   adminPageClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 
 // ─── Template options ───────────────────────────────────────────────────────
 

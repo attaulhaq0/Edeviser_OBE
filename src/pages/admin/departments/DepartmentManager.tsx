@@ -21,7 +21,7 @@ import {
   AdminStatusPill,
   adminCardClass,
   adminPageClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 import { useCourses } from "@/hooks/useCourses";
 import {
   useDepartments,

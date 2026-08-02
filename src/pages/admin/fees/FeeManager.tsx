@@ -39,7 +39,7 @@ import {
   adminCardClass,
   adminPageClass,
   adminTableClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 
 const schema = z.object({
   program_id: z.string().uuid("Select a program"),

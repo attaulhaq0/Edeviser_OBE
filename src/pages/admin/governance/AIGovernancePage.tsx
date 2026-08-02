@@ -55,6 +55,7 @@ const AIGovernancePage = () => {
   const performance = useAIPerformance();
   const isLoading = usage.isLoading || performance.isLoading;
   const isError = usage.isError || performance.isError;
+  const hasMetrics = usage.data !== undefined && performance.data !== undefined;
 
   return (
     <div className="space-y-4">
@@ -147,7 +148,7 @@ const AIGovernancePage = () => {
 
       {isLoading ? (
         <StatePanel variant="loading" />
-      ) : isError ? (
+      ) : isError || !hasMetrics ? (
         <StatePanel
           variant="error"
           message={t(

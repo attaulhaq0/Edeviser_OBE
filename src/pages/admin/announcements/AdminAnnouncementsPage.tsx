@@ -36,7 +36,7 @@ import {
   AdminStatusPill,
   adminCardClass,
   adminPageClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 
 const schema = z.object({
   course_id: z.string().uuid("Select a course"),

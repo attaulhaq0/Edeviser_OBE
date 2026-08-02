@@ -81,10 +81,6 @@ export const useCoordinatorDashboardAggregate = (
       };
 
       // Hydrate the EXACT cache `useCoordinatorKPIs` reads so it becomes a hit.
-      queryClient.setQueryData(
-        queryKeys.coordinatorDashboard.list({}),
-        payload
-      );
       if (institutionId) {
         queryClient.setQueryData(
           queryKeys.coordinatorDashboard.list({ institutionId }),

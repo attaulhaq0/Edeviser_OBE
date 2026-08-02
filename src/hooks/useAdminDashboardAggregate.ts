@@ -45,7 +45,10 @@ export const useAdminDashboardAggregate = (
       const payload = data as unknown as AdminKPIData;
 
       // Hydrate the EXACT cache `useAdminKPIs` reads so it becomes a hit.
-      queryClient.setQueryData(queryKeys.adminDashboard.list({}), payload);
+      queryClient.setQueryData(
+        queryKeys.adminDashboard.list({ institutionId }),
+        payload
+      );
 
       return payload;
     },

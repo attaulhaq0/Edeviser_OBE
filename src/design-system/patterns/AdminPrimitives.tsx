@@ -1,15 +1,73 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  BarChart3,
+  Bell,
+  Bot,
+  Building2,
+  ClipboardList,
+  Clock3,
+  Globe2,
+  HeartPulse,
+  KeyRound,
+  AlertTriangle,
+  FileBox,
+  GraduationCap,
+  Map,
+  Megaphone,
+  Plug,
+  ReceiptText,
+  Search,
+  ShieldCheck,
+  Swords,
+  Tag,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import PCard from "./PCard";
+import SectionHeader from "./SectionHeader";
 
 export const adminPageClass = "space-y-4";
-
 export const adminCardClass =
-  "rounded-[20px] border border-[#eef2f6] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]";
-
+  "rounded-[20px] border border-[#eef2f6] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-[transform,box-shadow] duration-[180ms] ease-out hover:-translate-y-[3px] hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)] motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 export const adminTableClass =
   "w-full min-w-[560px] border-collapse text-start text-xs";
+
+const ICON_BY_EMOJI: Record<string, LucideIcon> = {
+  "📈": TrendingUp,
+  "🎯": Target,
+  "🔻": TrendingDown,
+  "🏫": Building2,
+  "🤖": Bot,
+  "🗺️": Map,
+  "📣": Megaphone,
+  "📋": ClipboardList,
+  "📊": BarChart3,
+  "📦": FileBox,
+  "🗂️": FileBox,
+  "🔌": Plug,
+  "🏛️": Building2,
+  "👥": Users,
+  "🔔": Bell,
+  "🛡️": ShieldCheck,
+  "🎓": GraduationCap,
+  "🕒": Clock3,
+  "⚠️": AlertTriangle,
+  "🔎": Search,
+  "⚔️": Swords,
+  "⚡": Zap,
+  "🏷️": Tag,
+  "🩺": HeartPulse,
+  "🌐": Globe2,
+  "🔑": KeyRound,
+  "🧾": ReceiptText,
+};
 
 export const AdminSectionHeader = ({
   emoji,
@@ -22,18 +80,12 @@ export const AdminSectionHeader = ({
   action?: ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex items-center gap-2", className)}>
-    <span
-      className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-white/80 text-base shadow-sm backdrop-blur-xs"
-      aria-hidden="true"
-    >
-      {emoji}
-    </span>
-    <h2 className="min-w-0 flex-1 text-sm font-black text-slate-900">
-      {title}
-    </h2>
-    {action}
-  </div>
+  <SectionHeader
+    icon={ICON_BY_EMOJI[emoji] ?? BarChart3}
+    title={title}
+    action={action}
+    className={className}
+  />
 );
 
 export const AdminCardHeader = ({
@@ -62,7 +114,7 @@ export const AdminStatCard = ({
   value: ReactNode;
   tone?: "default" | "teal" | "green" | "red";
 }) => (
-  <div className={cn(adminCardClass, "p-3.5")}>
+  <PCard className="p-3.5">
     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
       {label}
     </p>
@@ -77,7 +129,7 @@ export const AdminStatCard = ({
     >
       {value}
     </p>
-  </div>
+  </PCard>
 );
 
 export const AdminStatusPill = ({

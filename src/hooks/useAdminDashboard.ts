@@ -22,26 +22,54 @@ export interface AuditLogEntry {
 }
 
 export const useAdminKPIs = (options?: { enabled?: boolean }) => {
+  const { institutionId, profile } = useAuth();
+
   return useQuery({
-    queryKey: queryKeys.adminDashboard.list({}),
-    enabled: options?.enabled ?? true,
+    queryKey: queryKeys.adminDashboard.list({
+      institutionId: institutionId ?? "",
+    }),
+    enabled:
+      (options?.enabled ?? true) &&
+      !!institutionId &&
+      profile?.role === "admin",
     queryFn: async (): Promise<AdminKPIData> => {
+      if (!institutionId || profile?.role !== "admin") {
+        throw new Error("Forbidden: Caller is not an active Admin");
+      }
+
       const [
         { count: totalUsers },
         { count: activeUsers },
-        { count: totalPrograms },
-        { count: totalCourses },
+        { data: programRows, count: totalPrograms },
         { data: roleData },
       ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase
           .from("profiles")
           .select("*", { count: "exact", head: true })
+          .eq("institution_id", institutionId),
+        supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .eq("institution_id", institutionId)
           .eq("is_active", true),
-        supabase.from("programs").select("*", { count: "exact", head: true }),
-        supabase.from("courses").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("role").eq("is_active", true),
+        supabase
+          .from("programs")
+          .select("id", { count: "exact" })
+          .eq("institution_id", institutionId),
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("institution_id", institutionId)
+          .eq("is_active", true),
       ]);
+
+      const programIds = (programRows ?? []).map((program) => program.id);
+      const { count: totalCourses } = programIds.length
+        ? await supabase
+            .from("courses")
+            .select("id", { count: "exact", head: true })
+            .in("program_id", programIds)
+        : { count: 0 };
 
       const usersByRole: Record<string, number> = {};
       if (roleData) {

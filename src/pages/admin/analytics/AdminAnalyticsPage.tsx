@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shimmer } from "@/design-system";
+import { PCard, Shimmer } from "@/design-system";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import {
   useAdminAnalytics,
@@ -27,10 +27,9 @@ import { usePrograms } from "@/hooks/usePrograms";
 import {
   AdminSectionHeader,
   AdminStatusPill,
-  adminCardClass,
   adminPageClass,
   adminTableClass,
-} from "@/components/shared/AdminPrototypePrimitives";
+} from "@/design-system";
 
 const AdminAnalyticsPage = () => {
   const { t } = useTranslation("common");
@@ -124,7 +123,13 @@ const AdminAnalyticsPage = () => {
     : analytics.ploAttainment;
 
   const latestActive = weeklyActiveLearners[weeklyActiveLearners.length - 1];
-  const activePillLabel = `${latestActive?.activePercent ?? 0}% active`;
+  const hasWeeklyDenominator = weeklyActiveLearners.some(
+    (point) => point.eligibleLearners > 0
+  );
+  const hasLearners = retentionRisk.total > 0;
+  const activePillLabel = latestActive?.eligibleLearners
+    ? `${latestActive.activePercent}% active`
+    : "—";
 
   return (
     <div className={`${adminPageClass} no-scrollbar`}>
@@ -139,148 +144,175 @@ const AdminAnalyticsPage = () => {
       </div>
 
       {/* 1. Engagement trend (Weekly active learners) */}
-      <div className={`${adminCardClass} p-4`}>
+      <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
           <AdminSectionHeader emoji="📈" title="Weekly active learners" />
           <AdminStatusPill tone="green">{activePillLabel}</AdminStatusPill>
         </div>
 
         {/* 5-week Bar Chart */}
-        <div className="flex items-end gap-2.5 h-28 border-b border-slate-100 dark:border-slate-800 pb-0">
-          {weeklyActiveLearners.map((pt, idx) => {
-            const isLatest = idx === weeklyActiveLearners.length - 1;
-            const barHeightPct = Math.max(10, Math.min(pt.activePercent, 100));
+        {hasWeeklyDenominator ? (
+          <div className="flex h-28 items-end gap-2.5 border-b border-slate-100 pb-0 dark:border-slate-800">
+            {weeklyActiveLearners.map((pt, idx) => {
+              const isLatest = idx === weeklyActiveLearners.length - 1;
+              const barHeightPct = Math.min(pt.activePercent, 100);
 
-            return (
-              <div
-                key={pt.week}
-                className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end"
-              >
+              return (
                 <div
-                  className="w-full rounded-t transition-all"
-                  style={{
-                    height: `${barHeightPct}%`,
-                    backgroundColor: isLatest ? "#14b8a6" : "#3b82f6",
-                  }}
-                  title={`${pt.week}: ${pt.activeLearners} / ${pt.eligibleLearners} active (${pt.activePercent}%)`}
-                />
-                <span
-                  className={`text-[9px] ${
-                    isLatest
-                      ? "font-extrabold text-slate-700 dark:text-slate-200"
-                      : "text-slate-400"
-                  }`}
+                  key={pt.week}
+                  className="flex h-full flex-1 flex-col items-center justify-end gap-1.5"
                 >
-                  {pt.week}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                  <div
+                    className="w-full rounded-t transition-all"
+                    style={{
+                      height: `${barHeightPct}%`,
+                      backgroundColor: isLatest ? "#14b8a6" : "#3b82f6",
+                    }}
+                    title={`${pt.week}: ${pt.activeLearners} / ${pt.eligibleLearners} active (${pt.activePercent}%)`}
+                  />
+                  <span
+                    className={`text-[9px] ${
+                      isLatest
+                        ? "font-extrabold text-slate-700 dark:text-slate-200"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    {pt.week}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+            No live learner activity data is available for this institution.
+          </p>
+        )}
         <div className="flex items-center justify-between mt-2 text-[10px] text-slate-400">
           <span>5-week trend · active learners / week</span>
           <span className="italic text-slate-400 font-medium">
             Real live Supabase data
           </span>
         </div>
-      </div>
+      </PCard>
 
       {/* 2. Mastery Distribution & Retention Risk (2-Column Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Mastery Distribution */}
-        <div className={`${adminCardClass} p-4`}>
+        <PCard className="p-4">
           <AdminSectionHeader
             emoji="🎯"
             title="Mastery distribution"
             className="mb-3"
           />
 
-          <div className="space-y-2.5">
-            {[
-              { label: "Excellent", pct: masteryDistribution.excellentPercent },
-              {
-                label: "Satisfactory",
-                pct: masteryDistribution.satisfactoryPercent,
-              },
-              {
-                label: "Developing",
-                pct: masteryDistribution.developingPercent,
-              },
-              { label: "Not yet", pct: masteryDistribution.notYetPercent },
-              {
-                label: "Unmeasured",
-                pct: masteryDistribution.unmeasuredPercent,
-              },
-            ].map((row) => (
-              <div key={row.label} className="flex items-center gap-2">
-                <span className="text-xs w-24 shrink-0 text-slate-600 dark:text-slate-400 font-medium">
-                  {row.label}
-                </span>
-                <div className="flex-1 h-4 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 transition-all"
-                    style={{ width: `${Math.min(row.pct, 100)}%` }}
-                  />
+          {hasLearners ? (
+            <div className="space-y-2.5">
+              {[
+                {
+                  label: "Excellent",
+                  pct: masteryDistribution.excellentPercent,
+                },
+                {
+                  label: "Satisfactory",
+                  pct: masteryDistribution.satisfactoryPercent,
+                },
+                {
+                  label: "Developing",
+                  pct: masteryDistribution.developingPercent,
+                },
+                { label: "Not yet", pct: masteryDistribution.notYetPercent },
+                {
+                  label: "Unmeasured",
+                  pct: masteryDistribution.unmeasuredPercent,
+                },
+              ].map((row) => (
+                <div key={row.label} className="flex items-center gap-2">
+                  <span className="text-xs w-24 shrink-0 text-slate-600 dark:text-slate-400 font-medium">
+                    {row.label}
+                  </span>
+                  <div className="flex-1 h-4 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500 transition-all"
+                      style={{ width: `${Math.min(row.pct, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold w-10 text-end text-slate-800 dark:text-slate-200">
+                    {row.pct}%
+                  </span>
                 </div>
-                <span className="text-xs font-bold w-10 text-end text-slate-800 dark:text-slate-200">
-                  {row.pct}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+              No learner records are available for this institution.
+            </p>
+          )}
+        </PCard>
 
         {/* Retention Risk */}
-        <div className={`${adminCardClass} p-4`}>
+        <PCard className="p-4">
           <AdminSectionHeader
             emoji="🔻"
             title="Retention risk"
             className="mb-3"
           />
 
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-700 dark:text-slate-300 font-medium">
-                On track
-              </span>
-              <b className="text-emerald-600 font-black">
-                {retentionRisk.onTrack}
-              </b>
+          {hasLearners ? (
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  On track
+                </span>
+                <b className="text-emerald-600 font-black">
+                  {retentionRisk.onTrack}
+                </b>
+              </div>
+              <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  Watch
+                </span>
+                <b className="text-amber-600 font-black">
+                  {retentionRisk.watch}
+                </b>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  At risk
+                </span>
+                <b className="text-red-600 font-black">
+                  {retentionRisk.atRisk}
+                </b>
+              </div>
             </div>
-            <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-700 dark:text-slate-300 font-medium">
-                Watch
-              </span>
-              <b className="text-amber-600 font-black">{retentionRisk.watch}</b>
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <span className="text-slate-700 dark:text-slate-300 font-medium">
-                At risk
-              </span>
-              <b className="text-red-600 font-black">{retentionRisk.atRisk}</b>
-            </div>
-          </div>
-
-          <div className="mt-3 bg-amber-50/80 border border-amber-200/60 rounded-xl p-3 dark:bg-amber-950/30 dark:border-amber-800/40">
-            <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
-              {retentionRisk.atRisk} of {retentionRisk.total} learners flagged
-              at risk across course activities.{" "}
-              <Button
-                asChild
-                type="button"
-                variant="link"
-                size="sm"
-                className="h-auto p-0 font-bold text-amber-900 underline hover:text-amber-700"
-              >
-                <Link to="/admin/announcements">Draft outreach</Link>
-              </Button>
+          ) : (
+            <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+              No learner records are available for retention analysis.
             </p>
-          </div>
-        </div>
+          )}
+
+          {hasLearners && (
+            <div className="mt-3 rounded-xl border border-amber-200/60 bg-amber-50/80 p-3 dark:border-amber-800/40 dark:bg-amber-950/30">
+              <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
+                {retentionRisk.atRisk} of {retentionRisk.total} learners flagged
+                at risk across course activities.{" "}
+                <Button
+                  asChild
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 font-bold text-amber-900 underline hover:text-amber-700"
+                >
+                  <Link to="/admin/announcements">Draft outreach</Link>
+                </Button>
+              </p>
+            </div>
+          )}
+        </PCard>
       </div>
 
       {/* 3. Department Table */}
-      <div className={`${adminCardClass} p-4`}>
+      <PCard className="p-4">
         <AdminSectionHeader emoji="🏫" title="Departments" className="mb-3" />
 
         <div className="overflow-x-auto">
@@ -295,52 +327,60 @@ const AdminAnalyticsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {departmentRows.map((dept) => {
-                const isSuppressed =
-                  dept.learners > 0 && dept.learners < MIN_COHORT_THRESHOLD;
-                const masteryTone =
-                  dept.masteryPercent >= 80
-                    ? "text-emerald-600"
-                    : dept.masteryPercent >= 70
-                    ? "text-blue-600"
-                    : "text-amber-700";
+              {departmentRows.length > 0 ? (
+                departmentRows.map((dept) => {
+                  const isSuppressed =
+                    dept.learners > 0 && dept.learners < MIN_COHORT_THRESHOLD;
+                  const masteryTone =
+                    dept.masteryPercent >= 80
+                      ? "text-emerald-600"
+                      : dept.masteryPercent >= 70
+                      ? "text-blue-600"
+                      : "text-amber-700";
 
-                return (
-                  <tr
-                    key={dept.departmentName}
-                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
-                  >
-                    <td className="py-2.5 font-bold text-slate-900 dark:text-slate-100">
-                      {dept.departmentName}
-                    </td>
-                    <td className="py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300">
-                      {isSuppressed ? "< 3 (suppressed)" : dept.learners}
-                    </td>
-                    <td className="py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300">
-                      {dept.activePercent}%
-                    </td>
-                    <td className="py-2.5 text-center font-black">
-                      <span className={masteryTone}>
-                        {dept.masteryPercent}%
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-center font-black text-emerald-600">
-                      {dept.trend === "up"
-                        ? "↑"
-                        : dept.trend === "down"
-                        ? "↓"
-                        : "→"}
-                    </td>
-                  </tr>
-                );
-              })}
+                  return (
+                    <tr
+                      key={dept.departmentName}
+                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                    >
+                      <td className="py-2.5 font-bold text-slate-900 dark:text-slate-100">
+                        {dept.departmentName}
+                      </td>
+                      <td className="py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {isSuppressed ? "< 3 (suppressed)" : dept.learners}
+                      </td>
+                      <td className="py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {dept.activePercent}%
+                      </td>
+                      <td className="py-2.5 text-center font-black">
+                        <span className={masteryTone}>
+                          {dept.masteryPercent}%
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-center font-black text-emerald-600">
+                        {dept.trend === "up"
+                          ? "↑"
+                          : dept.trend === "down"
+                          ? "↓"
+                          : "→"}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-slate-500">
+                    No department analytics are available.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
-      </div>
+      </PCard>
 
       {/* 4. AI Co-Pilot Performance */}
-      <div className={`${adminCardClass} p-4`}>
+      <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
           <AdminSectionHeader emoji="🤖" title="AI Co-Pilot performance" />
           <AdminStatusPill tone="blue">A2 governance</AdminStatusPill>
@@ -434,10 +474,10 @@ const AdminAnalyticsPage = () => {
             trust signals behind the autonomy ceiling.
           </p>
         </div>
-      </div>
+      </PCard>
 
       {/* 5. PLO Attainment Heatmap */}
-      <div className={`${adminCardClass} p-4`}>
+      <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
           <AdminSectionHeader emoji="🗺️" title="PLO attainment heatmap" />
           <Select value={selectedProgram} onValueChange={setSelectedProgram}>
@@ -456,52 +496,58 @@ const AdminAnalyticsPage = () => {
         </div>
 
         {/* Heatmap Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-          {ploAttainment.map((plo) => {
-            const isUnmeasured =
-              plo.meanAttainment < 0 || plo.statusBand === "unmeasured";
-            let bgClass =
-              "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
-            let textClass = "text-slate-800 dark:text-slate-100";
+        {ploAttainment.length > 0 ? (
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4">
+            {ploAttainment.map((plo) => {
+              const isUnmeasured =
+                plo.meanAttainment < 0 || plo.statusBand === "unmeasured";
+              let bgClass =
+                "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+              let textClass = "text-slate-800 dark:text-slate-100";
 
-            if (!isUnmeasured) {
-              if (plo.statusBand === "excellent") {
-                bgClass =
-                  "bg-emerald-100/90 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200";
-                textClass = "text-emerald-900 dark:text-emerald-100";
-              } else if (plo.statusBand === "satisfactory") {
-                bgClass =
-                  "bg-blue-100/90 text-blue-900 dark:bg-blue-950/50 dark:text-blue-200";
-                textClass = "text-blue-900 dark:text-blue-100";
-              } else if (plo.statusBand === "developing") {
-                bgClass =
-                  "bg-amber-100/90 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200";
-                textClass = "text-amber-900 dark:text-amber-100";
-              } else {
-                bgClass =
-                  "bg-red-100/90 text-red-900 dark:bg-red-950/50 dark:text-red-200";
-                textClass = "text-red-900 dark:text-red-100";
+              if (!isUnmeasured) {
+                if (plo.statusBand === "excellent") {
+                  bgClass =
+                    "bg-emerald-100/90 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200";
+                  textClass = "text-emerald-900 dark:text-emerald-100";
+                } else if (plo.statusBand === "satisfactory") {
+                  bgClass =
+                    "bg-blue-100/90 text-blue-900 dark:bg-blue-950/50 dark:text-blue-200";
+                  textClass = "text-blue-900 dark:text-blue-100";
+                } else if (plo.statusBand === "developing") {
+                  bgClass =
+                    "bg-amber-100/90 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200";
+                  textClass = "text-amber-900 dark:text-amber-100";
+                } else {
+                  bgClass =
+                    "bg-red-100/90 text-red-900 dark:bg-red-950/50 dark:text-red-200";
+                  textClass = "text-red-900 dark:text-red-100";
+                }
               }
-            }
 
-            return (
-              <div
-                key={plo.ploId}
-                className={`rounded-xl p-3 ${bgClass} transition-all`}
-              >
-                <p className="text-[11px] font-bold truncate">
-                  {plo.ploCodeTitle}
-                </p>
-                <p className={`text-xl font-black mt-1 ${textClass}`}>
-                  {isUnmeasured ? "—" : `${plo.meanAttainment}%`}
-                </p>
-                <p className="text-[10px] opacity-80 mt-0.5 font-medium">
-                  {plo.derivationLabel}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+              return (
+                <div
+                  key={plo.ploId}
+                  className={`rounded-xl p-3 ${bgClass} transition-all`}
+                >
+                  <p className="text-[11px] font-bold truncate">
+                    {plo.ploCodeTitle}
+                  </p>
+                  <p className={`text-xl font-black mt-1 ${textClass}`}>
+                    {isUnmeasured ? "—" : `${plo.meanAttainment}%`}
+                  </p>
+                  <p className="text-[10px] opacity-80 mt-0.5 font-medium">
+                    {plo.derivationLabel}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+            No live PLO attainment data is available.
+          </p>
+        )}
 
         {/* Legend */}
         <div className="flex flex-wrap gap-3 mt-3.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
@@ -526,7 +572,7 @@ const AdminAnalyticsPage = () => {
             Unmeasured
           </span>
         </div>
-      </div>
+      </PCard>
     </div>
   );
 };

@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { PCard, Shimmer } from "@/design-system";
-import { AdminCardHeader } from "@/components/shared/AdminPrototypePrimitives";
+import { AdminCardHeader } from "@/design-system";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { NoActionPlans } from "@/components/shared/EmptyState";
