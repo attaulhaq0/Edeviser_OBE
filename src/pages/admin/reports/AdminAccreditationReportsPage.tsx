@@ -14,6 +14,13 @@ import {
 } from "lucide-react";
 import { Button, Badge, PCard, SectionHeader, Shimmer } from "@/design-system";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useAdminPrograms,
   useAdminSemesters,
   useAdminAccreditationSummary,
@@ -27,7 +34,7 @@ import {
 
 export const AdminAccreditationReportsPage: React.FC = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
-  const [selectedSemesterId, setSelectedSemesterId] = useState<string>("");
+  const [selectedSemesterId, setSelectedSemesterId] = useState<string>("all");
   const [selectedTemplate, setSelectedTemplate] =
     useState<ReportTemplate>("ABET");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -49,11 +56,11 @@ export const AdminAccreditationReportsPage: React.FC = () => {
   const generateMutation = useGenerateAdminAccreditationReport();
 
   const summary = summaryQuery.data ?? {
-    readinessPercent: 82,
-    documented: 2,
-    partial: 1,
-    blocked: 1,
-    notStarted: 1,
+    readinessPercent: 0,
+    documented: 0,
+    partial: 0,
+    blocked: 0,
+    notStarted: 0,
     courses: [],
     packChecklist: [],
   };
@@ -61,6 +68,24 @@ export const AdminAccreditationReportsPage: React.FC = () => {
   const stages = stagesQuery.data ?? [];
   const cqiPlans = cqiQuery.data ?? [];
   const reportHistory = historyQuery.data ?? [];
+  const currentStage = stages.find((stage) => stage.status === "current");
+
+  const packLabel = (label: string) => {
+    const labels: Record<string, string> = {
+      course_files: "Syllabi & course files",
+      clo_plo_mappings: "CLO ↔ PLO mappings",
+      assessment_instruments: "Assessment instruments",
+      student_work: "Sample student work",
+      attainment_analysis: "Attainment analysis",
+      faculty_reflections: "Faculty reflections",
+      cqi_recommendations: "CQI recommendations",
+      cloMapping: "CLO ↔ PLO mappings",
+      samples: "Sample student work",
+      analysis: "Attainment analysis",
+      cqi: "CQI recommendations",
+    };
+    return labels[label] ?? label.replace(/_/g, " ");
+  };
 
   const handleExportPack = async () => {
     if (!effectiveProgramId) return;
@@ -70,7 +95,8 @@ export const AdminAccreditationReportsPage: React.FC = () => {
     try {
       const result = await generateMutation.mutateAsync({
         program_id: effectiveProgramId,
-        semester_id: selectedSemesterId || undefined,
+        semester_id:
+          selectedSemesterId === "all" ? undefined : selectedSemesterId,
         template: selectedTemplate,
       });
 
@@ -105,48 +131,57 @@ export const AdminAccreditationReportsPage: React.FC = () => {
         {/* Filters Toolbar */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Program Selector */}
-          <select
+          <Select
             value={effectiveProgramId}
-            onChange={(e) => setSelectedProgramId(e.target.value)}
-            className="text-xs font-semibold bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+            onValueChange={setSelectedProgramId}
+            disabled={programsQuery.isLoading}
           >
-            {programsQuery.isLoading ? (
-              <option>Loading programs...</option>
-            ) : (
-              programsQuery.data?.map((p) => (
-                <option key={p.id} value={p.id}>
+            <SelectTrigger size="sm" className="text-xs font-semibold">
+              <SelectValue placeholder="Select program" />
+            </SelectTrigger>
+            <SelectContent>
+              {(programsQuery.data ?? []).map((p) => (
+                <SelectItem key={p.id} value={p.id}>
                   {p.name} ({p.code})
-                </option>
-              ))
-            )}
-          </select>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Semester Selector */}
-          <select
+          <Select
             value={selectedSemesterId}
-            onChange={(e) => setSelectedSemesterId(e.target.value)}
-            className="text-xs font-semibold bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+            onValueChange={setSelectedSemesterId}
           >
-            <option value="">All Semesters</option>
-            {semestersQuery.data?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} ({s.academic_year})
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" className="text-xs font-semibold">
+              <SelectValue placeholder="All Semesters" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Semesters</SelectItem>
+              {(semestersQuery.data ?? []).map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name} ({s.academic_year})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Framework Template Selector */}
-          <select
+          <Select
             value={selectedTemplate}
-            onChange={(e) =>
-              setSelectedTemplate(e.target.value as ReportTemplate)
+            onValueChange={(value) =>
+              setSelectedTemplate(value as ReportTemplate)
             }
-            className="text-xs font-bold bg-white border border-slate-200 rounded-lg px-3 py-2 text-sky-700 shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
           >
-            <option value="ABET">ABET Framework</option>
-            <option value="HEC">HEC Template</option>
-            <option value="Generic">Generic OBE Report</option>
-          </select>
+            <SelectTrigger size="sm" className="text-xs font-bold text-sky-700">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ABET">ABET Framework</SelectItem>
+              <SelectItem value="HEC">HEC Template</SelectItem>
+              <SelectItem value="Generic">Generic OBE Report</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -334,9 +369,15 @@ export const AdminAccreditationReportsPage: React.FC = () => {
               title="CQI action plans"
               icon={Sparkles}
               action={
-                <button className="text-xs font-bold text-sky-600 hover:text-sky-700">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  title="AI draft generation is not connected for this workspace"
+                >
                   + AI draft
-                </button>
+                </Button>
               }
             />
 
@@ -430,14 +471,17 @@ export const AdminAccreditationReportsPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="py-3 px-3 text-right">
-                          <button
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
                             onClick={() =>
                               handleDownloadHistoryItem(item.storage_path)
                             }
-                            className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700"
+                            className="h-auto p-0 text-xs font-bold text-sky-600 hover:text-sky-700"
                           >
                             <Download className="h-3.5 w-3.5" /> PDF
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))
@@ -458,89 +502,38 @@ export const AdminAccreditationReportsPage: React.FC = () => {
             />
 
             <div className="space-y-2.5 mt-4">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  Syllabi & course files
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  Ready
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  CLO ↔ PLO mappings
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  Ready
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  Assessment instruments
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  Ready
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  Sample student work
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  Ready
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  Attainment analysis
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  Ready
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
-                  ✓
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  Faculty reflections
-                </span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  Ready
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="h-5 w-5 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[10px]">
-                  !
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">
-                  CQI recommendations
-                </span>
-                <span className="text-[11px] font-bold text-amber-600">
-                  Outstanding
-                </span>
-              </div>
+              {summary.packChecklist.length > 0 ? (
+                summary.packChecklist.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <span
+                      className={`h-5 w-5 rounded-md flex items-center justify-center font-bold text-[10px] ${
+                        item.ready
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {item.ready ? "✓" : "!"}
+                    </span>
+                    <span className="flex-1 font-semibold text-slate-800">
+                      {packLabel(item.label)}
+                    </span>
+                    <span
+                      className={`text-[11px] font-bold ${
+                        item.ready ? "text-emerald-600" : "text-amber-600"
+                      }`}
+                    >
+                      {item.ready ? "Ready" : "Outstanding"}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-500">
+                  No persisted evidence checklist is available for this program.
+                </p>
+              )}
             </div>
           </PCard>
 
@@ -577,8 +570,11 @@ export const AdminAccreditationReportsPage: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-slate-500 mt-4 pt-3 border-t border-slate-100">
-              Currently with the <b>Head of Department</b>. Resolve persisted
-              approval blockers to unlock QA sign-off.
+              {currentStage
+                ? `Currently with the ${currentStage.label}. Resolve persisted approval blockers to continue sign-off.`
+                : stages.length > 0
+                ? "No approval stage is currently active."
+                : "Approval workflow is not configured for this program."}
             </p>
           </PCard>
 

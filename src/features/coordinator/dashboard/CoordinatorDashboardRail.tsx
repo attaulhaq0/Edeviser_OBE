@@ -50,7 +50,8 @@ const CoordinatorDashboardRail = () => {
   const attainment = useCoordinatorOutcomeAttainment(institutionId);
   const accred = useCoordinatorAccreditationReadiness(institutionId);
 
-  const threshold = attainment.data?.successThreshold ?? 70;
+  const threshold =
+    aggregate.data?.targetAttainment ?? attainment.data?.successThreshold ?? 70;
   const belowTarget = useMemo(
     () =>
       (attainment.data?.plos ?? [])

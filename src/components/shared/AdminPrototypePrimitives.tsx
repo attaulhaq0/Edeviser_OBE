@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +33,23 @@ export const AdminSectionHeader = ({
       {title}
     </h2>
     {action}
+  </div>
+);
+
+export const AdminCardHeader = ({
+  icon: Icon,
+  title,
+}: {
+  icon: LucideIcon;
+  title: string;
+}) => (
+  <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
+    <span className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-200/60 bg-white/80 text-slate-700 shadow-sm backdrop-blur-xs">
+      <Icon className="size-4" aria-hidden="true" />
+    </span>
+    <h2 className="text-base font-black tracking-tight text-slate-900">
+      {title}
+    </h2>
   </div>
 );
 

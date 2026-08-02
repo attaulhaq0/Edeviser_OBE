@@ -2,7 +2,11 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { User } from "lucide-react";
 import AvatarUpload from "@/components/shared/AvatarUpload";
-import { PCard, SectionHeader } from "@/design-system";
+import {
+  AdminCardHeader,
+  adminCardClass,
+  adminPageClass,
+} from "@/components/shared/AdminPrototypePrimitives";
 
 /**
  * Coordinator profile page with avatar upload.
@@ -14,29 +18,25 @@ const CoordinatorProfilePage = () => {
   const { t } = useTranslation("common");
 
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={User}
-        title={t("coordinatorProfile.title", "Profile Settings")}
-        description={t(
-          "coordinatorProfile.subtitle",
-          "Update your avatar and profile details."
-        )}
-      />
+    <div className={adminPageClass}>
+      <div>
+        <h1 className="text-xl font-black tracking-tight text-slate-900">
+          {t("coordinatorProfile.title", "Profile Settings")}
+        </h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          {t(
+            "coordinatorProfile.subtitle",
+            "Update your avatar and profile details."
+          )}
+        </p>
+      </div>
 
       {/* Profile Info Card */}
-      <PCard className="overflow-hidden gap-0 py-0">
-        <div
-          className="flex items-center gap-2 px-6 py-4"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <User className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            {t("coordinatorProfile.info", "Profile Information")}
-          </h2>
-        </div>
+      <div className={`${adminCardClass} overflow-hidden p-0`}>
+        <AdminCardHeader
+          icon={User}
+          title={t("coordinatorProfile.info", "Profile Information")}
+        />
         <div className="p-6">
           <div className="flex items-center gap-4">
             {profile?.avatar_url ? (
@@ -63,7 +63,7 @@ const CoordinatorProfilePage = () => {
             </div>
           </div>
         </div>
-      </PCard>
+      </div>
 
       {/* Avatar Upload */}
       {profile?.id && (

@@ -72,7 +72,7 @@ const desktopPrimaryByRole: Record<UserRole, PrototypeDesktopItem[]> = {
   ],
   admin: [
     { to: "/admin/dashboard", labelKey: "nav.mobile.home", emoji: "🏠" },
-    { to: "/admin/reports", labelKey: "nav.mobile.analytics", emoji: "📊" },
+    { to: "/admin/analytics", labelKey: "nav.mobile.analytics", emoji: "📊" },
     { to: "/admin/governance", labelKey: "nav.mobile.aiGov", emoji: "🛡️" },
     { to: "/admin/users", labelKey: "nav.mobile.people", emoji: "👥" },
     { to: "/admin/settings/profile", labelKey: "nav.me", emoji: "🙂" },
@@ -296,7 +296,11 @@ const mobileTabsByRole: Record<UserRole, MobileTabItem[]> = {
       labelKey: "nav.mobile.home",
       icon: LayoutDashboard,
     },
-    { to: "/admin/reports", labelKey: "nav.mobile.analytics", icon: BarChart3 },
+    {
+      to: "/admin/analytics",
+      labelKey: "nav.mobile.analytics",
+      icon: BarChart3,
+    },
     {
       to: "/admin/governance",
       labelKey: "nav.mobile.aiGov",

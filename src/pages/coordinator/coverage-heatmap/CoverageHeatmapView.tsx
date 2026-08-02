@@ -85,7 +85,7 @@ const CoverageHeatmapView = () => {
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background: "var(--brand-gradient)",
+            backgroundColor: "#0f172a",
           }}
         >
           <Grid3X3 className="h-5 w-5 text-white" />

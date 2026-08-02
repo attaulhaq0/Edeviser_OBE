@@ -70,15 +70,17 @@ const SortableRow = ({ ilo, index }: SortableRowProps) => {
       style={style}
       className="flex items-center gap-3 rounded-lg border bg-white px-4 py-3 shadow-sm"
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         className="cursor-grab touch-none text-gray-400 hover:text-gray-600"
         aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
       >
         <GripVertical className="h-4 w-4" />
-      </button>
+      </Button>
       <span className="w-8 text-sm font-medium text-gray-500">{index + 1}</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{ilo.title}</p>

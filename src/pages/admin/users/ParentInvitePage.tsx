@@ -143,7 +143,7 @@ const ParentInvitePage = () => {
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background: "var(--brand-gradient)",
+            backgroundColor: "#0f172a",
           }}
         >
           <UserPlus className="h-5 w-5 text-white" />

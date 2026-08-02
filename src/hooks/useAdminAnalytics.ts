@@ -34,7 +34,7 @@ export interface DepartmentAnalyticsRow {
   learners: number;
   activePercent: number;
   masteryPercent: number;
-  trend: "up" | "down";
+  trend: "up" | "down" | "stable";
 }
 
 export interface AICopilotPerformanceData {
@@ -70,6 +70,17 @@ export interface AdminAnalyticsData {
   calculatedAt: string;
 }
 
+interface DepartmentProgramRecord {
+  courses?: Array<{
+    student_courses?: Array<{ student_id: string }>;
+  }>;
+}
+
+interface DepartmentRecord {
+  name: string;
+  programs?: DepartmentProgramRecord[];
+}
+
 /** Minimum cohort size threshold for privacy protection (Req 4). */
 export const MIN_COHORT_THRESHOLD = 3;
 
@@ -96,12 +107,20 @@ export const useAdminAnalytics = (
       }
 
       // Try RPC first
+      // Let PostgreSQL apply the function defaults for the normal dashboard
+      // view. Sending explicit nulls makes PostgREST attempt to coerce a null
+      // date argument on some deployed schemas and returns a 400 before the
+      // function runs. Only send parameters when the caller selected a range.
+      const rpcArgs =
+        dateFrom || dateTo
+          ? {
+              p_date_from: dateFrom ?? null,
+              p_date_to: dateTo ?? null,
+            }
+          : {};
       const { data: rpcData, error: rpcErr } = await supabase.rpc(
         "get_admin_analytics" as never,
-        {
-          p_date_from: dateFrom ?? null,
-          p_date_to: dateTo ?? null,
-        } as never
+        rpcArgs as never
       );
 
       if (!rpcErr && rpcData) {
@@ -275,11 +294,12 @@ export const useAdminAnalytics = (
         )
         .eq("institution_id", institutionId);
 
-      const departments: DepartmentAnalyticsRow[] = (departmentsData ?? []).map(
+      const departmentRecords = (departmentsData ??
+        []) as unknown as DepartmentRecord[];
+      const departments: DepartmentAnalyticsRow[] = departmentRecords.map(
         (d) => {
           const studentSet = new Set<string>();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (d.programs as any[])?.forEach((p) => {
+          d.programs?.forEach((p) => {
             p.courses?.forEach(
               (c: { student_courses?: Array<{ student_id: string }> }) => {
                 c.student_courses?.forEach((sc) =>
@@ -311,27 +331,60 @@ export const useAdminAnalytics = (
                   )
                 : 0,
             masteryPercent: 0,
-            trend: "down",
+            trend: "stable",
           };
         }
       );
 
       // 6. AI Co-Pilot Governance Performance
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: aiEvents } = await (supabase as any)
-        .from("ai_assistance_events")
-        .select("feature, outcome")
-        .eq("institution_id", institutionId);
+      const { data: aiFeedback, error: aiFeedbackError } = await supabase
+        .from("ai_feedback")
+        .select("suggestion_type, feedback, validated_outcome, student_id");
+      if (aiFeedbackError) throw aiFeedbackError;
 
-      const hasEvents = !!aiEvents && aiEvents.length > 0;
+      const suggestions = (aiFeedback ?? []).filter(
+        (event) => event.suggestion_type === "module_suggestion"
+      );
+      const predictions = (aiFeedback ?? []).filter(
+        (event) =>
+          event.suggestion_type === "at_risk_prediction" &&
+          event.validated_outcome !== null
+      );
+      const drafts = (aiFeedback ?? []).filter(
+        (event) => event.suggestion_type === "feedback_draft"
+      );
       const aiCopilotPerformance: AICopilotPerformanceData = {
-        hasSufficientData: hasEvents,
-        suggestionAcceptanceRate: hasEvents ? 86 : 0,
-        suggestionTotal: hasEvents ? aiEvents.length : 0,
-        predictionAccuracyRate: hasEvents ? 78 : 0,
-        predictionTotal: hasEvents ? Math.round(aiEvents.length * 0.4) : 0,
-        draftAcceptanceRate: hasEvents ? 91 : 0,
-        draftTotal: hasEvents ? Math.round(aiEvents.length * 0.6) : 0,
+        hasSufficientData:
+          suggestions.length >= 5 ||
+          predictions.length >= 5 ||
+          drafts.length >= 5,
+        suggestionAcceptanceRate: suggestions.length
+          ? Math.round(
+              (suggestions.filter((event) => event.feedback === "thumbs_up")
+                .length /
+                suggestions.length) *
+                100
+            )
+          : 0,
+        suggestionTotal: suggestions.length,
+        predictionAccuracyRate: predictions.length
+          ? Math.round(
+              (predictions.filter(
+                (event) => event.validated_outcome === "correct"
+              ).length /
+                predictions.length) *
+                100
+            )
+          : 0,
+        predictionTotal: predictions.length,
+        draftAcceptanceRate: drafts.length
+          ? Math.round(
+              (drafts.filter((event) => event.feedback === "thumbs_up").length /
+                drafts.length) *
+                100
+            )
+          : 0,
+        draftTotal: drafts.length,
       };
 
       // 7. PLO Attainment Heatmap

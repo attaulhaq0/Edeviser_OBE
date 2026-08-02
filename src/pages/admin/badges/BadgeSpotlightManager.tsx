@@ -186,7 +186,7 @@ const BadgeSpotlightManager = () => {
         <div
           className="px-6 py-4"
           style={{
-            background: "var(--brand-gradient)",
+            backgroundColor: "#0f172a",
           }}
         >
           <div className="flex items-center gap-2">

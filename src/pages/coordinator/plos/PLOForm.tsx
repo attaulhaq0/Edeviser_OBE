@@ -496,9 +496,11 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
                   : "border-slate-200 bg-white"
               }`}
             >
-              <button
+              <Button
                 type="button"
                 onClick={() => handleToggle(ilo.id)}
+                variant="outline"
+                size="icon-xs"
                 className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                   isEnabled
                     ? "bg-blue-600 border-blue-600 text-white"
@@ -521,7 +523,7 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
                     />
                   </svg>
                 )}
-              </button>
+              </Button>
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{ilo.title}</p>

@@ -29,7 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { GradientCardHeader, Shimmer } from "@/design-system";
+import { Shimmer } from "@/design-system";
+import { AdminCardHeader } from "@/components/shared/AdminPrototypePrimitives";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { NoActionPlans } from "@/components/shared/EmptyState";
@@ -688,7 +689,7 @@ const CQIManager = () => {
       </div>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={ClipboardCheck} title="Action Plans" />
+        <AdminCardHeader icon={ClipboardCheck} title="Action Plans" />
         <div>
           {isLoading ? (
             <div className="p-6 space-y-3">

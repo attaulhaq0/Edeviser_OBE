@@ -172,7 +172,7 @@ const HistoricalEvidenceDashboard = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: "var(--brand-gradient)" }}
+          style={{ backgroundColor: "#0f172a" }}
         >
           <History className="h-5 w-5 text-white" />
           <h2 className="text-lg font-bold tracking-tight text-white">

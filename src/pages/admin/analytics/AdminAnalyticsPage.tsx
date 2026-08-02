@@ -5,18 +5,43 @@
 // =============================================================================
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Shimmer } from "@/design-system";
+import { useAIPerformance } from "@/hooks/useAIPerformance";
 import {
   useAdminAnalytics,
   MIN_COHORT_THRESHOLD,
 } from "@/hooks/useAdminAnalytics";
+import { useAdminPLOHeatmap } from "@/hooks/useAdminPLOHeatmap";
+import { useDepartmentAnalytics } from "@/hooks/useAdminDashboard";
+import { usePrograms } from "@/hooks/usePrograms";
+import {
+  AdminSectionHeader,
+  AdminStatusPill,
+  adminCardClass,
+  adminPageClass,
+  adminTableClass,
+} from "@/components/shared/AdminPrototypePrimitives";
 
 const AdminAnalyticsPage = () => {
   const { t } = useTranslation("common");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
   const { data: analytics, isLoading, error } = useAdminAnalytics();
+  const programsQuery = usePrograms({ pageSize: 100 });
+  const aiPerformanceQuery = useAIPerformance();
+  const departmentAttainmentQuery = useDepartmentAnalytics();
+  const ploQuery = useAdminPLOHeatmap(
+    selectedProgram === "all" ? undefined : selectedProgram
+  );
 
   if (isLoading) {
     return (
@@ -32,7 +57,7 @@ const AdminAnalyticsPage = () => {
     );
   }
 
-  if (error || !analytics) {
+  if (error || departmentAttainmentQuery.error || !analytics) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
         <p className="font-bold">
@@ -41,6 +66,8 @@ const AdminAnalyticsPage = () => {
         <p className="text-xs mt-1">
           {error instanceof Error
             ? error.message
+            : departmentAttainmentQuery.error instanceof Error
+            ? departmentAttainmentQuery.error.message
             : "An unexpected error occurred."}
         </p>
       </div>
@@ -52,15 +79,55 @@ const AdminAnalyticsPage = () => {
     masteryDistribution,
     retentionRisk,
     departments,
-    aiCopilotPerformance,
-    ploAttainment,
   } = analytics;
+  const departmentRows = departments.map((department) => {
+    const attainment = departmentAttainmentQuery.data?.find(
+      (row) => row.department_name === department.departmentName
+    );
+    return {
+      ...department,
+      masteryPercent:
+        attainment?.avg_plo_attainment ?? department.masteryPercent,
+    };
+  });
+  const aiCopilotPerformance = aiPerformanceQuery.data
+    ? {
+        ...aiPerformanceQuery.data,
+        hasSufficientData:
+          aiPerformanceQuery.data.suggestionTotal >= 5 ||
+          aiPerformanceQuery.data.predictionTotal >= 5 ||
+          aiPerformanceQuery.data.draftTotal >= 5,
+      }
+    : analytics.aiCopilotPerformance;
+  const ploAttainment = ploQuery.data
+    ? ploQuery.data.map((row) => ({
+        ploId: row.plo_id,
+        ploCodeTitle: row.plo_title,
+        meanAttainment: Math.round(row.attainment_percent),
+        derivationLabel:
+          row.derivation === "program"
+            ? `program · ${row.contributing_count} courses`
+            : row.derivation === "clo_rollup"
+            ? `CLO roll-up · ${row.contributing_count} CLOs`
+            : "unmeasured",
+        statusBand:
+          row.attainment_percent < 0
+            ? "unmeasured"
+            : row.attainment_percent >= 85
+            ? "excellent"
+            : row.attainment_percent >= 70
+            ? "satisfactory"
+            : row.attainment_percent >= 50
+            ? "developing"
+            : "notYet",
+      }))
+    : analytics.ploAttainment;
 
   const latestActive = weeklyActiveLearners[weeklyActiveLearners.length - 1];
-  const activePillLabel = `${latestActive?.activePercent ?? 0}% ↑`;
+  const activePillLabel = `${latestActive?.activePercent ?? 0}% active`;
 
   return (
-    <div className="space-y-4 no-scrollbar">
+    <div className={`${adminPageClass} no-scrollbar`}>
       {/* Page Title & Subtitle */}
       <div>
         <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
@@ -72,19 +139,10 @@ const AdminAnalyticsPage = () => {
       </div>
 
       {/* 1. Engagement trend (Weekly active learners) */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className={`${adminCardClass} p-4`}>
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-base dark:bg-slate-800">
-              📈
-            </span>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Weekly active learners
-            </p>
-          </div>
-          <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
-            {activePillLabel}
-          </span>
+          <AdminSectionHeader emoji="📈" title="Weekly active learners" />
+          <AdminStatusPill tone="green">{activePillLabel}</AdminStatusPill>
         </div>
 
         {/* 5-week Bar Chart */}
@@ -102,9 +160,7 @@ const AdminAnalyticsPage = () => {
                   className="w-full rounded-t transition-all"
                   style={{
                     height: `${barHeightPct}%`,
-                    background: isLatest
-                      ? "linear-gradient(180deg, #14b8a6, #0382bd)"
-                      : "#3b82f6",
+                    backgroundColor: isLatest ? "#14b8a6" : "#3b82f6",
                   }}
                   title={`${pt.week}: ${pt.activeLearners} / ${pt.eligibleLearners} active (${pt.activePercent}%)`}
                 />
@@ -132,15 +188,12 @@ const AdminAnalyticsPage = () => {
       {/* 2. Mastery Distribution & Retention Risk (2-Column Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Mastery Distribution */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-base dark:bg-slate-800">
-              🎯
-            </span>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Mastery distribution
-            </p>
-          </div>
+        <div className={`${adminCardClass} p-4`}>
+          <AdminSectionHeader
+            emoji="🎯"
+            title="Mastery distribution"
+            className="mb-3"
+          />
 
           <div className="space-y-2.5">
             {[
@@ -178,15 +231,12 @@ const AdminAnalyticsPage = () => {
         </div>
 
         {/* Retention Risk */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-base dark:bg-slate-800">
-              🔻
-            </span>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Retention risk
-            </p>
-          </div>
+        <div className={`${adminCardClass} p-4`}>
+          <AdminSectionHeader
+            emoji="🔻"
+            title="Retention risk"
+            className="mb-3"
+          />
 
           <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
@@ -215,36 +265,26 @@ const AdminAnalyticsPage = () => {
             <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
               {retentionRisk.atRisk} of {retentionRisk.total} learners flagged
               at risk across course activities.{" "}
-              <button
+              <Button
+                asChild
                 type="button"
-                onClick={() =>
-                  toast.success("Outreach initiative logged", {
-                    description:
-                      "Outreach guidelines dispatched to department heads.",
-                  })
-                }
-                className="font-bold underline text-amber-900 dark:text-amber-100 hover:text-amber-700 cursor-pointer"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 font-bold text-amber-900 underline hover:text-amber-700"
               >
-                Draft outreach
-              </button>
+                <Link to="/admin/announcements">Draft outreach</Link>
+              </Button>
             </p>
           </div>
         </div>
       </div>
 
       {/* 3. Department Table */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-base dark:bg-slate-800">
-            🏫
-          </span>
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Departments
-          </p>
-        </div>
+      <div className={`${adminCardClass} p-4`}>
+        <AdminSectionHeader emoji="🏫" title="Departments" className="mb-3" />
 
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs border-collapse">
+          <table className={adminTableClass}>
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
                 <th className="pb-2 text-start">Department</th>
@@ -255,7 +295,7 @@ const AdminAnalyticsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {departments.map((dept) => {
+              {departmentRows.map((dept) => {
                 const isSuppressed =
                   dept.learners > 0 && dept.learners < MIN_COHORT_THRESHOLD;
                 const masteryTone =
@@ -285,7 +325,11 @@ const AdminAnalyticsPage = () => {
                       </span>
                     </td>
                     <td className="py-2.5 text-center font-black text-emerald-600">
-                      {dept.trend === "up" ? "↑" : "↓"}
+                      {dept.trend === "up"
+                        ? "↑"
+                        : dept.trend === "down"
+                        ? "↓"
+                        : "→"}
                     </td>
                   </tr>
                 );
@@ -296,19 +340,10 @@ const AdminAnalyticsPage = () => {
       </div>
 
       {/* 4. AI Co-Pilot Performance */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className={`${adminCardClass} p-4`}>
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-base dark:bg-slate-800">
-              🤖
-            </span>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              AI Co-Pilot performance
-            </p>
-          </div>
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200">
-            A2 governance
-          </span>
+          <AdminSectionHeader emoji="🤖" title="AI Co-Pilot performance" />
+          <AdminStatusPill tone="blue">A2 governance</AdminStatusPill>
         </div>
 
         {aiCopilotPerformance.hasSufficientData ? (
@@ -402,23 +437,22 @@ const AdminAnalyticsPage = () => {
       </div>
 
       {/* 5. PLO Attainment Heatmap */}
-      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+      <div className={`${adminCardClass} p-4`}>
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-base dark:bg-slate-800">
-              🗺️
-            </span>
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              PLO attainment heatmap
-            </p>
-          </div>
-          <select
-            value={selectedProgram}
-            onChange={(e) => setSelectedProgram(e.target.value)}
-            className="text-xs font-bold border border-slate-200 rounded-lg px-2.5 py-1 bg-white text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 outline-none"
-          >
-            <option value="all">Program: All</option>
-          </select>
+          <AdminSectionHeader emoji="🗺️" title="PLO attainment heatmap" />
+          <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+            <SelectTrigger size="sm" className="text-xs font-bold">
+              <SelectValue placeholder="Program: All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Program: All</SelectItem>
+              {(programsQuery.data?.data ?? []).map((program) => (
+                <SelectItem key={program.id} value={program.id}>
+                  {program.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Heatmap Grid */}

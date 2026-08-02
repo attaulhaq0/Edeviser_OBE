@@ -39,7 +39,7 @@ const HeaderStatChip = ({
  */
 const RoleHeaderStats = () => {
   const { t } = useTranslation("common");
-  const { user, role } = useAuth();
+  const { user, role, institutionId } = useAuth();
   const isTeacher = role === "teacher";
   const isCoordinator = role === "coordinator";
   const isAdmin = role === "admin";
@@ -50,7 +50,10 @@ const RoleHeaderStats = () => {
     { page: 1, pageSize: 1, teacherId: user?.id },
     { enabled: isTeacher }
   );
-  const coordinatorKPIs = useCoordinatorKPIs({ enabled: isCoordinator });
+  const coordinatorKPIs = useCoordinatorKPIs({
+    enabled: isCoordinator,
+    institutionId,
+  });
   const programs = usePrograms(
     { page: 1, pageSize: 1 },
     { enabled: isCoordinator }

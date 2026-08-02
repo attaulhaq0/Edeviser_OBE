@@ -116,7 +116,7 @@ const AdminDashboardRail = () => {
               </b>
             </RailRow>
             <RailLink
-              to="/admin/reports"
+              to="/admin/analytics"
               label={t("dashboard.rail.analytics", "See analytics →")}
             />
           </>

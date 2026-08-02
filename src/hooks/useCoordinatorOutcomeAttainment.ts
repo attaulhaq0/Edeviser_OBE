@@ -106,6 +106,7 @@ export const useCoordinatorOutcomeAttainment = (
           supabase
             .from("learning_outcomes")
             .select("id, type, title, description, course_id, sort_order")
+            .eq("institution_id", institutionId ?? "")
             .order("sort_order", { ascending: true }),
           supabase
             .from("outcome_attainment")
@@ -117,6 +118,7 @@ export const useCoordinatorOutcomeAttainment = (
           supabase
             .from("institution_settings")
             .select("success_threshold")
+            .eq("institution_id", institutionId ?? "")
             .limit(1)
             .maybeSingle(),
         ]);

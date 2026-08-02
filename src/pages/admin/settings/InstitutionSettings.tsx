@@ -28,7 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GradientCardHeader, Shimmer } from "@/design-system";
+import { Shimmer } from "@/design-system";
+import { AdminCardHeader } from "@/components/shared/AdminPrototypePrimitives";
 import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "react-i18next";
@@ -141,7 +142,7 @@ const InstitutionSettings = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Attainment Thresholds Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={Settings} title="Attainment Thresholds" />
+            <AdminCardHeader icon={Settings} title="Attainment Thresholds" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure the percentage thresholds for attainment level
@@ -250,10 +251,7 @@ const InstitutionSettings = () => {
 
           {/* Accreditation Body Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader
-              icon={GraduationCap}
-              title="Accreditation Body"
-            />
+            <AdminCardHeader icon={GraduationCap} title="Accreditation Body" />
             <div className="p-6">
               <FormField
                 control={form.control}
@@ -291,7 +289,7 @@ const InstitutionSettings = () => {
 
           {/* Grade Scales Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={GraduationCap} title="Grade Scales" />
+            <AdminCardHeader icon={GraduationCap} title="Grade Scales" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure letter grade mapping for the gradebook. Each row
@@ -425,7 +423,7 @@ const InstitutionSettings = () => {
 
           {/* Streak Sabbatical Card — Requirement 125.3, 125.4 */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={Flame} title="Streak Sabbatical" />
+            <AdminCardHeader icon={Flame} title="Streak Sabbatical" />
             <div className="p-6 space-y-4">
               <FormField
                 control={form.control}
@@ -457,7 +455,7 @@ const InstitutionSettings = () => {
 
           {/* League Tier Thresholds Card — Requirement 132.5 */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={Trophy} title="League Tier Thresholds" />
+            <AdminCardHeader icon={Trophy} title="League Tier Thresholds" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure the cumulative XP thresholds for each League Tier.
@@ -558,7 +556,7 @@ const InstitutionSettings = () => {
 
           {/* Default Language Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader
+            <AdminCardHeader
               icon={Globe}
               title={t("settings.defaultLanguage")}
             />

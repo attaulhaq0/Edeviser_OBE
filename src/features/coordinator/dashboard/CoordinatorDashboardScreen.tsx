@@ -64,8 +64,8 @@ import {
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { cn } from "@/lib/utils";
 
-const BRAND_GRADIENT = "var(--brand-gradient)";
-const HERO_GRADIENT = "var(--hero-gradient)";
+const BRAND_SURFACE = "#0f172a";
+const HERO_SURFACE = "#0f172a";
 
 /** Prototype `.pcard` surface (20px radius, hairline, two-layer depth). */
 const CARD =
@@ -86,6 +86,13 @@ const PILL: Record<Tone, string> = {
   green: "bg-green-50 text-green-700 border-green-100",
   blue: "bg-blue-50 text-blue-700 border-blue-100",
   slate: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
+const EVIDENCE_LABELS: Record<string, string> = {
+  cloMapping: "CLO ↔ PLO mappings",
+  samples: "Sample student work",
+  analysis: "Attainment analysis",
+  cqi: "CQI recommendations",
 };
 
 const CQI_TONE: Record<CQIPlanStatus, Tone> = {
@@ -169,13 +176,19 @@ const ActionChip = ({
     </>
   );
   return to ? (
-    <Link to={to} className={cls}>
-      {inner}
-    </Link>
+    <Button asChild variant="ghost" size="sm" className={cls}>
+      <Link to={to}>{inner}</Link>
+    </Button>
   ) : (
-    <button type="button" onClick={onClick} className={cls}>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className={cls}
+    >
       {inner}
-    </button>
+    </Button>
   );
 };
 
@@ -356,7 +369,7 @@ const CoordinatorDashboardScreen = () => {
       <HeroCarousel
         ariaLabel={t("dashboard.hub.carouselLabel", "Program highlights")}
         className="rounded-2xl text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
+        style={{ backgroundColor: HERO_SURFACE }}
         slides={[
           <div key="briefing" className="min-h-[126px] p-5">
             <div className="flex items-center gap-3">
@@ -597,6 +610,7 @@ const CoordinatorDashboardScreen = () => {
                         {t("dashboard.alerts.gapBody", {
                           defaultValue:
                             "{{gap}} pts below the {{threshold}}% success threshold.",
+                          pct: att,
                           gap: threshold - att,
                           threshold,
                         })}
@@ -747,7 +761,10 @@ const CoordinatorDashboardScreen = () => {
                         className={cn("h-3.5 w-3.5 shrink-0", cls)}
                         aria-hidden="true"
                       />
-                      {t(`dashboard.evidence.item.${item.key}`, item.key)}
+                      {t(
+                        `dashboard.evidence.item.${item.key}`,
+                        EVIDENCE_LABELS[item.key] ?? item.key
+                      )}
                     </span>
                     <span className={cn("text-[11px] font-semibold", cls)}>
                       {t(`dashboard.evidence.state.${item.state}`, item.state)}
@@ -844,7 +861,7 @@ const CoordinatorDashboardScreen = () => {
         </p>
         <span
           className="hidden shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold text-white sm:inline"
-          style={{ background: BRAND_GRADIENT }}
+          style={{ backgroundColor: BRAND_SURFACE }}
         >
           {t("dashboard.footer.tag", "Review-first")}
         </span>

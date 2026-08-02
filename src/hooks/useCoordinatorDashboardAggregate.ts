@@ -77,6 +77,12 @@ export const useCoordinatorDashboardAggregate = (
         queryKeys.coordinatorDashboard.list({}),
         payload
       );
+      if (institutionId) {
+        queryClient.setQueryData(
+          queryKeys.coordinatorDashboard.list({ institutionId }),
+          payload
+        );
+      }
 
       return payload;
     },

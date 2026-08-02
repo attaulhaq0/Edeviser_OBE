@@ -128,7 +128,7 @@ const XPEconomistDashboard = () => {
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background: "var(--brand-gradient)",
+                backgroundColor: "#0f172a",
               }}
             >
               <Activity className="h-5 w-5 text-white" />

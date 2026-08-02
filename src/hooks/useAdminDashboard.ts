@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface AdminKPIData {
   totalUsers: number;
@@ -205,13 +206,25 @@ export interface DepartmentAttainment {
 }
 
 export const useDepartmentAnalytics = () => {
+  const { institutionId, profile } = useAuth();
+
   return useQuery({
-    queryKey: [...queryKeys.adminDashboard.lists(), "department-analytics"],
+    queryKey: [
+      ...queryKeys.adminDashboard.lists(),
+      "department-analytics",
+      institutionId ?? "",
+    ],
+    enabled: !!institutionId && profile?.role === "admin",
     queryFn: async (): Promise<DepartmentAttainment[]> => {
+      if (!institutionId || profile?.role !== "admin") {
+        throw new Error("Forbidden: Caller is not an active Admin");
+      }
+
       // Fetch departments
       const { data: departments, error: deptError } = await supabase
         .from("departments")
         .select("id, name")
+        .eq("institution_id", institutionId)
         .order("name", { ascending: true });
       if (deptError) throw deptError;
       if (!departments || departments.length === 0) return [];
@@ -225,14 +238,16 @@ export const useDepartmentAnalytics = () => {
         supabase
           .from("programs")
           .select("id, department_id")
+          .eq("institution_id", institutionId)
           .eq("is_active", true),
         supabase
           .from("outcome_attainment")
           .select("outcome_id, attainment_percent, scope")
-          .in("scope", ["program", "institution"]),
+          .in("scope", ["course", "program", "institution"]),
         supabase
           .from("learning_outcomes")
           .select("id, type, program_id, institution_id")
+          .eq("institution_id", institutionId)
           .in("type", ["PLO", "ILO"]),
       ]);
       if (progError) throw progError;

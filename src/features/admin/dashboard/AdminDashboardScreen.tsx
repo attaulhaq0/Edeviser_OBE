@@ -54,8 +54,8 @@ import { attainmentValueClass } from "@/lib/attainmentTone";
 import { formatNumber } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
 
-const BRAND_GRADIENT = "var(--brand-gradient)";
-const HERO_GRADIENT = "var(--hero-gradient)";
+const BRAND_SURFACE = "#0f172a";
+const HERO_SURFACE = "#0f172a";
 
 /** Prototype `.pcard` surface. */
 const CARD =
@@ -125,7 +125,7 @@ const AdminDashboardScreen = () => {
       <HeroCarousel
         ariaLabel={t("dashboard.hero.carouselLabel", "Institution highlights")}
         className="rounded-2xl text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
+        style={{ background: HERO_SURFACE }}
         slides={[
           <div key="overview" className="min-h-[126px] p-5">
             <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ const AdminDashboardScreen = () => {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => navigate("/admin/reports")}
+                onClick={() => navigate("/admin/users")}
                 className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
               >
                 <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
@@ -210,7 +210,7 @@ const AdminDashboardScreen = () => {
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => navigate("/admin/reports")}
+                    onClick={() => navigate("/admin/analytics")}
                     className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
                   >
                     {t("dashboard.hero.openAnalytics", "Review")}
@@ -292,7 +292,7 @@ const AdminDashboardScreen = () => {
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 variant="tactile"
-                onClick={() => navigate("/admin/reports")}
+                onClick={() => navigate("/admin/analytics")}
               >
                 {t("dashboard.insight.analytics", "See analytics")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -316,13 +316,15 @@ const AdminDashboardScreen = () => {
             icon={School}
             title={t("dashboard.departments.title", "Departments by mastery")}
             action={
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => navigate("/admin/outcomes")}
-                className="text-xs font-bold text-sky-700 hover:underline"
+                className="h-auto p-0 text-xs font-bold text-sky-700 hover:underline"
               >
                 {t("dashboard.departments.all", "All →")}
-              </button>
+              </Button>
             }
             className="mb-3"
           />
@@ -374,13 +376,15 @@ const AdminDashboardScreen = () => {
             icon={Users}
             title={t("dashboard.usersByRole", "Users by role")}
             action={
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => navigate("/admin/users")}
-                className="text-xs font-bold text-sky-700 hover:underline"
+                className="h-auto p-0 text-xs font-bold text-sky-700 hover:underline"
               >
                 {t("dashboard.manage", "Manage →")}
-              </button>
+              </Button>
             }
             className="mb-3"
           />
@@ -428,7 +432,7 @@ const AdminDashboardScreen = () => {
         </p>
         <span
           className="hidden shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold text-white sm:inline"
-          style={{ background: BRAND_GRADIENT }}
+          style={{ background: BRAND_SURFACE }}
         >
           {t("dashboard.autonomy.tag", "Governed")}
         </span>
