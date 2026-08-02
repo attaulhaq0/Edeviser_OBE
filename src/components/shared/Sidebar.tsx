@@ -254,7 +254,7 @@ const Sidebar = () => {
                   className="side-sep mx-3 mb-2 mt-3 h-px bg-[#eef2f6]"
                   aria-hidden="true"
                 />
-                <p className="side-label px-4.5 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] leading-3.5 text-[#94a3b8]">
+                <p className="side-label px-4.5 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] leading-3.5 text-slate-600">
                   {t("nav.more")}
                 </p>
                 <div className="space-y-0.5">

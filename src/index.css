@@ -68,7 +68,7 @@
   --sidebar-label-size: 14px;
   --sidebar-label-weight: 600;
   --sidebar-active-color: #075985;
-  --sidebar-primary-muted: #7c8da6;
+  --sidebar-primary-muted: #475569;
   --sidebar-secondary-color: #5f7390;
   --sidebar-icon-muted: #91a4bd;
   --card: #ffffff;
@@ -201,7 +201,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #64748b;
   opacity: 1;
 }
 
@@ -761,7 +761,7 @@ html.font-x-large {
     border-radius: 12px;
     padding: 9px 12px;
     background: #f1f5f9;
-    color: #94a3b8;
+    color: #475569;
     font-size: 13px;
     cursor: text;
   }

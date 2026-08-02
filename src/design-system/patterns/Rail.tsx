@@ -40,12 +40,12 @@ export const RailHead = ({ title, right, onLight = true }: RailHeadProps) => (
   <div
     className={cn(
       "mb-2.5 flex items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.08em]",
-      onLight ? "text-slate-400" : "text-white/60"
+      onLight ? "text-slate-600" : "text-white/60"
     )}
   >
     <span>{title}</span>
     {right ? (
-      <span className="text-[10px] font-bold normal-case tracking-normal text-slate-400">
+      <span className="text-[10px] font-bold normal-case tracking-normal text-slate-600">
         {right}
       </span>
     ) : null}

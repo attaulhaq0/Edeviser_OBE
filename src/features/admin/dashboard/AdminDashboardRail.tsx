@@ -95,7 +95,7 @@ const AdminDashboardRail = () => {
               <span className="min-w-0 flex-1">
                 {t("dashboard.rail.active", "Active accounts")}
               </span>
-              <b className="text-[12px] font-extrabold text-green-600">
+              <b className="text-[12px] font-extrabold text-green-700">
                 {formatNumber(kpis?.activeUsers ?? 0)}
               </b>
             </RailRow>

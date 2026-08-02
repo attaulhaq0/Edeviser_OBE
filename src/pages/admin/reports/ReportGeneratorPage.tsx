@@ -40,7 +40,7 @@ const TEMPLATE_OPTIONS: Array<{
   {
     value: "HEC",
     label: "HEC",
-    description: "Higher Education Commission (Pakistan)",
+    description: "Higher Education Commission-aligned structure",
   },
   {
     value: "Generic",

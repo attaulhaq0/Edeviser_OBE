@@ -53,7 +53,7 @@ const GlobalHeader = () => {
             <img
               src="/edeviser-logo-final.png"
               className="h-8 w-auto object-contain"
-              alt="Edeviser"
+              alt=""
             />
             <span className="font-black text-xl tracking-tight text-slate-900 dark:text-white">
               Edeviser

@@ -155,7 +155,7 @@ const ProfileDropdown = () => {
             <span className="text-xs font-extrabold text-slate-900 dark:text-white">
               {profile.full_name}
             </span>
-            <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400">
+            <span className="text-[11px] font-bold text-teal-700 dark:text-teal-400">
               {profileSubtitle}
             </span>
             {isStudent && level.data ? (

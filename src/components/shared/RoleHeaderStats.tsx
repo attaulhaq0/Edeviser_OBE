@@ -129,7 +129,7 @@ const RoleHeaderStats = () => {
         <HeaderStatChip
           emoji="📊"
           value={`${activePercent}% ${t("header.stats.activeAccounts")}`}
-          color="#16a34a"
+          color="#15803d"
         />
       </div>
     );

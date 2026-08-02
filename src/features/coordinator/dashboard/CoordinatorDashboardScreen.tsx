@@ -90,7 +90,7 @@ const PILL: Record<Tone, string> = {
 
 const EVIDENCE_LABELS: Record<string, string> = {
   cloMapping: "CLO ↔ PLO mappings",
-  samples: "Sample student work",
+  samples: "Student work evidence",
   analysis: "Attainment analysis",
   cqi: "CQI recommendations",
 };
