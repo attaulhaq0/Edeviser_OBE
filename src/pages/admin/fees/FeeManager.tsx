@@ -28,6 +28,7 @@ import {
   type FeeStructure,
 } from "@/hooks/useFees";
 import { useAdminFeePayments } from "@/hooks/useAdminFeePayments";
+import { useAdminFeeEnrollmentCounts } from "@/hooks/useAdminFeeEnrollmentCounts";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
 import { formatCurrency } from "@/lib/i18nHelpers";
@@ -52,8 +53,10 @@ const schema = z.object({
 type FeeFormData = z.infer<typeof schema>;
 
 const FeeManager = () => {
-  const { data: fees = [], isLoading } = useFeeStructures();
+  const feesQuery = useFeeStructures();
+  const fees = feesQuery.data ?? [];
   const payments = useAdminFeePayments();
+  const enrollmentCounts = useAdminFeeEnrollmentCounts();
   const { data: programsResult } = usePrograms({ pageSize: 100 });
   const { data: semesters = [] } = useSemesters();
   const createMutation = useCreateFeeStructure();
@@ -85,13 +88,29 @@ const FeeManager = () => {
     () => new Map(semesters.map((semester) => [semester.id, semester.name])),
     [semesters]
   );
-  const expected = fees.reduce((sum, fee) => sum + fee.amount, 0);
+  const expected =
+    !feesQuery.isError &&
+    !payments.isError &&
+    !enrollmentCounts.isError &&
+    enrollmentCounts.data
+      ? fees.reduce(
+          (sum, fee) =>
+            sum +
+            fee.amount * (enrollmentCounts.data.byProgram[fee.program_id] ?? 0),
+          0
+        )
+      : null;
   const collected = paymentRows
     .filter((payment) => payment.status === "paid")
     .reduce((sum, payment) => sum + payment.amount_paid, 0);
-  const overdue = paymentRows.filter((payment) => payment.status === "overdue");
+  const collectedValue = payments.isError ? null : collected;
+  const overdue = payments.isError
+    ? []
+    : paymentRows.filter((payment) => payment.status === "overdue");
   const collectionRate =
-    expected > 0 ? Math.round((collected / expected) * 100) : 0;
+    expected != null && expected > 0 && collectedValue != null
+      ? Math.round((collectedValue / expected) * 100)
+      : null;
   const paidByStructure = new Map<string, number>();
   for (const payment of paymentRows)
     paidByStructure.set(
@@ -134,16 +153,20 @@ const FeeManager = () => {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <AdminStatCard
           label="Expected"
-          value={formatCurrency(expected, "en", "QAR")}
+          value={expected != null ? formatCurrency(expected, "en", "QAR") : "—"}
         />
         <AdminStatCard
           label="Collected"
-          value={formatCurrency(collected, "en", "QAR")}
+          value={
+            collectedValue != null
+              ? formatCurrency(collectedValue, "en", "QAR")
+              : "—"
+          }
           tone="green"
         />
         <AdminStatCard
           label="Collection rate"
-          value={`${collectionRate}%`}
+          value={collectionRate != null ? `${collectionRate}%` : "—"}
           tone="teal"
         />
         <AdminStatCard
@@ -152,6 +175,13 @@ const FeeManager = () => {
           tone="red"
         />
       </div>
+
+      {feesQuery.isError || payments.isError || enrollmentCounts.isError ? (
+        <p className="text-xs text-red-700">
+          Some live fee metrics are unavailable. Refresh after the data source
+          recovers.
+        </p>
+      ) : null}
 
       {showForm ? (
         <div className={`${adminCardClass} p-4`}>
@@ -286,7 +316,7 @@ const FeeManager = () => {
         <div className="mt-3 overflow-x-auto">
           <table className={adminTableClass}>
             <thead>
-              <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
                 <th className="px-2 py-2 text-start">Programme</th>
                 <th className="px-2 py-2 text-start">Term</th>
                 <th className="px-2 py-2 text-start">Fee type</th>
@@ -299,10 +329,13 @@ const FeeManager = () => {
             <tbody>
               {fees.map((fee) => {
                 const paid = paidByStructure.get(fee.id) ?? 0;
+                const expectedForStructure =
+                  fee.amount *
+                  (enrollmentCounts.data?.byProgram[fee.program_id] ?? 0);
                 const rate =
-                  fee.amount > 0
-                    ? Math.min(100, Math.round((paid / fee.amount) * 100))
-                    : 0;
+                  expectedForStructure > 0
+                    ? Math.round((paid / expectedForStructure) * 100)
+                    : null;
                 return (
                   <tr key={fee.id} className="border-b border-slate-100">
                     <td className="px-2 py-3 font-bold text-slate-900">
@@ -318,18 +351,24 @@ const FeeManager = () => {
                     <td className="px-2 py-3 text-slate-500">{fee.due_date}</td>
                     <td className="px-2 py-3 text-slate-500">
                       {formatCurrency(paid, "en", fee.currency)} /{" "}
-                      {formatCurrency(fee.amount, "en", fee.currency)}
+                      {expectedForStructure > 0
+                        ? formatCurrency(
+                            expectedForStructure,
+                            "en",
+                            fee.currency
+                          )
+                        : "—"}
                     </td>
                     <td className="px-2 py-3">
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-16 overflow-hidden rounded-full bg-slate-100">
                           <div
                             className="h-full bg-teal-500"
-                            style={{ width: `${rate}%` }}
+                            style={{ width: `${Math.min(rate ?? 0, 100)}%` }}
                           />
                         </div>
                         <span className="text-xs font-bold text-teal-700">
-                          {rate}%
+                          {rate != null ? `${rate}%` : "—"}
                         </span>
                       </div>
                     </td>
@@ -339,7 +378,7 @@ const FeeManager = () => {
             </tbody>
           </table>
         </div>
-        {!isLoading && fees.length === 0 ? (
+        {!feesQuery.isLoading && fees.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">
             No fee structures yet.
           </p>

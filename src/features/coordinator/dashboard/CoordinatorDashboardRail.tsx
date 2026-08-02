@@ -51,19 +51,24 @@ const CoordinatorDashboardRail = () => {
   const accred = useCoordinatorAccreditationReadiness(institutionId);
 
   const threshold =
-    aggregate.data?.targetAttainment ?? attainment.data?.successThreshold ?? 70;
+    aggregate.data?.targetAttainment ??
+    attainment.data?.successThreshold ??
+    null;
   const belowTarget = useMemo(
     () =>
       (attainment.data?.plos ?? [])
         .filter(
-          (p) => p.attainment != null && (p.attainment as number) < threshold
+          (p) =>
+            threshold != null &&
+            p.attainment != null &&
+            (p.attainment as number) < threshold
         )
         .sort((a, b) => (a.attainment as number) - (b.attainment as number))
         .slice(0, 3),
     [attainment.data, threshold]
   );
 
-  const cloCoverage = aggregate.data?.cloCoveragePercent ?? 0;
+  const cloCoverage = aggregate.data?.cloCoveragePercent ?? null;
   const readiness = accred.data?.readinessPercent ?? null;
 
   return (
@@ -125,6 +130,10 @@ const CoordinatorDashboardRail = () => {
         />
         {aggregate.isPending ? (
           <Shimmer className="h-12 rounded-lg" />
+        ) : aggregate.isError || cloCoverage == null ? (
+          <p className="text-xs text-slate-500">
+            {t("dashboard.rail.unavailable", "Live metrics unavailable.")}
+          </p>
         ) : (
           <>
             <RailRow>
@@ -134,7 +143,9 @@ const CoordinatorDashboardRail = () => {
               <b
                 className={cn(
                   "text-[12px] font-extrabold",
-                  cloCoverage >= 70 ? "text-green-600" : "text-amber-700"
+                  cloCoverage >= (threshold ?? 70)
+                    ? "text-green-600"
+                    : "text-amber-700"
                 )}
               >
                 {cloCoverage}%

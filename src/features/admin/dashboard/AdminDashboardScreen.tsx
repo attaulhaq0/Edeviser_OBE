@@ -78,10 +78,12 @@ const AdminDashboardScreen = () => {
 
   const aggregate = useAdminDashboardAggregate(institutionId);
   const kpis = aggregate.data;
-  const totalUsers = kpis?.totalUsers ?? 0;
-  const activeUsers = kpis?.activeUsers ?? 0;
-  const totalCourses = kpis?.totalCourses ?? 0;
-  const totalPrograms = kpis?.totalPrograms ?? 0;
+  const displayMetric = (value: number | null | undefined) =>
+    aggregate.isError || value == null ? "—" : formatNumber(value);
+  const totalUsers = kpis?.totalUsers;
+  const activeUsers = kpis?.activeUsers;
+  const totalCourses = kpis?.totalCourses;
+  const totalPrograms = kpis?.totalPrograms;
 
   const roleEntries = useMemo(() => {
     const byRole = kpis?.usersByRole ?? {};
@@ -111,7 +113,7 @@ const AdminDashboardScreen = () => {
             measuredDepts.reduce((s, d) => s + d.avg_plo_attainment, 0) /
               measuredDepts.length
           )
-        : 0,
+        : null,
     [measuredDepts]
   );
   const lowestDept =
@@ -154,7 +156,7 @@ const AdminDashboardScreen = () => {
                 <Users className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hero.users", {
                   defaultValue: "{{n}} users",
-                  n: formatNumber(totalUsers),
+                  n: displayMetric(totalUsers),
                 })}
               </Button>
               <Button
@@ -166,7 +168,7 @@ const AdminDashboardScreen = () => {
                 <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hero.active", {
                   defaultValue: "{{n}} active",
-                  n: formatNumber(activeUsers),
+                  n: displayMetric(activeUsers),
                 })}
               </Button>
               <Button
@@ -178,7 +180,7 @@ const AdminDashboardScreen = () => {
                 <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hero.programs", {
                   defaultValue: "{{n}} programs",
-                  n: formatNumber(totalPrograms),
+                  n: displayMetric(totalPrograms),
                 })}
               </Button>
             </div>
@@ -234,25 +236,27 @@ const AdminDashboardScreen = () => {
           <KPICard
             icon={Users}
             label={t("dashboard.totalUsers", "Users")}
-            value={formatNumber(totalUsers)}
+            value={displayMetric(totalUsers)}
           />
           <KPICard
             icon={UserCheck}
             label={t("dashboard.activeUsers", "Active users")}
-            value={formatNumber(activeUsers)}
+            value={displayMetric(activeUsers)}
             iconBgClass="bg-green-50"
             iconColorClass="text-green-600"
           />
           <KPICard
             icon={TrendingUp}
             label={t("dashboard.avgMastery", "Avg mastery")}
-            value={`${avgMastery}%`}
-            valueClassName={attainmentValueClass(avgMastery)}
+            value={avgMastery != null ? `${avgMastery}%` : "—"}
+            valueClassName={
+              avgMastery != null ? attainmentValueClass(avgMastery) : undefined
+            }
           />
           <KPICard
             icon={GraduationCap}
             label={t("dashboard.courses", "Courses")}
-            value={formatNumber(totalCourses)}
+            value={displayMetric(totalCourses)}
           />
         </div>
       )}
@@ -266,16 +270,23 @@ const AdminDashboardScreen = () => {
         />
         {kpiLoading ? (
           <Shimmer className="h-16 rounded-lg" />
+        ) : aggregate.isError ? (
+          <p className="text-sm text-slate-500">
+            {t(
+              "dashboard.insight.unavailable",
+              "Live institution metrics are unavailable."
+            )}
+          </p>
         ) : (
           <>
             <p className="text-sm leading-relaxed text-gray-700">
               {t("dashboard.insight.body", {
                 defaultValue:
                   "Your institution has {{users}} users ({{active}} active) across {{programs}} programs and {{courses}} courses.",
-                users: formatNumber(totalUsers),
-                active: formatNumber(activeUsers),
-                programs: formatNumber(totalPrograms),
-                courses: formatNumber(totalCourses),
+                users: displayMetric(totalUsers),
+                active: displayMetric(activeUsers),
+                programs: displayMetric(totalPrograms),
+                courses: displayMetric(totalCourses),
               })}
               {lowestDept && (
                 <>

@@ -78,7 +78,11 @@
     },
     "gap": {
       "title": "Curriculum gap detected",
+      "completeTitle": "Curriculum coverage complete",
+      "unknownTitle": "Curriculum coverage",
       "body": "A configured outcome has no mapped assessment",
+      "completeBody": "All configured outcomes have mapped assessments.",
+      "unknownBody": "Live curriculum coverage is unavailable.",
       "detail": "A configured outcome lacks assessment evidence and needs curriculum review.",
       "impact": "Estimated impact: Medium",
       "cta": "Open matrix"

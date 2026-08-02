@@ -718,10 +718,12 @@ const AppRouter = () => (
               element={<XPEconomistDashboard />}
             />
             <Route path="settings/profile" element={<AdminProfilePage />} />
+            <Route path="profile" element={<AdminProfilePage />} />
             <Route
               path="settings/institution"
               element={<DepartmentManager />}
             />
+            <Route path="structure" element={<DepartmentManager />} />
             <Route
               path="settings/configuration"
               element={<InstitutionSettingsPage />}
@@ -742,6 +744,9 @@ const AppRouter = () => (
               element={<Navigate to="/coordinator/dashboard" replace />}
             />
             <Route path="dashboard" element={<CoordinatorDashboard />} />
+            {/* Prototype deep links remain first-class routes alongside the
+                production navigation aliases. */}
+            <Route path="outcomes" element={<PLOListPage />} />
             <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="plos" element={<PLOListPage />} />
             <Route path="plos/new" element={<PLOForm />} />
@@ -784,6 +789,7 @@ const AppRouter = () => (
             <Route path="timetable" element={<TimetableManager />} />
             <Route path="sessions" element={<SessionManagement />} />
             <Route path="settings/profile" element={<ProfilePage />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           {/* Teacher routes */}

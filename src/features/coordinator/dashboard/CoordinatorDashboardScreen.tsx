@@ -232,20 +232,22 @@ const CoordinatorDashboardScreen = () => {
   const lang = i18n.language;
 
   const aggregate = useCoordinatorDashboardAggregate(institutionId);
-  const avgAttainment = aggregate.data?.avgAttainmentPercent ?? 0;
-  const cloCoverage = aggregate.data?.cloCoveragePercent ?? 0;
+  const avgAttainment = aggregate.data?.avgAttainmentPercent ?? null;
+  const cloCoverage = aggregate.data?.cloCoveragePercent ?? null;
 
   const { data: paginatedPrograms } = usePrograms(undefined, {
     enabled: !!institutionId,
   });
   const programsCount =
-    aggregate.data?.assignedPrograms ?? paginatedPrograms?.data?.length ?? 0;
+    aggregate.data?.assignedPrograms ?? paginatedPrograms?.data?.length ?? null;
 
   const ai = useCoordinatorAiInsights(institutionId);
 
   const attainment = useCoordinatorOutcomeAttainment(institutionId);
   const threshold =
-    aggregate.data?.targetAttainment ?? attainment.data?.successThreshold ?? 80;
+    aggregate.data?.targetAttainment ??
+    attainment.data?.successThreshold ??
+    null;
   const measuredPlos = useMemo(
     () => (attainment.data?.plos ?? []).filter((p) => p.attainment != null),
     [attainment.data]
@@ -253,12 +255,15 @@ const CoordinatorDashboardScreen = () => {
   const belowTargetPlos = useMemo(
     () =>
       measuredPlos
-        .filter((p) => (p.attainment as number) < threshold)
+        .filter(
+          (p) => threshold != null && (p.attainment as number) < threshold
+        )
         .sort((a, b) => (a.attainment as number) - (b.attainment as number)),
     [measuredPlos, threshold]
   );
   const belowTargetCount =
-    aggregate.data?.belowTargetCount ?? belowTargetPlos.length;
+    aggregate.data?.belowTargetCount ??
+    (threshold != null ? belowTargetPlos.length : null);
   const lowestPlo = useMemo(
     () =>
       measuredPlos.reduce<AttainmentPLO | null>(
@@ -389,7 +394,7 @@ const CoordinatorDashboardScreen = () => {
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {belowTargetCount > 0 ? (
+              {belowTargetCount != null && belowTargetCount > 0 ? (
                 <ActionChip
                   icon={TrendingDown}
                   label={t("dashboard.hub.ploBelow", {
@@ -495,21 +500,29 @@ const CoordinatorDashboardScreen = () => {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KpiFilter
             label={t("dashboard.kpi.programs", "Programs")}
-            value={programsCount}
+            value={programsCount ?? "—"}
             filterLabel={t("dashboard.kpi.manage", "Manage")}
             to="/coordinator/matrix"
           />
           <KpiFilter
             label={t("dashboard.kpi.avgPlo", "Avg PLO")}
-            value={`${avgAttainment}%`}
-            valueClass={attainmentValueClass(avgAttainment)}
+            value={avgAttainment != null ? `${avgAttainment}%` : "—"}
+            valueClass={
+              avgAttainment != null
+                ? attainmentValueClass(avgAttainment)
+                : undefined
+            }
             filterLabel={t("dashboard.kpi.allOutcomes", "All outcomes")}
             to="/coordinator/plos"
           />
           <KpiFilter
             label={t("dashboard.kpi.belowTarget", "Below target")}
-            value={belowTargetCount}
-            valueClass={belowTargetCount > 0 ? "text-amber-600" : undefined}
+            value={belowTargetCount ?? "—"}
+            valueClass={
+              belowTargetCount != null && belowTargetCount > 0
+                ? "text-amber-600"
+                : undefined
+            }
             filterLabel={t("dashboard.kpi.filterBelow", "Filter below-target")}
             to="/coordinator/gap-analysis"
           />
@@ -556,7 +569,7 @@ const CoordinatorDashboardScreen = () => {
           <div className="rounded-[20px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">
             {t("dashboard.alerts.error", "Couldn't load outcome attainment.")}
           </div>
-        ) : belowTargetCount > 0 ? (
+        ) : belowTargetCount != null && belowTargetCount > 0 ? (
           <div className="space-y-3">
             {belowTargetPlos.slice(0, 3).map((plo) => {
               const att = plo.attainment as number;
@@ -611,7 +624,7 @@ const CoordinatorDashboardScreen = () => {
                           defaultValue:
                             "{{gap}} pts below the {{threshold}}% success threshold.",
                           pct: att,
-                          gap: threshold - att,
+                          gap: threshold != null ? threshold - att : "—",
                           threshold,
                         })}
                       </p>
@@ -681,29 +694,48 @@ const CoordinatorDashboardScreen = () => {
         >
           <SectionHeader
             icon={LayoutGrid}
-            title={t("dashboard.gap.title", "Curriculum coverage")}
+            title={t(
+              cloCoverage === 100
+                ? "dashboard.gap.completeTitle"
+                : cloCoverage == null
+                ? "dashboard.gap.unknownTitle"
+                : "dashboard.gap.title",
+              cloCoverage === 100
+                ? "Curriculum coverage complete"
+                : cloCoverage == null
+                ? "Curriculum coverage"
+                : "Curriculum gap detected"
+            )}
             className="mb-3"
           />
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-gray-900">
-              {cloCoverage}%
+              {cloCoverage != null ? `${cloCoverage}%` : "—"}
             </span>
             <p className="min-w-0 flex-1 text-xs text-gray-500">
-              {t("dashboard.gap.body", {
-                defaultValue:
-                  "of PLOs have at least one mapped assessment. Review the matrix for coverage holes.",
-              })}
+              {t(
+                cloCoverage === 100
+                  ? "dashboard.gap.completeBody"
+                  : cloCoverage == null
+                  ? "dashboard.gap.unknownBody"
+                  : "dashboard.gap.body",
+                cloCoverage === 100
+                  ? "All configured outcomes have mapped assessments."
+                  : cloCoverage == null
+                  ? "Live curriculum coverage is unavailable."
+                  : "of PLOs have at least one mapped assessment. Review the matrix for coverage holes."
+              )}
             </p>
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-blue-500"
-              style={{ width: `${cloCoverage}%` }}
+              style={{ width: `${cloCoverage ?? 0}%` }}
             />
           </div>
           <span
             className="mt-3 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
-            style={{ background: "#0382bd" }}
+            style={{ background: "var(--action-primary)" }}
           >
             {t("dashboard.gap.cta", "Open matrix")}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -729,6 +761,10 @@ const CoordinatorDashboardScreen = () => {
             <div
               className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100"
               role="progressbar"
+              aria-label={t(
+                "dashboard.evidence.overall",
+                "Overall accreditation readiness"
+              )}
               aria-valuenow={readiness ?? 0}
               aria-valuemin={0}
               aria-valuemax={100}
