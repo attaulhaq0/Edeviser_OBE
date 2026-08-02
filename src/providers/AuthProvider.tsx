@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, email, full_name, role, institution_id, avatar_url, is_active, onboarding_completed, portfolio_public, theme_preference, language_preference, preferred_language, notification_preferences, last_seen_at, tos_accepted_at, tour_completed_at, status, created_at"
+          "id, email, full_name, role, institution_id, avatar_url, is_active, onboarding_completed, portfolio_public, theme_preference, language_preference, preferred_language, notification_preferences, last_seen_at, tos_accepted_at, tour_completed_at, status, created_at, department, designation, academic_rank, highest_degree, years_experience, phone, office_location, office_hours, bio"
         )
         .eq("id", userId)
         .maybeSingle();

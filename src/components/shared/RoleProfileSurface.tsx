@@ -1,13 +1,24 @@
-import type { ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
+  BarChart3,
+  BookOpen,
+  Building2,
+  Circle,
+  FileText,
+  GraduationCap,
   KeyRound,
   Mail,
+  Plug,
   Monitor,
   Moon,
+  Shield,
   ShieldCheck,
   Sun,
+  Target,
+  User,
+  Users,
   UserRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -20,6 +31,44 @@ import AvatarUpload from "@/components/shared/AvatarUpload";
 import EmailPreferencesSection from "@/components/shared/EmailPreferencesSection";
 import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { cn } from "@/lib/utils";
+
+const ICON_BY_EMOJI: Record<string, LucideIcon> = {
+  "✉️": Mail,
+  "🏛️": Building2,
+  "🏫": Building2,
+  "🛡️": Shield,
+  "👥": Users,
+  "🧑‍🏫": GraduationCap,
+  "📚": BookOpen,
+  "🎓": GraduationCap,
+  "🎯": Target,
+  "📈": BarChart3,
+  "🪪": FileText,
+  "🔑": KeyRound,
+  "🌐": Building2,
+  "🔌": Plug,
+  "🧾": FileText,
+  "👤": User,
+  "📊": BarChart3,
+  "🎚️": Target,
+  "🧠": Target,
+  "👁️": UserRound,
+  "📅": FileText,
+};
+
+const iconForEmoji = (emoji: string): LucideIcon =>
+  ICON_BY_EMOJI[emoji] ?? Circle;
+
+const EmojiIcon = ({
+  emoji,
+  className,
+}: {
+  emoji: string;
+  className?: string;
+}) => {
+  const Icon = iconForEmoji(emoji);
+  return createElement(Icon, { className, "aria-hidden": true });
+};
 
 export interface RoleProfileStat {
   label: string;
@@ -78,10 +127,10 @@ export const ProfileSectionCard = ({
   <PCard className={cn("overflow-hidden p-0", className)}>
     <div className="flex min-h-14 items-center gap-2 border-b border-slate-100 px-4 py-3">
       <span
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-base shadow-sm"
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-white/80 shadow-sm"
         aria-hidden="true"
       >
-        {emoji}
+        <EmojiIcon emoji={emoji} className="size-4 text-slate-600" />
       </span>
       <h2 className="min-w-0 flex-1 text-sm font-black text-slate-950">
         {title}
@@ -212,12 +261,12 @@ const RoleProfileSurface = ({
                       >
                         <span
                           className={cn(
-                            "inline-flex size-8 shrink-0 items-center justify-center rounded-lg",
-                            toneClasses[stat.tone ?? "blue"]
+                            "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200/60 bg-white/80",
+                            toneClasses[stat.tone ?? "blue"].split(" ")[1]
                           )}
                         >
                           {stat.emoji ? (
-                            <span aria-hidden="true">{stat.emoji}</span>
+                            <EmojiIcon emoji={stat.emoji} className="size-4" />
                           ) : Icon ? (
                             <Icon className="size-4" aria-hidden="true" />
                           ) : null}
@@ -270,8 +319,11 @@ const RoleProfileSurface = ({
                 ]
               ).map((row) => (
                 <div key={`${row.emoji}-${row.label}`} className="flex gap-2">
-                  <span className="w-5 text-center" aria-hidden="true">
-                    {row.emoji}
+                  <span className="flex w-5 justify-center" aria-hidden="true">
+                    <EmojiIcon
+                      emoji={row.emoji}
+                      className="size-4 text-slate-500"
+                    />
                   </span>
                   {row.href ? (
                     <a
@@ -340,7 +392,7 @@ const RoleProfileSurface = ({
                       className="h-auto justify-start gap-3 rounded-xl px-3 py-3"
                     >
                       <Link to={link.to}>
-                        <span className="inline-flex size-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+                        <span className="inline-flex size-9 items-center justify-center rounded-lg border border-slate-200/60 bg-white/80 text-blue-700">
                           <Icon className="size-4" aria-hidden="true" />
                         </span>
                         <span className="truncate">{link.label}</span>
