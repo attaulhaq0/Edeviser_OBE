@@ -31,20 +31,18 @@ export const useAdminDashboardAggregate = (
     enabled: !!institutionId,
     staleTime: DASHBOARD_STALE_TIME_MS,
     queryFn: async (): Promise<AdminKPIData> => {
-      // `get_admin_dashboard` is added by migration 20260821000013 and is not in
-      // the generated Database types until regenerated post-merge, so cast the
-      // rpc call (same pattern as useCoordinatorDashboardAggregate / get_xp_balance).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc(
-        "get_admin_dashboard",
-        {}
+      // `get_admin_dashboard` is added by a deployed migration and is not in
+      // the generated Database types until the next schema regeneration.
+      const { data, error } = await supabase.rpc(
+        "get_admin_dashboard" as never,
+        {} as never
       );
       if (error) throw error;
       if (!data) {
         throw new Error("get_admin_dashboard returned no data");
       }
 
-      const payload = data as AdminKPIData;
+      const payload = data as unknown as AdminKPIData;
 
       // Hydrate the EXACT cache `useAdminKPIs` reads so it becomes a hit.
       queryClient.setQueryData(queryKeys.adminDashboard.list({}), payload);

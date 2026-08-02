@@ -63,7 +63,7 @@ export const AdminStatCard = ({
   tone?: "default" | "teal" | "green" | "red";
 }) => (
   <div className={cn(adminCardClass, "p-3.5")}>
-    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
       {label}
     </p>
     <p

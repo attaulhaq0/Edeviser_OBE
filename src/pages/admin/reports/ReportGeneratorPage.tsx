@@ -156,7 +156,10 @@ const ReportGeneratorPage = () => {
       </div>
 
       <div className={`${adminCardClass} overflow-hidden`}>
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-900 px-4 py-4 text-white">
+        <div
+          className="flex items-center justify-between gap-3 border-b border-white/20 px-4 py-4 text-white"
+          style={{ background: "var(--brand-gradient)" }}
+        >
           <div className="flex items-center gap-2">
             <span
               className="inline-flex size-8 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-base"

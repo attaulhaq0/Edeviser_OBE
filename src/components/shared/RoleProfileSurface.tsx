@@ -45,6 +45,7 @@ interface RoleProfileSurfaceProps {
   scopeLabel: string;
   stats: RoleProfileStat[];
   isLoading?: boolean;
+  hasError?: boolean;
   overviewTitle: string;
   overviewDescription: string;
   overviewRows: RoleProfileRow[];
@@ -115,7 +116,7 @@ export const ProfileSettingRow = ({
         {title}
       </p>
       {description ? (
-        <p className="mt-0.5 text-xs leading-4 text-slate-400">{description}</p>
+        <p className="mt-0.5 text-xs leading-4 text-slate-500">{description}</p>
       ) : null}
     </div>
     <div className="shrink-0">{trailing}</div>
@@ -134,6 +135,7 @@ const RoleProfileSurface = ({
   scopeLabel,
   stats,
   isLoading = false,
+  hasError = false,
   overviewTitle,
   overviewDescription,
   overviewRows,
@@ -182,7 +184,7 @@ const RoleProfileSurface = ({
                 </h1>
                 <p className="truncate text-sm font-semibold text-slate-600">
                   {roleLabel}
-                  <span className="font-medium text-slate-400">
+                  <span className="font-medium text-slate-500">
                     {" "}
                     · {scopeLabel}
                   </span>
@@ -222,11 +224,13 @@ const RoleProfileSurface = ({
                         </span>
                         <span className="min-w-0">
                           <strong className="block truncate text-sm font-black text-slate-900">
-                            {typeof stat.value === "number"
+                            {hasError
+                              ? "Unavailable"
+                              : typeof stat.value === "number"
                               ? stat.value.toLocaleString()
                               : stat.value}
                           </strong>
-                          <span className="block truncate text-[10px] font-bold uppercase tracking-[0.06em] text-slate-400">
+                          <span className="block truncate text-[10px] font-bold uppercase tracking-[0.06em] text-slate-500">
                             {stat.label}
                           </span>
                         </span>

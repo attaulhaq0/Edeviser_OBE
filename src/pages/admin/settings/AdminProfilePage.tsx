@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
+import { useRecentAuditLogs } from "@/hooks/useAdminDashboard";
+import { useConnectedIntegrations } from "@/hooks/useConnectedIntegrations";
+import { useInstitutionProfile } from "@/hooks/useInstitutionProfile";
 import {
   AdminSectionHeader,
   AdminStatusPill,
@@ -33,15 +36,24 @@ const AdminProfilePage = () => {
   const { t } = useTranslation("common");
   const { profile, institutionId } = useAuth();
   const aggregate = useAdminDashboardAggregate(profile?.institution_id);
+  const institutionQuery = useInstitutionProfile(institutionId);
+  const integrationsQuery = useConnectedIntegrations(profile?.id);
+  const recentActivityQuery = useRecentAuditLogs(4, {
+    enabled: Boolean(profile?.id),
+  });
   const kpis = aggregate.data;
   const learnerCount = kpis?.usersByRole.student ?? 0;
   const teacherCount = kpis?.usersByRole.teacher ?? 0;
+  const hasAggregateError = aggregate.isError;
+  const integrationStatus = integrationsQuery.data ?? {};
+  const institution = institutionQuery.data;
 
   return (
     <RoleProfileSurface
       roleLabel={t("roleProfile.admin.role")}
       scopeLabel={t("roleProfile.admin.scope")}
       isLoading={aggregate.isPending}
+      hasError={hasAggregateError}
       primaryActionLabel={t("roleProfile.admin.institutionPage")}
       primaryActionHref="/admin/settings/institution"
       contactRows={[
@@ -206,6 +218,7 @@ const AdminProfilePage = () => {
         <AdminSectionHeader emoji="🔌" title="Connected integrations" />
         <div className="mt-3 divide-y divide-slate-100">
           {integrationOptions.map(([emoji, label, description, key]) => {
+            const isConnected = integrationStatus[key] === "connected";
             return (
               <div key={key} className="flex items-center gap-3 py-3">
                 <span className="text-lg" aria-hidden="true">
@@ -215,9 +228,23 @@ const AdminProfilePage = () => {
                   <p className="text-sm font-semibold text-slate-800">
                     {label}
                   </p>
-                  <p className="text-[11px] text-slate-400">{description}</p>
+                  <p className="text-[11px] text-slate-500">{description}</p>
                 </div>
-                <AdminStatusPill tone="slate">Not connected</AdminStatusPill>
+                <AdminStatusPill
+                  tone={
+                    integrationsQuery.isError
+                      ? "amber"
+                      : isConnected
+                      ? "green"
+                      : "slate"
+                  }
+                >
+                  {integrationsQuery.isError
+                    ? "Unavailable"
+                    : isConnected
+                    ? "Connected"
+                    : "Not connected"}
+                </AdminStatusPill>
               </div>
             );
           })}
@@ -241,9 +268,39 @@ const AdminProfilePage = () => {
           }
         />
         <div className="mt-3 divide-y divide-slate-100">
-          <p className="py-6 text-sm text-slate-500">
-            Open the audit log for the live institution activity stream.
-          </p>
+          {recentActivityQuery.isPending ? (
+            <p className="py-6 text-sm text-slate-500">
+              Loading live activity…
+            </p>
+          ) : recentActivityQuery.isError ? (
+            <p className="py-6 text-sm text-amber-700">
+              Activity is temporarily unavailable.
+            </p>
+          ) : recentActivityQuery.data &&
+            recentActivityQuery.data.length > 0 ? (
+            recentActivityQuery.data.map((entry) => (
+              <div key={entry.id} className="flex items-center gap-3 py-3">
+                <span
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-sm"
+                  aria-hidden="true"
+                >
+                  🧾
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-800">
+                    {entry.action} {entry.entity_type}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    {new Date(entry.created_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="py-6 text-sm text-slate-500">
+              No institution activity has been recorded yet.
+            </p>
+          )}
         </div>
       </div>
 
@@ -251,13 +308,35 @@ const AdminProfilePage = () => {
         <AdminSectionHeader emoji="🏛️" title="Institution information" />
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {[
-            ["Institution ID", institutionId ?? "—"],
-            ["Institution", institutionId ? "Connected institution" : "—"],
-            ["Region", "—"],
-            ["Departments", "Manage in institution settings"],
+            [
+              "Institution ID",
+              institutionQuery.isError
+                ? "Unavailable"
+                : institution?.id ?? institutionId ?? "—",
+            ],
+            [
+              "Institution",
+              institutionQuery.isError
+                ? "Unavailable"
+                : institution?.name ?? "Not available",
+            ],
+            [
+              "Accreditation body",
+              institutionQuery.isError
+                ? "Unavailable"
+                : institution?.accreditation_body ?? "Not configured",
+            ],
+            [
+              "Created",
+              institutionQuery.isError
+                ? "Unavailable"
+                : institution?.created_at
+                ? new Date(institution.created_at).toLocaleDateString()
+                : "Not available",
+            ],
           ].map(([label, value]) => (
             <div key={label}>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                 {label}
               </p>
               <p className="mt-0.5 text-sm font-bold text-slate-900">{value}</p>

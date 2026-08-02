@@ -60,6 +60,37 @@ vi.mock("@/hooks/useAdminDashboardAggregate", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useAdminDashboard", () => ({
+  useRecentAuditLogs: () => ({
+    data: [],
+    isPending: false,
+    isError: false,
+  }),
+}));
+
+vi.mock("@/hooks/useConnectedIntegrations", () => ({
+  useConnectedIntegrations: () => ({
+    data: {},
+    isPending: false,
+    isError: false,
+  }),
+}));
+
+vi.mock("@/hooks/useInstitutionProfile", () => ({
+  useInstitutionProfile: () => ({
+    data: {
+      id: "institution-1",
+      name: "Noor International School",
+      slug: "noor-international-school",
+      logo_url: null,
+      accreditation_body: null,
+      created_at: "2026-01-01T00:00:00Z",
+    },
+    isPending: false,
+    isError: false,
+  }),
+}));
+
 vi.mock("@/hooks/useTeacherDashboardAggregate", () => ({
   useTeacherDashboardAggregate: () => ({
     data: {

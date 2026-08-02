@@ -75,7 +75,7 @@
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #3b82f6; /* brand blue — primary CTA / active / links */
+  --primary: #2563eb; /* accessible brand blue — primary CTA / active / links */
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9; /* slate-100 */
   --secondary-foreground: #0f172a;
@@ -109,7 +109,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #3b82f6; /* brand blue (prototype is light-only; dark is parity) */
+  --primary: #2563eb; /* accessible brand blue (prototype is light-only; dark is parity) */
   --primary-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -246,7 +246,7 @@
   --gradient-end: #0382bd; /* Blue */
 
   /* === GLOBAL PRIMARY ACTION BUTTON TOKENS === */
-  --action-primary: #0382bd;
+  --action-primary: #026fa3;
   --action-primary-hover: #026fa3;
   --action-primary-active: #025c88;
   --action-primary-text: #ffffff;
@@ -691,7 +691,7 @@ html.font-x-large {
 /* Tactile (pressable) button surface — solid action palette (#0382bd / #026fa3 / #025c88).
    Applied via the Button `tactile` variant. Keyboard focus ring is inherited from Button base. */
 .btn-tactile {
-  background-color: var(--action-primary, #0382bd);
+  background-color: var(--action-primary, #026fa3);
   color: var(--action-primary-text, #ffffff);
   box-shadow: 0 4px 0 0 var(--action-primary-active, #025c88);
   transition: transform 0.1s ease, box-shadow 0.1s ease,
