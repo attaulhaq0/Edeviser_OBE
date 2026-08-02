@@ -202,6 +202,9 @@ const FeeManager = lazy(() => import("@/pages/admin/fees/FeeManager"));
 const DataImportPage = lazy(
   () => import("@/pages/admin/import/DataImportPage")
 );
+const AdminAnnouncementsPage = lazy(
+  () => import("@/pages/admin/announcements/AdminAnnouncementsPage")
+);
 
 // ---------------------------------------------------------------------------
 // Public portfolio (unauthenticated)
@@ -645,6 +648,7 @@ const AppRouter = () => (
               element={<AdminAccreditationReportsPage />}
             />
             <Route path="notifications" element={<NotificationsFeedPage />} />
+            <Route path="announcements" element={<AdminAnnouncementsPage />} />
             <Route path="users" element={<UserListPage />} />
             <Route path="users/new" element={<UserForm />} />
             <Route path="users/import" element={<BulkImportPage />} />

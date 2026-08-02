@@ -123,6 +123,11 @@ const adminNavItems: NavItem[] = [
   { to: "/admin/marketplace", labelKey: "nav.marketplace", icon: Store },
   { to: "/admin/surveys", labelKey: "nav.surveys", icon: ClipboardList },
   { to: "/admin/notifications", labelKey: "nav.notifications", icon: Bell },
+  {
+    to: "/admin/announcements",
+    labelKey: "nav.announcements",
+    icon: Megaphone,
+  },
 ];
 
 const coordinatorNavItems: NavItem[] = [

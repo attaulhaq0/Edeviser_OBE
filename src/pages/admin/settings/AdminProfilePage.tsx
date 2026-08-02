@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
+import {
+  AdminSectionHeader,
+  AdminStatusPill,
+  adminCardClass,
+} from "@/components/shared/AdminPrototypePrimitives";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import RoleProfileSurface, {
@@ -12,9 +17,21 @@ import RoleProfileSurface, {
 import RoleProfileAccountPanels from "@/components/shared/RoleProfileAccountPanels";
 import EmailPreferencesSection from "@/components/shared/EmailPreferencesSection";
 
+const integrationOptions = [
+  [
+    "🔑",
+    "Single Sign-On (SAML)",
+    "Staff & student login via your identity provider",
+    "saml",
+  ],
+  ["🎓", "Student Information System", "Enrollment & roster sync", "sis"],
+  ["📧", "Email provider", "Transactional email & digests", "resend"],
+  ["📅", "Google Workspace", "Calendar & roster", "google_calendar"],
+] as const;
+
 const AdminProfilePage = () => {
   const { t } = useTranslation("common");
-  const { profile } = useAuth();
+  const { profile, institutionId } = useAuth();
   const aggregate = useAdminDashboardAggregate(profile?.institution_id);
   const kpis = aggregate.data;
   const learnerCount = kpis?.usersByRole.student ?? 0;
@@ -26,7 +43,7 @@ const AdminProfilePage = () => {
       scopeLabel={t("roleProfile.admin.scope")}
       isLoading={aggregate.isPending}
       primaryActionLabel={t("roleProfile.admin.institutionPage")}
-      primaryActionHref="/admin/institution"
+      primaryActionHref="/admin/settings/institution"
       contactRows={[
         {
           emoji: "✉️",
@@ -84,9 +101,9 @@ const AdminProfilePage = () => {
             title={t("roleProfile.admin.bilingual")}
             description={t("roleProfile.admin.bilingualDescription")}
             trailing={
-              <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-                {t("roleProfile.admin.enabled")}
-              </Badge>
+              <AdminStatusPill tone="green">
+                {profile?.language_preference === "ar" ? "عربي" : "EN"}
+              </AdminStatusPill>
             }
           />
           <ProfileSettingRow
@@ -94,7 +111,7 @@ const AdminProfilePage = () => {
             description={t("roleProfile.admin.thresholdDescription")}
             trailing={
               <Button asChild variant="outline" size="sm">
-                <Link to="/admin/settings">
+                <Link to="/admin/settings/institution">
                   {t("roleProfile.admin.configure")}
                 </Link>
               </Button>
@@ -104,9 +121,7 @@ const AdminProfilePage = () => {
             title={t("roleProfile.admin.parentReports")}
             description={t("roleProfile.admin.parentReportsDescription")}
             trailing={
-              <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-                {t("roleProfile.admin.enabled")}
-              </Badge>
+              <AdminStatusPill tone="slate">Not configured</AdminStatusPill>
             }
           />
           <ProfileSettingRow
@@ -117,6 +132,13 @@ const AdminProfilePage = () => {
                   ? t("roleProfile.statusActive")
                   : t("roleProfile.statusInactive")}
               </Badge>
+            }
+          />
+          <ProfileSettingRow
+            title="Streak Sabbatical"
+            description="Pause streak decay during scheduled breaks and holidays"
+            trailing={
+              <AdminStatusPill tone="slate">Not configured</AdminStatusPill>
             }
           />
         </ProfileSectionCard>
@@ -178,6 +200,70 @@ const AdminProfilePage = () => {
             </div>
           ))}
         </ProfileSectionCard>
+      </div>
+
+      <div className={`${adminCardClass} p-4`}>
+        <AdminSectionHeader emoji="🔌" title="Connected integrations" />
+        <div className="mt-3 divide-y divide-slate-100">
+          {integrationOptions.map(([emoji, label, description, key]) => {
+            return (
+              <div key={key} className="flex items-center gap-3 py-3">
+                <span className="text-lg" aria-hidden="true">
+                  {emoji}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800">
+                    {label}
+                  </p>
+                  <p className="text-[11px] text-slate-400">{description}</p>
+                </div>
+                <AdminStatusPill tone="slate">Not connected</AdminStatusPill>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={`${adminCardClass} p-4`}>
+        <AdminSectionHeader
+          emoji="🧾"
+          title="Recent admin activity"
+          action={
+            <Button
+              asChild
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 text-xs font-bold"
+            >
+              <Link to="/admin/audit-log">View audit log</Link>
+            </Button>
+          }
+        />
+        <div className="mt-3 divide-y divide-slate-100">
+          <p className="py-6 text-sm text-slate-500">
+            Open the audit log for the live institution activity stream.
+          </p>
+        </div>
+      </div>
+
+      <div className={`${adminCardClass} p-4`}>
+        <AdminSectionHeader emoji="🏛️" title="Institution information" />
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {[
+            ["Institution ID", institutionId ?? "—"],
+            ["Institution", institutionId ? "Connected institution" : "—"],
+            ["Region", "—"],
+            ["Departments", "Manage in institution settings"],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {label}
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-slate-900">{value}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

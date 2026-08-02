@@ -193,7 +193,7 @@ const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
     { to: "/admin/badges", labelKey: "nav.badgeDefinitions", emoji: "🏅" },
     { to: "/admin/security", labelKey: "nav.security", emoji: "🔒" },
     { to: "/admin/fees", labelKey: "nav.feesManagement", emoji: "💳" },
-    { to: "/admin/notifications", labelKey: "nav.announcements", emoji: "📣" },
+    { to: "/admin/announcements", labelKey: "nav.announcements", emoji: "📣" },
     { to: "/admin/notifications", labelKey: "nav.notifications", emoji: "🔔" },
   ],
 };

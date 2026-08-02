@@ -60,6 +60,20 @@ export const useFeePayments = (feeStructureId?: string) => {
   });
 };
 
+export const useAllFeePayments = () => {
+  return useQuery({
+    queryKey: queryKeys.feePayments.lists(),
+    queryFn: async (): Promise<FeePayment[]> => {
+      const { data, error } = await supabase
+        .from("fee_payments")
+        .select("*")
+        .order("payment_date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as FeePayment[];
+    },
+  });
+};
+
 export const useStudentFees = (studentId?: string) => {
   return useQuery({
     queryKey: queryKeys.studentFees.list({ studentId }),

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,6 +19,11 @@ import {
 } from "@/hooks/useAccreditationReport";
 import { toast } from "sonner";
 import { FileText, Download, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import {
+  AdminStatusPill,
+  adminCardClass,
+  adminPageClass,
+} from "@/components/shared/AdminPrototypePrimitives";
 
 // ─── Template options ───────────────────────────────────────────────────────
 
@@ -110,7 +114,8 @@ const ReportGeneratorPage = () => {
     generateMutation.mutate(
       {
         program_id: programId,
-        semester_id: semesterId || undefined,
+        semester_id:
+          semesterId && semesterId !== "all" ? semesterId : undefined,
         template,
         email_to: emailTo || undefined,
       },
@@ -140,27 +145,30 @@ const ReportGeneratorPage = () => {
   const isLoading = programsLoading || semestersLoading;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
+    <div className={adminPageClass}>
+      <div>
+        <h1 className="text-xl font-black tracking-tight text-slate-900">
           Accreditation Reports
         </h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Generate evidence-ready programme reports from live attainment data.
+        </p>
       </div>
 
-      {/* Report Configuration Card */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <FileText className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Generate Report
-          </h2>
+      <div className={`${adminCardClass} overflow-hidden`}>
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-900 px-4 py-4 text-white">
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-flex size-8 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-base"
+              aria-hidden="true"
+            >
+              📄
+            </span>
+            <h2 className="text-sm font-black text-white">Generate Report</h2>
+          </div>
+          <AdminStatusPill tone="slate">Live data</AdminStatusPill>
         </div>
-        <div className="p-6 space-y-6">
+        <div className="space-y-5 p-4 md:p-6">
           {isLoading ? (
             <div className="space-y-4">
               <Shimmer className="h-10 rounded-lg" />
@@ -277,23 +285,18 @@ const ReportGeneratorPage = () => {
             </>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Result Card */}
       {lastResult && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <CheckCircle2 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
+        <div className={`${adminCardClass} overflow-hidden`}>
+          <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-4 text-emerald-800">
+            <CheckCircle2 className="size-5" />
+            <h2 className="text-base font-black tracking-tight">
               Report Ready
             </h2>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="space-y-4 p-4 md:p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -333,7 +336,7 @@ const ReportGeneratorPage = () => {
               )}
             </div>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );
