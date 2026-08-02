@@ -1,0 +1,50 @@
+- generic [ref=e2]:
+    - navigation "Accessibility" [ref=e3]:
+        - link "Skip to main content" [ref=e4] [cursor=pointer]:
+            - /url: "#main-content"
+    - main [ref=e9]:
+        - generic [ref=e10]:
+            - complementary [ref=e12]
+            - generic [ref=e13]:
+                - 'button "Language: English" [ref=e15]': English
+                - generic [ref=e17]:
+                    - generic [ref=e18]:
+                        - button "Login" [ref=e19]
+                        - button "Register" [ref=e20]
+                    - generic [ref=e21]:
+                        - generic [ref=e22]:
+                            - generic [ref=e23]: Email Address
+                            - textbox "Email Address" [ref=e28]:
+                                - /placeholder: you@school.edu
+                        - generic [ref=e29]:
+                            - generic [ref=e30]:
+                                - generic [ref=e31]: Password
+                                - link "Forgot password?" [ref=e32] [cursor=pointer]:
+                                    - /url: /reset-password
+                            - generic [ref=e33]:
+                                - textbox "Password" [ref=e37]:
+                                    - /placeholder: ••••••••
+                                - button [ref=e38]
+                        - generic [ref=e43] [cursor=pointer]:
+                            - checkbox "Keep me signed in" [checked] [ref=e44]
+                            - checkbox [checked]
+                            - text: Keep me signed in
+                        - button "Sign In" [disabled]
+                        - generic [ref=e47]: or
+                        - button "Email me a magic link instead" [disabled] [ref=e50]
+                        - paragraph [ref=e55]:
+                            - text: Don't have an account?
+                            - button "Create one" [ref=e56]
+                    - generic [ref=e57]:
+                        - generic [ref=e58]: Local Demo Login
+                        - generic [ref=e63]:
+                            - button "Admin" [disabled] [ref=e64]
+                            - button "Coordinator" [disabled] [ref=e68]
+                            - button "Teacher" [disabled] [ref=e75]
+                            - button "Student" [disabled] [ref=e80]
+                            - button "Parent" [disabled] [ref=e85]
+                - generic [ref=e92]:
+                    - generic [ref=e93]: Secure. Private. Built for education.
+                    - img "Mascot Badge" [ref=e99]
+    - region "Notifications alt+T"
+    - button "Open Tanstack query devtools" [ref=e150] [cursor=pointer]

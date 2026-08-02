@@ -1,0 +1,403 @@
+- generic:
+    - generic:
+        - navigation:
+            - link:
+                - /url: "#main-content"
+                - text: Skip to main content
+        - generic:
+            - generic:
+                - banner:
+                    - generic:
+                        - generic:
+                            - link:
+                                - /url: /coordinator
+                                - generic: Edeviser
+                        - generic:
+                            - button:
+                                - generic: Search
+                                - generic: ⌘K
+                        - generic:
+                            - generic:
+                                - generic:
+                                    - generic: 🎯
+                                    - generic: 4 programmes
+                                - generic:
+                                    - generic: ⚠️
+                                    - generic: 0 below target
+                            - generic:
+                                - button: English
+                            - button "Notifications, 3 unread":
+                                - generic "3 unread notifications": "3"
+                            - button:
+                                - generic:
+                                    - generic: Dr. James O'Connor
+                                    - generic: Program Coordinator
+                - generic:
+                    - complementary:
+                        - generic:
+                            - generic: Edeviser
+                            - generic:
+                                - navigation:
+                                    - generic:
+                                        - link:
+                                            - /url: /coordinator/dashboard
+                                            - generic: Home
+                                        - link:
+                                            - /url: /coordinator/plos
+                                            - generic: Outcomes
+                                        - link:
+                                            - /url: /coordinator/matrix
+                                            - generic: 🗂️
+                                            - generic: Curriculum
+                                        - link:
+                                            - /url: /coordinator/accreditation
+                                            - generic: Accredit
+                                        - link:
+                                            - /url: /coordinator/settings/profile
+                                            - generic: (current page)
+                                            - generic: Me
+                                - generic:
+                                    - paragraph: More
+                                    - generic:
+                                        - link:
+                                            - /url: /coordinator/plos
+                                            - generic: 🎯
+                                            - generic: Outcome Attainment
+                                        - link:
+                                            - /url: /coordinator/matrix
+                                            - generic: 🗂️
+                                            - generic: Curriculum Matrix
+                                        - link:
+                                            - /url: /coordinator/cqi
+                                            - generic: 🔧
+                                            - generic: CQI Plans
+                                        - link:
+                                            - /url: /coordinator/course-file
+                                            - generic: 📘
+                                            - generic: Course File Generator
+                                        - link:
+                                            - /url: /coordinator/team-health
+                                            - generic: 👥
+                                            - generic: Team Health Report
+                                        - link:
+                                            - /url: /coordinator/competencies
+                                            - generic: 🧭
+                                            - generic: Competency Frameworks
+                                        - link:
+                                            - /url: /coordinator/accreditation
+                                            - generic: 📋
+                                            - generic: Accreditation
+                                        - link:
+                                            - /url: /coordinator/discussions
+                                            - generic: 💭
+                                            - generic: Discussions
+                                        - link:
+                                            - /url: /coordinator/notifications
+                                            - generic: 📣
+                                            - generic: Announcements
+                                        - link:
+                                            - /url: /coordinator/notifications
+                                            - generic: 🔔
+                                            - generic: Notifications
+                    - generic:
+                        - main:
+                            - generic:
+                                - generic:
+                                    - generic:
+                                        - generic:
+                                            - generic:
+                                                - generic: J
+                                                - generic:
+                                                    - heading [level=1]: Dr. James O'Connor
+                                                    - paragraph: Program Coordinator
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - paragraph: "4"
+                                                                - paragraph: Programs
+                                                        - generic:
+                                                            - generic:
+                                                                - paragraph: "4"
+                                                                - paragraph: Courses
+                                                        - generic:
+                                                            - generic:
+                                                                - paragraph: "40"
+                                                                - paragraph: Students
+                                                        - generic:
+                                                            - generic:
+                                                                - paragraph: "4"
+                                                                - paragraph: Faculty
+                                            - generic:
+                                                - generic:
+                                                    - button: Edit profile
+                                                - generic:
+                                                    - generic: curriculum@noor-international.test
+                                                    - generic: Not set
+                                                    - generic: Not set
+                                                    - generic: Not set
+                                    - generic:
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - heading [level=2]: AI Assistance Preferences
+                                                                - paragraph: Configure how AI helps you in your daily workflows.
+                                                        - generic:
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Autonomy Level
+                                                                    - paragraph: A2 – Draft with Approval
+                                                            - list:
+                                                                - listitem:
+                                                                    - generic: Draft CQI plans
+                                                                - listitem:
+                                                                    - generic: Draft evidence & analysis
+                                                                - listitem:
+                                                                    - generic: Detect curriculum gaps
+                                                                - listitem:
+                                                                    - generic: Suggest improvement actions
+                                                                - listitem:
+                                                                    - generic: Export accreditation pack
+                                                                - listitem:
+                                                                    - generic: Publish changes
+                                                        - button: Manage AI settings
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - heading [level=2]: Role & Permissions
+                                                                - paragraph: Your role and what you can do in the system.
+                                                        - generic:
+                                                            - generic:
+                                                                - paragraph: Program Coordinator
+                                                            - list:
+                                                                - listitem:
+                                                                    - generic: Review & sign evidence
+                                                                - listitem:
+                                                                    - generic: Approve CQI action plans
+                                                                - listitem:
+                                                                    - generic: View academic reports
+                                                                - listitem:
+                                                                    - generic: Export accreditation pack
+                                                                - listitem:
+                                                                    - generic: Assign tasks to faculty
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - heading [level=2]: Programs I Manage
+                                                                - paragraph: Programs under your coordination.
+                                                        - generic:
+                                                            - list:
+                                                                - listitem:
+                                                                    - button:
+                                                                        - generic:
+                                                                            - generic: English Department
+                                                                            - generic: 1 Courses · 40 Students
+                                                                - listitem:
+                                                                    - button:
+                                                                        - generic:
+                                                                            - generic: Mathematics Department
+                                                                            - generic: 1 Courses · 40 Students
+                                                                - listitem:
+                                                                    - button:
+                                                                        - generic:
+                                                                            - generic: Science Department
+                                                                            - generic: 1 Courses · 40 Students
+                                                                - listitem:
+                                                                    - button:
+                                                                        - generic:
+                                                                            - generic: Social Studies Department
+                                                                            - generic: 1 Courses · 40 Students
+                                                        - button: View all programs
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - heading [level=2]: Connected Faculty
+                                                                - paragraph: Faculty working across your programs.
+                                                        - generic:
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: "4"
+                                                                    - paragraph: Faculty members
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: "4"
+                                                                    - paragraph: Active
+                                                                - generic:
+                                                                    - paragraph: "0"
+                                                                    - paragraph: Inactive
+                                                        - button: Manage faculty access
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - heading [level=2]: Profile & Academic Information
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Department
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Designation
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Academic Rank
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Highest Degree
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Experience
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Phone
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Office
+                                                                    - paragraph: Not set
+                                                            - generic:
+                                                                - generic:
+                                                                    - paragraph: Office hours
+                                                                    - paragraph: Not set
+                                                    - button: Edit academic profile
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - heading [level=2]: Notification Preferences
+                                                            - paragraph: "Notify me when:"
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - generic: PLO drops below target
+                                                                - switch [checked]
+                                                            - generic:
+                                                                - generic: New curriculum gap
+                                                                - switch [checked]
+                                                            - generic:
+                                                                - generic: Evidence ready for review
+                                                                - switch [checked]
+                                                            - generic:
+                                                                - generic: Teacher inactivity
+                                                                - switch
+                                                            - generic:
+                                                                - generic: CQI deadline approaching
+                                                                - switch [checked]
+                                                    - button: Manage notifications
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - heading [level=2]: Security & Access
+                                                    - generic:
+                                                        - generic:
+                                                            - button:
+                                                                - generic: Change password
+                                                            - generic:
+                                                                - generic: Two-factor authentication
+                                                                - generic: "On"
+                                                            - button:
+                                                                - generic: Active sessions
+                                                            - generic: Authorized devices
+                                                    - button: Security settings
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - generic:
+                                                            - heading [level=2]: Connected Integrations
+                                                    - generic:
+                                                        - generic:
+                                                            - generic:
+                                                                - generic: Google Calendar
+                                                                - generic: Not connected
+                                                            - generic:
+                                                                - generic: Microsoft Outlook
+                                                                - generic: Not connected
+                                                            - generic:
+                                                                - generic: Slack
+                                                                - generic: Not connected
+                    - complementary:
+                        - generic:
+                            - generic:
+                                - generic: 📉 Attainment alerts
+                                - generic: "3"
+                            - button: Why am I seeing this?
+                            - generic:
+                                - generic:
+                                    - generic: Science Mastery
+                                    - generic: 74%
+                                - generic:
+                                    - generic: English Mastery
+                                    - generic: 75%
+                                - generic:
+                                    - generic: Mathematics Mastery
+                                    - generic: 75%
+                                - button: All outcomes →
+                        - generic:
+                            - generic: 🗂️ Curriculum gap
+                            - generic:
+                                - generic: PLO coverage
+                                - generic: 100%
+                            - button: Open matrix →
+                        - generic:
+                            - generic: 📋 Accreditation
+                            - generic:
+                                - generic: Evidence readiness
+                                - generic: 100%
+                            - button: Review draft →
+        - region "Notifications alt+T"
+        - generic:
+            - button
+    - generic:
+        - generic:
+            - button
+    - dialog [ref=f28e591]:
+        - generic [ref=f28e592]:
+            - heading "Edit academic profile" [level=2] [ref=f28e593]
+            - paragraph [ref=f28e594]: Update the profile details shown to your institution.
+        - generic [ref=f28e595]:
+            - generic [ref=f28e596]:
+                - generic [ref=f28e597]:
+                    - generic [ref=f28e598]: Department
+                    - textbox "Department" [active] [ref=f28e599]
+                - generic [ref=f28e600]:
+                    - generic [ref=f28e601]: Designation
+                    - textbox "Designation" [ref=f28e602]
+                - generic [ref=f28e603]:
+                    - generic [ref=f28e604]: Academic Rank
+                    - textbox "Academic Rank" [ref=f28e605]
+                - generic [ref=f28e606]:
+                    - generic [ref=f28e607]: Highest Degree
+                    - textbox "Highest Degree" [ref=f28e608]
+                - generic [ref=f28e609]:
+                    - generic [ref=f28e610]: Experience
+                    - textbox "Experience" [ref=f28e611]
+                - generic [ref=f28e612]:
+                    - generic [ref=f28e613]: Phone
+                    - textbox "Phone" [ref=f28e614]
+                - generic [ref=f28e615]:
+                    - generic [ref=f28e616]: Office
+                    - textbox "Office" [ref=f28e617]
+                - generic [ref=f28e618]:
+                    - generic [ref=f28e619]: Office hours
+                    - textbox "Office hours" [ref=f28e620]
+                - generic [ref=f28e621]:
+                    - generic [ref=f28e622]: Bio
+                    - textbox "Bio" [ref=f28e623]
+            - generic [ref=f28e624]:
+                - button "Cancel" [ref=f28e625]
+                - button "Save" [ref=f28e626]
+        - button "Close" [ref=f28e627]

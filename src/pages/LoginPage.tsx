@@ -59,8 +59,7 @@ const IS_LOCAL_AUTH_HOST =
   (window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1");
 
-const NOOR_DEMO_PASSWORD =
-  import.meta.env.VITE_DEMO_PASSWORD ?? "CedarHarbor1745!";
+const NOOR_DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD?.trim() ?? "";
 
 const SHOW_LOCAL_QUICK_LOGIN =
   (IS_LOCAL_AUTH_HOST || import.meta.env.MODE === "test") &&
