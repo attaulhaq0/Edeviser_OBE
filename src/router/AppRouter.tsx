@@ -452,6 +452,9 @@ const StudentProgressPage = lazy(
 const StudentJournalPage = lazy(
   () => import("@/pages/student/journal/StudentJournalPage")
 );
+const StudentJournalEditorPage = lazy(
+  () => import("@/pages/student/journal/JournalEditor")
+);
 // Net-new (Path-A rebuild, P3.6): official transcript viewer — surfaces the
 // existing generate-transcript edge fn (useGenerateTranscript), no prior UI.
 const StudentTranscriptPage = lazy(
@@ -984,6 +987,8 @@ const AppRouter = () => (
             <Route path="profile" element={<StudentProfilePage />} />
             <Route path="learning-profile" element={<LearningProfilePage />} />
             <Route path="journal" element={<StudentJournalPage />} />
+            <Route path="journal/new" element={<StudentJournalEditorPage />} />
+            <Route path="journal/:id" element={<StudentJournalEditorPage />} />
             <Route path="transcript" element={<StudentTranscriptPage />} />
             <Route path="fees" element={<StudentFeesPage />} />
             <Route path="notifications" element={<NotificationsFeedPage />} />

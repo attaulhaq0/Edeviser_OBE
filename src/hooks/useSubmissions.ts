@@ -35,6 +35,24 @@ export interface SubmissionWithRelations extends Submission {
   grades: { id: string }[] | null;
 }
 
+type SubmissionRow = Omit<SubmissionWithRelations, "grades"> & {
+  // `grades.submission_id` is unique, so PostgREST returns this reverse
+  // relation as an object (not an array) at runtime.
+  grades: { id: string } | { id: string }[] | null;
+};
+
+const normalizeSubmissionRows = (
+  rows: SubmissionRow[]
+): SubmissionWithRelations[] =>
+  rows.map((submission) => ({
+    ...submission,
+    grades: submission.grades
+      ? Array.isArray(submission.grades)
+        ? submission.grades
+        : [submission.grades]
+      : null,
+  }));
+
 // ─── Filter types ───────────────────────────────────────────────────────────
 
 export interface SubmissionFilters {
@@ -115,7 +133,9 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
       const { data, error, count } = await query;
       if (error) throw error;
       return {
-        data: (data ?? []) as SubmissionWithRelations[],
+        data: normalizeSubmissionRows(
+          (data ?? []) as unknown as SubmissionRow[]
+        ),
         count: count ?? 0,
         page,
         pageSize,
@@ -139,7 +159,11 @@ export const useSubmission = (id?: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as SubmissionWithRelations | null;
+      if (!data) return null;
+      const [submission] = normalizeSubmissionRows([
+        data as unknown as SubmissionRow,
+      ]);
+      return submission ?? null;
     },
     enabled: !!id,
   });
@@ -169,7 +193,9 @@ export const usePendingSubmissions = (
       if (error) throw error;
 
       // Filter client-side: only submissions without a grade record
-      const submissions = (data ?? []) as SubmissionWithRelations[];
+      const submissions = normalizeSubmissionRows(
+        (data ?? []) as unknown as SubmissionRow[]
+      );
       return submissions.filter((s) => !s.grades || s.grades.length === 0);
     },
     // PERF (dashboard-and-ux-performance): let the teacher dashboard defer this
@@ -213,6 +239,35 @@ interface Grade {
   score_percent: number;
   graded_at: string;
 }
+
+type StudentAssignmentRow = Omit<StudentAssignment, "submissions"> & {
+  submissions:
+    | (Pick<Submission, "id" | "is_late" | "submitted_at"> & {
+        // `grades.submission_id` is unique, so PostgREST returns this
+        // reverse relation as an object (not an array) at runtime.
+        grades:
+          | Pick<Grade, "id" | "score_percent" | "graded_at">
+          | Pick<Grade, "id" | "score_percent" | "graded_at">[]
+          | null;
+      })[]
+    | null;
+};
+
+const normalizeStudentAssignmentRows = (
+  rows: StudentAssignmentRow[]
+): StudentAssignment[] =>
+  rows.map((assignment) => ({
+    ...assignment,
+    submissions:
+      assignment.submissions?.map((submission) => ({
+        ...submission,
+        grades: submission.grades
+          ? Array.isArray(submission.grades)
+            ? submission.grades
+            : [submission.grades]
+          : null,
+      })) ?? null,
+  }));
 
 // ─── useCreateSubmission — insert a submission record ───────────────────────
 
@@ -313,19 +368,24 @@ export const useUploadSubmissionFile = () => {
 // ─── useStudentAssignments — assignments for the current student's courses ──
 
 export const useStudentAssignments = (courseId?: string) => {
+  const { user } = useAuth();
+  const studentId = user?.id;
+
   return useQuery({
-    queryKey: queryKeys.assignments.list({ courseId, scope: "student" }),
+    queryKey: queryKeys.assignments.list({
+      courseId,
+      scope: "student",
+      studentId: studentId ?? "",
+    }),
+    enabled: !!studentId,
     queryFn: async (): Promise<StudentAssignment[]> => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!studentId) return [];
 
       // Get courses the student is enrolled in
       const { data: enrollments, error: enrollError } = await supabase
         .from("student_courses")
         .select("course_id")
-        .eq("student_id", user.id);
+        .eq("student_id", studentId);
 
       if (enrollError) throw enrollError;
 
@@ -348,7 +408,9 @@ export const useStudentAssignments = (courseId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as unknown as StudentAssignment[];
+      return normalizeStudentAssignmentRows(
+        (data ?? []) as unknown as StudentAssignmentRow[]
+      );
     },
   });
 };

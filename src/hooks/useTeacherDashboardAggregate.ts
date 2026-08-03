@@ -21,6 +21,10 @@ export interface TeacherDashboardAggregate {
   bloomsDistribution: BloomsDistributionRow[];
 }
 
+type RawTeacherDashboardKpis = TeacherKPIData & {
+  totalAssignedStudents?: number;
+};
+
 /**
  * Teacher dashboard aggregate (spec: dashboard-and-ux-performance, Phase 8 Task 33).
  *
@@ -64,7 +68,19 @@ export const useTeacherDashboardAggregate = (teacherId: string | undefined) => {
         throw new Error("get_teacher_dashboard returned no data");
       }
 
-      const payload = data as TeacherDashboardAggregate;
+      const rawPayload = data as TeacherDashboardAggregate;
+      // The RPC names this field `totalAssignedStudents`, while the existing
+      // dashboard hooks expose it as `totalStudents`. Normalize at the API
+      // boundary so every teacher surface renders the real enrollment count.
+      const rawKpis = rawPayload.kpis as RawTeacherDashboardKpis;
+      const payload: TeacherDashboardAggregate = {
+        ...rawPayload,
+        kpis: {
+          ...rawKpis,
+          totalStudents:
+            rawKpis.totalStudents ?? rawKpis.totalAssignedStudents ?? 0,
+        },
+      };
 
       // Hydrate the EXACT caches the section hooks read so they become cache hits.
       // Keys mirror `useTeacherKPIs` / `useTeacherBloomsDistribution` verbatim.

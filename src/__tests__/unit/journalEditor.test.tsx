@@ -34,6 +34,7 @@ const mockCLOs = [
 
 const mockCreateMutate = vi.fn();
 const mockUpdateMutate = vi.fn();
+const mockDeleteMutate = vi.fn();
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,10 @@ vi.mock("@/hooks/useJournal", () => ({
   }),
   useUpdateJournalEntry: () => ({
     mutate: mockUpdateMutate,
+    isPending: false,
+  }),
+  useDeleteJournalEntry: () => ({
+    mutate: mockDeleteMutate,
     isPending: false,
   }),
 }));
