@@ -5,6 +5,10 @@ import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@/lib/i18n";
 
+vi.hoisted(() => {
+  vi.stubEnv("VITE_DEMO_PASSWORD", "test-only-noor-demo-password");
+});
+
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
