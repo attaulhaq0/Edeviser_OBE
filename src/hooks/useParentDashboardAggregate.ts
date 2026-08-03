@@ -2,7 +2,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
-import type { ParentKPIData, LinkedChild } from "@/hooks/useParentDashboard";
+import {
+  fetchLinkedChildren,
+  type ParentKPIData,
+  type LinkedChild,
+} from "@/hooks/useParentDashboard";
 
 export interface ParentDashboardAggregate {
   kpis: ParentKPIData;
@@ -50,18 +54,20 @@ export const useParentDashboardAggregate = (parentId: string | undefined) => {
       }
 
       const payload = data as ParentDashboardAggregate;
+      const children = await fetchLinkedChildren(parentId);
+      const aggregate: ParentDashboardAggregate = { ...payload, children };
 
       // Hydrate the EXACT caches the two section hooks read so they become hits.
       queryClient.setQueryData(
         queryKeys.parentDashboard.detail(parentId ?? ""),
-        payload.kpis
+        aggregate.kpis
       );
       queryClient.setQueryData(
         queryKeys.parentStudentLinks.list({ parentId }),
-        payload.children
+        aggregate.children
       );
 
-      return payload;
+      return aggregate;
     },
   });
 };

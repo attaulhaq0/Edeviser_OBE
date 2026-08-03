@@ -5,6 +5,8 @@ import { queryKeys } from "@/lib/queryKeys";
 export interface LinkedChild {
   student_id: string;
   student_name: string;
+  institution_name?: string | null;
+  linked_at?: string | null;
   current_level: number;
   xp_total: number;
   current_streak: number;
@@ -36,91 +38,131 @@ const fetchVerifiedChildIds = async (parentId: string): Promise<string[]> => {
   return (links ?? []).map((l) => l.student_id);
 };
 
+const fetchVerifiedChildLinks = async (
+  parentId: string
+): Promise<Array<{ student_id: string; created_at: string }>> => {
+  const { data, error } = await supabase
+    .from("parent_student_links")
+    .select("student_id, created_at")
+    .eq("parent_id", parentId)
+    .eq("verified", true);
+
+  if (error) throw error;
+  return data ?? [];
+};
+
+export const fetchLinkedChildren = async (
+  parentId: string | undefined
+): Promise<LinkedChild[]> => {
+  if (!parentId) return [];
+
+  const links = await fetchVerifiedChildLinks(parentId);
+  const studentIds = links.map((link) => link.student_id);
+
+  if (studentIds.length === 0) return [];
+
+  const { data: profiles, error: profilesError } = await supabase
+    .from("profiles")
+    .select("id, full_name, institution_id")
+    .in("id", studentIds);
+
+  if (profilesError) throw profilesError;
+  const typedProfiles = profiles ?? [];
+
+  const institutionIds = Array.from(
+    new Set(typedProfiles.map((profile) => profile.institution_id))
+  );
+  const { data: institutions, error: institutionsError } =
+    institutionIds.length > 0
+      ? await supabase
+          .from("institutions")
+          .select("id, name")
+          .in("id", institutionIds)
+      : { data: [], error: null };
+
+  if (institutionsError) throw institutionsError;
+  const institutionNameById = new Map(
+    (institutions ?? []).map((institution) => [
+      institution.id,
+      institution.name,
+    ])
+  );
+  const linkDateByStudentId = new Map(
+    links.map((link) => [link.student_id, link.created_at])
+  );
+
+  // Batch fetch gamification for all children (1 query instead of N)
+  const { data: gamData, error: gamError } = await supabase
+    .from("student_gamification")
+    .select("student_id, level, xp_total, streak_current")
+    .in("student_id", studentIds);
+
+  if (gamError) throw gamError;
+  const gamMap = new Map((gamData ?? []).map((g) => [g.student_id, g]));
+
+  // Batch fetch enrollment data for all children (1 query instead of N).
+  // Reads `student_courses` — now visible to verified parents via RLS.
+  const { data: enrollData, error: enrollError } = await supabase
+    .from("student_courses")
+    .select("student_id")
+    .in("student_id", studentIds);
+
+  if (enrollError) throw enrollError;
+
+  const enrollCountMap = new Map<string, number>();
+  for (const e of enrollData ?? []) {
+    enrollCountMap.set(
+      e.student_id,
+      (enrollCountMap.get(e.student_id) ?? 0) + 1
+    );
+  }
+
+  // Batch fetch course-scope attainment for all children (1 query). The
+  // parent `outcome_attainment` policy already exposes these rows for
+  // verified linked children; we average the per-course attainment.
+  const { data: attainmentData, error: attainmentError } = await supabase
+    .from("outcome_attainment")
+    .select("student_id, attainment_percent")
+    .in("student_id", studentIds)
+    .eq("scope", "student_course");
+
+  if (attainmentError) throw attainmentError;
+
+  const attainmentMap = new Map<string, { sum: number; count: number }>();
+  for (const row of attainmentData ?? []) {
+    if (!row.student_id) continue;
+    const cur = attainmentMap.get(row.student_id) ?? { sum: 0, count: 0 };
+    cur.sum += row.attainment_percent;
+    cur.count += 1;
+    attainmentMap.set(row.student_id, cur);
+  }
+
+  // Map results back to each child
+  return typedProfiles.map((profile) => {
+    const gam = gamMap.get(profile.id);
+    const att = attainmentMap.get(profile.id);
+    return {
+      student_id: profile.id,
+      student_name: profile.full_name ?? "Unknown",
+      institution_name: institutionNameById.get(profile.institution_id) ?? null,
+      linked_at: linkDateByStudentId.get(profile.id) ?? null,
+      current_level: gam?.level ?? 1,
+      xp_total: gam?.xp_total ?? 0,
+      current_streak: gam?.streak_current ?? 0,
+      enrolled_courses: enrollCountMap.get(profile.id) ?? 0,
+      avg_attainment:
+        att && att.count > 0 ? Math.round(att.sum / att.count) : 0,
+    };
+  });
+};
+
 export const useLinkedChildren = (
   parentId: string | undefined,
   options?: { enabled?: boolean }
 ) => {
   return useQuery({
     queryKey: queryKeys.parentStudentLinks.list({ parentId }),
-    queryFn: async (): Promise<LinkedChild[]> => {
-      if (!parentId) return [];
-
-      const studentIds = await fetchVerifiedChildIds(parentId);
-
-      if (studentIds.length === 0) return [];
-
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", studentIds);
-
-      if (profilesError) throw profilesError;
-      const typedProfiles = profiles ?? [];
-
-      // Batch fetch gamification for all children (1 query instead of N)
-      const { data: gamData, error: gamError } = await supabase
-        .from("student_gamification")
-        .select("student_id, level, xp_total, streak_current")
-        .in("student_id", studentIds);
-
-      if (gamError) throw gamError;
-      const gamMap = new Map((gamData ?? []).map((g) => [g.student_id, g]));
-
-      // Batch fetch enrollment data for all children (1 query instead of N).
-      // Reads `student_courses` — now visible to verified parents via RLS.
-      const { data: enrollData, error: enrollError } = await supabase
-        .from("student_courses")
-        .select("student_id")
-        .in("student_id", studentIds);
-
-      if (enrollError) throw enrollError;
-
-      const enrollCountMap = new Map<string, number>();
-      for (const e of enrollData ?? []) {
-        enrollCountMap.set(
-          e.student_id,
-          (enrollCountMap.get(e.student_id) ?? 0) + 1
-        );
-      }
-
-      // Batch fetch course-scope attainment for all children (1 query). The
-      // parent `outcome_attainment` policy already exposes these rows for
-      // verified linked children; we average the per-course attainment.
-      const { data: attainmentData, error: attainmentError } = await supabase
-        .from("outcome_attainment")
-        .select("student_id, attainment_percent")
-        .in("student_id", studentIds)
-        .eq("scope", "student_course");
-
-      if (attainmentError) throw attainmentError;
-
-      const attainmentMap = new Map<string, { sum: number; count: number }>();
-      for (const row of attainmentData ?? []) {
-        if (!row.student_id) continue;
-        const cur = attainmentMap.get(row.student_id) ?? { sum: 0, count: 0 };
-        cur.sum += row.attainment_percent;
-        cur.count += 1;
-        attainmentMap.set(row.student_id, cur);
-      }
-
-      // Map results back to each child
-      const children: LinkedChild[] = typedProfiles.map((profile) => {
-        const gam = gamMap.get(profile.id);
-        const att = attainmentMap.get(profile.id);
-        return {
-          student_id: profile.id,
-          student_name: profile.full_name ?? "Unknown",
-          current_level: gam?.level ?? 1,
-          xp_total: gam?.xp_total ?? 0,
-          current_streak: gam?.streak_current ?? 0,
-          enrolled_courses: enrollCountMap.get(profile.id) ?? 0,
-          avg_attainment:
-            att && att.count > 0 ? Math.round(att.sum / att.count) : 0,
-        };
-      });
-
-      return children;
-    },
+    queryFn: () => fetchLinkedChildren(parentId),
     enabled: (options?.enabled ?? true) && !!parentId,
     staleTime: 60_000,
   });

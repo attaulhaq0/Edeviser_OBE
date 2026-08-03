@@ -231,10 +231,12 @@ jobs:
         run: |
           # Total gzipped JS budget across ALL chunks (including lazy-loaded
           # route chunks, not just initial load). Initial dashboard load is
-          # enforced separately by Lighthouse CI. Raised to 1300KB after the
+          # enforced separately by Lighthouse CI. Raised to 1500KB after the
           # student-experience remediation added many new code-split routes
-          # (planner, journal, leaderboard, habits, tutor, marketplace, teams).
-          MAX_SIZE_KB=1300
+          # (planner, journal, leaderboard, habits, tutor, marketplace, teams)
+          # and the live admin/coordinator prototype-parity surfaces. This is
+          # an aggregate all-route ceiling, not an initial-load allowance.
+          MAX_SIZE_KB=1500
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Chunk | Raw (KB) | Gzipped (KB) |" >> $GITHUB_STEP_SUMMARY

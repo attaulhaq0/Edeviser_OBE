@@ -6,9 +6,9 @@
 //   1. CALL — get_parent_dashboard is called once.
 //   2. HYDRATION — the EXACT caches useParentKPIs AND useLinkedChildren read are
 //      both populated (kpis → parentDashboard.detail; children → parentStudentLinks.list).
-//   3. COLLAPSE — with both section hooks gated on `aggregate.isError`, a SUCCESSFUL
-//      aggregate fires ZERO section `supabase.from` requests; a FAILED aggregate
-//      makes the section hooks fall back and fetch (resolving verified children).
+//   3. ENRICHMENT — a successful aggregate refreshes linked learners from live
+//      tables so institution and link metadata are authoritative, while still
+//      hydrating the section-hook cache.
 // The `get_parent_dashboard` RPC is mocked; this is a hermetic unit test.
 // =============================================================================
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -26,14 +26,50 @@ vi.mock("@/lib/supabase", () => ({
   },
 }));
 
-const makeFromBuilder = () => {
+const tableData: Record<string, unknown[]> = {
+  parent_student_links: [
+    {
+      student_id: "00699cf9-6ab1-487c-8652-179757eb6462",
+      created_at: "2024-09-01T00:00:00.000Z",
+    },
+  ],
+  profiles: [
+    {
+      id: "00699cf9-6ab1-487c-8652-179757eb6462",
+      full_name: "Yusuf Ahmadi",
+      institution_id: "institution-1",
+    },
+  ],
+  institutions: [{ id: "institution-1", name: "Noor International School" }],
+  student_gamification: [
+    {
+      student_id: "00699cf9-6ab1-487c-8652-179757eb6462",
+      level: 11,
+      xp_total: 1986,
+      streak_current: 3,
+    },
+  ],
+  student_courses: [
+    { student_id: "00699cf9-6ab1-487c-8652-179757eb6462" },
+    { student_id: "00699cf9-6ab1-487c-8652-179757eb6462" },
+    { student_id: "00699cf9-6ab1-487c-8652-179757eb6462" },
+  ],
+  outcome_attainment: [
+    {
+      student_id: "00699cf9-6ab1-487c-8652-179757eb6462",
+      attainment_percent: 92,
+    },
+  ],
+};
+
+const makeFromBuilder = (table: string) => {
   const builder: Record<string, unknown> = {
     select: () => builder,
     eq: () => builder,
     in: () => builder,
     gte: () => builder,
     then: (resolve: (value: unknown) => unknown) =>
-      resolve({ data: [], count: 0, error: null }),
+      resolve({ data: tableData[table] ?? [], count: 0, error: null }),
   };
   return builder;
 };
@@ -58,6 +94,8 @@ const FIXTURE: ParentDashboardAggregate = {
     {
       student_id: "00699cf9-6ab1-487c-8652-179757eb6462",
       student_name: "Yusuf Ahmadi",
+      institution_name: "Noor International School",
+      linked_at: "2024-09-01T00:00:00.000Z",
       current_level: 11,
       xp_total: 1986,
       current_streak: 3,
@@ -88,7 +126,7 @@ const makeWrapper = (client: QueryClient) => {
 describe("useParentDashboardAggregate (Phase 8 Task 36)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFrom.mockImplementation(() => makeFromBuilder());
+    mockFrom.mockImplementation((table: string) => makeFromBuilder(table));
   });
 
   it("calls get_parent_dashboard once", async () => {
@@ -121,7 +159,7 @@ describe("useParentDashboardAggregate (Phase 8 Task 36)", () => {
     ).toEqual(FIXTURE.children);
   });
 
-  it("collapse: a successful aggregate fires ZERO section requests", async () => {
+  it("enriches linked learners once and avoids duplicate section requests", async () => {
     mockRpc.mockResolvedValue({ data: FIXTURE, error: null });
     const client = makeClient();
     const { result } = renderHook(() => useBlock(), {
@@ -129,14 +167,14 @@ describe("useParentDashboardAggregate (Phase 8 Task 36)", () => {
     });
     await waitFor(() => expect(result.current.aggregate.isSuccess).toBe(true));
     expect(mockRpc).toHaveBeenCalledTimes(1);
-    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockFrom).toHaveBeenCalledTimes(6);
     await waitFor(() =>
       expect(result.current.kpisHook.data).toEqual(FIXTURE.kpis)
     );
     await waitFor(() =>
       expect(result.current.childrenHook.data).toEqual(FIXTURE.children)
     );
-    expect(mockFrom).not.toHaveBeenCalled();
+    expect(mockFrom).toHaveBeenCalledTimes(6);
   });
 
   it("fallback: a failed aggregate makes the section hooks fetch", async () => {

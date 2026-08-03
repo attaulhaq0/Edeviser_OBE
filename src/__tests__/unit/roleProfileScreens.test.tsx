@@ -120,6 +120,7 @@ vi.mock("@/hooks/useParentDashboardAggregate", () => ({
         {
           student_id: "student-1",
           student_name: "Maya",
+          institution_name: "Noor International School",
           current_level: 4,
           xp_total: 750,
           current_streak: 12,
@@ -129,6 +130,7 @@ vi.mock("@/hooks/useParentDashboardAggregate", () => ({
         {
           student_id: "student-2",
           student_name: "Yusuf",
+          institution_name: "Noor International School",
           current_level: 3,
           xp_total: 620,
           current_streak: 6,
@@ -247,6 +249,10 @@ describe("prototype role profile screens", () => {
     expect(screen.getByText(/Guardian of Maya & Yusuf/)).toBeInTheDocument();
     expect(screen.getByText("82%")).toBeInTheDocument();
     expect(screen.getByText("Linked learners")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/Noor International School · link verified/i)
+    ).toHaveLength(2);
+    expect(screen.queryByText(/Gulf Academy/i)).not.toBeInTheDocument();
     expect(screen.getByText("Privacy & what you can see")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Support/i })).toHaveAttribute(
       "href",

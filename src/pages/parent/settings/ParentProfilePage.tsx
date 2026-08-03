@@ -103,8 +103,14 @@ const ParentProfilePage = () => {
     });
   };
 
-  const name = profile?.full_name ?? "Nadia Hassan";
+  const name = profile?.full_name || profile?.email || "Parent / Guardian";
   const initials = name.slice(0, 1).toUpperCase();
+  const primaryLinkedAt = children[0]?.linked_at
+    ? new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        year: "numeric",
+      }).format(new Date(children[0].linked_at))
+    : null;
 
   return (
     <div className="space-y-4 no-scrollbar">
@@ -149,21 +155,21 @@ const ParentProfilePage = () => {
               <div className="inline-flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900/50">
                 <span className="text-sm">👨‍👩‍👧</span>
                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                  {kpis?.linkedChildren ?? children.length ?? 2}{" "}
+                  {kpis?.linkedChildren ?? children.length}{" "}
                   <span className="font-semibold text-slate-500">Children</span>
                 </span>
               </div>
               <div className="inline-flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900/50">
                 <span className="text-sm">🎓</span>
                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                  {kpis?.totalCourses ?? 7}{" "}
+                  {kpis?.totalCourses ?? 0}{" "}
                   <span className="font-semibold text-slate-500">Courses</span>
                 </span>
               </div>
               <div className="inline-flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900/50">
                 <span className="text-sm">📈</span>
                 <span className="text-xs font-bold text-emerald-700">
-                  {Math.round(kpis?.avgAttainment ?? 82)}%{" "}
+                  {Math.round(kpis?.avgAttainment ?? 0)}%{" "}
                   <span className="font-semibold text-slate-500">
                     Avg attainment
                   </span>
@@ -172,7 +178,7 @@ const ParentProfilePage = () => {
               <div className="inline-flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900/50">
                 <span className="text-sm">🔔</span>
                 <span className="text-xs font-bold text-amber-700">
-                  {kpis?.upcomingDeadlines ?? 2}{" "}
+                  {kpis?.upcomingDeadlines ?? 0}{" "}
                   <span className="font-semibold text-slate-500">Alerts</span>
                 </span>
               </div>
@@ -203,7 +209,7 @@ const ParentProfilePage = () => {
                   toast.info(
                     t(
                       "profile.contactSchoolInfo",
-                      "School Office: +974 4000 1234"
+                      "School contact details are not available yet"
                     )
                   )
                 }
@@ -213,13 +219,16 @@ const ParentProfilePage = () => {
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 lg:justify-end">
               <span className="inline-flex items-center gap-1">
-                ✉️ {profile?.email || "nadia.hassan@email.com"}
+                ✉️ {profile?.email ?? "Email not available"}
               </span>
               <span className="inline-flex items-center gap-1">
-                📞 +974 5000 4321
+                📞 {profile?.phone ?? "Phone not available"}
               </span>
               <span className="inline-flex items-center gap-1">
-                🔗 Linked since Sep 2024
+                🔗{" "}
+                {primaryLinkedAt
+                  ? `Linked since ${primaryLinkedAt}`
+                  : "Link date not available"}
               </span>
             </div>
           </div>
@@ -236,56 +245,47 @@ const ParentProfilePage = () => {
             </h2>
           </div>
           <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-100">
-            {children.length || 2} linked
+            {children.length} linked
           </span>
         </div>
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {(children.length > 0
-            ? children
-            : [
-                {
-                  student_id: "m1",
-                  student_name: "Maya Hassan",
-                  grade: "Grade 11 · Gulf Academy",
-                },
-                {
-                  student_id: "y1",
-                  student_name: "Yusuf Hassan",
-                  grade: "Grade 8 · Gulf Academy",
-                },
-              ]
-          ).map((child, idx) => (
-            <div
-              key={child.student_id}
-              className="flex items-center gap-3 py-3"
-            >
+          {children.length === 0 ? (
+            <p className="py-4 text-sm text-slate-500">
+              No linked learners yet. Ask your institution to verify a learner
+              link.
+            </p>
+          ) : (
+            children.map((child, idx) => (
               <div
-                className={cn(
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-black text-sm",
-                  idx % 2 === 0
-                    ? "bg-teal-100 text-teal-700"
-                    : "bg-indigo-100 text-indigo-700"
-                )}
+                key={child.student_id}
+                className="flex items-center gap-3 py-3"
               >
-                {child.student_name.slice(0, 1).toUpperCase()}
+                <div
+                  className={cn(
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-black text-sm",
+                    idx % 2 === 0
+                      ? "bg-teal-100 text-teal-700"
+                      : "bg-indigo-100 text-indigo-700"
+                  )}
+                >
+                  {child.student_name.slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {child.student_name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {child.institution_name ?? "Institution not available"} ·
+                    link verified ✓
+                  </p>
+                </div>
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                  Active
+                </span>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  {child.student_name}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {"grade" in child
-                    ? (child as { grade: string }).grade
-                    : "Gulf Academy"}{" "}
-                  · link verified ✓
-                </p>
-              </div>
-              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                Active
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         <ParentButton
