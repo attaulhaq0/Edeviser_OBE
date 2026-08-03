@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useCreateTeam, useUpdateTeam, useTeams } from "@/hooks/useTeams";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -79,7 +79,7 @@ const TeamFormPage = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
   const { user, institutionId } = useAuth();
-  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedCourses } = useTeacherCourses();
 
   const teacherCourses = useMemo(
     () =>

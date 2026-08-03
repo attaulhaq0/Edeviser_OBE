@@ -1,0 +1,248 @@
+- generic [ref=e1]:
+    - generic [ref=e2]:
+        - link "Skip to main content" [ref=e3] [cursor=pointer]:
+            - /url: "#main-content"
+        - generic [ref=e198]:
+            - banner [ref=e199]:
+                - generic [ref=e200]:
+                    - link "Edeviser — go to dashboard" [ref=e202] [cursor=pointer]:
+                        - /url: /admin
+                        - img "Edeviser" [ref=e203]
+                        - generic [ref=e204]: Edeviser
+                    - button "Open global search" [ref=e206]:
+                        - generic [ref=e207]: Search
+                        - generic [ref=e208]: ⌘K
+                    - generic [ref=e209]:
+                        - generic "Institution summary" [ref=e210]:
+                            - generic "40 learners" [ref=e211]: 🏛️
+                            - generic "100% active" [ref=e214]: 📊
+                        - 'button "Language: English" [ref=e218]': English
+                        - button "Notifications" [ref=e219]
+                        - button "Mrs. Priya Venkatesh Mrs. Priya Venkatesh Institution Admin" [ref=e220] [cursor=pointer]:
+                            - img "Mrs. Priya Venkatesh" [ref=e222]
+                            - generic [ref=e223]:
+                                - generic [ref=e224]: Mrs. Priya Venkatesh
+                                - generic [ref=e225]: Institution Admin
+            - generic [ref=e228]:
+                - complementary [ref=e229]:
+                    - generic [ref=e230]:
+                        - generic [ref=e231]: Edeviser
+                        - generic [ref=e232]:
+                            - navigation "Primary navigation" [ref=e233]:
+                                - generic [ref=e234]:
+                                    - link "Home" [ref=e453] [cursor=pointer]:
+                                        - /url: /admin/dashboard
+                                    - link "(current page) Analytics" [active] [ref=e454] [cursor=pointer]:
+                                        - /url: /admin/analytics
+                                        - generic [ref=e455]: (current page)
+                                        - generic [ref=e246]: Analytics
+                                    - link "🛡️ AI-Gov" [ref=e247] [cursor=pointer]:
+                                        - /url: /admin/governance
+                                        - generic [ref=e248]: 🛡️
+                                        - generic [ref=e250]: AI-Gov
+                                    - link "People" [ref=e251] [cursor=pointer]:
+                                        - /url: /admin/users
+                                    - link "Me" [ref=e258] [cursor=pointer]:
+                                        - /url: /admin/settings/profile
+                            - generic [ref=e272]:
+                                - paragraph [ref=e274]: More
+                                - generic [ref=e275]:
+                                    - link "Marketplace" [ref=e276] [cursor=pointer]:
+                                        - /url: /admin/marketplace
+                                        - generic [ref=e277]: 🛍️
+                                    - link "Institution Structure" [ref=e279] [cursor=pointer]:
+                                        - /url: /admin/settings/institution
+                                        - generic [ref=e280]: 🏛️
+                                    - link "Bulk Import" [ref=e282] [cursor=pointer]:
+                                        - /url: /admin/import
+                                        - generic [ref=e283]: 📥
+                                    - link "Badge Definitions" [ref=e285] [cursor=pointer]:
+                                        - /url: /admin/badges
+                                        - generic [ref=e286]: 🏅
+                                    - link "Security" [ref=e288] [cursor=pointer]:
+                                        - /url: /admin/security
+                                        - generic [ref=e289]: 🔒
+                                    - link "Fees Management" [ref=e291] [cursor=pointer]:
+                                        - /url: /admin/fees
+                                        - generic [ref=e292]: 💳
+                                    - link "Announcements" [ref=e294] [cursor=pointer]:
+                                        - /url: /admin/announcements
+                                        - generic [ref=e295]: 📣
+                                    - link "Notifications" [ref=e297] [cursor=pointer]:
+                                        - /url: /admin/notifications
+                                        - generic [ref=e298]: 🔔
+                - main [ref=e301]:
+                    - generic [ref=e456]:
+                        - generic [ref=e457]:
+                            - heading "Institution analytics" [level=1] [ref=e458]
+                            - paragraph [ref=e459]: Engagement, mastery & retention — de-identified & aggregated.
+                        - generic [ref=e460]:
+                            - generic [ref=e461]:
+                                - generic [ref=e462]:
+                                    - generic [ref=e463]: 📈
+                                    - heading "Weekly active learners" [level=2] [ref=e464]
+                                - generic [ref=e465]: 3% active
+                            - generic [ref=e466]:
+                                - generic [ref=e467]:
+                                    - 'generic "W1: 0 / 40 active (0%)" [ref=e468]'
+                                    - generic [ref=e469]: W1
+                                - generic [ref=e470]:
+                                    - 'generic "W2: 0 / 40 active (0%)" [ref=e471]'
+                                    - generic [ref=e472]: W2
+                                - generic [ref=e473]:
+                                    - 'generic "W3: 0 / 40 active (0%)" [ref=e474]'
+                                    - generic [ref=e475]: W3
+                                - generic [ref=e476]:
+                                    - 'generic "W4: 0 / 40 active (0%)" [ref=e477]'
+                                    - generic [ref=e478]: W4
+                                - generic [ref=e479]:
+                                    - 'generic "Now: 1 / 40 active (3%)" [ref=e480]'
+                                    - generic [ref=e481]: Now
+                            - generic [ref=e482]:
+                                - generic [ref=e483]: 5-week trend · active learners / week
+                                - generic [ref=e484]: Real live Supabase data
+                        - generic [ref=e485]:
+                            - generic [ref=e486]:
+                                - generic [ref=e487]:
+                                    - generic [ref=e488]: 🎯
+                                    - heading "Mastery distribution" [level=2] [ref=e489]
+                                - generic [ref=e490]:
+                                    - generic [ref=e491]:
+                                        - generic [ref=e492]: Excellent
+                                        - generic [ref=e495]: 8%
+                                    - generic [ref=e496]:
+                                        - generic [ref=e497]: Satisfactory
+                                        - generic [ref=e500]: 23%
+                                    - generic [ref=e501]:
+                                        - generic [ref=e502]: Developing
+                                        - generic [ref=e505]: 50%
+                                    - generic [ref=e506]:
+                                        - generic [ref=e507]: Not yet
+                                        - generic [ref=e510]: 20%
+                                    - generic [ref=e511]:
+                                        - generic [ref=e512]: Unmeasured
+                                        - generic [ref=e514]: 0%
+                            - generic [ref=e515]:
+                                - generic [ref=e516]:
+                                    - generic [ref=e517]: 🔻
+                                    - heading "Retention risk" [level=2] [ref=e518]
+                                - generic [ref=e519]:
+                                    - generic [ref=e520]:
+                                        - generic [ref=e521]: On track
+                                        - generic [ref=e522]: "1"
+                                    - generic [ref=e523]:
+                                        - generic [ref=e524]: Watch
+                                        - generic [ref=e525]: "0"
+                                    - generic [ref=e526]:
+                                        - generic [ref=e527]: At risk
+                                        - generic [ref=e528]: "39"
+                                - paragraph [ref=e530]:
+                                    - text: 39 of 40 learners flagged at risk across course activities.
+                                    - link "Draft outreach" [ref=e531] [cursor=pointer]:
+                                        - /url: /admin/announcements
+                        - generic [ref=e532]:
+                            - generic [ref=e533]:
+                                - generic [ref=e534]: 🏫
+                                - heading "Departments" [level=2] [ref=e535]
+                            - table [ref=e537]:
+                                - rowgroup [ref=e538]:
+                                    - row [ref=e539]:
+                                        - columnheader "Department" [ref=e540]
+                                        - columnheader "Learners" [ref=e541]
+                                        - columnheader "Active" [ref=e542]
+                                        - columnheader "Mastery" [ref=e543]
+                                        - columnheader "Trend" [ref=e544]
+                                - rowgroup [ref=e545]:
+                                    - row [ref=e546]:
+                                        - cell "English Department" [ref=e547]
+                                        - cell "40" [ref=e548]
+                                        - cell "3%" [ref=e549]
+                                        - cell "0%" [ref=e550]
+                                        - cell "↓" [ref=e552]
+                                    - row [ref=e553]:
+                                        - cell "Mathematics Department" [ref=e554]
+                                        - cell "40" [ref=e555]
+                                        - cell "3%" [ref=e556]
+                                        - cell "0%" [ref=e557]
+                                        - cell "↓" [ref=e559]
+                                    - row [ref=e560]:
+                                        - cell "Science Department" [ref=e561]
+                                        - cell "40" [ref=e562]
+                                        - cell "3%" [ref=e563]
+                                        - cell "0%" [ref=e564]
+                                        - cell "↓" [ref=e566]
+                                    - row [ref=e567]:
+                                        - cell "Social Studies Department" [ref=e568]
+                                        - cell "40" [ref=e569]
+                                        - cell "3%" [ref=e570]
+                                        - cell "0%" [ref=e571]
+                                        - cell "↓" [ref=e573]
+                        - generic [ref=e574]:
+                            - generic [ref=e575]:
+                                - generic [ref=e576]:
+                                    - generic [ref=e577]: 🤖
+                                    - heading "AI Co-Pilot performance" [level=2] [ref=e578]
+                                - generic [ref=e579]: A2 governance
+                            - generic [ref=e580]:
+                                - paragraph [ref=e581]: Not enough usage data
+                                - paragraph [ref=e582]: AI Co-Pilot metrics will populate automatically as staff generate, edit, and validate suggestions.
+                            - paragraph [ref=e584]: How often staff accept AI suggestions, how accurate at-risk predictions proved, and how often AI feedback drafts were used — the trust signals behind the autonomy ceiling.
+                        - generic [ref=e585]:
+                            - generic [ref=e586]:
+                                - generic [ref=e587]:
+                                    - generic [ref=e588]: 🗺️
+                                    - heading "PLO attainment heatmap" [level=2] [ref=e589]
+                                - combobox [ref=e590]:
+                                    - generic: "Program: All"
+                            - generic [ref=e591]:
+                                - generic [ref=e592]:
+                                    - paragraph [ref=e593]: English Mastery
+                                    - paragraph [ref=e594]: 74.50650000000003%
+                                    - paragraph [ref=e595]: program · 40 courses
+                                - generic [ref=e596]:
+                                    - paragraph [ref=e597]: Mathematics Mastery
+                                    - paragraph [ref=e598]: 75.17124999999999%
+                                    - paragraph [ref=e599]: program · 40 courses
+                                - generic [ref=e600]:
+                                    - paragraph [ref=e601]: Science Mastery
+                                    - paragraph [ref=e602]: 74.07124999999999%
+                                    - paragraph [ref=e603]: program · 40 courses
+                                - generic [ref=e604]:
+                                    - paragraph [ref=e605]: Social Studies Mastery
+                                    - paragraph [ref=e606]: 76.13384615384618%
+                                    - paragraph [ref=e607]: program · 39 courses
+                            - generic [ref=e608]:
+                                - generic [ref=e609]: Excellent ≥85
+                                - generic [ref=e611]: Satisfactory 70–84
+                                - generic [ref=e613]: Developing 50–69
+                                - generic [ref=e615]: Not yet <50
+                                - generic [ref=e617]: Unmeasured
+                - complementary "Institution" [ref=e420]:
+                    - generic [ref=e421]:
+                        - generic [ref=e422]: 🏛️ Institution
+                        - button "Why am I seeing this?" [ref=e424]
+                        - generic [ref=e425]:
+                            - generic [ref=e426]: Users
+                            - generic [ref=e427]: "68"
+                        - generic [ref=e428]:
+                            - generic [ref=e429]: Active accounts
+                            - generic [ref=e430]: "68"
+                        - generic [ref=e431]:
+                            - generic [ref=e432]: Programs
+                            - generic [ref=e433]: "4"
+                        - generic [ref=e434]:
+                            - generic [ref=e435]: Courses
+                            - generic [ref=e436]: "4"
+                        - button "See analytics →" [ref=e437]
+                    - generic [ref=e438]:
+                        - generic [ref=e439]: 🛡️ AI governance
+                        - generic [ref=e441]:
+                            - generic [ref=e442]: Autonomy ceiling
+                            - generic [ref=e443]: A2 · approve
+                        - paragraph [ref=e444]: AI never acts on institution data without human approval.
+                    - generic [ref=e445]:
+                        - generic [ref=e446]: Departments
+                        - paragraph [ref=e448]: No attainment data yet.
+        - region "Notifications alt+T"
+        - button "Open Tanstack query devtools" [ref=e149] [cursor=pointer]
+    - button "Open the dialog" [ref=e450] [cursor=pointer]

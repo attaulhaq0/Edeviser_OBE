@@ -39,9 +39,11 @@ export interface SubmissionWithRelations extends Submission {
 
 export interface SubmissionFilters {
   courseId?: string;
+  courseIds?: string[];
   assignmentId?: string;
   sectionId?: string;
   status?: string;
+  pendingOnly?: boolean;
   page?: number;
   pageSize?: number;
 }
@@ -62,6 +64,10 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
     } as Record<string, unknown>),
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<PaginatedResult<SubmissionWithRelations>> => {
+      if (filters.courseIds && filters.courseIds.length === 0) {
+        return { data: [], count: 0, page, pageSize };
+      }
+
       // If filtering by section, first get student IDs in that section
       let sectionStudentIds: string[] | null = null;
       if (filters.sectionId) {
@@ -92,6 +98,14 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
 
       if (filters.courseId) {
         query = query.eq("assignments.course_id", filters.courseId);
+      }
+
+      if (filters.courseIds) {
+        query = query.in("assignments.course_id", filters.courseIds);
+      }
+
+      if (filters.pendingOnly) {
+        query = query.is("grades", null);
       }
 
       if (sectionStudentIds) {
@@ -187,7 +201,17 @@ export interface StudentAssignment {
   late_window_hours: number;
   prerequisites: Array<{ clo_id: string; required_attainment: number }> | null;
   created_at: string;
-  submissions: Pick<Submission, "id" | "is_late">[] | null;
+  submissions:
+    | (Pick<Submission, "id" | "is_late" | "submitted_at"> & {
+        grades: Pick<Grade, "id" | "score_percent" | "graded_at">[] | null;
+      })[]
+    | null;
+}
+
+interface Grade {
+  id: string;
+  score_percent: number;
+  graded_at: string;
 }
 
 // ─── useCreateSubmission — insert a submission record ───────────────────────
@@ -311,7 +335,9 @@ export const useStudentAssignments = (courseId?: string) => {
 
       let query = supabase
         .from("assignments")
-        .select("*, submissions(id, is_late, submitted_at)")
+        .select(
+          "*, submissions(id, is_late, submitted_at, grades(id, score_percent, graded_at))"
+        )
         .in("course_id", courseIds)
         .eq("submissions.student_id", user.id)
         .order("due_date", { ascending: true });

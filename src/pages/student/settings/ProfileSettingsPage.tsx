@@ -1,20 +1,24 @@
-import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { User } from "lucide-react";
 import AvatarUpload from "@/components/shared/AvatarUpload";
 import EmailPreferencesSection from "@/components/shared/EmailPreferencesSection";
+import { PCard, SectionHeader } from "@/design-system";
 
 const ProfileSettingsPage = () => {
   const { profile } = useAuth();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
+      <SectionHeader
+        icon={User}
+        title="Profile Settings"
+        description="Update your avatar and email preferences."
+      />
 
       {/* Profile Info Card */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden gap-0 py-0">
         <div
-          className="px-6 py-4 flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-4"
           style={{
             background: "var(--brand-gradient)",
           }}
@@ -35,7 +39,7 @@ const ProfileSettingsPage = () => {
                 className="h-16 w-16 rounded-full object-cover"
               />
             ) : (
-              <div className="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
                 <User className="h-8 w-8 text-blue-600" />
               </div>
             )}
@@ -50,7 +54,7 @@ const ProfileSettingsPage = () => {
             </div>
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Avatar Upload */}
       {profile?.id && (

@@ -16,7 +16,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, Label, Switch } from "@/design-system";
+import { Label, PCard, Switch } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import {
   usePortfolio,
@@ -255,7 +255,7 @@ const StudentPortfolioNew = () => {
       </div>
 
       {/* Skills by course */}
-      <Card className="card-elevated overflow-hidden border-0 bg-white">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={BookOpen}
@@ -307,10 +307,10 @@ const StudentPortfolioNew = () => {
             })}
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Badge collection */}
-      <Card className="card-elevated overflow-hidden border-0 bg-white">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={Award}
@@ -322,7 +322,7 @@ const StudentPortfolioNew = () => {
             ) : (
               <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
                 {data?.badges.map((b) => (
-                  <Card
+                  <PCard
                     key={b.badge_key}
                     className="flex flex-col items-center gap-2 rounded-xl border-0 border-s-4 border-s-amber-400 bg-white p-4 text-center shadow-md"
                   >
@@ -335,16 +335,16 @@ const StudentPortfolioNew = () => {
                     <span className="text-[10px] text-gray-500">
                       {format(new Date(b.awarded_at), "MMM d, yyyy")}
                     </span>
-                  </Card>
+                  </PCard>
                 ))}
               </div>
             )}
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Journal entries */}
-      <Card className="card-elevated overflow-hidden border-0 bg-white">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={PenLine}
@@ -379,10 +379,10 @@ const StudentPortfolioNew = () => {
             )}
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* XP timeline */}
-      <Card className="card-elevated overflow-hidden border-0 bg-white">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={TrendingUp}
@@ -427,10 +427,10 @@ const StudentPortfolioNew = () => {
             )}
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Attainment growth */}
-      <Card className="card-elevated overflow-hidden border-0 bg-white">
+      <PCard className="overflow-hidden">
         <div className="p-6">
           <SectionHeader
             icon={BarChart3}
@@ -468,7 +468,7 @@ const StudentPortfolioNew = () => {
             )}
           </div>
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

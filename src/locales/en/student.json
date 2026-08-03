@@ -93,7 +93,51 @@
     "noDueDate": "No due date",
     "noUpcomingWork": "No upcoming work",
     "attainment": "Attainment",
-    "assignments": "Assignments"
+    "assignments": "Assignments",
+    "modules": "Modules",
+    "continueWhere": "Continue where you left off",
+    "dueShort": "Due {{date}}",
+    "stuck": "Stuck on this course?",
+    "tutorPrompt": "Ask your AI Tutor for a guided explanation.",
+    "ask": "Ask",
+    "detail": {
+      "title": "Course details",
+      "backToCourses": "Back to courses",
+      "loadErrorTitle": "Course details unavailable",
+      "loadError": "We couldn't load one or more course details. Please try again.",
+      "courseNotFoundTitle": "Course unavailable",
+      "courseNotFound": "This course could not be loaded.",
+      "progressLabel": "Progress",
+      "attainmentValue": "{{count}}% attainment",
+      "noAttainment": "No attainment data",
+      "stats": {
+        "modules": "Modules",
+        "materials": "Materials",
+        "assignments": "Assignments",
+        "attainment": "Attainment"
+      },
+      "continueTitle": "Continue where you left off",
+      "openAssignment": "Open assignment",
+      "noOpenWork": "Nothing is due soon.",
+      "announcements": "Announcements",
+      "announcementsDescription": "Recent updates from the course team.",
+      "pinned": "Pinned",
+      "noAnnouncements": "There are no announcements for this course yet.",
+      "modules": "Modules",
+      "modulesDescription": "Open a module to browse the published materials inside it.",
+      "noPublishedModules": "No published modules are available yet.",
+      "noMaterials": "No published materials are available yet.",
+      "locked": "Locked",
+      "items": "{{count}} items",
+      "selectMaterialTitle": "Select a material to preview it here",
+      "selectMaterialHint": "Browse a module on the left, then open a material to read or view it.",
+      "readTimer": "Reading timer",
+      "readCompleted": "Read habit complete",
+      "reading": "{{count}}s reading",
+      "openLink": "Open resource",
+      "openFile": "Download or view file",
+      "noTextBody": "No text content is attached yet."
+    }
   },
   "assignments": {
     "title": "Assignments",
@@ -102,15 +146,161 @@
     "submissionConfirmed": "Submission confirmed!",
     "lateSubmission": "This is a late submission.",
     "deadlinePassed": "The submission deadline has passed.",
-    "dueIn": "Due in {{time}}"
+    "dueIn": "Due in {{time}}",
+    "list": {
+      "title": "Assignments",
+      "subtitle": "Track upcoming work, late submissions, and what is already done.",
+      "searchPlaceholder": "Search assignments...",
+      "allCourses": "All courses",
+      "courseFallback": "Course",
+      "loadErrorTitle": "Assignments unavailable",
+      "loadError": "We couldn't load your assignments. Please try again.",
+      "status": {
+        "pending": "Pending",
+        "submitted": "Submitted",
+        "late": "Late",
+        "overdue": "Overdue"
+      },
+      "marks": "{{count}} marks",
+      "dueIn": "{{time}}"
+    },
+    "detail": {
+      "backToAssignments": "Back to assignments",
+      "courseFallback": "Course",
+      "loadErrorTitle": "Assignment unavailable",
+      "loadError": "We couldn't load this assignment. Please try again.",
+      "notFoundTitle": "Assignment not found",
+      "notFound": "This assignment is not available anymore.",
+      "loading": "Loading",
+      "facts": {
+        "due": "Due",
+        "marks": "Marks",
+        "reward": "Reward",
+        "window": "Late window"
+      },
+      "linkedClos": "{{count}} linked CLOs",
+      "xpBonus": "{{multiplier}}x XP bonus",
+      "submitTitle": "Submit your work",
+      "submitDescription": "Upload your file, then submit it before the deadline window closes.",
+      "tapToUpload": "Tap to upload your file",
+      "draftHint": "Previously selected: {{name}}",
+      "fileValidationFailed": "File validation failed.",
+      "retryingUpload": "Upload failed — retrying ({{count}}/3)…",
+      "submitting": "Submitting...",
+      "clearFile": "Clear file",
+      "lateWindow": "You can still submit during the late window.",
+      "openWindow": "You can submit while the deadline window is open.",
+      "tutorTitle": "Need help before submitting?",
+      "tutorHint": "Ask the AI Tutor about the assignment topic.",
+      "ask": "Ask",
+      "statusTitle": "Your submission",
+      "statusDescription": "Track the latest submission state for this assignment.",
+      "submitted": "Submitted",
+      "late": "Late",
+      "viewSubmission": "View submission",
+      "signing": "Preparing file link...",
+      "noSubmission": "You have not submitted this assignment yet.",
+      "dueLabel": "Due",
+      "windowLabel": "Late window",
+      "windowValue": "{{count}} hours",
+      "none": "None",
+      "bonusTitle": "Performance context",
+      "bonusDescription": "The system uses linked CLO difficulty to tune rewards.",
+      "bonusValue": "{{multiplier}}x XP bonus",
+      "noBonus": "No difficulty bonus"
+    }
   },
   "progress": {
+    "viewCLOProgress": "View CLO progress",
     "title": "My Progress",
     "cloProgress": "CLO Progress",
     "xpHistory": "XP History",
     "attainment": "Attainment",
     "evidence": "Evidence",
     "noAssessments": "No assessments yet"
+  },
+  "learningPath": {
+    "title": "Learning Path",
+    "subtitle": "Follow the next available steps in your course journey.",
+    "coursePicker": "Choose a course",
+    "journey": "Your course journey",
+    "views": {
+      "journey": "Journey",
+      "tree": "Knowledge Tree"
+    },
+    "bloomJourney": "Bloom levels · your journey",
+    "youAreHere": "You are here",
+    "levelDetail": "Level detail",
+    "mastery": "Mastery",
+    "tasks": "Tasks",
+    "milestones": "Milestones",
+    "coachTip": "AI Coach Tip",
+    "coachContinue": "Continue “{{title}}” to strengthen this level and open the next milestone.",
+    "coachComplete": "This level is complete. Your next stage is ready when its prerequisite is met.",
+    "coachLocked": "Complete the earlier Bloom level at the required mastery to unlock this stage.",
+    "unlockNext": "Reach {{percent}}% mastery to unlock the next Bloom level",
+    "unlockRequirement": "Reach {{percent}}% on {{title}} to unlock",
+    "recentActivity": "Recent activity on this path",
+    "noRecentActivity": "Complete or submit a task and it will appear here.",
+    "noStageAssignments": "No course tasks are mapped to this Bloom level yet.",
+    "stageLocked": "This stage unlocks as your mastery grows.",
+    "emptyTitle": "Your learning path is being prepared",
+    "emptyDescription": "This course does not have mapped assignments yet. Your instructor’s next published task will appear here.",
+    "status": {
+      "completed": "Completed",
+      "submitted": "Submitted",
+      "available": "Available",
+      "locked": "Locked"
+    },
+    "actions": {
+      "continue": "Continue",
+      "review": "Review",
+      "locked": "Locked"
+    },
+    "stages": {
+      "baseCamp": "Base camp",
+      "campOne": "Camp I",
+      "campTwo": "Camp II · climbing now",
+      "campThree": "Camp III",
+      "campFour": "Camp IV",
+      "summit": "Summit",
+      "remember": {
+        "title": "REMEMBER",
+        "subtitle": "Recall the basic ideas"
+      },
+      "understand": {
+        "title": "UNDERSTAND",
+        "subtitle": "Explain the concepts"
+      },
+      "apply": {
+        "title": "APPLY",
+        "subtitle": "Use knowledge in real situations"
+      },
+      "analyze": {
+        "title": "ANALYZE",
+        "subtitle": "Connect ideas and examine patterns"
+      },
+      "evaluate": {
+        "title": "EVALUATE",
+        "subtitle": "Defend decisions with evidence"
+      },
+      "create": {
+        "title": "CREATE",
+        "subtitle": "Build something original"
+      }
+    },
+    "tree": {
+      "title": "Your Knowledge Growth",
+      "subtitle": "See how your understanding is growing",
+      "overallMastery": "Overall Mastery",
+      "keepGrowing": "Keep growing!",
+      "strong": "Strong",
+      "good": "Good",
+      "developing": "Developing",
+      "needsFocus": "Needs Focus",
+      "tip": "Push your current Bloom level past 70% to unlock the next branch. The tree grows as you master each stage.",
+      "strength": "Your completed foundations are helping you climb into the next level of thinking."
+    }
   },
   "heatmap": {
     "plainSummary": {
@@ -138,6 +328,30 @@
     "wordCount": "{{count}} words",
     "minWords": "Minimum 50 words required",
     "saved": "Journal entry saved.",
+    "today": {
+      "title": "Today's Reflection",
+      "description": "Capture what you learned, what felt challenging, or a small win worth remembering.",
+      "cta": "Write Reflection"
+    },
+    "journey": {
+      "title": "Your Journaling Journey",
+      "thisWeek": "This week",
+      "entriesThisWeek": "Entries this week",
+      "dayStreak": "Day streak",
+      "substantive": "Full reflections",
+      "totalEntries": "Total entries",
+      "weeklyStreak": "This week's reflection streak",
+      "daysOfWeek": "{{count}} of 7 days"
+    },
+    "dailyPrompt": {
+      "label": "Today's prompt:"
+    },
+    "pastEntries": "Past Entries",
+    "entryCount": "{{count}} entries",
+    "empty": {
+      "title": "No journal entries yet",
+      "description": "Start your learning journal — reflect on a class or concept and earn XP."
+    },
     "prompts": {
       "title": "Reflection prompts",
       "hint": "Pick a prompt to get started, or just write freely below.",
@@ -211,6 +425,30 @@
     }
   },
   "onboarding": {
+    "shell": {
+      "stepOf": "Step {{current}} of {{total}}",
+      "progressLabel": "Onboarding progress",
+      "back": "Back",
+      "skip": "Skip for Now",
+      "next": "Next",
+      "loading": "Loading your onboarding"
+    },
+    "welcome": {
+      "fallbackName": "there",
+      "greeting": "Hey {{name}}! 👋",
+      "day1Description": "Let's set up your learning world — it takes under 3 minutes.",
+      "fullDescription": "Let's complete your learning profile and unlock your most personalized experience.",
+      "benefits": {
+        "xpTitle": "Earn up to {{amount}} XP",
+        "xpDescription": "Rewards start from question one",
+        "tapTitle": "All taps, zero typing",
+        "tapDay1Description": "Six quick questions — fast, fun, and easy",
+        "tapFullDescription": "Simple choices across your full learning profile",
+        "privateTitle": "Private to you",
+        "privateDescription": "Your profile and learning data stay protected"
+      },
+      "cta": "Let's Go"
+    },
     "assessmentIntro": {
       "begin": "Begin",
       "personality": {
@@ -382,10 +620,50 @@
       }
     }
   },
+  "recoveryPath": {
+    "title": "Recovery Pathway",
+    "backToDashboard": "Back to Dashboard",
+    "empty": "No active recovery pathway was found for this outcome.",
+    "unknownOutcome": "Learning outcome",
+    "ready": "Ready to Retry",
+    "inProgress": "In Progress",
+    "description": "Complete the steps below to unlock your quiz retry for",
+    "optional": "Optional",
+    "openTutor": "Open AI Tutor",
+    "startPractice": "Start Practice",
+    "browseGroups": "Browse Study Groups",
+    "markComplete": "Mark Complete",
+    "retry": "Retry Quiz",
+    "retryAria": "Retry quiz",
+    "completeToUnlock": "Complete Steps to Unlock Retry",
+    "lockedAria": "Complete required steps to unlock retry",
+    "steps": {
+      "tutor": {
+        "title": "AI Tutor Session",
+        "description": "Review foundational concepts for “{{title}}” with the AI Tutor."
+      },
+      "practice": {
+        "title": "Practice Questions",
+        "description": "Complete practice questions at a lower difficulty level to rebuild understanding."
+      },
+      "peer": {
+        "title": "Peer Study Group",
+        "description": "Join a peer study group working on the same topic.",
+        "unavailable": "No active study groups are available for this topic."
+      }
+    },
+    "toast": {
+      "tutorComplete": "AI Tutor session marked as complete",
+      "practiceComplete": "Practice questions marked as complete",
+      "updateFailed": "Failed to update step"
+    }
+  },
   "quiz": {
     "loading": "Preparing your adaptive quiz...",
     "unableToLoad": "Unable to load quiz. Please go back and try again.",
     "questionProgress": "Question {{number}} of {{total}}",
+    "sessionProgress": "Quiz session progress",
+    "exit": "Exit quiz",
     "loadingButton": "Loading...",
     "submitAnswer": "Submit Answer",
     "nextQuestion": "Next Question",
@@ -449,12 +727,151 @@
   },
   "surveys": {
     "title": "Surveys",
+    "loadError": "We could not load surveys. Please try again.",
+    "retry": "Try again",
     "alreadyCompleted": "You have already completed this survey.",
     "completed": "Completed",
     "toast": {
       "answerAtLeastOne": "Please answer at least one question",
       "submitted": "Survey submitted! +15 XP",
       "submitFailed": "Failed to submit survey"
+    }
+  },
+  "badges": {
+    "title": "My Badges",
+    "subtitle": "Celebrate the milestones you have earned and choose up to three badges to pin.",
+    "pinned": "{{count}} of 3 pinned",
+    "loadError": "We could not load your badges. Please try again.",
+    "retry": "Try again"
+  },
+  "learningProfile": {
+    "title": "Learning Profile",
+    "subtitle": "Your assessment insights help tailor learning recommendations to you.",
+    "reassess": "Retake assessments",
+    "completeness": "Profile completeness",
+    "personalization": "ready for personalization",
+    "emptyTitle": "Build your learning profile",
+    "emptyBody": "Complete the short assessments to unlock learning preferences and tailored recommendations.",
+    "completeProfile": "Complete my profile",
+    "loadError": "We could not load your learning profile. Please try again.",
+    "retry": "Try again",
+    "learningStyle": "Learning preferences",
+    "dominantStyle": "Your strongest preference: {{style}}",
+    "studyStrategies": "Study strategies",
+    "selfEfficacy": "Academic confidence",
+    "personality": "Learning traits",
+    "overall": "Overall",
+    "missingLearningStyle": "Complete the learning-style assessment to see these preferences.",
+    "missingStrategies": "Complete the study-strategies assessment to see these insights.",
+    "missingEfficacy": "Complete the self-efficacy assessment to see these insights.",
+    "missingPersonality": "Complete the personality assessment to see these insights.",
+    "styles": {
+      "visual": "Visual",
+      "auditory": "Auditory",
+      "read_write": "Read/write",
+      "kinesthetic": "Hands-on",
+      "multimodal": "Multimodal"
+    },
+    "strategies": {
+      "time_management": "Time management",
+      "elaboration": "Elaboration",
+      "self_testing": "Self-testing",
+      "help_seeking": "Help-seeking"
+    },
+    "efficacy": {
+      "general_academic": "General academic",
+      "course_specific": "Course-specific",
+      "self_regulated_learning": "Self-regulated learning"
+    },
+    "traits": {
+      "openness": "Openness",
+      "conscientiousness": "Conscientiousness",
+      "extraversion": "Extraversion",
+      "agreeableness": "Agreeableness",
+      "neuroticism": "Emotional sensitivity"
+    },
+    "rail": {
+      "label": "Learning profile context",
+      "whyTitle": "🧠 Why this matters",
+      "whyBody": "Your learning style tunes how the AI Tutor explains things and how lessons are sequenced for you.",
+      "completenessTitle": "✅ Completeness",
+      "completenessEmpty": "Complete your first assessment to start building this profile.",
+      "finishAssessments": "Finish micro-assessments →"
+    }
+  },
+  "settingsRail": {
+    "label": "Settings privacy information",
+    "title": "🔒 Your data",
+    "body": "Notification and language choices apply instantly. Nothing here is shared with classmates."
+  },
+  "profilePage": {
+    "title": "Me",
+    "subtitle": "Your learning identity, progress, privacy, and account.",
+    "edit": "Edit",
+    "changePhoto": "Change profile photo",
+    "student": "Student",
+    "level": "Level",
+    "totalXp": "Total XP",
+    "dayStreak": "day streak",
+    "badges": "Badges",
+    "editProfile": "Edit profile",
+    "viewPortfolio": "View public profile",
+    "levelProgress": "Level {{current}} → {{next}}",
+    "xpRemaining": "{{count}} XP to the next level",
+    "freezes": "{{count}} streak freezes available",
+    "badgesCount": "Badges ({{count}})",
+    "viewAll": "View all →",
+    "noBadges": "Your earned badges will appear here.",
+    "learningActivity": "Learning activity",
+    "lastWeeks": "Last {{count}} weeks",
+    "activeDays": "active days in this period",
+    "profileLinks": "Profile destinations",
+    "links": {
+      "leaderboard": "Leaderboard",
+      "marketplace": "Marketplace",
+      "wellness": "Wellness & Habits",
+      "quests": "Knowledge Quests",
+      "portfolio": "Portfolio",
+      "journal": "Journal",
+      "team": "My Team",
+      "calendar": "Calendar & Timetable",
+      "transcript": "Transcript",
+      "fees": "Fees & Payments",
+      "surveys": "Surveys",
+      "learningProfile": "Learning Profile",
+      "settings": "Settings"
+    },
+    "learningProfile": "Learning profile",
+    "learningStyle": "Learning style",
+    "notComplete": "Not completed yet",
+    "privacy": "Privacy",
+    "anonymous": "Appear anonymous on leaderboards",
+    "anonymousDescription": "Hide your name from classmates while keeping your progress.",
+    "equipped": "Equipped",
+    "slots": {
+      "profile_theme": "Profile theme",
+      "avatar_frame": "Avatar frame",
+      "display_title": "Display title"
+    },
+    "noEquipped": "No cosmetics are equipped.",
+    "security": "Security & access",
+    "changePassword": "Change password",
+    "activeSessions": "Active sessions",
+    "transcript": "Academic transcript",
+    "dataControls": "Data & account controls",
+    "signOut": "Sign out",
+    "rail": {
+      "label": "Student profile summary",
+      "latestBadge": "Latest badge",
+      "noBadge": "No badge earned yet",
+      "viewBadges": "View all {{count}} badges →",
+      "academic": "Academic",
+      "transcript": "Transcript",
+      "openTranscript": "Open transcript →",
+      "portfolio": "Portfolio",
+      "evidence": "Evidence pieces",
+      "openPortfolio": "Open portfolio →",
+      "account": "Account"
     }
   },
   "publicPortfolio": {

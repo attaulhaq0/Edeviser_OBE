@@ -22,6 +22,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ const MasteryRecoveryPanel = ({
   onRetryUnlocked,
   className,
 }: MasteryRecoveryPanelProps) => {
+  const { t } = useTranslation("student");
   const { data: pathway, isLoading } = useRecoveryPathway(recoveryId);
   const completeStep = useCompleteRecoveryStep();
 
@@ -73,27 +75,39 @@ const MasteryRecoveryPanel = ({
   const steps: RecoveryStep[] = [
     {
       number: 1,
-      title: "AI Tutor Session",
-      description: `Review foundational concepts for "${cloTitle}" with the AI Tutor.`,
+      title: t("recoveryPath.steps.tutor.title", "AI Tutor Session"),
+      description: t("recoveryPath.steps.tutor.description", {
+        defaultValue:
+          'Review foundational concepts for "{{title}}" with the AI Tutor.',
+        title: cloTitle,
+      }),
       icon: BrainCircuit,
       completed: aiTutorCompleted,
       required: true,
     },
     {
       number: 2,
-      title: "Practice Questions",
-      description:
-        "Complete practice questions at a lower difficulty level to rebuild understanding.",
+      title: t("recoveryPath.steps.practice.title", "Practice Questions"),
+      description: t(
+        "recoveryPath.steps.practice.description",
+        "Complete practice questions at a lower difficulty level to rebuild understanding."
+      ),
       icon: BookOpen,
       completed: practiceCompleted,
       required: true,
     },
     {
       number: 3,
-      title: "Peer Study Group",
+      title: t("recoveryPath.steps.peer.title", "Peer Study Group"),
       description: peerApplicable
-        ? "Join a peer study group working on the same topic."
-        : "No active study groups available for this topic.",
+        ? t(
+            "recoveryPath.steps.peer.description",
+            "Join a peer study group working on the same topic."
+          )
+        : t(
+            "recoveryPath.steps.peer.unavailable",
+            "No active study groups are available for this topic."
+          ),
       icon: Users,
       completed: peerShown || !peerApplicable,
       required: false,
@@ -104,10 +118,18 @@ const MasteryRecoveryPanel = ({
     completeStep.mutate(
       { recovery_id: recoveryId, step: "ai_tutor" },
       {
-        onSuccess: () => toast.success("AI Tutor session marked as complete"),
+        onSuccess: () =>
+          toast.success(
+            t(
+              "recoveryPath.toast.tutorComplete",
+              "AI Tutor session marked as complete"
+            )
+          ),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update step"
+            err instanceof Error
+              ? err.message
+              : t("recoveryPath.toast.updateFailed", "Failed to update step")
           ),
       }
     );
@@ -117,10 +139,18 @@ const MasteryRecoveryPanel = ({
     completeStep.mutate(
       { recovery_id: recoveryId, step: "practice" },
       {
-        onSuccess: () => toast.success("Practice questions marked as complete"),
+        onSuccess: () =>
+          toast.success(
+            t(
+              "recoveryPath.toast.practiceComplete",
+              "Practice questions marked as complete"
+            )
+          ),
         onError: (err) =>
           toast.error(
-            err instanceof Error ? err.message : "Failed to update step"
+            err instanceof Error
+              ? err.message
+              : t("recoveryPath.toast.updateFailed", "Failed to update step")
           ),
       }
     );
@@ -162,16 +192,21 @@ const MasteryRecoveryPanel = ({
       >
         <RotateCcw className="h-5 w-5 text-white" />
         <h2 className="text-lg font-bold tracking-tight text-white">
-          Recovery Pathway
+          {t("recoveryPath.title", "Recovery Pathway")}
         </h2>
-        <Badge className="ml-auto bg-white/20 text-white border-0 text-xs font-bold tracking-wide uppercase">
-          {retryUnlocked ? "Ready to Retry" : "In Progress"}
+        <Badge className="ms-auto border-0 bg-white/20 text-xs font-bold uppercase tracking-wide text-white">
+          {retryUnlocked
+            ? t("recoveryPath.ready", "Ready to Retry")
+            : t("recoveryPath.inProgress", "In Progress")}
         </Badge>
       </div>
 
       <div className="p-6 space-y-4">
         <p className="text-sm text-gray-600">
-          Complete the steps below to unlock your quiz retry for{" "}
+          {t(
+            "recoveryPath.description",
+            "Complete the steps below to unlock your quiz retry for"
+          )}{" "}
           <span className="font-semibold text-gray-900">{cloTitle}</span>.
         </p>
 
@@ -204,12 +239,20 @@ const MasteryRecoveryPanel = ({
             )}
             aria-label={
               retryUnlocked
-                ? "Retry quiz"
-                : "Complete required steps to unlock retry"
+                ? t("recoveryPath.retryAria", "Retry quiz")
+                : t(
+                    "recoveryPath.lockedAria",
+                    "Complete required steps to unlock retry"
+                  )
             }
           >
             <RotateCcw className="h-4 w-4" />
-            {retryUnlocked ? "Retry Quiz" : "Complete Steps to Unlock Retry"}
+            {retryUnlocked
+              ? t("recoveryPath.retry", "Retry Quiz")
+              : t(
+                  "recoveryPath.completeToUnlock",
+                  "Complete Steps to Unlock Retry"
+                )}
           </Button>
         </div>
       </div>
@@ -236,6 +279,7 @@ const StepCard = ({
   onCompletePractice: () => void;
   peerApplicable: boolean;
 }) => {
+  const { t } = useTranslation("student");
   const Icon = step.icon;
 
   return (
@@ -270,7 +314,7 @@ const StepCard = ({
               variant="outline"
               className="text-xs text-gray-500 border-gray-300"
             >
-              Optional
+              {t("recoveryPath.optional", "Optional")}
             </Badge>
           )}
         </div>
@@ -288,7 +332,7 @@ const StepCard = ({
                     rel="noopener noreferrer"
                   >
                     <BrainCircuit className="h-3.5 w-3.5" />
-                    Open AI Tutor
+                    {t("recoveryPath.openTutor", "Open AI Tutor")}
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </Button>
@@ -303,7 +347,7 @@ const StepCard = ({
                   ) : (
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   )}
-                  Mark Complete
+                  {t("recoveryPath.markComplete", "Mark Complete")}
                 </Button>
               </div>
             )}
@@ -315,7 +359,7 @@ const StepCard = ({
                     href={`/student/courses/${courseId}/practice?clo=${cloId}`}
                   >
                     <BookOpen className="h-3.5 w-3.5" />
-                    Start Practice
+                    {t("recoveryPath.startPractice", "Start Practice")}
                   </a>
                 </Button>
                 <Button
@@ -329,7 +373,7 @@ const StepCard = ({
                   ) : (
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   )}
-                  Mark Complete
+                  {t("recoveryPath.markComplete", "Mark Complete")}
                 </Button>
               </div>
             )}
@@ -340,7 +384,7 @@ const StepCard = ({
                   href={`/student/courses/${courseId}/team-challenges?clo=${cloId}`}
                 >
                   <Users className="h-3.5 w-3.5" />
-                  Browse Study Groups
+                  {t("recoveryPath.browseGroups", "Browse Study Groups")}
                 </a>
               </Button>
             )}

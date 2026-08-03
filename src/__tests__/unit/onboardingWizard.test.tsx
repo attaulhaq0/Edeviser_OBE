@@ -5,6 +5,7 @@
 // =============================================================================
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@/lib/i18n";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -57,7 +58,9 @@ vi.mock("@/hooks/useAuth", () => ({
   }),
 }));
 
-let mockProgressData = { ...defaultProgress };
+let mockProgressData: typeof defaultProgress | undefined = {
+  ...defaultProgress,
+};
 let mockProgressLoading = false;
 
 vi.mock("@/hooks/useOnboardingProgress", () => ({
@@ -95,7 +98,7 @@ vi.mock("@/pages/student/onboarding/WelcomeStep", () => ({
     <div data-testid="welcome-step">
       <span>Welcome Step</span>
       <button data-testid="step-complete" onClick={onComplete}>
-        Complete
+        Next
       </button>
     </div>
   ),
@@ -278,14 +281,22 @@ import { OnboardingWizard } from "@/pages/student/onboarding/OnboardingWizard";
 const createQueryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
-const renderWizard = (props: { isDay1?: boolean } = {}) => {
-  return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <OnboardingWizard {...props} />
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
+const wizardTree = (
+  props: { isDay1?: boolean } = {},
+  initialEntry = "/student/onboarding"
+) => (
+  <QueryClientProvider client={createQueryClient()}>
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <OnboardingWizard {...props} />
+    </MemoryRouter>
+  </QueryClientProvider>
+);
+
+const renderWizard = (
+  props: { isDay1?: boolean } = {},
+  initialEntry?: string
+) => {
+  return render(wizardTree(props, initialEntry));
 };
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -496,10 +507,11 @@ describe("OnboardingWizard", () => {
   // ── Back navigation ──────────────────────────────────────────────
 
   describe("Back navigation", () => {
-    it("disables the Back button on the first step", () => {
+    it("does not render shell navigation on the prototype welcome step", () => {
       renderWizard({ isDay1: true });
-      const backBtn = screen.getByRole("button", { name: /back/i });
-      expect(backBtn).toBeDisabled();
+      expect(
+        screen.queryByRole("button", { name: /back/i })
+      ).not.toBeInTheDocument();
     });
 
     it("navigates back to the previous step", async () => {
@@ -542,6 +554,34 @@ describe("OnboardingWizard", () => {
       // Should resume at self_efficacy (step 3 of 4)
       expect(screen.getByTestId("self-efficacy-step")).toBeInTheDocument();
       expect(screen.getByText("Step 3 of 4")).toBeInTheDocument();
+    });
+
+    it("preserves a requested step while progress is still loading", async () => {
+      mockProgressData = undefined;
+      mockProgressLoading = true;
+      const view = renderWizard(
+        { isDay1: false },
+        "/student/onboarding?step=personality"
+      );
+
+      expect(
+        screen.getByRole("status", { name: "Loading your onboarding" })
+      ).toBeInTheDocument();
+
+      mockProgressData = {
+        ...defaultProgress,
+        current_step: "summary",
+        day1_completed: true,
+      };
+      mockProgressLoading = false;
+      view.rerender(
+        wizardTree({ isDay1: false }, "/student/onboarding?step=personality")
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId("personality-step")).toBeInTheDocument();
+      });
+      expect(screen.getByText("Step 2 of 8")).toBeInTheDocument();
     });
 
     it("restores skipped_sections from saved progress", () => {

@@ -60,7 +60,6 @@ import {
   calculatePercentileBand,
   formatPercentileBand,
 } from "@/lib/percentileBand";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -71,7 +70,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import EmptyState, {
   InlineNoXPData,
   InlineNoImprovementData,
@@ -259,7 +258,7 @@ const MyRankCard = ({
     : "—";
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+    <PCard className="overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
@@ -293,7 +292,7 @@ const MyRankCard = ({
           <p className="text-2xl font-black text-blue-600">{level}</p>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 
@@ -345,7 +344,7 @@ const PersonalBestChart = ({ studentId }: PersonalBestChartProps) => {
         </div>
       )}
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
@@ -412,7 +411,7 @@ const PersonalBestChart = ({ studentId }: PersonalBestChartProps) => {
             </div>
           </div>
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };
@@ -445,7 +444,7 @@ const MostImprovedList = ({
   }
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+    <PCard className="overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
@@ -525,7 +524,7 @@ const MostImprovedList = ({
           );
         })}
       </div>
-    </Card>
+    </PCard>
   );
 };
 
@@ -566,7 +565,7 @@ const LeagueLeaderboardList = ({
         <LeagueTierBadge tier={currentTier} size="lg" />
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
@@ -631,7 +630,7 @@ const LeagueLeaderboardList = ({
             })
           )}
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };
@@ -786,6 +785,10 @@ const LeaderboardPage = () => {
   const leaderboardGateState = leaderboardData.state;
   const isLeaderboardLocked = leaderboardGateState === "locked";
   const entries = useMemo(() => leaderboardData.entries, [leaderboardData]);
+  const currentUserEntry = useMemo(
+    () => entries.find((entry) => entry.student_id === userId),
+    [entries, userId]
+  );
 
   // Fetch cosmetics for leaderboard entries (Task 6.2)
   const leaderboardStudentIds = useMemo(
@@ -807,13 +810,11 @@ const LeaderboardPage = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <Trophy className="h-6 w-6 text-amber-500" />
-          <h1 className="text-2xl font-bold tracking-tight">Leaderboard</h1>
-        </div>
-        <AnonymousToggle />
-      </div>
+      <SectionHeader
+        icon={Trophy}
+        title="Leaderboard"
+        action={<AnonymousToggle />}
+      />
 
       {/* Mode Tabs: Individual vs Teams */}
       <div className="flex gap-2">
@@ -821,18 +822,21 @@ const LeaderboardPage = () => {
           { value: "individual", label: "Individual" },
           { value: "teams", label: "Teams" },
         ].map((opt) => (
-          <button
+          <Button
             key={opt.value}
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setMode(opt.value)}
             className={cn(
-              "px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors",
+              "h-auto rounded-xl px-4 py-1.5 text-sm font-semibold transition-colors",
               mode === opt.value
-                ? "bg-blue-600 text-white"
+                ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                 : "bg-white text-gray-600 border border-gray-200"
             )}
           >
             {opt.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -868,19 +872,22 @@ const LeaderboardPage = () => {
             ].map((opt) => {
               const Icon = opt.icon;
               return (
-                <button
+                <Button
                   key={opt.value}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setTab(opt.value)}
                   className={cn(
-                    "flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors",
+                    "h-auto gap-1.5 rounded-xl px-4 py-1.5 text-sm font-semibold transition-colors",
                     tab === opt.value
-                      ? "bg-blue-600 text-white"
+                      ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                       : "bg-white text-gray-600 border border-gray-200"
                   )}
                 >
                   <Icon className="h-4 w-4" />
                   {opt.label}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -1007,14 +1014,16 @@ const LeaderboardPage = () => {
                   </Tabs>
 
                   <MyRankCard
-                    rank={myRankData?.rank ?? null}
-                    xpTotal={myRankData?.xp_total ?? 0}
-                    level={myRankData?.level ?? 1}
+                    rank={currentUserEntry?.rank ?? myRankData?.rank ?? null}
+                    xpTotal={
+                      currentUserEntry?.xp_total ?? myRankData?.xp_total ?? 0
+                    }
+                    level={currentUserEntry?.level ?? myRankData?.level ?? 1}
                     isLoading={isLoadingMyRank}
                     totalStudents={totalStudents}
                   />
 
-                  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+                  <PCard className="overflow-hidden gap-0 py-0">
                     <div
                       className="px-6 py-4 flex items-center gap-2"
                       style={{
@@ -1061,7 +1070,7 @@ const LeaderboardPage = () => {
                         </>
                       )}
                     </div>
-                  </Card>
+                  </PCard>
                 </>
               )}
             </>

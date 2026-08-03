@@ -3,11 +3,11 @@
 // Task 4.7: keyboard accessible accept/decline buttons
 // =============================================================================
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, X, Users, Clock, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { PCard } from "@/design-system";
 
 export interface TeamInvitationCardProps {
   teamName: string;
@@ -33,9 +33,7 @@ const TeamInvitationCard = ({
   const isPending = isAccepting || isDeclining;
 
   return (
-    <Card
-      className={cn("bg-white border-0 shadow-md rounded-xl p-4", className)}
-    >
+    <PCard className={cn("p-4", className)}>
       <div className="flex items-start gap-3">
         {/* Team icon */}
         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
@@ -88,7 +86,7 @@ const TeamInvitationCard = ({
           </div>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

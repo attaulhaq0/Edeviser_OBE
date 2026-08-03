@@ -39,7 +39,7 @@ import { Shimmer } from "@/design-system";
 import { InlineNoSessions } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
 import {
   useClassSessions,
@@ -97,7 +97,8 @@ const AttendanceMarker = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   // Data hooks
-  const { data: coursesResult, isLoading: coursesLoading } = useCourses();
+  const { data: coursesResult, isLoading: coursesLoading } =
+    useTeacherCourses();
   const teacherCourses = useMemo(
     () => (coursesResult?.data ?? []).filter((c) => c.teacher_id === teacherId),
     [coursesResult, teacherId]
@@ -216,10 +217,22 @@ const AttendanceMarker = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 no-scrollbar">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Attendance Marker</h1>
+      <div className="rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 backdrop-blur-xs text-xl shadow-xs">
+            📅
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+              Attendance Marker
+            </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              Create class sessions and record student attendance.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Course & Section Selectors */}

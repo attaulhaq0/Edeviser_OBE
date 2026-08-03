@@ -18,12 +18,9 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/hooks/useAuth";
-import { navItems } from "@/lib/navItems";
+import { getMobileTabItems } from "@/lib/navPresentation";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
-
-/** Max destinations to surface in the bottom bar (full nav stays in the drawer). */
-const MAX_TABS = 5;
 
 const MobileTabBar = () => {
   const { t } = useTranslation("common");
@@ -32,11 +29,7 @@ const MobileTabBar = () => {
 
   const role = (profile?.role ?? "student") as UserRole;
 
-  // Core destinations = the first few non-de-emphasized items of the role's nav
-  // (same source the sidebar/drawer use). The full list stays in the drawer.
-  const items = (navItems[role] ?? [])
-    .filter((item) => !item.deEmphasized)
-    .slice(0, MAX_TABS);
+  const items = getMobileTabItems(role);
 
   // Active detection mirrors Sidebar.isItemActive so the two chromes agree.
   const isActive = (to: string): boolean =>
@@ -49,12 +42,13 @@ const MobileTabBar = () => {
 
   return (
     <nav
-      className="new-mobile-tabbar fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-border bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden dark:bg-background/95"
+      className="new-mobile-tabbar fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-[#e6ebf1] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_2px_rgba(15,23,42,0.05)] min-[640px]:hidden"
       aria-label={t("header.primaryNav.label")}
     >
       {items.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.to);
+        const isFab = item.raised;
         return (
           <NavLink
             key={item.to}
@@ -62,16 +56,20 @@ const MobileTabBar = () => {
             viewTransition
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-medium transition-colors",
-              active
-                ? "text-teal-600 dark:text-teal-400"
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              "flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-bold transition-colors",
+              isFab &&
+                "-mt-5 min-h-14 max-w-14 rounded-full border-[4px] border-white bg-[image:var(--brand-gradient)] px-2 text-white shadow-[0_8px_20px_rgba(3,130,189,0.32)] hover:text-white",
+              !isFab &&
+                (active
+                  ? "text-[#075985]"
+                  : "text-gray-500 hover:text-gray-700")
             )}
           >
             <Icon
               className={cn(
                 "h-5 w-5 shrink-0 transition-transform",
-                active && "scale-110"
+                active && "scale-110",
+                isFab && "h-5 w-5"
               )}
               aria-hidden="true"
             />

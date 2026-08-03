@@ -4,7 +4,6 @@
 // =============================================================================
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -14,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import AtRiskStudentRow from "@/components/shared/AtRiskStudentRow";
 import ErrorState from "@/components/shared/ErrorState";
 import {
@@ -68,21 +67,12 @@ const AIAtRiskWidget = () => {
 
   return (
     <>
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        {/* Gradient header */}
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Sparkles className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            AI At-Risk Students
-          </h2>
+      <PCard className="overflow-hidden">
+        <div className="p-5 pb-4">
+          <SectionHeader icon={Sparkles} title="AI At-Risk Students" />
         </div>
 
-        <div className="p-6">
+        <div className="space-y-4 px-5 pb-5">
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -127,7 +117,7 @@ const AIAtRiskWidget = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
 
       {/* Nudge Dialog */}
       <Dialog

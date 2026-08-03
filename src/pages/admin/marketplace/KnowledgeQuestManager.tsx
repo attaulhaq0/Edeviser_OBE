@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,13 +253,13 @@ const KnowledgeQuestManager = () => {
           <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
         </div>
       ) : filteredQuests.length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-12 text-center">
+        <PCard className="p-12 text-center">
           <BookOpen className="h-10 w-10 text-gray-300 mx-auto mb-3" />
           <p className="text-sm text-gray-500">
             No knowledge quests yet. Create one to engage students with focused
             learning challenges.
           </p>
-        </Card>
+        </PCard>
       ) : (
         <div className="grid gap-4">
           {filteredQuests.map((quest) => {
@@ -271,10 +271,7 @@ const KnowledgeQuestManager = () => {
             const isUpcoming = now < startDate;
 
             return (
-              <Card
-                key={q.id as string}
-                className="bg-white border-0 shadow-md rounded-xl p-4"
-              >
+              <PCard key={q.id as string} className="p-4">
                 <div className="flex items-center gap-4">
                   <div className="p-2 rounded-lg bg-purple-50">
                     <BookOpen className="h-5 w-5 text-purple-600" />
@@ -309,7 +306,7 @@ const KnowledgeQuestManager = () => {
                     </p>
                   </div>
                 </div>
-              </Card>
+              </PCard>
             );
           })}
         </div>

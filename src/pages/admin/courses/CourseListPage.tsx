@@ -56,7 +56,10 @@ const CourseListPage = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
-        <Button variant="tactile" onClick={() => navigate("/admin/courses/new")}>
+        <Button
+          variant="tactile"
+          onClick={() => navigate("/admin/courses/new")}
+        >
           <Plus className="h-4 w-4" /> Add Course
         </Button>
       </div>

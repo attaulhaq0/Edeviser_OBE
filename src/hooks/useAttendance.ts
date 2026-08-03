@@ -38,7 +38,7 @@ export interface StudentAttendanceSummary {
   lateCount: number;
   absentCount: number;
   excusedCount: number;
-  attendancePercent: number;
+  attendancePercent: number | null;
   isBelowThreshold: boolean;
 }
 
@@ -66,8 +66,8 @@ export function calculateAttendancePercent(
   presentCount: number,
   lateCount: number,
   totalSessions: number
-): number {
-  if (totalSessions === 0) return 100;
+): number | null {
+  if (totalSessions === 0) return null;
   return Math.round(((presentCount + lateCount) / totalSessions) * 100);
 }
 
@@ -314,7 +314,7 @@ export const useAttendanceSummary = (
           absentCount: counts.absent,
           excusedCount: counts.excused,
           attendancePercent: percent,
-          isBelowThreshold: percent < ATTENDANCE_THRESHOLD,
+          isBelowThreshold: percent !== null && percent < ATTENDANCE_THRESHOLD,
         };
       });
     },
@@ -327,7 +327,7 @@ export const useAttendanceSummary = (
 export interface StudentCourseAttendance {
   courseId: string;
   courseName: string;
-  attendancePercent: number;
+  attendancePercent: number | null;
   totalSessions: number;
   attended: number;
 }
@@ -348,7 +348,7 @@ interface StudentAttendanceCourse {
  *   - `attended` = count of this student's `present`|`late` records in those
  *     sessions;
  *   - `attendancePercent` = calculateAttendancePercent(attended, 0, totalSessions),
- *     so a course with zero sessions renders 100% (matching the old early-return).
+ *     so a course with zero sessions remains explicitly unmeasured.
  */
 export function aggregateStudentAttendance(
   courses: StudentAttendanceCourse[],
@@ -415,7 +415,7 @@ export const useStudentAttendance = (
       if (!studentId) return [];
 
       // 1) Active enrollments — the complete course list (incl. zero-session
-      //    courses, which render at 100% / 0 sessions, preserving prior behavior).
+      //    courses, which remain explicitly unmeasured until sessions exist).
       const { data: enrollments, error: enrErr } = await supabase
         .from("student_courses")
         .select("course_id, courses:course_id(name)")
@@ -613,6 +613,442 @@ export const useChildAttendance = (studentId: string | undefined) => {
       });
 
       return aggregateParentAttendance(courses, records);
+    },
+    enabled: !!studentId,
+    staleTime: 60_000,
+  });
+};
+
+// ─── Single Canonical Parent Attendance Overview Hook & Types ───────────────
+
+export interface ParentAttendanceOverview {
+  child: {
+    id: string;
+    name: string;
+  };
+  period: {
+    dateFrom: string;
+    dateTo: string;
+    label: string;
+  };
+  totals: {
+    totalSessions: number;
+    present: number;
+    late: number;
+    absent: number;
+    excused: number;
+    attended: number;
+    attendanceRate: number;
+    punctualityRate: number;
+    absenceRate: number;
+  };
+  trend: Array<{
+    periodLabel: string;
+    periodStart: string;
+    periodEnd: string;
+    present: number;
+    late: number;
+    absent: number;
+    attendanceRate: number;
+  }>;
+  courses: Array<{
+    courseId: string;
+    code: string;
+    name: string;
+    present: number;
+    late: number;
+    absent: number;
+    excused: number;
+    totalSessions: number;
+    attendanceRate: number;
+    trend: "up" | "stable" | "down" | "insufficient_data";
+  }>;
+  recentExceptions: Array<{
+    attendanceRecordId: string;
+    sessionId: string;
+    courseId: string;
+    courseName: string;
+    sessionDate: string;
+    sessionType: string;
+    topic?: string;
+    status: "present" | "late" | "absent" | "excused";
+  }>;
+  attention?: {
+    courseId: string;
+    courseName: string;
+    absenceCount: number;
+    message: string;
+  };
+}
+
+export interface RawAttendanceRecordItem {
+  id: string;
+  session_id: string;
+  status: string;
+  created_at: string;
+  class_sessions: {
+    id: string;
+    session_date: string;
+    session_type: string;
+    topic?: string;
+    course_sections: {
+      id: string;
+      course_id: string;
+      courses: {
+        id: string;
+        name: string;
+        code: string;
+      };
+    };
+  };
+}
+
+/**
+ * Pure canonical aggregation function for Parent Attendance Overview.
+ * Enforces explicit formulas:
+ *   Attended = Present + Late
+ *   Attendance Rate = Math.round(((Present + Late) / Total) * 100)
+ *   Punctuality Rate = Attended > 0 ? Math.round((Present / Attended) * 100) : 100
+ *   Absence Rate = Math.round((Absent / Total) * 100)
+ */
+export function buildParentAttendanceOverview(
+  child: { id: string; name: string },
+  enrolledCourses: Array<{ courseId: string; code: string; name: string }>,
+  records: RawAttendanceRecordItem[],
+  dateFrom?: string,
+  dateTo?: string
+): ParentAttendanceOverview {
+  // Filter by date range if provided
+  const filteredRecords = records.filter((r) => {
+    const d = r.class_sessions?.session_date;
+    if (!d) return false;
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo && d > dateTo) return false;
+    return true;
+  });
+
+  // Calculate totals
+  let present = 0;
+  let late = 0;
+  let absent = 0;
+  let excused = 0;
+
+  for (const r of filteredRecords) {
+    if (r.status === "present") present++;
+    else if (r.status === "late") late++;
+    else if (r.status === "absent") absent++;
+    else if (r.status === "excused") excused++;
+  }
+
+  const totalSessions = filteredRecords.length;
+  const attended = present + late;
+  const attendanceRate =
+    totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 100;
+  const punctualityRate =
+    attended > 0 ? Math.round((present / attended) * 100) : 100;
+  const absenceRate =
+    totalSessions > 0 ? Math.round((absent / totalSessions) * 100) : 0;
+
+  // Aggregate by Course
+  const courseMap = new Map<
+    string,
+    {
+      courseId: string;
+      code: string;
+      name: string;
+      present: number;
+      late: number;
+      absent: number;
+      excused: number;
+      totalSessions: number;
+    }
+  >();
+
+  for (const c of enrolledCourses) {
+    courseMap.set(c.courseId, {
+      courseId: c.courseId,
+      code: c.code,
+      name: c.name,
+      present: 0,
+      late: 0,
+      absent: 0,
+      excused: 0,
+      totalSessions: 0,
+    });
+  }
+
+  for (const r of filteredRecords) {
+    const course = r.class_sessions?.course_sections?.courses;
+    if (!course) continue;
+    let item = courseMap.get(course.id);
+    if (!item) {
+      item = {
+        courseId: course.id,
+        code: course.code,
+        name: course.name,
+        present: 0,
+        late: 0,
+        absent: 0,
+        excused: 0,
+        totalSessions: 0,
+      };
+      courseMap.set(course.id, item);
+    }
+    item.totalSessions++;
+    if (r.status === "present") item.present++;
+    else if (r.status === "late") item.late++;
+    else if (r.status === "absent") item.absent++;
+    else if (r.status === "excused") item.excused++;
+  }
+
+  const courseSummaries = Array.from(courseMap.values()).map((c) => {
+    const cAttended = c.present + c.late;
+    const rate =
+      c.totalSessions > 0
+        ? Math.round((cAttended / c.totalSessions) * 100)
+        : 100;
+    let trend: "up" | "stable" | "down" | "insufficient_data" = "stable";
+    if (c.totalSessions < 3) trend = "insufficient_data";
+    else if (rate >= 95) trend = "up";
+    else if (rate < 85) trend = "down";
+
+    return {
+      courseId: c.courseId,
+      code: c.code,
+      name: c.name,
+      present: c.present,
+      late: c.late,
+      absent: c.absent,
+      excused: c.excused,
+      totalSessions: c.totalSessions,
+      attendanceRate: rate,
+      trend,
+    };
+  });
+
+  // Recent Exceptions (sorted descending by date)
+  const recentExceptions: ParentAttendanceOverview["recentExceptions"] =
+    filteredRecords
+      .map((r) => ({
+        attendanceRecordId: r.id,
+        sessionId: r.class_sessions.id,
+        courseId: r.class_sessions.course_sections.courses.id,
+        courseName: r.class_sessions.course_sections.courses.name,
+        sessionDate: r.class_sessions.session_date,
+        sessionType: r.class_sessions.session_type,
+        topic: r.class_sessions.topic,
+        status:
+          (r.status as "present" | "late" | "absent" | "excused") ?? "present",
+      }))
+      .sort((a, b) => b.sessionDate.localeCompare(a.sessionDate));
+
+  // Determine highest absence course for Attention card
+  let maxAbsenceCourse: (typeof courseSummaries)[0] | null = null;
+  for (const c of courseSummaries) {
+    if (c.absent > 0) {
+      if (!maxAbsenceCourse || c.absent > maxAbsenceCourse.absent) {
+        maxAbsenceCourse = c;
+      }
+    }
+  }
+
+  const attention = maxAbsenceCourse
+    ? {
+        courseId: maxAbsenceCourse.courseId,
+        courseName: maxAbsenceCourse.name,
+        absenceCount: maxAbsenceCourse.absent,
+        message: `${maxAbsenceCourse.name} has ${maxAbsenceCourse.absent} of the ${absent} missed sessions.`,
+      }
+    : undefined;
+
+  // Trend aggregation (weekly blocks)
+  const weekMap = new Map<
+    string,
+    {
+      label: string;
+      start: string;
+      end: string;
+      present: number;
+      late: number;
+      absent: number;
+    }
+  >();
+
+  for (const r of filteredRecords) {
+    const d = new Date(r.class_sessions.session_date);
+    if (isNaN(d.getTime())) continue;
+    // Get week label (e.g., W1, W2)
+    const weekNum = Math.ceil(d.getDate() / 7);
+    const weekKey = `${d.getFullYear()}-M${d.getMonth() + 1}-W${weekNum}`;
+    let w = weekMap.get(weekKey);
+    if (!w) {
+      w = {
+        label: `W${weekNum}`,
+        start: r.class_sessions.session_date,
+        end: r.class_sessions.session_date,
+        present: 0,
+        late: 0,
+        absent: 0,
+      };
+      weekMap.set(weekKey, w);
+    }
+    if (r.status === "present") w.present++;
+    else if (r.status === "late") w.late++;
+    else if (r.status === "absent") w.absent++;
+  }
+
+  const trend = Array.from(weekMap.values()).map((w) => {
+    const tot = w.present + w.late + w.absent;
+    const rate = tot > 0 ? Math.round(((w.present + w.late) / tot) * 100) : 100;
+    return {
+      periodLabel: w.label,
+      periodStart: w.start,
+      periodEnd: w.end,
+      present: w.present,
+      late: w.late,
+      absent: w.absent,
+      attendanceRate: rate,
+    };
+  });
+
+  // Calculate actual period label
+  const dates = filteredRecords
+    .map((r) => r.class_sessions?.session_date)
+    .filter(Boolean)
+    .sort();
+  const actualFrom = dateFrom || dates[0] || "2026-04-07";
+  const actualTo = dateTo || dates[dates.length - 1] || "2026-05-18";
+  const label = `${new Date(actualFrom).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })} – ${new Date(actualTo).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+
+  return {
+    child,
+    period: {
+      dateFrom: actualFrom,
+      dateTo: actualTo,
+      label,
+    },
+    totals: {
+      totalSessions,
+      present,
+      late,
+      absent,
+      excused,
+      attended,
+      attendanceRate,
+      punctualityRate,
+      absenceRate,
+    },
+    trend,
+    courses: courseSummaries,
+    recentExceptions,
+    attention,
+  };
+}
+
+/**
+ * Single Canonical Parent Attendance Hook
+ * Consolidates Overview, Trend, Course Breakdown, Exceptions, and Right Rail data
+ * into a single unified query with strict authorization checks.
+ */
+export const useParentAttendanceOverview = (
+  studentId: string | undefined,
+  options?: { dateFrom?: string; dateTo?: string; courseId?: string }
+) => {
+  return useQuery({
+    queryKey: queryKeys.attendanceRecords.list({
+      studentId,
+      dateFrom: options?.dateFrom,
+      dateTo: options?.dateTo,
+      courseId: options?.courseId,
+      view: "parent-canonical-overview",
+    }),
+    queryFn: async (): Promise<ParentAttendanceOverview> => {
+      if (!studentId) {
+        return buildParentAttendanceOverview({ id: "", name: "Child" }, [], []);
+      }
+
+      // 1) Fetch child profile info
+      const { data: profile, error: profErr } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("id", studentId)
+        .single();
+      if (profErr) throw profErr;
+
+      const childName = profile?.full_name ?? "Child";
+
+      // 2) Fetch active course enrollments for this child
+      const { data: enrollments, error: enrErr } = await supabase
+        .from("student_courses")
+        .select("course_id, courses!inner(id, name, code)")
+        .eq("student_id", studentId)
+        .eq("status", "active");
+      if (enrErr) throw enrErr;
+
+      const enrolledCourses = (enrollments ?? []).map((e) => {
+        const c = e.courses as unknown as {
+          id: string;
+          name: string;
+          code: string;
+        };
+        return { courseId: c.id, name: c.name, code: c.code };
+      });
+
+      // 3) Fetch attendance records with joined session details
+      let query = supabase
+        .from("attendance_records")
+        .select(
+          `
+          id,
+          session_id,
+          status,
+          created_at,
+          class_sessions!inner(
+            id,
+            session_date,
+            session_type,
+            topic,
+            course_sections!inner(
+              id,
+              course_id,
+              courses!inner(
+                id,
+                name,
+                code
+              )
+            )
+          )
+        `
+        )
+        .eq("student_id", studentId);
+
+      if (options?.courseId) {
+        query = query.eq(
+          "class_sessions.course_sections.course_id",
+          options.courseId
+        );
+      }
+
+      const { data: recordsData, error: recErr } = await query;
+      if (recErr) throw recErr;
+
+      const rawRecords = (recordsData ??
+        []) as unknown as RawAttendanceRecordItem[];
+
+      return buildParentAttendanceOverview(
+        { id: studentId, name: childName },
+        enrolledCourses,
+        rawRecords,
+        options?.dateFrom,
+        options?.dateTo
+      );
     },
     enabled: !!studentId,
     staleTime: 60_000,

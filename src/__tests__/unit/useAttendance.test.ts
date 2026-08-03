@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { calculateAttendancePercent } from "@/hooks/useAttendance";
 
 describe("calculateAttendancePercent", () => {
-  it("returns 100 when no sessions exist", () => {
-    expect(calculateAttendancePercent(0, 0, 0)).toBe(100);
+  it("returns null when no sessions exist", () => {
+    expect(calculateAttendancePercent(0, 0, 0)).toBeNull();
   });
 
   it("counts present + late as attended", () => {

@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { ClipboardList, CheckCircle2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -14,7 +13,9 @@ import {
 import type { Survey } from "@/hooks/useSurveys";
 import SurveyForm from "@/components/shared/SurveyForm";
 import { NoSurveys } from "@/components/shared/EmptyState";
+import ErrorState from "@/components/shared/ErrorState";
 import type { SurveyQuestion as SurveyFormQuestion } from "@/components/shared/SurveyForm";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 
 // ─── Single Survey Card ─────────────────────────────────────────────────────
 
@@ -73,49 +74,43 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
   };
 
   if (questionsLoading || checkLoading) {
-    return <div className="h-32 rounded-xl animate-shimmer" />;
+    return <Shimmer className="h-32 rounded-xl" />;
   }
 
   if (hasResponded) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <div className="flex items-center gap-3">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-          <div>
-            <h3 className="text-sm font-bold">{survey.title}</h3>
-            <p className="text-xs text-gray-500">
-              {t("surveys.alreadyCompleted")}
-            </p>
+      <PCard>
+        <div className="p-6">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <div>
+              <h3 className="text-sm font-bold">{survey.title}</h3>
+              <p className="text-xs text-gray-500">
+                {t("surveys.alreadyCompleted")}
+              </p>
+            </div>
+            <Badge className="ms-auto bg-green-50 text-green-700 border-green-200">
+              {t("surveys.completed")}
+            </Badge>
           </div>
-          <Badge className="ms-auto bg-green-50 text-green-700 border-green-200">
-            {t("surveys.completed")}
-          </Badge>
         </div>
-      </Card>
+      </PCard>
     );
   }
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      <div
-        className="px-6 py-4 flex items-center gap-2"
-        style={{
-          background: "var(--brand-gradient)",
-        }}
-      >
-        <ClipboardList className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">
-          {survey.title}
-        </h2>
-      </div>
+    <PCard className="overflow-hidden">
       <div className="p-6">
-        <SurveyForm
-          title=""
-          questions={formQuestions}
-          onSubmit={handleSubmit}
-        />
+        <SectionHeader icon={ClipboardList} title={survey.title} />
+        <div className="mt-4">
+          <SurveyForm
+            title=""
+            questions={formQuestions}
+            onSubmit={handleSubmit}
+          />
+        </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 
@@ -123,7 +118,7 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
 
 const SurveyResponsePage = () => {
   const { t } = useTranslation("student");
-  const { data: surveys, isLoading } = useSurveys();
+  const { data: surveys, isLoading, isError, refetch } = useSurveys();
 
   const activeSurveys = useMemo(
     () => (surveys ?? []).filter((s) => s.is_active),
@@ -132,16 +127,20 @@ const SurveyResponsePage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">
-        {t("surveys.title")}
-      </h1>
+      <SectionHeader icon={ClipboardList} title={t("surveys.title")} />
 
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-xl animate-shimmer" />
+            <Shimmer key={i} className="h-32 rounded-xl" />
           ))}
         </div>
+      ) : isError ? (
+        <ErrorState
+          message={t("surveys.loadError")}
+          onRetry={() => void refetch()}
+          retryLabel={t("surveys.retry")}
+        />
       ) : !activeSurveys.length ? (
         <NoSurveys />
       ) : (

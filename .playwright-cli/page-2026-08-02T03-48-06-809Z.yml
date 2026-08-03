@@ -1,0 +1,199 @@
+- generic [active] [ref=f84e1]:
+    - generic [ref=f84e2]:
+        - navigation "Accessibility" [ref=f84e3]:
+            - link "Skip to main content" [ref=f84e4] [cursor=pointer]:
+                - /url: "#main-content"
+        - generic [ref=f84e204]:
+            - banner [ref=f84e205]:
+                - generic [ref=f84e206]:
+                    - link "Edeviser — go to dashboard" [ref=f84e208] [cursor=pointer]:
+                        - /url: /admin
+                        - generic [ref=f84e209]: Edeviser
+                    - button "Open global search" [ref=f84e211]:
+                        - generic [ref=f84e212]: Search
+                        - generic [ref=f84e213]: ⌘K
+                    - generic [ref=f84e214]:
+                        - generic "Institution summary" [ref=f84e215]:
+                            - generic "40 learners" [ref=f84e216]: 🏛️
+                            - generic "100% active" [ref=f84e219]: 📊
+                        - 'button "Language: English" [ref=f84e223]': English
+                        - button "Notifications" [ref=f84e224]
+                        - button "Mrs. Priya Venkatesh Mrs. Priya Venkatesh Institution Admin" [ref=f84e225] [cursor=pointer]:
+                            - img "Mrs. Priya Venkatesh" [ref=f84e227]
+                            - generic [ref=f84e228]:
+                                - generic [ref=f84e229]: Mrs. Priya Venkatesh
+                                - generic [ref=f84e230]: Institution Admin
+            - generic [ref=f84e233]:
+                - complementary [ref=f84e234]:
+                    - generic [ref=f84e235]:
+                        - generic [ref=f84e236]: Edeviser
+                        - generic [ref=f84e237]:
+                            - navigation "Primary navigation" [ref=f84e238]:
+                                - generic [ref=f84e239]:
+                                    - link "(current page) Home" [ref=f84e240] [cursor=pointer]:
+                                        - /url: /admin/dashboard
+                                        - generic [ref=f84e241]: (current page)
+                                        - generic [ref=f84e247]: Home
+                                    - link "Analytics" [ref=f84e248] [cursor=pointer]:
+                                        - /url: /admin/analytics
+                                    - link "🛡️ AI-Gov" [ref=f84e252] [cursor=pointer]:
+                                        - /url: /admin/governance
+                                        - generic [ref=f84e253]: 🛡️
+                                        - generic [ref=f84e255]: AI-Gov
+                                    - link "People" [ref=f84e256] [cursor=pointer]:
+                                        - /url: /admin/users
+                                    - link "Me" [ref=f84e263] [cursor=pointer]:
+                                        - /url: /admin/settings/profile
+                            - generic [ref=f84e277]:
+                                - paragraph [ref=f84e279]: More
+                                - generic [ref=f84e280]:
+                                    - link "Marketplace" [ref=f84e281] [cursor=pointer]:
+                                        - /url: /admin/marketplace
+                                        - generic [ref=f84e282]: 🛍️
+                                    - link "Institution Structure" [ref=f84e284] [cursor=pointer]:
+                                        - /url: /admin/settings/institution
+                                        - generic [ref=f84e285]: 🏛️
+                                    - link "Bulk Import" [ref=f84e287] [cursor=pointer]:
+                                        - /url: /admin/import
+                                        - generic [ref=f84e288]: 📥
+                                    - link "Badge Definitions" [ref=f84e290] [cursor=pointer]:
+                                        - /url: /admin/badges
+                                        - generic [ref=f84e291]: 🏅
+                                    - link "Security" [ref=f84e293] [cursor=pointer]:
+                                        - /url: /admin/security
+                                        - generic [ref=f84e294]: 🔒
+                                    - link "Fees Management" [ref=f84e296] [cursor=pointer]:
+                                        - /url: /admin/fees
+                                        - generic [ref=f84e297]: 💳
+                                    - link "Announcements" [ref=f84e299] [cursor=pointer]:
+                                        - /url: /admin/announcements
+                                        - generic [ref=f84e300]: 📣
+                                    - link "Notifications" [ref=f84e302] [cursor=pointer]:
+                                        - /url: /admin/notifications
+                                        - generic [ref=f84e303]: 🔔
+                - main [ref=f84e306]:
+                    - generic [ref=f84e308]:
+                        - region "Institution highlights" [ref=f84e309]:
+                            - button "Previous slide" [ref=f84e310]:
+                                - generic [ref=f84e311]: ‹
+                            - button "Next slide" [ref=f84e312]:
+                                - generic [ref=f84e313]: ›
+                            - generic [ref=f84e314]:
+                                - group "1 of 2" [ref=f84e315]:
+                                    - generic [ref=f84e316]:
+                                        - generic [ref=f84e323]:
+                                            - heading "Your institution, this week" [level=1] [ref=f84e324]
+                                            - paragraph [ref=f84e325]: De-identified, institution-wide signals — no individual student data.
+                                        - generic [ref=f84e326]:
+                                            - button "68 users" [ref=f84e327]
+                                            - button "68 active" [ref=f84e328]
+                                            - button "4 programs" [ref=f84e329]
+                                - group "2 of 2" [ref=f84e330]:
+                                    - generic [ref=f84e331]:
+                                        - generic [ref=f84e335]:
+                                            - paragraph [ref=f84e336]: Executive watch item
+                                            - heading "Science Department" [level=2] [ref=f84e337]
+                                            - paragraph [ref=f84e338]: 74% average PLO attainment · lowest measured department
+                                        - button "Review" [ref=f84e339]
+                            - generic [ref=f84e340]:
+                                - button "Go to slide 1" [ref=f84e341]
+                                - button "Go to slide 2" [ref=f84e342]
+                        - generic [ref=f84e343]:
+                            - generic [ref=f84e346]:
+                                - paragraph [ref=f84e347]: Total Users
+                                - paragraph [ref=f84e348]: "68"
+                            - generic [ref=f84e357]:
+                                - paragraph [ref=f84e358]: Active Users
+                                - paragraph [ref=f84e359]: "68"
+                            - generic [ref=f84e367]:
+                                - paragraph [ref=f84e368]: Avg mastery
+                                - paragraph [ref=f84e369]: 75%
+                            - generic [ref=f84e376]:
+                                - paragraph [ref=f84e377]: Courses
+                                - paragraph [ref=f84e378]: "4"
+                        - generic [ref=f84e383]:
+                            - heading "Institution insight" [level=2] [ref=f84e389]
+                            - paragraph [ref=f84e390]: Your institution has 68 users (68 active) across 4 programs and 4 courses. Science Department currently has the lowest outcome attainment at 74% — a candidate for targeted support.
+                            - generic [ref=f84e391]:
+                                - button "See analytics" [ref=f84e392]
+                                - button "Outcomes" [ref=f84e393]
+                        - generic [ref=f84e394]:
+                            - generic [ref=f84e395]:
+                                - generic [ref=f84e396]:
+                                    - heading "Departments by mastery" [level=2] [ref=f84e404]
+                                    - button "All →" [ref=f84e406]
+                                - generic [ref=f84e407]:
+                                    - generic [ref=f84e409]:
+                                        - generic [ref=f84e410]: Social Studies Department
+                                        - generic [ref=f84e411]: 76%
+                                    - generic [ref=f84e415]:
+                                        - generic [ref=f84e416]: English Department
+                                        - generic [ref=f84e417]: 75%
+                                    - generic [ref=f84e421]:
+                                        - generic [ref=f84e422]: Mathematics Department
+                                        - generic [ref=f84e423]: 75%
+                                    - generic [ref=f84e427]:
+                                        - generic [ref=f84e428]: Science Department
+                                        - generic [ref=f84e429]: 74%
+                            - generic [ref=f84e432]:
+                                - generic [ref=f84e433]:
+                                    - heading "Users by Role" [level=2] [ref=f84e441]
+                                    - button "Manage" [ref=f84e443]
+                                - generic [ref=f84e444]:
+                                    - generic [ref=f84e445]:
+                                        - generic [ref=f84e446]: Admin
+                                        - generic [ref=f84e447]: "1"
+                                    - generic [ref=f84e448]:
+                                        - generic [ref=f84e449]: Coordinator
+                                        - generic [ref=f84e450]: "3"
+                                    - generic [ref=f84e451]:
+                                        - generic [ref=f84e452]: Teacher
+                                        - generic [ref=f84e453]: "4"
+                                    - generic [ref=f84e454]:
+                                        - generic [ref=f84e455]: Student
+                                        - generic [ref=f84e456]: "40"
+                                    - generic [ref=f84e457]:
+                                        - generic [ref=f84e458]: Parent
+                                        - generic [ref=f84e459]: "20"
+                        - generic [ref=f84e460]:
+                            - paragraph [ref=f84e461]: "AI autonomy ceiling: A2 — Suggest & approve. AI never acts on institution data without human approval."
+                            - generic [ref=f84e465]: Governed
+                - complementary "Institution" [ref=f84e466]:
+                    - generic [ref=f84e467]:
+                        - generic [ref=f84e468]: 🏛️ Institution
+                        - button "Why am I seeing this?" [ref=f84e470]
+                        - generic [ref=f84e471]:
+                            - generic [ref=f84e472]: Users
+                            - generic [ref=f84e473]: "68"
+                        - generic [ref=f84e474]:
+                            - generic [ref=f84e475]: Active accounts
+                            - generic [ref=f84e476]: "68"
+                        - generic [ref=f84e477]:
+                            - generic [ref=f84e478]: Programs
+                            - generic [ref=f84e479]: "4"
+                        - generic [ref=f84e480]:
+                            - generic [ref=f84e481]: Courses
+                            - generic [ref=f84e482]: "4"
+                        - button "See analytics →" [ref=f84e483]
+                    - generic [ref=f84e484]:
+                        - generic [ref=f84e485]: 🛡️ AI governance
+                        - generic [ref=f84e487]:
+                            - generic [ref=f84e488]: Autonomy ceiling
+                            - generic [ref=f84e489]: A2 · approve
+                        - paragraph [ref=f84e490]: AI never acts on institution data without human approval.
+                    - generic [ref=f84e491]:
+                        - generic [ref=f84e492]: Departments
+                        - generic [ref=f84e494]:
+                            - generic [ref=f84e495]:
+                                - generic [ref=f84e496]: Social Studies Department
+                                - generic [ref=f84e497]: 76%
+                            - generic [ref=f84e498]:
+                                - generic [ref=f84e499]: English Department
+                                - generic [ref=f84e500]: 75%
+                            - generic [ref=f84e501]:
+                                - generic [ref=f84e502]: Mathematics Department
+                                - generic [ref=f84e503]: 75%
+                            - button "All departments →" [ref=f84e504]
+        - region "Notifications alt+T"
+        - button "Open Tanstack query devtools" [ref=f84e155] [cursor=pointer]
+    - button "Open the dialog" [ref=f84e506] [cursor=pointer]

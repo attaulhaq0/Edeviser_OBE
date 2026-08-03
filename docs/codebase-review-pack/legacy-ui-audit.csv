@@ -1,0 +1,10 @@
+Role,Route,Current Component,Visual System,Prototype File,Prototype Component Used,Legacy Components,Design System Used,Status,Priority
+Admin,/admin/dashboard,AdminDashboard,Finalized Prototype,prototype/admin-dashboard.html,Yes,None,Yes,Finalized,P0
+Admin,/admin/analytics,AdminAnalyticsPage,Finalized Prototype,prototype/admin-analytics.html,Yes,None,Yes,Finalized,P0
+Admin,/admin/accreditation-reports,AdminAccreditationReportsPage,Finalized Prototype,prototype/admin-accreditation.html,Yes,None,Yes,Finalized,P1
+Admin,/admin/fees,AdminFeesPage,Finalized Prototype,prototype/admin-fees.html,Yes,None,Yes,Finalized,P1
+Admin,/admin/institution-structure,AdminInstitutionStructurePage,Finalized Prototype,prototype/admin-institution-structure.html,Yes,None,Yes,Finalized,P1
+Coordinator,/coordinator/dashboard,CoordinatorDashboard,Finalized Prototype,prototype/coordinator-dashboard.html,Yes,None,Yes,Finalized,P1
+Teacher,/teacher/dashboard,TeacherDashboard,Finalized Prototype,prototype/teacher-dashboard.html,Yes,None,Yes,Finalized,P1
+Student,/student/dashboard,StudentDashboard,Finalized Prototype,prototype/student-dashboard.html,Yes,None,Yes,Finalized,P1
+Parent,/parent/dashboard,ParentDashboard,Finalized Prototype,prototype/parent-dashboard.html,Yes,None,Yes,Finalized,P1

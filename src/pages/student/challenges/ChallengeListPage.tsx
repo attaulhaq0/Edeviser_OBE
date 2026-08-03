@@ -13,13 +13,14 @@ import {
 } from "@/hooks/useChallenges";
 import { useRealtime } from "@/hooks/useRealtime";
 import { queryKeys } from "@/lib/queryKeys";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { NoChallenges } from "@/components/shared/EmptyState";
 import { Trophy, Target, Users, Handshake, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { KeyboardEvent } from "react";
+import { getEffectiveChallengeStatus } from "@/lib/challengeLifecycle";
 
 const getTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
@@ -49,12 +50,12 @@ const ChallengeCard = ({
   );
 
   return (
-    <Card
-      className="bg-white border-0 shadow-md rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow"
+    <PCard
+      className="cursor-pointer p-4 transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)]"
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
+      onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();
@@ -105,7 +106,7 @@ const ChallengeCard = ({
           </div>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 
@@ -136,26 +137,19 @@ const ChallengeListPage = () => {
 
   const now = new Date();
   const active = (challenges ?? []).filter(
-    (c) =>
-      c.status === "active" ||
-      (new Date(c.start_date) <= now && new Date(c.end_date) >= now)
+    (challenge) => getEffectiveChallengeStatus(challenge, now) === "active"
   );
   const upcoming = (challenges ?? []).filter(
-    (c) => c.status === "draft" || new Date(c.start_date) > now
+    (challenge) => getEffectiveChallengeStatus(challenge, now) === "upcoming"
   );
   const completed = (challenges ?? []).filter(
-    (c) =>
-      c.status === "ended" ||
-      (c.status !== "active" && new Date(c.end_date) < now)
+    (challenge) => getEffectiveChallengeStatus(challenge, now) === "completed"
   );
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <h1 className="text-2xl font-bold tracking-tight">Challenges</h1>
-        </div>
+        <SectionHeader icon={Trophy} title="Challenges" />
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <Shimmer key={i} className="h-32 rounded-xl" />
@@ -167,10 +161,7 @@ const ChallengeListPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Trophy className="h-5 w-5 text-amber-500" />
-        <h1 className="text-2xl font-bold tracking-tight">Challenges</h1>
-      </div>
+      <SectionHeader icon={Trophy} title="Challenges" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="gap-2 bg-transparent p-0">

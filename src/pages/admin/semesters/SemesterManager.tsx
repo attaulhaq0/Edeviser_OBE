@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Badge,
   Button,
-  Card,
+  PCard,
   Dialog,
   DialogContent,
   DialogHeader,
@@ -234,7 +234,7 @@ const SemesterRow = ({
   onToggleActive,
   isToggling,
 }: SemesterRowProps) => (
-  <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+  <PCard className="p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4 min-w-0">
         <div className="p-2 rounded-lg bg-blue-50">
@@ -283,7 +283,7 @@ const SemesterRow = ({
         </Button>
       </div>
     </div>
-  </Card>
+  </PCard>
 );
 
 // ─── Semester Manager Page ───────────────────────────────────────────────────

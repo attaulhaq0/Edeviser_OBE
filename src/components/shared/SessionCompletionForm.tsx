@@ -13,6 +13,7 @@ import EvidenceUploader from "@/components/shared/EvidenceUploader";
 import SessionReflectionInput from "@/components/shared/SessionReflectionInput";
 import QuickThoughtInput from "@/components/shared/QuickThoughtInput";
 import { useCompleteSession } from "@/hooks/useSessionCompletion";
+import { emitBadgeFeedback } from "@/lib/badgeFeedback";
 import { useSaveSessionReflection } from "@/hooks/useSessionReflections";
 import { cn } from "@/lib/utils";
 import type { StudySession } from "@/types/planner";
@@ -110,7 +111,8 @@ const SessionCompletionForm = ({
         evidenceFiles: evidenceFiles.length > 0 ? evidenceFiles : undefined,
       },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
+          emitBadgeFeedback(result.newBadges);
           onComplete();
         },
       }
@@ -132,7 +134,8 @@ const SessionCompletionForm = ({
         actualDurationMinutes,
       },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
+          emitBadgeFeedback(result.newBadges);
           onComplete();
         },
       }

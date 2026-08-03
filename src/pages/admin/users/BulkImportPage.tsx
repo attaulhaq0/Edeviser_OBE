@@ -5,7 +5,7 @@ import {
   useBulkImportUsers,
   type BulkImportResult,
 } from "@/hooks/useBulkImport";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -193,7 +193,7 @@ const BulkImportPage = () => {
 
       {/* Step: Upload */}
       {step === "upload" && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8">
+        <PCard className="p-8">
           <div
             className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
               isDragOver ? "border-blue-500 bg-blue-50" : "border-slate-300"
@@ -229,7 +229,7 @@ const BulkImportPage = () => {
               />
             </label>
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Step: Preview */}
@@ -255,7 +255,7 @@ const BulkImportPage = () => {
           </div>
 
           {/* Preview Table */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <PCard className="overflow-hidden">
             <div className="max-h-96 overflow-auto">
               <Table>
                 <TableHeader>
@@ -309,7 +309,7 @@ const BulkImportPage = () => {
                 </TableBody>
               </Table>
             </div>
-          </Card>
+          </PCard>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
@@ -347,7 +347,7 @@ const BulkImportPage = () => {
 
       {/* Step: Result */}
       {step === "result" && importResult && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8">
+        <PCard className="p-8">
           <div className="text-center space-y-4">
             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
             <h2 className="text-lg font-bold">Import Complete</h2>
@@ -393,7 +393,7 @@ const BulkImportPage = () => {
               Import More
             </Button>
           </div>
-        </Card>
+        </PCard>
       )}
     </div>
   );

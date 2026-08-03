@@ -1,0 +1,5 @@
+- generic [ref=f43e2]:
+    - navigation "Accessibility" [ref=f43e3]:
+        - link "Skip to main content" [ref=f43e4] [cursor=pointer]:
+            - /url: "#main-content"
+    - region "Notifications alt+T"

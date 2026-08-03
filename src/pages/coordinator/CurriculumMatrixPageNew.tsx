@@ -7,15 +7,16 @@
 // bottom Coverage-Gap action panel with an AI recommendation.
 //
 // DATA: the matrix + coverage column + CSV export are REAL (via
-// `useCurriculumMatrix` / `usePrograms` / `buildMatrixCsv`). The term filter and
-// the gap-panel AI recommendation are PRESENTATIONAL (no backend field yet); no
-// new backend/RPC/write is introduced. Gated behind `newUiModules` (wrapper in
-// CurriculumMatrixPage.tsx); flag-off keeps the legacy page. RTL-safe via
-// logical props.
+// `useCurriculumMatrix` / `usePrograms` / `buildMatrixCsv`). The gap panel is
+// derived from the live matrix and routes to existing outcome/CQI workflows;
+// it does not invent or persist recommendations. Gated behind `newUiModules`
+// (wrapper in CurriculumMatrixPage.tsx); flag-off keeps the legacy page.
+// RTL-safe via logical props.
 // =============================================================================
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Download,
@@ -28,8 +29,7 @@ import { usePrograms } from "@/hooks/usePrograms";
 import { useCurriculumMatrix } from "@/hooks/useCurriculumMatrix";
 import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
 import CellDetailSheet from "@/components/shared/CellDetailSheet";
-import { Shimmer } from "@/design-system";
-import { Card } from "@/components/ui/card";
+import { PCard, Shimmer } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -58,6 +58,7 @@ const LegendChip = ({ color, label }: { color: string; label: string }) => (
 
 const CurriculumMatrixPageNew = () => {
   const { t } = useTranslation("coordinator");
+  const navigate = useNavigate();
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [term, setTerm] = useState<string>("all");
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
@@ -68,6 +69,23 @@ const CurriculumMatrixPageNew = () => {
     selectedProgramId || undefined
   );
   const selectedProgram = programs?.find((p) => p.id === selectedProgramId);
+  const coverageGap = useMemo(() => {
+    if (!matrixData) return null;
+
+    const gaps = matrixData.plos.flatMap((plo) =>
+      matrixData.courses
+        .map((course) => ({
+          plo,
+          course,
+          cell: matrixData.matrix[plo.id]?.[course.id],
+        }))
+        .filter(
+          ({ cell }) => !cell || cell.status === "gray" || cell.status === "red"
+        )
+    );
+
+    return { count: gaps.length, first: gaps[0] };
+  }, [matrixData]);
 
   const canExport =
     !!selectedProgramId &&
@@ -186,7 +204,7 @@ const CurriculumMatrixPageNew = () => {
 
       {/* Coverage Gap action panel + AI recommendation */}
       {selectedProgramId && (
-        <Card className="card-elevated gap-0 border-0 bg-white py-0">
+        <PCard className="overflow-hidden">
           <div className="grid gap-0 md:grid-cols-2">
             {/* Gap */}
             <div className="border-b border-slate-100 p-5 md:border-b-0 md:border-e">
@@ -199,14 +217,26 @@ const CurriculumMatrixPageNew = () => {
                 </p>
               </div>
               <p className="mt-2 text-xs text-gray-600">
-                {t("curriculumMatrix.gapBody")}
+                {coverageGap
+                  ? t("curriculumMatrix.gapBody", {
+                      count: coverageGap.count,
+                    })
+                  : t("curriculumMatrix.gapDataUnavailable")}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="tactile" size="sm">
-                  {t("curriculumMatrix.draftAssessment")}
+                <Button
+                  variant="tactile"
+                  size="sm"
+                  onClick={() => navigate("/coordinator/plos")}
+                >
+                  {t("curriculumMatrix.reviewOutcomes")}
                 </Button>
-                <Button variant="outline" size="sm">
-                  {t("curriculumMatrix.notifyTeacher")}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/coordinator/cqi")}
+                >
+                  {t("curriculumMatrix.openCqi")}
                 </Button>
               </div>
             </div>
@@ -228,7 +258,8 @@ const CurriculumMatrixPageNew = () => {
                       {t("curriculumMatrix.aiBestCourseLabel")}
                     </dt>
                     <dd className="text-xs font-semibold text-gray-800">
-                      {t("curriculumMatrix.aiBestCourseValue")}
+                      {coverageGap?.first?.course.name ??
+                        t("curriculumMatrix.noLiveGap")}
                     </dd>
                   </div>
                 </div>
@@ -242,7 +273,8 @@ const CurriculumMatrixPageNew = () => {
                       {t("curriculumMatrix.aiAssessmentLabel")}
                     </dt>
                     <dd className="text-xs font-semibold text-gray-800">
-                      {t("curriculumMatrix.aiAssessmentValue")}
+                      {coverageGap?.first?.plo.title ??
+                        t("curriculumMatrix.noLiveGap")}
                     </dd>
                   </div>
                 </div>
@@ -256,14 +288,19 @@ const CurriculumMatrixPageNew = () => {
                       {t("curriculumMatrix.aiActionLabel")}
                     </dt>
                     <dd className="text-xs text-gray-700">
-                      {t("curriculumMatrix.aiActionValue")}
+                      {coverageGap?.first
+                        ? t("curriculumMatrix.aiActionValue", {
+                            course: coverageGap.first.course.name,
+                            outcome: coverageGap.first.plo.title,
+                          })
+                        : t("curriculumMatrix.noLiveGap")}
                     </dd>
                   </div>
                 </div>
               </dl>
             </div>
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Cell Detail Sheet (real) */}

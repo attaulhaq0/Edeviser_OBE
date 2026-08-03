@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Popover,
@@ -13,10 +13,12 @@ import { useNotificationRealtime } from "@/hooks/useNotificationRealtime";
 import {
   useUnreadCount,
   useNotifications,
+  useMarkAsRead,
   useMarkAllAsRead,
   type Notification,
 } from "@/hooks/useNotifications";
 import { formatRelativeTime } from "@/lib/i18nHelpers";
+import { formatNotificationTitle } from "@/lib/notificationPresentation";
 
 // ─── Date grouping helpers ────────────────────────────────────────────────────
 
@@ -79,18 +81,27 @@ const getRelativeTime = (dateStr: string, locale: string): string => {
 interface NotificationRowProps {
   notification: Notification;
   locale: string;
+  onSelect: (notification: Notification) => void;
 }
 
-const NotificationRow = ({ notification, locale }: NotificationRowProps) => (
-  <div
+const NotificationRow = ({
+  notification,
+  locale,
+  onSelect,
+}: NotificationRowProps) => (
+  <Button
+    type="button"
+    variant="ghost"
+    onClick={() => onSelect(notification)}
     className={[
-      "px-4 py-3 border-b border-border last:border-0",
+      "h-auto w-full justify-start rounded-none border-b border-border px-4 py-3 text-start last:border-0",
+      "hover:bg-muted/70 focus-visible:relative focus-visible:z-10",
       !notification.is_read ? "bg-blue-50/50 dark:bg-blue-950/20" : "",
     ].join(" ")}
   >
     <div className="flex items-start justify-between gap-2">
       <p className="text-sm font-medium text-foreground leading-snug">
-        {notification.title}
+        {formatNotificationTitle(notification.title)}
       </p>
       <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
         {getRelativeTime(notification.created_at, locale)}
@@ -101,22 +112,23 @@ const NotificationRow = ({ notification, locale }: NotificationRowProps) => (
         {notification.body}
       </p>
     )}
-  </div>
+  </Button>
 );
 
 // ─── NotificationBell ─────────────────────────────────────────────────────────
 
 /**
  * Notification bell button with unread badge.
- * Opens a Shadcn Popover listing notifications grouped by Today / Earlier this week / Older.
- * On open, marks all visible unread notifications as read.
+ * Opens a Shadcn Popover listing real notifications grouped by recency.
+ * Each notification can be acknowledged independently; the panel also exposes
+ * an explicit mark-all action and a role-aware full-feed route.
  *
  * Design: ADR-18, ADR-19
  * Requirements: 2.29
  */
 const NotificationBell = () => {
   const { t, i18n } = useTranslation("common");
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [open, setOpen] = useState(false);
 
   // Mount the realtime subscription so the bell updates live (toast + count
@@ -125,6 +137,7 @@ const NotificationBell = () => {
 
   const { data: unreadCount = 0 } = useUnreadCount(user?.id);
   const { data: notifications = [] } = useNotifications(user?.id);
+  const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 
   const badgeCount = unreadCount <= 99 ? unreadCount : "99+";
@@ -132,8 +145,11 @@ const NotificationBell = () => {
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (isOpen && unreadCount > 0 && user?.id) {
-      markAllAsRead.mutate(user.id);
+  };
+
+  const handleNotificationSelect = (notification: Notification) => {
+    if (!notification.is_read) {
+      markAsRead.mutate(notification.id);
     }
   };
 
@@ -184,6 +200,19 @@ const NotificationBell = () => {
           <h3 className="text-sm font-semibold text-foreground">
             {t("header.notificationsLabel")}
           </h3>
+          {unreadCount > 0 && user?.id ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-primary"
+              onClick={() => markAllAsRead.mutate(user.id)}
+              disabled={markAllAsRead.isPending}
+            >
+              <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("header.markAllRead")}
+            </Button>
+          ) : null}
         </div>
 
         {/* Notification list */}
@@ -206,6 +235,7 @@ const NotificationBell = () => {
                       key={n.id}
                       notification={n}
                       locale={i18n.language}
+                      onSelect={handleNotificationSelect}
                     />
                   ))}
                 </div>
@@ -217,15 +247,18 @@ const NotificationBell = () => {
         {/* Footer */}
         {notifications.length > 0 && (
           <div className="px-4 py-3 border-t border-border">
-            <button
-              type="button"
-              onClick={() => {
-                if (user?.id) markAllAsRead.mutate(user.id);
-              }}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            <Button
+              asChild
+              variant="ghost"
+              className="h-auto w-full justify-center px-0 py-0 text-xs font-semibold text-primary"
             >
-              {t("header.markAllRead")}
-            </button>
+              <a
+                href={`/${role ?? "student"}/notifications`}
+                onClick={() => setOpen(false)}
+              >
+                {t("header.seeAllNotifications", "View all →")}
+              </a>
+            </Button>
           </div>
         )}
       </PopoverContent>

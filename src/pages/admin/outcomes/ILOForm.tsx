@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { LearningOutcome } from "@/types/app";
@@ -142,7 +142,7 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
   const { t } = useTranslation("admin");
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+    <PCard className="max-w-2xl p-6">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(
@@ -219,7 +219,7 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
           </div>
         </form>
       </Form>
-    </Card>
+    </PCard>
   );
 };
 

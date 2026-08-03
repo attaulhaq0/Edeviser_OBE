@@ -3,12 +3,12 @@
 // useCoordinatorDashboardAggregate.test.ts
 // Feature: dashboard-and-ux-performance, Phase 8 Task 34 (coordinator aggregate)
 // -----------------------------------------------------------------------------
-//   1. CALL — get_coordinator_dashboard is called once.
+//   1. CALL — get_coordinator_workspace is called once.
 //   2. HYDRATION — the EXACT cache useCoordinatorKPIs reads is populated.
 //   3. COLLAPSE — with the section hook gated on `aggregate.isError`, a SUCCESSFUL
 //      aggregate fires ZERO section `supabase.from` requests; a FAILED aggregate
 //      makes useCoordinatorKPIs fall back and fetch.
-// The `get_coordinator_dashboard` RPC is mocked; this is a hermetic unit test.
+// The `get_coordinator_workspace` RPC is mocked; this is a hermetic unit test.
 // =============================================================================
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
@@ -41,22 +41,68 @@ import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboar
 import {
   useCoordinatorKPIs,
   type CoordinatorKPIData,
+  type CoordinatorWorkspaceData,
 } from "@/hooks/useCoordinatorDashboard";
 
 const INSTITUTION_ID = "33333333-3333-3333-3333-333333333333";
+
+const FIXTURE_WORKSPACE: CoordinatorWorkspaceData = {
+  assignedPrograms: 4,
+  courseCount: 4,
+  ploCount: 4,
+  targetAttainment: 80,
+  belowTargetCount: 2,
+  ploAttainment: [
+    {
+      id: "plo-1",
+      title: "Communication",
+      program: "English",
+      attainment: 74,
+      evidenceCount: 10,
+      belowTarget: true,
+    },
+    {
+      id: "plo-2",
+      title: "Reasoning",
+      program: "Mathematics",
+      attainment: 76,
+      evidenceCount: 10,
+      belowTarget: true,
+    },
+  ],
+  coverage: {
+    totalClos: 4,
+    mappedClos: 4,
+    coveragePercent: 100,
+    status: "complete",
+  },
+  cqi: { planned: 1, inProgress: 1, evaluated: 0, total: 2, closed: 0 },
+  accreditation: {
+    configurations: 1,
+    approvedStages: 1,
+    pendingStages: 0,
+    reportJobs: 0,
+    generatedReports: 0,
+  },
+  teacherCompliance: { courses: 4, coursesWithClo: 4, percent: 100 },
+  calculatedAt: "2026-08-02T00:00:00.000Z",
+};
 
 const FIXTURE_KPIS: CoordinatorKPIData = {
   totalPLOs: 4,
   totalCourses: 4,
   cloCoveragePercent: 100,
-  avgAttainmentPercent: 74,
+  avgAttainmentPercent: 75,
   atRiskStudents: 2,
   teacherCompliancePercent: 100,
 };
 
 const useBlock = () => {
   const aggregate = useCoordinatorDashboardAggregate(INSTITUTION_ID);
-  const kpisHook = useCoordinatorKPIs({ enabled: aggregate.isError });
+  const kpisHook = useCoordinatorKPIs({
+    enabled: aggregate.isError,
+    institutionId: INSTITUTION_ID,
+  });
   return { aggregate, kpisHook };
 };
 
@@ -75,8 +121,8 @@ describe("useCoordinatorDashboardAggregate (Phase 8 Task 34)", () => {
     mockFrom.mockImplementation(() => makeFromBuilder());
   });
 
-  it("calls get_coordinator_dashboard once", async () => {
-    mockRpc.mockResolvedValue({ data: FIXTURE_KPIS, error: null });
+  it("calls get_coordinator_workspace once", async () => {
+    mockRpc.mockResolvedValue({ data: FIXTURE_WORKSPACE, error: null });
     const client = makeClient();
     const { result } = renderHook(
       () => useCoordinatorDashboardAggregate(INSTITUTION_ID),
@@ -84,11 +130,11 @@ describe("useCoordinatorDashboardAggregate (Phase 8 Task 34)", () => {
     );
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockRpc).toHaveBeenCalledTimes(1);
-    expect(mockRpc).toHaveBeenCalledWith("get_coordinator_dashboard", {});
+    expect(mockRpc).toHaveBeenCalledWith("get_coordinator_workspace", {});
   });
 
   it("hydrates the exact KPI cache useCoordinatorKPIs reads", async () => {
-    mockRpc.mockResolvedValue({ data: FIXTURE_KPIS, error: null });
+    mockRpc.mockResolvedValue({ data: FIXTURE_WORKSPACE, error: null });
     const client = makeClient();
     const { result } = renderHook(
       () => useCoordinatorDashboardAggregate(INSTITUTION_ID),
@@ -97,13 +143,13 @@ describe("useCoordinatorDashboardAggregate (Phase 8 Task 34)", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(
       client.getQueryData<CoordinatorKPIData>(
-        queryKeys.coordinatorDashboard.list({})
+        queryKeys.coordinatorDashboard.list({ institutionId: INSTITUTION_ID })
       )
-    ).toEqual(FIXTURE_KPIS);
+    ).toMatchObject(FIXTURE_KPIS);
   });
 
   it("collapse: a successful aggregate fires ZERO section requests", async () => {
-    mockRpc.mockResolvedValue({ data: FIXTURE_KPIS, error: null });
+    mockRpc.mockResolvedValue({ data: FIXTURE_WORKSPACE, error: null });
     const client = makeClient();
     const { result } = renderHook(() => useBlock(), {
       wrapper: makeWrapper(client),
@@ -112,7 +158,7 @@ describe("useCoordinatorDashboardAggregate (Phase 8 Task 34)", () => {
     expect(mockRpc).toHaveBeenCalledTimes(1);
     expect(mockFrom).not.toHaveBeenCalled();
     await waitFor(() =>
-      expect(result.current.kpisHook.data).toEqual(FIXTURE_KPIS)
+      expect(result.current.kpisHook.data).toMatchObject(FIXTURE_KPIS)
     );
     expect(mockFrom).not.toHaveBeenCalled();
   });

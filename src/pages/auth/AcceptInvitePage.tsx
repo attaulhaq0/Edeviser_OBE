@@ -16,13 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Loader2,
-  Mail,
-  User,
-  Building2,
-  AlertTriangle,
-} from "lucide-react";
+import { Loader2, Mail, User, Building2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import AuthShell from "@/components/shared/AuthShell";
 

@@ -19,15 +19,15 @@
 // by `useCoordinatorProfileStats` (coordinator-scoped reads of programs /
 // courses / student_courses / profiles — no writes). The remaining sections
 // (designation, contact details, AI scope, permissions, notification toggles,
-// security, integrations, academic info) are PRESENTATIONAL sample content
-// pending Phase B/C. Notification toggles are local-only (preview). Composed
-// from tokens + primitives; RTL-safe via logical props.
+// security, integrations, and academic info are either live profile data or
+// explicit platform capabilities. Composed from tokens + primitives; RTL-safe
+// via logical props.
 // =============================================================================
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ComponentType } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
@@ -56,13 +56,14 @@ import {
   UserCog,
   Users,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -76,7 +77,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Shimmer } from "@/design-system";
+import { Textarea } from "@/components/ui/textarea";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorProfileStats } from "@/hooks/useCoordinatorProfileStats";
 import {
@@ -94,45 +96,44 @@ import {
 import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
 
-type IconType = ComponentType<{ className?: string }>;
+type IconType = LucideIcon;
 
 // ── Section card (white surface + inline header) ─────────────────────────────
 const SectionCard = ({
+  icon,
   title,
   subtitle,
   action,
   children,
 }: {
+  icon?: IconType;
   title: string;
   subtitle?: string;
   action?: { label: string; onClick?: () => void };
   children: React.ReactNode;
 }) => (
-  <Card className="card-elevated gap-0 border-0 bg-white py-0">
+  <PCard className="overflow-hidden p-0">
     <div className="flex flex-col p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="text-base font-bold tracking-tight text-gray-900">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
-          )}
-        </div>
-      </div>
+      <SectionHeader
+        icon={icon}
+        title={title}
+        description={subtitle}
+        className="items-start"
+      />
       <div className="mt-4 flex-1">{children}</div>
       {action && (
-        <button
+        <Button
           type="button"
           onClick={action.onClick}
-          className="mt-4 inline-flex items-center gap-1 self-start rounded text-xs font-bold text-sky-700 outline-none hover:text-sky-800 focus-visible:ring-2 focus-visible:ring-sky-300"
+          variant="link"
+          className="mt-4 h-auto self-start p-0 text-xs font-bold text-sky-700 hover:text-sky-800"
         >
           {action.label}
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
+        </Button>
       )}
     </div>
-  </Card>
+  </PCard>
 );
 
 // ── Capability row (allowed / restricted) ────────────────────────────────────
@@ -205,14 +206,15 @@ const ToggleRow = ({
       <Icon className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
       {label}
     </span>
-    <button
+    <Button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={label}
       onClick={onToggle}
+      variant="ghost"
       className={cn(
-        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sky-300",
+        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0 outline-none transition-colors hover:bg-transparent focus-visible:ring-2 focus-visible:ring-sky-300",
         on ? "bg-green-500" : "bg-slate-300"
       )}
     >
@@ -224,7 +226,7 @@ const ToggleRow = ({
             : "translate-x-0.5 rtl:-translate-x-0.5"
         )}
       />
-    </button>
+    </Button>
   </div>
 );
 
@@ -233,22 +235,42 @@ const LinkRow = ({
   icon: Icon,
   label,
   trailing,
+  onClick,
 }: {
   icon: IconType;
   label: string;
   trailing?: React.ReactNode;
-}) => (
-  <button
-    type="button"
-    className="flex w-full items-center gap-3 rounded-lg py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-  >
-    <Icon className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
-    <span className="flex-1 text-sm text-gray-700">{label}</span>
-    {trailing ?? (
-      <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden="true" />
-    )}
-  </button>
-);
+  onClick?: () => void;
+}) => {
+  const content = (
+    <>
+      <Icon className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
+      <span className="flex-1 text-sm text-gray-700">{label}</span>
+      {trailing ?? (
+        <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden="true" />
+      )}
+    </>
+  );
+
+  if (!onClick) {
+    return (
+      <div className="flex w-full items-center gap-3 rounded-lg py-2">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      onClick={onClick}
+      variant="ghost"
+      className="h-auto w-full justify-start gap-3 rounded-lg p-2 text-start hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
+    >
+      {content}
+    </Button>
+  );
+};
 
 // ── Academic info item ───────────────────────────────────────────────────────
 const InfoItem = ({
@@ -275,6 +297,7 @@ const InfoItem = ({
 
 const CoordinatorProfileNew = () => {
   const { t } = useTranslation("coordinator");
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const userId = profile?.id;
 
@@ -286,8 +309,8 @@ const CoordinatorProfileNew = () => {
   const totals = stats.data?.totals;
   const managedPrograms = stats.data?.programs ?? [];
 
-  // Real integration connection state (empty → all "Connect"). Actually
-  // connecting needs provider OAuth (external), so the connect button is a stub.
+  // Real integration connection state. OAuth provisioning is external, so an
+  // absent row is shown as "Not connected" rather than a fake action.
   const integrations = useConnectedIntegrations(userId);
   const integrationStatus = integrations.data ?? {};
 
@@ -327,6 +350,10 @@ const CoordinatorProfileNew = () => {
       academic_rank: "",
       highest_degree: "",
       years_experience: "",
+      phone: "",
+      office_location: "",
+      office_hours: "",
+      bio: "",
     },
   });
 
@@ -340,6 +367,10 @@ const CoordinatorProfileNew = () => {
         academic?.years_experience != null
           ? String(academic.years_experience)
           : "",
+      phone: academic?.phone ?? "",
+      office_location: academic?.office_location ?? "",
+      office_hours: academic?.office_hours ?? "",
+      bio: academic?.bio ?? "",
     });
     setEditOpen(true);
   };
@@ -358,6 +389,10 @@ const CoordinatorProfileNew = () => {
             values.years_experience.trim() === ""
               ? null
               : Number(values.years_experience),
+          phone: values.phone.trim() || null,
+          office_location: values.office_location.trim() || null,
+          office_hours: values.office_hours.trim() || null,
+          bio: values.bio.trim() || null,
         },
       },
       {
@@ -388,7 +423,7 @@ const CoordinatorProfileNew = () => {
   return (
     <div className="space-y-6">
       {/* ── Profile header ──────────────────────────────────────────────── */}
-      <Card className="card-elevated gap-0 border-0 bg-white py-0">
+      <PCard className="overflow-hidden p-0">
         <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
             {profile?.avatar_url ? (
@@ -401,8 +436,7 @@ const CoordinatorProfileNew = () => {
               />
             ) : (
               <span
-                className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-black text-white"
-                style={{ background: "var(--brand-gradient)" }}
+                className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-700 text-2xl font-black text-white"
                 aria-hidden="true"
               >
                 {initial}
@@ -451,22 +485,31 @@ const CoordinatorProfileNew = () => {
 
           <div className="flex shrink-0 flex-col gap-3 lg:items-end">
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={openEdit}>
                 {t("me.editProfile")}
-              </Button>
-              <Button variant="tactile" size="sm">
-                {t("me.viewPublicProfile")}
               </Button>
             </div>
             <div className="flex flex-col gap-1.5">
-              <ContactChip icon={Mail} text={profile?.email ?? "—"} />
-              <ContactChip icon={Phone} text={t("me.phone")} />
-              <ContactChip icon={MapPin} text={t("me.office")} />
-              <ContactChip icon={Clock} text={t("me.officeHours")} />
+              <ContactChip
+                icon={Mail}
+                text={profile?.email ?? t("me.notSet")}
+              />
+              <ContactChip
+                icon={Phone}
+                text={academic?.phone ?? t("me.notSet")}
+              />
+              <ContactChip
+                icon={MapPin}
+                text={academic?.office_location ?? t("me.notSet")}
+              />
+              <ContactChip
+                icon={Clock}
+                text={academic?.office_hours ?? t("me.notSet")}
+              />
             </div>
           </div>
         </div>
-      </Card>
+      </PCard>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* ── Left / main column ──────────────────────────────────────────── */}
@@ -474,9 +517,13 @@ const CoordinatorProfileNew = () => {
           <div className="grid gap-6 md:grid-cols-2">
             {/* AI Assistance Preferences */}
             <SectionCard
+              icon={Bot}
               title={t("me.aiTitle")}
               subtitle={t("me.aiSubtitle")}
-              action={{ label: t("me.aiManage") }}
+              action={{
+                label: t("me.aiManage"),
+                onClick: () => navigate("/coordinator/cqi"),
+              }}
             >
               <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
@@ -503,9 +550,9 @@ const CoordinatorProfileNew = () => {
 
             {/* Role & Permissions */}
             <SectionCard
+              icon={KeyRound}
               title={t("me.roleSectionTitle")}
               subtitle={t("me.roleSectionSubtitle")}
-              action={{ label: t("me.roleViewAll") }}
             >
               <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3">
                 <ShieldCheck className="h-5 w-5 text-blue-600" />
@@ -524,9 +571,13 @@ const CoordinatorProfileNew = () => {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Programs I Manage */}
             <SectionCard
+              icon={GraduationCap}
               title={t("me.programsTitle")}
               subtitle={t("me.programsSubtitle")}
-              action={{ label: t("me.programsViewAll") }}
+              action={{
+                label: t("me.programsViewAll"),
+                onClick: () => navigate("/coordinator/plos"),
+              }}
             >
               {stats.isPending ? (
                 <div className="space-y-2">
@@ -537,9 +588,13 @@ const CoordinatorProfileNew = () => {
                 <ul className="space-y-2">
                   {managedPrograms.map((p) => (
                     <li key={p.id}>
-                      <button
+                      <Button
                         type="button"
-                        className="flex w-full items-center gap-3 rounded-xl border border-slate-100 p-3 text-start outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
+                        onClick={() =>
+                          navigate(`/coordinator/plos?programId=${p.id}`)
+                        }
+                        variant="ghost"
+                        className="h-auto w-full justify-start gap-3 rounded-xl border border-slate-100 p-3 text-start hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
                         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                           <GraduationCap
@@ -560,7 +615,7 @@ const CoordinatorProfileNew = () => {
                           className="h-4 w-4 shrink-0 text-slate-300"
                           aria-hidden="true"
                         />
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -573,9 +628,13 @@ const CoordinatorProfileNew = () => {
 
             {/* Connected Faculty */}
             <SectionCard
+              icon={Users}
               title={t("me.facultyTitle")}
               subtitle={t("me.facultySubtitle")}
-              action={{ label: t("me.facultyManage") }}
+              action={{
+                label: t("me.facultyManage"),
+                onClick: () => navigate("/coordinator/team-health"),
+              }}
             >
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -613,6 +672,7 @@ const CoordinatorProfileNew = () => {
 
           {/* Profile & Academic Information */}
           <SectionCard
+            icon={GraduationCap}
             title={t("me.academicTitle")}
             action={{ label: t("me.academicEdit"), onClick: openEdit }}
           >
@@ -648,6 +708,21 @@ const CoordinatorProfileNew = () => {
                     : t("me.notSet")
                 }
               />
+              <InfoItem
+                icon={Phone}
+                label={t("me.phone")}
+                value={academic?.phone ?? t("me.notSet")}
+              />
+              <InfoItem
+                icon={MapPin}
+                label={t("me.office")}
+                value={academic?.office_location ?? t("me.notSet")}
+              />
+              <InfoItem
+                icon={Clock}
+                label={t("me.officeHours")}
+                value={academic?.office_hours ?? t("me.notSet")}
+              />
             </div>
           </SectionCard>
         </div>
@@ -656,9 +731,13 @@ const CoordinatorProfileNew = () => {
         <div className="space-y-6">
           {/* Notification Preferences */}
           <SectionCard
+            icon={AlertTriangle}
             title={t("me.notifTitle")}
             subtitle={t("me.notifSubtitle")}
-            action={{ label: t("me.notifManage") }}
+            action={{
+              label: t("me.notifManage"),
+              onClick: () => navigate("/coordinator/notifications"),
+            }}
           >
             <div className="space-y-3">
               <ToggleRow
@@ -696,11 +775,19 @@ const CoordinatorProfileNew = () => {
 
           {/* Security & Access */}
           <SectionCard
+            icon={ShieldCheck}
             title={t("me.securityTitle")}
-            action={{ label: t("me.securitySettings") }}
+            action={{
+              label: t("me.securitySettings"),
+              onClick: () => navigate("/coordinator/sessions"),
+            }}
           >
             <div className="space-y-0.5">
-              <LinkRow icon={KeyRound} label={t("me.changePassword")} />
+              <LinkRow
+                icon={KeyRound}
+                label={t("me.changePassword")}
+                onClick={() => navigate("/update-password")}
+              />
               <LinkRow
                 icon={ShieldCheck}
                 label={t("me.twoFactor")}
@@ -710,40 +797,38 @@ const CoordinatorProfileNew = () => {
                   </span>
                 }
               />
-              <LinkRow icon={Monitor} label={t("me.activeSessions")} />
+              <LinkRow
+                icon={Monitor}
+                label={t("me.activeSessions")}
+                onClick={() => navigate("/coordinator/sessions")}
+              />
               <LinkRow icon={Smartphone} label={t("me.authorizedDevices")} />
             </div>
           </SectionCard>
 
           {/* Connected Integrations */}
-          <SectionCard
-            title={t("me.integrationsTitle")}
-            action={{ label: t("me.integrationsManage") }}
-          >
+          <SectionCard icon={Calendar} title={t("me.integrationsTitle")}>
             <div className="space-y-2">
               <IntegrationRow
                 icon={Calendar}
                 label={t("me.googleCalendar")}
                 connected={integrationStatus["google_calendar"] === "connected"}
                 connectedLabel={t("me.connected")}
-                connectLabel={t("me.connect")}
-                onConnect={() => toast.info(t("me.integrationComingSoon"))}
+                connectLabel={t("me.notConnected")}
               />
               <IntegrationRow
                 icon={Mail}
                 label={t("me.outlook")}
                 connected={integrationStatus["outlook"] === "connected"}
                 connectedLabel={t("me.connected")}
-                connectLabel={t("me.connect")}
-                onConnect={() => toast.info(t("me.integrationComingSoon"))}
+                connectLabel={t("me.notConnected")}
               />
               <IntegrationRow
                 icon={MessageSquare}
                 label={t("me.slack")}
                 connected={integrationStatus["slack"] === "connected"}
                 connectedLabel={t("me.connected")}
-                connectLabel={t("me.connect")}
-                onConnect={() => toast.info(t("me.integrationComingSoon"))}
+                connectLabel={t("me.notConnected")}
               />
             </div>
           </SectionCard>
@@ -755,6 +840,9 @@ const CoordinatorProfileNew = () => {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{t("me.academicEdit")}</DialogTitle>
+            <DialogDescription>
+              {t("me.academicEditDescription")}
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form
@@ -827,6 +915,58 @@ const CoordinatorProfileNew = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("me.phone")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="office_location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("me.office")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="office_hours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("me.officeHours")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="bio"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>{t("me.bio")}</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={4} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <DialogFooter>
                 <Button
@@ -865,14 +1005,12 @@ const IntegrationRow = ({
   connected,
   connectedLabel,
   connectLabel,
-  onConnect,
 }: {
   icon: IconType;
   label: string;
   connected: boolean;
   connectedLabel: string;
   connectLabel: string;
-  onConnect?: () => void;
 }) => (
   <div className="flex items-center justify-between gap-3">
     <span className="flex items-center gap-2 text-sm text-gray-700">
@@ -884,13 +1022,9 @@ const IntegrationRow = ({
         {connectedLabel}
       </span>
     ) : (
-      <button
-        type="button"
-        onClick={onConnect}
-        className="rounded text-[11px] font-bold text-sky-700 outline-none hover:text-sky-800 focus-visible:ring-2 focus-visible:ring-sky-300"
-      >
+      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-500">
         {connectLabel}
-      </button>
+      </span>
     )}
   </div>
 );

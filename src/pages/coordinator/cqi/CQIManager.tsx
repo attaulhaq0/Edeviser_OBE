@@ -3,7 +3,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { GradientCardHeader, Shimmer } from "@/design-system";
+import { PCard, Shimmer } from "@/design-system";
+import { AdminCardHeader } from "@/design-system";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { NoActionPlans } from "@/components/shared/EmptyState";
@@ -687,8 +687,8 @@ const CQIManager = () => {
         </Button>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={ClipboardCheck} title="Action Plans" />
+      <PCard className="overflow-hidden p-0">
+        <AdminCardHeader icon={ClipboardCheck} title="Action Plans" />
         <div>
           {isLoading ? (
             <div className="p-6 space-y-3">
@@ -711,7 +711,7 @@ const CQIManager = () => {
             ))
           )}
         </div>
-      </Card>
+      </PCard>
 
       {/* Form Dialog */}
       <CQIPlanFormDialog

@@ -30,10 +30,14 @@ describe("design-system patterns", () => {
   });
 
   it("SectionHeader renders the title (+ gradient chip when an icon is given)", () => {
-    const { container } = render(<SectionHeader icon={Wallet} title="History" />);
-    expect(screen.getByRole("heading", { name: "History" })).toBeInTheDocument();
-    // the icon chip carries the brand gradient
-    const chip = container.querySelector('[style*="--brand-gradient"]');
+    const { container } = render(
+      <SectionHeader icon={Wallet} title="History" />
+    );
+    expect(
+      screen.getByRole("heading", { name: "History" })
+    ).toBeInTheDocument();
+    // the icon chip carries the liquid glass icon wrapper
+    const chip = container.querySelector('span[aria-hidden="true"]');
     expect(chip).not.toBeNull();
   });
 
@@ -64,9 +68,9 @@ describe("design-system patterns", () => {
 
   it("StatusDot is decorative by default and labeled when given a label", () => {
     const { container, rerender } = render(<StatusDot tone="success" />);
-    expect(
-      (container.firstElementChild as HTMLElement).className
-    ).toContain("bg-green-500");
+    expect((container.firstElementChild as HTMLElement).className).toContain(
+      "bg-green-500"
+    );
     rerender(<StatusDot tone="danger" label="Critical" />);
     expect(screen.getByRole("img", { name: "Critical" })).toBeInTheDocument();
   });

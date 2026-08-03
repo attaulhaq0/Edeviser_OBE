@@ -2,14 +2,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
-import type { CoordinatorKPIData } from "@/hooks/useCoordinatorDashboard";
+import type {
+  CoordinatorKPIData,
+  CoordinatorWorkspaceData,
+} from "@/hooks/useCoordinatorDashboard";
 
 /**
  * Coordinator dashboard aggregate (spec: dashboard-and-ux-performance, Phase 8
  * Task 34).
  *
  * Collapses `useCoordinatorKPIs`' ~6 SEQUENTIAL round-trips into ONE call to the
- * `get_coordinator_dashboard` RPC, then HYDRATES the exact cache that hook reads
+ * canonical `get_coordinator_workspace` RPC, then HYDRATES the exact cache that hook reads
  * so it resolves as a cache hit instead of firing its own request chain.
  *
  * The RPC is `SECURITY INVOKER`: every read is RLS-scoped to the caller's
@@ -33,27 +36,57 @@ export const useCoordinatorDashboardAggregate = (
     }),
     enabled: !!institutionId,
     staleTime: DASHBOARD_STALE_TIME_MS,
-    queryFn: async (): Promise<CoordinatorKPIData> => {
-      // `get_coordinator_dashboard` is added by migration 20260821000012 and is
-      // not in the generated Database types until regenerated post-merge, so cast
+    queryFn: async (): Promise<
+      CoordinatorKPIData & CoordinatorWorkspaceData
+    > => {
+      // `get_coordinator_workspace` is a canonical JSON contract and is not in
+      // generated Database types until regenerated, so cast
       // the rpc call (same pattern as useXPBalance / get_xp_balance).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc(
-        "get_coordinator_dashboard",
+      const rpcClient = supabase as unknown as {
+        rpc: (
+          functionName: string,
+          args: Record<string, never>
+        ) => Promise<{
+          data: unknown;
+          error: { message: string } | null;
+        }>;
+      };
+      const { data, error } = await rpcClient.rpc(
+        "get_coordinator_workspace",
         {}
       );
       if (error) throw error;
       if (!data) {
-        throw new Error("get_coordinator_dashboard returned no data");
+        throw new Error("get_coordinator_workspace returned no data");
       }
 
-      const payload = data as CoordinatorKPIData;
+      const workspace = data as CoordinatorWorkspaceData;
+      const measured = workspace.ploAttainment
+        .map((row) => row.attainment)
+        .filter((value): value is number => value !== null);
+      const payload: CoordinatorKPIData & CoordinatorWorkspaceData = {
+        ...workspace,
+        totalPLOs: workspace.ploCount,
+        totalCourses: workspace.courseCount,
+        cloCoveragePercent: workspace.coverage.coveragePercent,
+        avgAttainmentPercent:
+          measured.length > 0
+            ? Math.round(
+                measured.reduce((sum, value) => sum + value, 0) /
+                  measured.length
+              )
+            : 0,
+        atRiskStudents: workspace.belowTargetCount,
+        teacherCompliancePercent: workspace.teacherCompliance.percent,
+      };
 
       // Hydrate the EXACT cache `useCoordinatorKPIs` reads so it becomes a hit.
-      queryClient.setQueryData(
-        queryKeys.coordinatorDashboard.list({}),
-        payload
-      );
+      if (institutionId) {
+        queryClient.setQueryData(
+          queryKeys.coordinatorDashboard.list({ institutionId }),
+          payload
+        );
+      }
 
       return payload;
     },

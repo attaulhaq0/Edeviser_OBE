@@ -190,6 +190,15 @@ describe("Challenges live-schema rendering (no goal_metric drift)", () => {
     expect(screen.getByText("Individual")).toBeTruthy();
   });
 
+  it("ChallengeListView links each active challenge to its real detail route", () => {
+    state.challenges = [makeChallenge({ id: "challenge-detail" })];
+    renderView();
+
+    expect(
+      screen.getByRole("link", { name: /open challenge: xp sprint/i })
+    ).toHaveAttribute("href", "/student/challenges/challenge-detail");
+  });
+
   it("ChallengeListPage renders live reward_xp and the challenge_type label", () => {
     state.challenges = [makeChallenge()];
     renderPage();

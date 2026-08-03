@@ -1,7 +1,7 @@
 import { Lightbulb, ExternalLink, X } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { WellnessTip } from "@/types/habits";
+import { PCard } from "@/design-system";
 
 export interface WellnessTipCardProps {
   tip: WellnessTip;
@@ -15,9 +15,9 @@ const WellnessTipCard = ({
   onDismiss,
 }: WellnessTipCardProps) => {
   return (
-    <Card
+    <PCard
       data-testid="wellness-tip-card"
-      className="bg-amber-50 border-amber-200 shadow-sm rounded-xl p-3"
+      className="bg-amber-50 border-amber-200 p-3"
     >
       <div className="flex items-start gap-3">
         <div className="p-1.5 rounded-lg bg-amber-100 shrink-0">
@@ -62,7 +62,7 @@ const WellnessTipCard = ({
           </Button>
         )}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

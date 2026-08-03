@@ -14,7 +14,10 @@ export interface ShimmerProps {
 }
 
 const Shimmer = ({ className }: ShimmerProps) => (
-  <div aria-hidden="true" className={cn("animate-shimmer rounded-xl", className)} />
+  <div
+    aria-hidden="true"
+    className={cn("animate-shimmer rounded-xl", className)}
+  />
 );
 
 export default Shimmer;

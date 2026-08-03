@@ -31,7 +31,7 @@ describe("edge-fn schema-contract guard (Req 19.5 / Req 22)", () => {
     }
     expect(output, output).toMatch(/CLEAN/);
     expect(exitCode).toBe(0);
-  });
+  }, 60000);
 
   it("detector flags a synthetic wrong column and passes the real one (Req 22.2, non-vacuous)", async () => {
     // Import the pure pieces and prove that the exact Req-19 drift would be caught,

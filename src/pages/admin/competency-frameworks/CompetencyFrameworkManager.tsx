@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -136,11 +136,11 @@ const CompetencyFrameworkManager = () => {
         Competency Frameworks
       </h1>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden p-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background: "var(--brand-gradient)",
+            backgroundColor: "#0f172a",
           }}
         >
           <Layers className="h-5 w-5 text-white" />
@@ -191,10 +191,10 @@ const CompetencyFrameworkManager = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
 
       {selectedFramework && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <PCard className="p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
             Import Competency Items (CSV)
           </h2>
@@ -213,16 +213,16 @@ const CompetencyFrameworkManager = () => {
               <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
             )}
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Competency Tree View (Task 115.2) */}
       {selectedFramework && items.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+        <PCard className="overflow-hidden p-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background: "var(--brand-gradient)",
+              backgroundColor: "#0f172a",
             }}
           >
             <Layers className="h-5 w-5 text-white" />
@@ -233,12 +233,12 @@ const CompetencyFrameworkManager = () => {
           <div className="p-6">
             <CompetencyTree items={items} mappedItemIds={mappedItemIds} />
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Mapping Interface (Task 115.4) */}
       {selectedFramework && indicators.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <PCard className="p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
             <Link2 className="h-4 w-4 inline me-2" />
             Map Indicator to Outcome
@@ -298,10 +298,10 @@ const CompetencyFrameworkManager = () => {
               <Plus className="h-4 w-4" /> Map
             </Button>
           </div>
-        </Card>
+        </PCard>
       )}
 
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+      <PCard className="max-w-2xl p-6">
         <h2 className="text-lg font-bold tracking-tight mb-4">Add Framework</h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -360,7 +360,7 @@ const CompetencyFrameworkManager = () => {
             </Button>
           </form>
         </Form>
-      </Card>
+      </PCard>
     </div>
   );
 };

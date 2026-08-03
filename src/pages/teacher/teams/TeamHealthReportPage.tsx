@@ -41,14 +41,22 @@ const getRecommendation = (team: TeamHealthSummary): string => {
   return "Team is performing well.";
 };
 
-const TeamHealthReportPage = () => {
-  const { user } = useAuth();
-  const { data: paginatedCourses } = useCourses();
+interface TeamHealthReportPageProps {
+  courseScope?: "owned" | "all";
+}
 
-  const teacherCourses = useMemo(
-    () =>
-      (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
-    [paginatedCourses, user?.id]
+const TeamHealthReportPage = ({
+  courseScope = "owned",
+}: TeamHealthReportPageProps) => {
+  const { user } = useAuth();
+  const { data: paginatedCourses } = useCourses({
+    teacherId: courseScope === "owned" ? user?.id : undefined,
+    pageSize: 200,
+  });
+
+  const visibleCourses = useMemo(
+    () => paginatedCourses?.data ?? [],
+    [paginatedCourses?.data]
   );
 
   const [selectedCourseId, setSelectedCourseId] = useQueryState(
@@ -56,7 +64,7 @@ const TeamHealthReportPage = () => {
     parseAsString.withDefault("")
   );
 
-  const effectiveCourseId = selectedCourseId || teacherCourses[0]?.id || "";
+  const effectiveCourseId = selectedCourseId || visibleCourses[0]?.id || "";
   const { data: healthScores, isLoading } = useTeamHealthScores(
     effectiveCourseId || undefined
   );
@@ -90,7 +98,7 @@ const TeamHealthReportPage = () => {
           <SelectValue placeholder="Select course" />
         </SelectTrigger>
         <SelectContent>
-          {teacherCourses.map((c) => (
+          {visibleCourses.map((c) => (
             <SelectItem key={c.id} value={c.id}>
               {c.name}
             </SelectItem>

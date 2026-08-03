@@ -4,10 +4,9 @@
 // =============================================================================
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GradientCardHeader } from "@/design-system";
+import { PCard, SectionHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import {
   Brain,
@@ -53,19 +52,18 @@ const ReflectionDigestCard = ({
   ];
 
   return (
-    <Card
-      className={cn(
-        "bg-white border-0 shadow-md rounded-xl overflow-hidden",
-        className
-      )}
+    <PCard
+      className={cn("overflow-hidden", className)}
       data-testid="reflection-digest-card"
     >
-      <GradientCardHeader
-        icon={Brain}
-        title={`Monthly Insights — ${digest.month}`}
-      />
+      <div className="p-5 pb-4">
+        <SectionHeader
+          icon={Brain}
+          title={`Monthly Insights — ${digest.month}`}
+        />
+      </div>
 
-      <div className="p-6 space-y-5">
+      <div className="space-y-5 px-5 pb-5">
         {/* Themes */}
         {digest.themes.length > 0 && (
           <section>
@@ -197,7 +195,7 @@ const ReflectionDigestCard = ({
           )}
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

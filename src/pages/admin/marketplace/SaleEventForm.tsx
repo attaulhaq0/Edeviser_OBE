@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,7 +79,7 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
         <h1 className="text-2xl font-bold tracking-tight">Create Sale Event</h1>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+      <PCard className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -217,7 +217,7 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
             </div>
           </form>
         </Form>
-      </Card>
+      </PCard>
     </div>
   );
 };

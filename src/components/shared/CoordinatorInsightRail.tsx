@@ -26,6 +26,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorAccreditationReadiness } from "@/hooks/useCoordinatorAccreditation";
+import { useCoordinatorOutcomeAttainment } from "@/hooks/useCoordinatorOutcomeAttainment";
 
 export interface CoordinatorInsightRailProps {
   /** Accreditation evidence readiness (0–100) override. When omitted the rail
@@ -63,9 +64,13 @@ const CoordinatorInsightRail = ({
   const { t } = useTranslation("coordinator");
   const { institutionId } = useAuth();
   const accred = useCoordinatorAccreditationReadiness(institutionId);
+  const attainment = useCoordinatorOutcomeAttainment(institutionId);
   // Prop override wins; otherwise use the real readiness; "—" until available.
   const readinessPct =
     evidenceReadiness ?? accred.data?.readinessPercent ?? null;
+  const belowTargetCount = attainment.data
+    ? attainment.data.plos.filter((plo) => plo.status === "belowTarget").length
+    : null;
 
   return (
     <aside className={className}>
@@ -73,29 +78,43 @@ const CoordinatorInsightRail = ({
         {/* Attainment alerts */}
         <Card className="card-elevated gap-0 border-0 bg-white py-0">
           <div className="space-y-3 p-4">
-            <RailLabel icon={AlertTriangle} count={2}>
+            <RailLabel
+              icon={AlertTriangle}
+              count={belowTargetCount ?? undefined}
+            >
               {t("rail.attainmentAlerts")}
             </RailLabel>
-            <ul className="space-y-2.5">
-              <li className="flex items-start gap-2">
-                <span
-                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500"
-                  aria-hidden="true"
-                />
-                <span className="text-xs font-medium text-gray-700">
-                  {t("rail.alertPlo")}
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span
-                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-500"
-                  aria-hidden="true"
-                />
-                <span className="text-xs font-medium text-gray-700">
-                  {t("rail.alertClo")}
-                </span>
-              </li>
-            </ul>
+            {attainment.isPending ? (
+              <p className="text-xs text-gray-500">
+                {t("rail.loading", "Loading live attainment alerts…")}
+              </p>
+            ) : attainment.isError ? (
+              <p className="text-xs text-gray-500">
+                {t(
+                  "rail.unavailable",
+                  "Live attainment alerts are unavailable."
+                )}
+              </p>
+            ) : belowTargetCount === 0 ? (
+              <p className="text-xs text-gray-500">
+                {t(
+                  "rail.noAlerts",
+                  "No below-target PLOs are currently recorded."
+                )}
+              </p>
+            ) : belowTargetCount == null ? (
+              <p className="text-xs text-gray-500">
+                {t("rail.noData", "No live attainment data is available.")}
+              </p>
+            ) : (
+              <p className="text-xs font-medium text-gray-700">
+                {t(
+                  "rail.belowTargetSummary",
+                  "{{count}} PLOs are below the configured target.",
+                  { count: belowTargetCount ?? 0 }
+                )}
+              </p>
+            )}
             <Link
               to="/coordinator/plos"
               className="inline-flex items-center gap-1 rounded text-xs font-bold text-sky-700 outline-none hover:text-sky-800 focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -133,7 +152,7 @@ const CoordinatorInsightRail = ({
               </span>
             </div>
             <Button variant="tactile" size="sm" className="w-full" asChild>
-              <Link to="/coordinator/course-file">
+              <Link to="/coordinator/accreditation">
                 {t("rail.reviewDraft")}
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>

@@ -15,29 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { RailCard, RailHead, RailRow, Shimmer } from "@/design-system";
 import { useJournalEntries } from "@/hooks/useJournal";
-
-/** UTC YYYY-MM-DD for a Date. */
-const isoDay = (d: Date): string => d.toISOString().slice(0, 10);
-
-/**
- * Consecutive-day journaling streak derived from entry timestamps. Counts back
- * from today (or yesterday, so a not-yet-written today doesn't zero it out).
- */
-const computeJournalStreak = (createdAts: string[]): number => {
-  const days = new Set(createdAts.map((iso) => iso.slice(0, 10)));
-  if (days.size === 0) return 0;
-  const cursor = new Date();
-  if (!days.has(isoDay(cursor))) {
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
-    if (!days.has(isoDay(cursor))) return 0;
-  }
-  let streak = 0;
-  while (days.has(isoDay(cursor))) {
-    streak += 1;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
-  }
-  return streak;
-};
+import { computeJournalStreak } from "@/lib/journalInsights";
 
 const StudentJournalRail = () => {
   const { t } = useTranslation("student");
@@ -57,7 +35,7 @@ const StudentJournalRail = () => {
   return (
     <aside
       aria-label={t("journal.rail.label", "Journal")}
-      className="fixed bottom-0 end-0 top-14 z-30 hidden w-80 overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:block"
+      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
     >
       {/* ── Journal streak (derived from real entries) ── */}
       <RailCard>

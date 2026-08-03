@@ -27,7 +27,9 @@ if (!CAPTURE) {
 } else {
   for (const screen of SCREENS) {
     for (const vp of VIEWPORTS) {
-      test(`capture ${screen.id} @ ${vp.name} (${vp.width}x${vp.height})`, async ({ page }) => {
+      test(`capture ${screen.id} @ ${vp.name} (${vp.width}x${vp.height})`, async ({
+        page,
+      }) => {
         // Prime the prototype's demo device-mode + role before its scripts run.
         await page.addInitScript(
           (cfg: { mode: string; role: string }) => {
@@ -41,15 +43,41 @@ if (!CAPTURE) {
           { mode: edvModeFor(vp.width), role: screen.role ?? "" }
         );
 
+        // The prototype's Google Fonts requests can remain pending in restricted
+        // developer environments. Playwright waits for those requests during
+        // `page.screenshot`, so abort only the non-essential font hosts. The
+        // capture still uses the browser's deterministic fallback font and
+        // retains the prototype's local HTML, CSS, and Tailwind CDN styling.
+        await page.route(
+          /https:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com)\//,
+          (route) => route.abort()
+        );
+
         await page.setViewportSize({ width: vp.width, height: vp.height });
         await page.goto(`${PROTOTYPE_URL}/${screen.prototype}`, {
-          waitUntil: "networkidle",
+          // The prototype deliberately pulls Tailwind and fonts from CDNs.
+          // `networkidle` can therefore wait forever on a slow or blocked
+          // third-party request, preventing every visual baseline from being
+          // captured. The DOM is sufficient for a deterministic screenshot;
+          // font readiness gets a short bounded grace period below.
+          waitUntil: "domcontentloaded",
+        });
+        await page.evaluate(() => {
+          document
+            .querySelectorAll('link[href*="fonts.googleapis.com"]')
+            .forEach((link) => link.remove());
         });
         await page.addStyleTag({ content: FREEZE_ANIMATIONS });
         await page
           .evaluate(async () => {
-            await (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts
-              ?.ready;
+            const fonts = (
+              document as unknown as { fonts?: { ready?: Promise<unknown> } }
+            ).fonts;
+            if (!fonts?.ready) return;
+            await Promise.race([
+              fonts.ready,
+              new Promise<void>((resolve) => window.setTimeout(resolve, 1_000)),
+            ]);
           })
           .catch(() => {});
         await page.waitForTimeout(200);

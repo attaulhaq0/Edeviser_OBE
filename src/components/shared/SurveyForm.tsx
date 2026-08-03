@@ -113,11 +113,7 @@ const SurveyForm = ({
           )}
         </div>
       ))}
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        variant="tactile"
-      >
+      <Button type="submit" disabled={isSubmitting} variant="tactile">
         {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
         Submit
       </Button>

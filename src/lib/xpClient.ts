@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { supabase } from "@/lib/supabase";
+import { emitXPFeedback } from "@/lib/xpFeedback";
 import type { XPSource } from "@/types/app";
 
 export interface AwardXPParams {
@@ -19,6 +20,7 @@ export interface AwardXPResult {
   new_total: number;
   level_up: boolean;
   new_level: number;
+  mystery_reward_triggered?: boolean;
 }
 
 /**
@@ -44,7 +46,18 @@ export async function awardXP(
       return null;
     }
 
-    return data as AwardXPResult;
+    const result = data as AwardXPResult;
+    if (result.success) {
+      emitXPFeedback({
+        studentId: params.studentId,
+        amount: result.xp_awarded,
+        source: params.source,
+        levelUp: result.level_up,
+        newLevel: result.new_level,
+        mysteryRewardTriggered: result.mystery_reward_triggered ?? false,
+      });
+    }
+    return result;
   } catch (err) {
     console.error("[XP Client] Unexpected error:", err);
     return null;

@@ -3,10 +3,10 @@
 // =============================================================================
 
 import { Sparkles, TrendingDown, Users } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AIFeedbackThumbs from "@/components/shared/AIFeedbackThumbs";
 import type { FeedbackValue } from "@/components/shared/AIFeedbackThumbs";
+import { PCard, SectionHeader } from "@/design-system";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -51,21 +51,12 @@ const AISuggestionCard = ({
   };
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      {/* Gradient header */}
-      <div
-        className="px-4 py-3 flex items-center gap-2"
-        style={{
-          background: "var(--brand-gradient)",
-        }}
-      >
-        <Sparkles className="h-4 w-4 text-white" />
-        <span className="text-sm font-bold tracking-tight text-white">
-          AI Suggestion
-        </span>
+    <PCard className="overflow-hidden">
+      <div className="p-5 pb-4">
+        <SectionHeader icon={Sparkles} title="AI Suggestion" />
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 px-5 pb-5">
         {/* Suggestion text */}
         <p className="text-sm font-medium text-gray-800 leading-relaxed">
           {suggestionText}
@@ -112,7 +103,7 @@ const AISuggestionCard = ({
           />
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

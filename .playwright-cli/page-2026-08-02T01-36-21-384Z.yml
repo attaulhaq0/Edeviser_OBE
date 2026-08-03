@@ -1,0 +1,218 @@
+- generic [active] [ref=f11e1]:
+    - generic [ref=f11e2]:
+        - link "Skip to main content" [ref=f11e3] [cursor=pointer]:
+            - /url: "#main-content"
+        - generic [ref=f11e203]:
+            - banner [ref=f11e204]:
+                - generic [ref=f11e205]:
+                    - link "Edeviser — go to dashboard" [ref=f11e207] [cursor=pointer]:
+                        - /url: /coordinator
+                        - img "Edeviser" [ref=f11e208]
+                        - generic [ref=f11e209]: Edeviser
+                    - button "Open global search" [ref=f11e211]:
+                        - generic [ref=f11e212]: Search
+                        - generic [ref=f11e213]: ⌘K
+                    - generic [ref=f11e214]:
+                        - generic "Programme summary" [ref=f11e215]:
+                            - generic "4 programmes" [ref=f11e216]: 🎯
+                            - generic "0 below target" [ref=f11e219]: ⚠️
+                        - 'button "Language: English" [ref=f11e223]': English
+                        - button "Notifications, 3 unread" [ref=f11e224]:
+                            - generic "3 unread notifications" [ref=f11e225]: "3"
+                        - button "Dr. James O'Connor Dr. James O'Connor Program Coordinator" [ref=f11e226] [cursor=pointer]:
+                            - img "Dr. James O'Connor" [ref=f11e228]
+                            - generic [ref=f11e229]:
+                                - generic [ref=f11e230]: Dr. James O'Connor
+                                - generic [ref=f11e231]: Program Coordinator
+            - generic [ref=f11e234]:
+                - complementary [ref=f11e235]:
+                    - generic [ref=f11e236]:
+                        - generic [ref=f11e237]: Edeviser
+                        - generic [ref=f11e238]:
+                            - navigation "Primary navigation" [ref=f11e239]:
+                                - generic [ref=f11e240]:
+                                    - link "(current page) Home" [ref=f11e241] [cursor=pointer]:
+                                        - /url: /coordinator/dashboard
+                                        - generic [ref=f11e242]: (current page)
+                                        - generic [ref=f11e248]: Home
+                                    - link "Outcomes" [ref=f11e249] [cursor=pointer]:
+                                        - /url: /coordinator/plos
+                                    - link "🗂️ Curriculum" [ref=f11e255] [cursor=pointer]:
+                                        - /url: /coordinator/matrix
+                                        - generic [ref=f11e256]: 🗂️
+                                        - generic [ref=f11e258]: Curriculum
+                                    - link "Accredit" [ref=f11e259] [cursor=pointer]:
+                                        - /url: /coordinator/accreditation
+                                    - link "Me" [ref=f11e264] [cursor=pointer]:
+                                        - /url: /coordinator/settings/profile
+                            - generic [ref=f11e278]:
+                                - paragraph [ref=f11e280]: More
+                                - generic [ref=f11e281]:
+                                    - link "Outcome Attainment" [ref=f11e282] [cursor=pointer]:
+                                        - /url: /coordinator/plos
+                                        - generic [ref=f11e283]: 🎯
+                                    - link "Curriculum Matrix" [ref=f11e285] [cursor=pointer]:
+                                        - /url: /coordinator/matrix
+                                        - generic [ref=f11e286]: 🗂️
+                                    - link "CQI Plans" [ref=f11e288] [cursor=pointer]:
+                                        - /url: /coordinator/cqi
+                                        - generic [ref=f11e289]: 🔧
+                                    - link "Course File Generator" [ref=f11e291] [cursor=pointer]:
+                                        - /url: /coordinator/course-file
+                                        - generic [ref=f11e292]: 📘
+                                    - link "Team Health Report" [ref=f11e294] [cursor=pointer]:
+                                        - /url: /coordinator/team-health
+                                        - generic [ref=f11e295]: 👥
+                                    - link "Competency Frameworks" [ref=f11e297] [cursor=pointer]:
+                                        - /url: /coordinator/competencies
+                                        - generic [ref=f11e298]: 🧭
+                                    - link "Accreditation" [ref=f11e300] [cursor=pointer]:
+                                        - /url: /coordinator/accreditation
+                                        - generic [ref=f11e301]: 📋
+                                    - link "Discussions" [ref=f11e303] [cursor=pointer]:
+                                        - /url: /coordinator/discussions
+                                        - generic [ref=f11e304]: 💭
+                                    - link "Announcements" [ref=f11e306] [cursor=pointer]:
+                                        - /url: /coordinator/notifications
+                                        - generic [ref=f11e307]: 📣
+                                    - link "Notifications" [ref=f11e309] [cursor=pointer]:
+                                        - /url: /coordinator/notifications
+                                        - generic [ref=f11e310]: 🔔
+                - main [ref=f11e313]:
+                    - generic [ref=f11e315]:
+                        - region "Program highlights" [ref=f11e316]:
+                            - button "Previous slide" [ref=f11e317]:
+                                - generic [ref=f11e318]: ‹
+                            - button "Next slide" [ref=f11e319]:
+                                - generic [ref=f11e320]: ›
+                            - generic [ref=f11e321]:
+                                - group "1 of 3" [ref=f11e322]:
+                                    - generic [ref=f11e323]:
+                                        - generic [ref=f11e329]:
+                                            - heading "Program health, prepared" [level=1] [ref=f11e330]
+                                            - paragraph [ref=f11e331]: Focus on the items below that need your attention.
+                                        - generic [ref=f11e332]:
+                                            - link "PLO attainment on track" [ref=f11e333] [cursor=pointer]:
+                                                - /url: /coordinator/plos
+                                            - link "Open matrix" [ref=f11e334] [cursor=pointer]:
+                                                - /url: /coordinator/matrix
+                                - group "2 of 3" [ref=f11e335]:
+                                    - generic [ref=f11e336]:
+                                        - generic [ref=f11e341]:
+                                            - paragraph [ref=f11e342]: Decision context
+                                            - heading "Science Mastery" [level=2] [ref=f11e343]
+                                            - paragraph [ref=f11e344]: 74% attainment · 9 students below target
+                                        - link "Review" [ref=f11e345] [cursor=pointer]:
+                                            - /url: /coordinator/plos
+                                - group "3 of 3" [ref=f11e346]:
+                                    - generic [ref=f11e347]:
+                                        - generic [ref=f11e352]:
+                                            - paragraph [ref=f11e353]: Accreditation readiness
+                                            - heading "100%" [level=2] [ref=f11e354]
+                                            - paragraph [ref=f11e355]: 4 evidence items in the pack
+                                        - link "Open pack" [ref=f11e356] [cursor=pointer]:
+                                            - /url: /coordinator/accreditation
+                            - generic [ref=f11e357]:
+                                - button "Go to slide 1" [ref=f11e358]
+                                - button "Go to slide 2" [ref=f11e359]
+                                - button "Go to slide 3" [ref=f11e360]
+                        - generic [ref=f11e366]:
+                            - generic [ref=f11e367]:
+                                - heading "Attainment alerts" [level=2] [ref=f11e373]
+                                - link "All outcomes" [ref=f11e375] [cursor=pointer]:
+                                    - /url: /coordinator/plos
+                            - generic [ref=f11e380]:
+                                - paragraph [ref=f11e381]: All PLOs are meeting the target
+                                - paragraph [ref=f11e382]: "Lowest: Science Mastery at 74%"
+                        - generic [ref=f11e383]:
+                            - link "Curriculum gap detected 0% A configured outcome has no mapped assessment Open matrix" [ref=f11e384] [cursor=pointer]:
+                                - /url: /coordinator/matrix
+                                - heading "Curriculum gap detected" [level=2] [ref=f11e393]
+                                - generic [ref=f11e394]:
+                                    - generic [ref=f11e395]: 0%
+                                    - paragraph [ref=f11e396]: A configured outcome has no mapped assessment
+                                - generic [ref=f11e398]: Open matrix
+                            - generic [ref=f11e401]:
+                                - generic [ref=f11e402]:
+                                    - heading "Accreditation evidence" [level=2] [ref=f11e408]
+                                    - link "Open →" [ref=f11e410] [cursor=pointer]:
+                                        - /url: /coordinator/accreditation
+                                - generic [ref=f11e411]:
+                                    - progressbar [ref=f11e412]
+                                    - generic [ref=f11e414]: 100%
+                                - list [ref=f11e415]:
+                                    - listitem [ref=f11e416]:
+                                        - generic [ref=f11e417]: cloMapping
+                                        - generic [ref=f11e421]: done
+                                    - listitem [ref=f11e422]:
+                                        - generic [ref=f11e423]: samples
+                                        - generic [ref=f11e427]: done
+                                    - listitem [ref=f11e428]:
+                                        - generic [ref=f11e429]: analysis
+                                        - generic [ref=f11e433]: done
+                                    - listitem [ref=f11e434]:
+                                        - generic [ref=f11e435]: cqi
+                                        - generic [ref=f11e439]: prog
+                        - generic [ref=f11e440]:
+                            - generic [ref=f11e441]:
+                                - generic [ref=f11e442]:
+                                    - heading "Close the loop (CQI)" [level=2] [ref=f11e450]
+                                    - link "Open →" [ref=f11e452] [cursor=pointer]:
+                                        - /url: /coordinator/cqi
+                                - list [ref=f11e453]:
+                                    - listitem [ref=f11e454]:
+                                        - paragraph [ref=f11e456]:
+                                            - text: Science Mastery attainment fell below the 80% program target, driven by weak performance on inquiry-based lab assessments. Introduced structured pre-lab worksheets, a mid-unit formative checkpoint, and targeted re-teaching for students below 60% on the first attempt. Reassessed at end of unit.
+                                            - generic [ref=f11e457]: · May 31
+                                    - listitem [ref=f11e458]:
+                                        - paragraph [ref=f11e460]:
+                                            - text: English Mastery is below target because students struggle with evidence-based argumentative writing. Rolling out a shared analytical-writing rubric across all sections, weekly peer-review workshops, and exemplar annotation sessions. Mid-semester reassessment scheduled.
+                                            - generic [ref=f11e461]: · May 31
+                                    - listitem [ref=f11e462]:
+                                        - paragraph [ref=f11e464]:
+                                            - text: "Mathematics Mastery trails the 80% target, concentrated in multi-step problem solving and applied reasoning CLOs. Planned interventions: spaced-practice problem sets, a diagnostic quiz to pinpoint prerequisite gaps, and small-group tutorials for at-risk students starting next teaching block."
+                                            - generic [ref=f11e465]: · May 31
+                            - generic [ref=f11e466]:
+                                - generic [ref=f11e467]:
+                                    - heading "Program timeline" [level=2] [ref=f11e473]
+                                    - link "Calendar →" [ref=f11e475] [cursor=pointer]:
+                                        - /url: /coordinator/timetable
+                                - list [ref=f11e476]:
+                                    - listitem [ref=f11e477]:
+                                        - paragraph [ref=f11e479]:
+                                            - text: Final Examinations
+                                            - generic [ref=f11e480]: · Dec 8
+                                        - paragraph [ref=f11e481]: Completed
+                                    - listitem [ref=f11e482]:
+                                        - paragraph [ref=f11e484]:
+                                            - text: Winter Break
+                                            - generic [ref=f11e485]: · Dec 20
+                                        - paragraph [ref=f11e486]: Completed
+                                    - listitem [ref=f11e487]:
+                                        - paragraph [ref=f11e489]:
+                                            - text: Summer Enrichment Program
+                                            - generic [ref=f11e490]: · Jun 22
+                                        - paragraph [ref=f11e491]: Completed
+                                    - listitem [ref=f11e492]:
+                                        - paragraph [ref=f11e494]:
+                                            - text: New Academic Year Orientation
+                                            - generic [ref=f11e495]: · Aug 24
+                                        - paragraph [ref=f11e496]: Next
+                        - generic [ref=f11e497]:
+                            - paragraph [ref=f11e498]: Program briefings are prepared for your review — no curriculum changes without your approval.
+                            - generic [ref=f11e502]: Review-first
+                - complementary "Program alerts" [ref=f11e503]:
+                    - generic [ref=f11e504]:
+                        - generic [ref=f11e505]: 📉 Attainment alerts
+                        - button "Why am I seeing this?" [ref=f11e507]
+                        - paragraph [ref=f11e508]: Every PLO is meeting target.
+                    - generic [ref=f11e509]: 🗂️ Curriculum gap
+                    - generic [ref=f11e513]:
+                        - generic [ref=f11e514]: 📋 Accreditation
+                        - generic [ref=f11e516]:
+                            - generic [ref=f11e517]: Evidence readiness
+                            - generic [ref=f11e518]: 100%
+                        - button "Review draft →" [ref=f11e519]
+        - region "Notifications alt+T"
+        - button "Open Tanstack query devtools" [ref=f11e154] [cursor=pointer]
+    - button "Open the dialog" [ref=f11e521] [cursor=pointer]

@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { useSemesters } from "@/hooks/useSemesters";
 import CoordinatorProfileNew from "@/components/shared/CoordinatorProfileNew";
+import { PCard, SectionHeader } from "@/design-system";
 
 const ProfilePageLegacy = () => {
   const { profile, user } = useAuth();
@@ -80,12 +80,16 @@ const ProfilePageLegacy = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
+      <SectionHeader
+        icon={User}
+        title="Profile Settings"
+        description="Manage your avatar, appearance, exports, transcript, and fees."
+      />
 
       {/* Profile Info Card */}
-      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden gap-0 py-0">
         <div
-          className="px-6 py-4 flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-4"
           style={{
             background: "var(--brand-gradient)",
           }}
@@ -113,7 +117,7 @@ const ProfilePageLegacy = () => {
                   className="h-16 w-16 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
                   <User className="h-8 w-8 text-blue-600" />
                 </div>
               )}
@@ -151,12 +155,12 @@ const ProfilePageLegacy = () => {
             </div>
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Theme Preference */}
-      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden gap-0 py-0">
         <div
-          className="px-6 py-4 flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-4"
           style={{
             background: "var(--brand-gradient)",
           }}
@@ -202,16 +206,16 @@ const ProfilePageLegacy = () => {
             ))}
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Email Notification Preferences */}
       <EmailPreferencesSection />
 
       {/* GDPR Data Export — students only */}
       {profile?.role === "student" && user && (
-        <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+        <PCard className="overflow-hidden gap-0 py-0">
           <div
-            className="px-6 py-4 flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-4"
             style={{
               background: "var(--brand-gradient)",
             }}
@@ -228,7 +232,7 @@ const ProfilePageLegacy = () => {
             </p>
             <ExportDataButton studentId={user.id} />
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Transcript Download — students only */}
@@ -271,9 +275,9 @@ const TranscriptSection = ({ studentId }: { studentId: string }) => {
   };
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+    <PCard className="overflow-hidden gap-0 py-0">
       <div
-        className="px-6 py-4 flex items-center gap-2"
+        className="flex items-center gap-2 px-6 py-4"
         style={{
           background: "var(--brand-gradient)",
         }}
@@ -320,7 +324,7 @@ const TranscriptSection = ({ studentId }: { studentId: string }) => {
           </Button>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 
@@ -338,9 +342,9 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
   if (fees.length === 0) return null;
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+    <PCard className="overflow-hidden gap-0 py-0">
       <div
-        className="px-6 py-4 flex items-center gap-2"
+        className="flex items-center gap-2 px-6 py-4"
         style={{
           background: "var(--brand-gradient)",
         }}
@@ -398,7 +402,7 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
           </div>
         )}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

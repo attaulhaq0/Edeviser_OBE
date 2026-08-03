@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Calendar, Lock } from "lucide-react";
 import { useCalendarEvents, type CalendarEvent } from "@/hooks/useCalendar";
 import { dedupeCalendarEvents } from "@/lib/calendarDeadlines";
 import { Shimmer } from "@/design-system";
+import ErrorState from "@/components/shared/ErrorState";
 
 type ViewMode = "monthly" | "weekly";
 
@@ -23,7 +24,12 @@ const CalendarView = () => {
     return d;
   });
 
-  const { data: rawEvents = [], isLoading } = useCalendarEvents(month, year);
+  const {
+    data: rawEvents = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useCalendarEvents(month, year);
 
   // R21.4: present a deadline consistently across surfaces — a single logical
   // deadline must never be listed twice even if it arrives from more than one
@@ -186,6 +192,12 @@ const CalendarView = () => {
         <div className="p-4">
           {isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
+          ) : isError ? (
+            <ErrorState
+              message={t("errors.generic")}
+              onRetry={() => void refetch()}
+              retryLabel={t("buttons.retry")}
+            />
           ) : viewMode === "monthly" ? (
             <>
               <div className="grid grid-cols-7 gap-1 mb-2">

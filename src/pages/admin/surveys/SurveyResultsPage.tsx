@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { BarChart3, ClipboardList } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -82,7 +82,7 @@ const QuestionResult = ({
         : 0;
 
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-4 space-y-3">
+      <PCard className="space-y-3 p-4">
         <div className="flex items-start justify-between">
           <p className="text-sm font-medium">
             Q{index + 1}. {question.question_text}
@@ -105,7 +105,7 @@ const QuestionResult = ({
         <p className="text-xs text-gray-500">
           {totalResponses} response{totalResponses !== 1 ? "s" : ""}
         </p>
-      </Card>
+      </PCard>
     );
   }
 
@@ -113,7 +113,7 @@ const QuestionResult = ({
     const data = aggregateMCQ(responses, question.id);
 
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-4 space-y-3">
+      <PCard className="space-y-3 p-4">
         <p className="text-sm font-medium">
           Q{index + 1}. {question.question_text}
         </p>
@@ -143,13 +143,13 @@ const QuestionResult = ({
         <p className="text-xs text-gray-500">
           {totalResponses} response{totalResponses !== 1 ? "s" : ""}
         </p>
-      </Card>
+      </PCard>
     );
   }
 
   // Text responses
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-4 space-y-3">
+    <PCard className="space-y-3 p-4">
       <p className="text-sm font-medium">
         Q{index + 1}. {question.question_text}
       </p>
@@ -170,7 +170,7 @@ const QuestionResult = ({
       <p className="text-xs text-gray-500">
         {totalResponses} response{totalResponses !== 1 ? "s" : ""}
       </p>
-    </Card>
+    </PCard>
   );
 };
 
@@ -212,39 +212,39 @@ const SurveyResultsPage = () => {
       {surveysLoading ? (
         <div className="h-32 rounded-xl animate-shimmer" />
       ) : !selectedSurveyId ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
+        <PCard className="p-8 text-center">
           <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
           <p className="text-sm text-gray-500">
             Select a survey to view results.
           </p>
-        </Card>
+        </PCard>
       ) : (
         <>
           {/* Summary KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+            <PCard className="p-4">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                 Total Responses
               </p>
               <p className="text-2xl font-black mt-1">
                 {responses?.length ?? 0}
               </p>
-            </Card>
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+            </PCard>
+            <PCard className="p-4">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                 Respondents
               </p>
               <p className="text-2xl font-black mt-1">{uniqueRespondents}</p>
-            </Card>
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+            </PCard>
+            <PCard className="p-4">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                 Questions
               </p>
               <p className="text-2xl font-black mt-1">
                 {questions?.length ?? 0}
               </p>
-            </Card>
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+            </PCard>
+            <PCard className="p-4">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                 Completion Rate
               </p>
@@ -260,15 +260,15 @@ const SurveyResultsPage = () => {
                     )}%`
                   : "—"}
               </p>
-            </Card>
+            </PCard>
           </div>
 
           {/* Per-question results */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+          <PCard className="overflow-hidden p-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background: "var(--brand-gradient)",
+                backgroundColor: "#0f172a",
               }}
             >
               <ClipboardList className="h-5 w-5 text-white" />
@@ -287,7 +287,7 @@ const SurveyResultsPage = () => {
               ))}
               {!questions?.length && <InlineNoQuestions />}
             </div>
-          </Card>
+          </PCard>
         </>
       )}
     </div>

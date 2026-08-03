@@ -138,7 +138,9 @@ export const useTeacherKPIs = (options?: { enabled?: boolean }) => {
 
         const inactiveSet = new Set<string>();
         for (const p of inactiveProfiles ?? []) {
-          if (!p.last_seen_at || new Date(p.last_seen_at) < sevenDaysAgo) {
+          // A null last_seen_at means we have no activity evidence. It must
+          // not be classified as inactive.
+          if (p.last_seen_at && new Date(p.last_seen_at) < sevenDaysAgo) {
             inactiveSet.add(p.id);
           }
         }
@@ -432,7 +434,7 @@ export const useAtRiskStudents = (options?: { enabled?: boolean }) => {
       // Build inactive set with days count
       const inactiveMap = new Map<string, number>();
       for (const p of typedProfiles) {
-        if (!p.last_seen_at || new Date(p.last_seen_at) < sevenDaysAgo) {
+        if (p.last_seen_at && new Date(p.last_seen_at) < sevenDaysAgo) {
           const lastLogin = p.last_seen_at ? new Date(p.last_seen_at) : null;
           const daysInactive = lastLogin
             ? Math.floor(

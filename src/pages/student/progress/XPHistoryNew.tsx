@@ -22,8 +22,8 @@ import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
-  Card,
   KPICard,
+  PCard,
   SectionHeader,
   Shimmer,
   Tabs,
@@ -226,7 +226,7 @@ const XPHistoryNew = () => {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Summary sidebar */}
             <div className="order-1 lg:order-2 lg:col-span-1">
-              <Card className="card-elevated overflow-hidden border-0 bg-white">
+              <PCard className="overflow-hidden">
                 <div className="p-6">
                   <SectionHeader icon={TrendingUp} title="Summary" />
                   <div className="mt-4">
@@ -236,12 +236,12 @@ const XPHistoryNew = () => {
                     />
                   </div>
                 </div>
-              </Card>
+              </PCard>
             </div>
 
             {/* Transactions list */}
             <div className="order-2 lg:order-1 lg:col-span-2">
-              <Card className="card-elevated overflow-hidden border-0 bg-white">
+              <PCard className="overflow-hidden">
                 <div className="p-6">
                   <SectionHeader
                     icon={Coins}
@@ -274,7 +274,7 @@ const XPHistoryNew = () => {
                     )}
                   </div>
                 </div>
-              </Card>
+              </PCard>
             </div>
           </div>
         </>

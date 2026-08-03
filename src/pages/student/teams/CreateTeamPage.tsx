@@ -14,7 +14,6 @@ import {
   useStudentFormedCourses,
   useCourseRoster,
 } from "@/hooks/useTeamFormation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { Loader2, Users, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -117,22 +116,22 @@ const CreateTeamPage = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("createTeam.title")}
-        </h1>
+        <SectionHeader icon={Users} title={t("createTeam.title")} />
       </div>
 
       {coursesLoading ? (
         <Shimmer className="h-48 rounded-xl" />
       ) : !courses || courses.length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">
-            {t("createTeam.noCoursesAvailable")}
-          </p>
-        </Card>
+        <PCard>
+          <div className="p-8 text-center">
+            <Users className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+            <p className="text-sm text-gray-500">
+              {t("createTeam.noCoursesAvailable")}
+            </p>
+          </div>
+        </PCard>
       ) : (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+        <PCard className="max-w-2xl p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -237,7 +236,7 @@ const CreateTeamPage = () => {
               </Button>
             </form>
           </Form>
-        </Card>
+        </PCard>
       )}
     </div>
   );

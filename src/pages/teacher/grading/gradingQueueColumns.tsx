@@ -48,7 +48,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
     ),
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "submitted_at",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -63,7 +63,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
     cell: ({ row }) => (
       <span className="text-sm">
         {format(
-          new Date(row.getValue("created_at") as string),
+          new Date(row.getValue("submitted_at") as string),
           "MMM d, yyyy h:mm a"
         )}
       </span>
@@ -118,11 +118,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Button
-        asChild
-        size="sm"
-        variant="tactile"
-      >
+      <Button asChild size="sm" variant="tactile">
         <Link to={`/teacher/grading/${row.original.id}`}>
           <ClipboardCheck className="h-4 w-4" />
           Grade

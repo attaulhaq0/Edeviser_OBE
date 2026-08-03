@@ -14,7 +14,7 @@ import {
   useCLOMappings,
   useUpdateCLOMappings,
 } from "@/hooks/useCLOs";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { usePLOs } from "@/hooks/usePLOs";
 import {
   Form,
@@ -72,7 +72,8 @@ const CreateCLODetailsForm = () => {
   const navigate = useNavigate();
   const { t } = useTranslation("teacher");
   const createMutation = useCreateCLO();
-  const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
+  const { data: paginatedCourses, isLoading: isLoadingCourses } =
+    useTeacherCourses();
   const courses = paginatedCourses?.data ?? [];
 
   const form = useForm<CreateCLOFormData>({
@@ -827,7 +828,7 @@ const CLOForm = () => {
 
   // In edit mode, fetch the CLO to resolve its course → program for PLO mapping
   const { data: existingCLO } = useCLO(id);
-  const { data: paginatedCoursesForEdit } = useCourses();
+  const { data: paginatedCoursesForEdit } = useTeacherCourses();
   const courses = useMemo(
     () => paginatedCoursesForEdit?.data ?? [],
     [paginatedCoursesForEdit?.data]

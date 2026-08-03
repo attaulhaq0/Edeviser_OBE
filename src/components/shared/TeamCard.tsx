@@ -3,7 +3,7 @@
 // Task 4.1: name, XP, streak, member count, health score badge
 // =============================================================================
 
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { cn } from "@/lib/utils";
 import { Users, Flame, Trophy, Zap } from "lucide-react";
 import TeamHealthBadge from "@/components/shared/TeamHealthBadge";
@@ -31,9 +31,9 @@ const TeamCard = ({
   className,
   onClick,
 }: TeamCardProps) => (
-  <Card
+  <PCard
     className={cn(
-      "bg-white border-0 shadow-md rounded-xl overflow-hidden",
+      "overflow-hidden",
       onClick && "cursor-pointer hover:shadow-lg transition-shadow",
       className
     )}
@@ -127,7 +127,7 @@ const TeamCard = ({
         )}
       </div>
     </div>
-  </Card>
+  </PCard>
 );
 
 export default TeamCard;

@@ -54,11 +54,7 @@ const PWAInstallPrompt = () => {
               Add to your home screen for quick access
             </p>
           </div>
-          <Button
-            size="sm"
-            onClick={handleInstall}
-            variant="tactile"
-          >
+          <Button size="sm" onClick={handleInstall} variant="tactile">
             Install
           </Button>
           <button

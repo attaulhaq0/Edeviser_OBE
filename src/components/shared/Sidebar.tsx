@@ -1,50 +1,36 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSurveyAssignmentsCount } from "@/hooks/useSurveyAssignmentsCount";
-import { navItems, type NavItem } from "@/lib/navItems";
-import { NAV_GROUPS, NAV_GROUP_META, type NavGroup } from "@/lib/navGroups";
+import { navItems } from "@/lib/navItems";
+import {
+  getMoreNavItems,
+  getPrimaryNavItems,
+  type PresentedNavItem,
+} from "@/lib/navPresentation";
 import { useIntentPrefetch } from "@/hooks/useIntentPrefetch";
 import { prefetchRoute } from "@/lib/routePrefetch";
 import { useSidebar } from "./SidebarContext";
 import MobileTabBar from "./MobileTabBar";
+import StudentSidebarExtras from "./StudentSidebarExtras";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
-
-interface NavSection {
-  group: NavGroup;
-  labelKey: string;
-  items: NavItem[];
-}
 
 /** Route of the conditional Surveys item, hidden when the student has none. */
 const SURVEYS_ROUTE = "/student/surveys";
 
-/**
- * Order items within a section so de-emphasized items (R23.3) sink to the
- * bottom of their group while everything keeps its original relative order.
- * Uses a stable partition (not a comparator-based sort) to guarantee stability
- * across engines.
- */
-const sinkDeEmphasized = (items: NavItem[]): NavItem[] => [
-  ...items.filter((item) => !item.deEmphasized),
-  ...items.filter((item) => item.deEmphasized),
-];
-
-/**
- * Partition role nav items into ordered, labeled sections (R20.3). Only items
- * carrying a `group` are sectioned; the canonical order comes from
- * {@link NAV_GROUPS}. Within a section, de-emphasized items sink to the bottom
- * (R23.3). Empty sections are dropped so no header renders without items
- * (R23.4 — no gap/placeholder).
- */
-const buildSections = (items: NavItem[]): NavSection[] =>
-  NAV_GROUPS.map((group) => ({
-    group,
-    labelKey: NAV_GROUP_META[group].labelKey,
-    items: sinkDeEmphasized(items.filter((item) => item.group === group)),
-  })).filter((section) => section.items.length > 0);
+const activeNavStyleByRole: Record<
+  UserRole,
+  { background: string; color: string }
+> = {
+  student: { background: "#e6f7ff", color: "#075985" },
+  teacher: { background: "#eff6ff", color: "#2563eb" },
+  coordinator: { background: "#eff6ff", color: "#2563eb" },
+  admin: { background: "#eff6ff", color: "#2563eb" },
+  parent: { background: "#eff6ff", color: "#2563eb" },
+};
 
 const Sidebar = () => {
   const { t } = useTranslation("common");
@@ -72,11 +58,13 @@ const Sidebar = () => {
   const items = (navItems[role] ?? []).filter(
     (item) => item.to !== SURVEYS_ROUTE || showSurveys
   );
-
-  // Render grouped sections when every item declares a group (student nav);
-  // otherwise fall back to a flat list (admin/coordinator/teacher/parent).
-  const isGrouped = items.length > 0 && items.every((item) => item.group);
-  const sections = isGrouped ? buildSections(items) : [];
+  const visiblePaths = new Set(items.map((item) => item.to));
+  const primaryItems = getPrimaryNavItems(role).filter((item) =>
+    visiblePaths.has(item.to)
+  );
+  const moreItems = getMoreNavItems(role).filter((item) =>
+    visiblePaths.has(item.to)
+  );
 
   const isItemActive = (to: string): boolean =>
     location.pathname === to ||
@@ -84,35 +72,125 @@ const Sidebar = () => {
       to !== `/${role}` &&
       location.pathname.startsWith(to));
 
-  const renderItem = (item: NavItem) => {
-    const Icon = item.icon;
-    const isActive = isItemActive(item.to);
+  // The prototype companion item route per role: the one primary item that keeps
+  // a colorful circular icon even when inactive (Tutor for student, Studio for
+  // teacher, etc.).
+  const companionRoute: Record<UserRole, string> = {
+    student: "/student/tutor",
+    teacher: "/teacher/modules",
+    parent: "/parent/support",
+    coordinator: "/coordinator/matrix",
+    admin: "/admin/governance",
+  };
+  const isCompanion = (to: string) => companionRoute[role] === to;
 
-    // The active item uses a brand-gradient pill (set via inline style, like
-    // GradientCardHeader).
+  const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
+    const isActive = section === "primary" && isItemActive(item.to);
+    const itemIsCompanion = section === "primary" && isCompanion(item.to);
+    const group = section === "primary" ? "primary" : "secondary";
+    const variant = itemIsCompanion ? "companion" : "standard";
+
+    // --- Primary section styling ---
+    // Active: full-width rounded light-blue pill, dark blue text
+    // Inactive primary: transparent bg, lighter muted label (#94a3b8)
+    // Secondary (below MORE): transparent bg, stronger slate-blue label (#64748b)
     const itemClassName = cn(
-      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all",
-      isActive
-        ? "font-semibold text-white shadow-sm"
-        : item.deEmphasized
-        ? "font-medium text-gray-400 hover:bg-slate-100 dark:text-gray-500 dark:hover:bg-slate-800"
-        : "font-medium text-gray-600 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-slate-800"
+      "sidebar-item flex items-center transition-colors duration-150",
+      section === "primary"
+        ? "min-h-[47px] gap-[12px] rounded-[13px] px-[16px] min-[1024px]:min-h-[42px]"
+        : "gap-3 rounded-[10px] px-[18px] py-[8px] min-[1024px]:py-[6px]",
+      isActive ? "font-semibold" : "hover:bg-slate-50 dark:hover:bg-slate-800"
     );
 
-    return (
+    const IconComponent = item.icon;
+
+    const content = (
+      <>
+        {isActive ? <span className="sr-only">(current page)</span> : null}
+
+        {/* Icon rendering: 3 distinct treatments */}
+        {itemIsCompanion ? (
+          /* Companion: prominent colorful circular icon badge (always visible) */
+          <div className="sidebar-icon-wrapper flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
+            <span className="sidebar-icon text-[16px] leading-none">
+              {item.emoji}
+            </span>
+          </div>
+        ) : section === "more" && item.emoji ? (
+          /* MORE section: small colorful emoji */
+          <span
+            className="sidebar-icon flex size-5 shrink-0 items-center justify-center bg-transparent text-[16px] leading-none"
+            aria-hidden="true"
+          >
+            {item.emoji}
+          </span>
+        ) : IconComponent ? (
+          /* Primary section: Lucide outline icon (20px standard) */
+          <IconComponent
+            className={cn(
+              "sidebar-icon h-5 w-5 shrink-0 transition-colors",
+              isActive ? "stroke-[2.2]" : "stroke-[1.6]"
+            )}
+            aria-hidden="true"
+          />
+        ) : item.emoji ? (
+          /* Fallback: emoji */
+          <span
+            className="sidebar-icon flex size-5 shrink-0 items-center justify-center bg-transparent text-[18px] leading-none"
+            aria-hidden="true"
+          >
+            {item.emoji}
+          </span>
+        ) : null}
+
+        <span className="sidebar-nav-label truncate">
+          {(() => {
+            const raw = t(item.labelKey);
+            if (typeof raw === "string" && raw.startsWith("nav.")) {
+              return raw
+                .replace("nav.", "")
+                .replace(/([A-Z])/g, " $1")
+                .replace(/^./, (s) => s.toUpperCase());
+            }
+            return raw;
+          })()}
+        </span>
+      </>
+    );
+
+    const sharedProps = getIntentHandlers(item.to, () =>
+      prefetchRoute(item.to)
+    );
+
+    return section === "primary" ? (
       <NavLink
-        key={item.to}
+        key={`${section}:${item.to}:${item.labelKey}`}
         to={item.to}
         onClick={close}
         viewTransition
-        {...getIntentHandlers(item.to, () => prefetchRoute(item.to))}
-        style={isActive ? { background: "var(--brand-gradient)" } : undefined}
+        data-group={group}
+        data-variant={variant}
+        data-active={isActive ? "true" : "false"}
+        {...sharedProps}
+        style={isActive ? activeNavStyleByRole[role] : undefined}
         className={itemClassName}
       >
-        {isActive && <span className="sr-only">(current page)</span>}
-        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span className="truncate">{t(item.labelKey)}</span>
+        {content}
       </NavLink>
+    ) : (
+      <Link
+        key={`${section}:${item.to}:${item.labelKey}`}
+        to={item.to}
+        onClick={close}
+        viewTransition
+        data-group={group}
+        data-variant={variant}
+        data-active="false"
+        {...sharedProps}
+        className={itemClassName}
+      >
+        {content}
+      </Link>
     );
   };
 
@@ -120,9 +198,10 @@ const Sidebar = () => {
     <>
       {/* Mobile overlay */}
       {mobileOpen && (
-        <button
+        <Button
           type="button"
-          className="fixed inset-0 z-[98] bg-black/30 lg:hidden"
+          variant="ghost"
+          className="fixed inset-0 z-98 h-auto w-auto rounded-none bg-black/30 p-0 hover:bg-black/30 min-[640px]:hidden"
           onClick={close}
           aria-label="Close navigation"
         />
@@ -132,51 +211,60 @@ const Sidebar = () => {
       <aside
         data-tour="primary-nav"
         className={cn(
-          "fixed top-14 start-0 z-[99] flex h-[calc(100vh-3.5rem)] w-52 flex-col border-e border-border transition-transform duration-200 ease-in-out",
-          "bg-white/95 backdrop-blur-sm dark:bg-background/95",
+          "app-sidebar fixed inset-s-0 top-0 z-99 flex h-screen w-(--app-sidebar-w) overflow-y-auto overflow-x-hidden border-e border-[#e2e8f0] transition-transform duration-200 ease-in-out dark:border-border dark:bg-background",
+          role === "student"
+            ? "bg-[linear-gradient(180deg,#ffffff_0%,#f5fdff_100%)]"
+            : "bg-white",
+          "min-[640px]:z-[110] min-[640px]:col-start-1 min-[640px]:row-start-1 min-[640px]:translate-x-0",
           mobileOpen
             ? "translate-x-0"
-            : "max-lg:-translate-x-full max-lg:rtl:translate-x-full lg:translate-x-0"
+            : "max-[639px]:-translate-x-full max-[639px]:rtl:translate-x-full"
         )}
       >
-        {/* Mobile close button */}
-        <div className="flex items-center justify-end p-2 lg:hidden">
-          <button
-            onClick={close}
-            className="rounded-lg p-1.5 text-gray-500 hover:bg-slate-100"
-            aria-label="Close navigation"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        <div className="relative flex h-full min-h-0 flex-1 flex-col px-3.5 pb-5 pt-4 min-[640px]:pt-18.5 min-[1024px]:px-3 min-[1024px]:pb-4 min-[1024px]:pt-16">
+          <span className="hidden min-[640px]:block absolute inset-s-5.5 top-5.5 text-[18px] font-black tracking-[-0.01em] text-slate-900 dark:text-foreground">
+            Edeviser
+          </span>
 
-        {/* Nav items */}
-        <nav
-          role="navigation"
-          aria-label={t("header.primaryNav.label")}
-          className="flex-1 overflow-y-auto px-3 py-2"
-        >
-          {isGrouped ? (
-            sections.map((section) => (
-              <div
-                key={section.group}
-                role="group"
-                aria-labelledby={`nav-group-${section.group}`}
-                className="space-y-0.5 pb-2"
-              >
-                <p
-                  id={`nav-group-${section.group}`}
-                  className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400"
-                >
-                  {t(section.labelKey)}
-                </p>
-                {section.items.map(renderItem)}
+          {/* Mobile close button */}
+          <div className="flex items-center justify-end p-2 min-[640px]:hidden">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={close}
+              className="rounded-lg text-gray-500 hover:bg-slate-100"
+              aria-label="Close navigation"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col">
+            {/* Nav items */}
+            <nav role="navigation" aria-label={t("header.primaryNav.label")}>
+              <div className="space-y-1">
+                {primaryItems.map((item) => renderItem(item, "primary"))}
               </div>
-            ))
-          ) : (
-            <div className="space-y-0.5">{items.map(renderItem)}</div>
-          )}
-        </nav>
+            </nav>
+
+            {moreItems.length > 0 ? (
+              <div className="sidebar-extra mt-2.5 flex min-h-0 flex-1 flex-col">
+                <div
+                  className="side-sep mx-3 mb-2 mt-3 h-px bg-[#eef2f6]"
+                  aria-hidden="true"
+                />
+                <p className="side-label px-4.5 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] leading-3.5 text-slate-600">
+                  {t("nav.more")}
+                </p>
+                <div className="space-y-0.5">
+                  {moreItems.map((item) => renderItem(item, "more"))}
+                </div>
+                {role === "student" ? <StudentSidebarExtras /> : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
       </aside>
 
       {/* Responsive nav (design §18 / R18.5): a thumb-reachable bottom tab bar

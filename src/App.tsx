@@ -6,6 +6,7 @@ import * as Sentry from "@sentry/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/sonner";
+import GamificationFeedbackHost from "@/components/shared/GamificationFeedbackHost";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
@@ -45,7 +46,8 @@ const App = () => (
                   <ThemeProvider>
                     <SkipToMain />
                     <AppRouter />
-                    <Toaster richColors position="top-right" />
+                    <GamificationFeedbackHost />
+                    <Toaster richColors position="bottom-center" />
                   </ThemeProvider>
                 </LanguageProvider>
               </AuthProvider>

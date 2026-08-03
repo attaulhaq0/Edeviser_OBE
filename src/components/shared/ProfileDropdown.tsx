@@ -27,6 +27,17 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { getDisplayFirstName } from "@/lib/displayName";
+import { useCourses } from "@/hooks/useCourses";
+import { useLevel } from "@/hooks/useLevel";
+import { useLinkedChildren } from "@/hooks/useParentDashboard";
+
+const profileSubtitleByRole: Record<string, string> = {
+  admin: "header.profileSubtitle.admin",
+  coordinator: "header.profileSubtitle.coordinator",
+  teacher: "header.profileSubtitle.teacher",
+  student: "header.profileSubtitle.student",
+  parent: "header.profileSubtitle.parent",
+};
 
 /**
  * Profile dropdown menu with avatar, name, and actions.
@@ -44,6 +55,17 @@ const ProfileDropdown = () => {
   const { t } = useTranslation("common");
   const { themeMode, setThemeMode } = useTheme();
   const { start: startTour } = useGuidedTour(profile?.role ?? "student");
+  const isStudent = profile?.role === "student";
+  const isTeacher = profile?.role === "teacher";
+  const isParent = profile?.role === "parent";
+  const level = useLevel(isStudent ? user?.id : undefined);
+  const teacherCourses = useCourses(
+    { page: 1, pageSize: 1, teacherId: isTeacher ? user?.id : undefined },
+    { enabled: isTeacher }
+  );
+  const linkedChildren = useLinkedChildren(isParent ? user?.id : undefined, {
+    enabled: isParent,
+  });
 
   if (!user || !profile) {
     return null;
@@ -68,29 +90,90 @@ const ProfileDropdown = () => {
       .join("")
       .toUpperCase() ?? "U";
 
-  // Get avatar URL with CDN transformation for 64px display
+  const defaultAvatarsByRole: Record<string, string> = {
+    student:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+    teacher:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80",
+    coordinator:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80",
+    admin:
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80",
+    parent:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80",
+  };
+
+  // Get avatar URL with CDN transformation or default role avatar
   const avatarUrl = profile.avatar_url
     ? `${profile.avatar_url}?width=64&height=64&resize=cover`
-    : undefined;
+    : defaultAvatarsByRole[profile.role] ?? defaultAvatarsByRole.student;
+
+  const profileSubtitle = (() => {
+    if (profile.role === "student") {
+      return t("header.profileSubtitle.studentLevel", {
+        level: level.data?.level ?? 1,
+        xp: (level.data?.xpTotal ?? 0).toLocaleString(),
+      });
+    }
+
+    if (profile.role === "teacher") {
+      return t("header.profileSubtitle.teacherDetail", {
+        department: profile.department ?? t("header.profileSubtitle.teacher"),
+        count: teacherCourses.data?.count ?? 0,
+      });
+    }
+
+    if (profile.role === "parent") {
+      const firstChild = linkedChildren.data?.[0];
+      return firstChild
+        ? t("header.profileSubtitle.guardianOf", {
+            name: getDisplayFirstName(firstChild.student_name),
+          })
+        : t("header.profileSubtitle.parent");
+    }
+
+    return t(
+      profileSubtitleByRole[profile.role] ?? "header.profileSubtitle.student"
+    );
+  })();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+          className="hdr-profile flex cursor-pointer items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/80"
           data-tour="profile"
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-9 w-9 border border-slate-200 shadow-2xs dark:border-slate-700">
             <AvatarImage src={avatarUrl} alt={profile.full_name ?? "User"} />
-            <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-bold">
+            <AvatarFallback className="bg-linear-to-br from-teal-500 to-blue-600 font-extrabold text-xs text-white">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:inline text-sm font-medium text-gray-700">
-            {getDisplayFirstName(profile.full_name) ?? "User"}
+          <span className="hidden min-[640px]:flex flex-col text-start leading-tight">
+            <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+              {profile.full_name}
+            </span>
+            <span className="text-[11px] font-bold text-teal-700 dark:text-teal-400">
+              {profileSubtitle}
+            </span>
+            {isStudent && level.data ? (
+              <div
+                className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-700/80"
+                title={`${
+                  level.data.progressPercent
+                }% (${level.data.xpTotal.toLocaleString()} / ${level.data.xpForNextLevel.toLocaleString()} XP)`}
+                aria-label={`Level progress ${level.data.progressPercent}%`}
+              >
+                <div
+                  className="h-full rounded-full bg-(image:--brand-gradient) transition-all duration-500"
+                  style={{ width: `${level.data.progressPercent}%` }}
+                />
+              </div>
+            ) : null}
           </span>
-          <ChevronDown className="h-4 w-4 text-gray-500" />
+          <ChevronDown className="ms-0.5 h-3.5 w-3.5 text-slate-400" />
         </button>
       </DropdownMenuTrigger>
 
@@ -102,17 +185,17 @@ const ProfileDropdown = () => {
 
         <DropdownMenuSeparator />
 
-        {/* Profile Settings — single entry point for profile (clause 2.28) */}
+        {/* The dropdown and role navigation share the prototype profile destination. */}
         <DropdownMenuItem
           onClick={() => {
             const routeMap: Record<string, string> = {
               admin: "/admin/settings/profile",
               coordinator: "/coordinator/settings/profile",
               teacher: "/teacher/settings/profile",
-              student: "/student/settings/profile",
-              parent: "/parent/settings/profile",
+              student: "/student/profile",
+              parent: "/parent/profile",
             };
-            navigate(routeMap[profile.role] ?? "/student/settings/profile");
+            navigate(routeMap[profile.role] ?? "/student/profile");
           }}
           className="cursor-pointer"
           data-tour="settings"

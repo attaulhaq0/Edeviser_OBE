@@ -404,6 +404,22 @@ export const NoAssignments = ({
     </EmptyState>
   );
 };
+export const NoSubmissions = ({
+  children,
+  className,
+}: EmptyStateVariantProps) => {
+  const { t } = useTranslation("common");
+  return (
+    <EmptyState
+      icon={<CheckSquare className="h-8 w-8 text-gray-400" />}
+      title={t("empty.noSubmissions.title")}
+      description={t("empty.noSubmissions.description")}
+      className={className}
+    >
+      {children}
+    </EmptyState>
+  );
+};
 export const NoCLOs = ({ children, className }: EmptyStateVariantProps) => {
   const { t } = useTranslation("common");
   return (

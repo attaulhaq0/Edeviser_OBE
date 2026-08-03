@@ -58,6 +58,7 @@ export const useCoordinatorAttainmentTrends = (
       const { data: sems } = await supabase
         .from("semesters")
         .select("id, name, start_date")
+        .eq("institution_id", institutionId ?? "")
         .in("id", semIds);
       const semById = new Map(
         (sems ?? []).map((s) => [

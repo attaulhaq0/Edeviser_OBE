@@ -125,11 +125,11 @@ describe("2.4 UI continuity preservation", () => {
     expect(source).toContain("Toaster");
   });
 
-  it("Toaster is configured with richColors and top-right position", () => {
+  it("Toaster preserves rich colors and matches the prototype bottom-center host", () => {
     const filePath = path.join(srcRoot, "src/App.tsx");
     const source = fs.readFileSync(filePath, "utf-8");
 
     expect(source).toContain("richColors");
-    expect(source).toContain("top-right");
+    expect(source).toContain("bottom-center");
   });
 });

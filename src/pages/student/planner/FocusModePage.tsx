@@ -15,6 +15,7 @@ import { useFocusTimer } from "@/hooks/useFocusTimer";
 import { useSessionIntent } from "@/hooks/useSessionIntent";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudySession } from "@/hooks/useStudySessions";
+import { useCLOs } from "@/hooks/useCLOs";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
@@ -84,12 +85,22 @@ const FocusModePage = () => {
     navigate("/student/planner");
   }, [navigate]);
 
-  // ─── CLO titles (placeholder — would come from a CLO query) ──────────────
+  // ─── CLO titles ─────────────────────────────────────────────────────────
+  // Resolve session CLO ids against the course's real learning outcomes. A
+  // missing/removed outcome is omitted rather than rendered as a fabricated
+  // label such as "CLO 1" (prototype data rules: R17).
   const sessionCloIds = session?.cloIds;
+  const { data: courseCLOs } = useCLOs(session?.courseId ?? undefined);
   const cloTitles = useMemo(() => {
     if (!sessionCloIds || sessionCloIds.length === 0) return [];
-    return sessionCloIds.map((_, i) => `CLO ${i + 1}`);
-  }, [sessionCloIds]);
+    const titlesById = new Map(
+      (courseCLOs?.data ?? []).map((clo) => [clo.id, clo.title])
+    );
+    return sessionCloIds.flatMap((id) => {
+      const title = titlesById.get(id);
+      return title ? [title] : [];
+    });
+  }, [courseCLOs, sessionCloIds]);
 
   // ─── Loading ─────────────────────────────────────────────────────────────
   if (sessionLoading) {

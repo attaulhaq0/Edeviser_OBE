@@ -56,6 +56,7 @@ const aiSuggestions = createKeys("aiSuggestions");
 const atRiskPredictions = createKeys("atRiskPredictions");
 const feedbackDrafts = createKeys("feedbackDrafts");
 const aiFeedback = createKeys("aiFeedback");
+const aiGovernance = createKeys("aiGovernance");
 
 // ─── Institutional Management ────────────────────────────────────────────────
 const semesters = createKeys("semesters");
@@ -284,6 +285,7 @@ export const queryKeys = {
   atRiskPredictions,
   feedbackDrafts,
   aiFeedback,
+  aiGovernance,
   // Institutional Management
   semesters,
   departments,
@@ -377,6 +379,8 @@ export const queryKeys = {
   teamLeaderboard: createKeys("teamLeaderboard"),
   teamBadges: createKeys("teamBadges"),
   teamInvitations: createKeys("teamInvitations"),
+  // Friends (student social graph)
+  friends: createKeys("friends"),
   // Challenges
   challenges: createKeys("challenges"),
   challengeProgress: createKeys("challengeProgress"),
@@ -409,6 +413,7 @@ export const queryKeys = {
   leaderboardCosmetics: createKeys("leaderboardCosmetics"),
   // Badge Tiers
   tieredBadges: createKeys("tieredBadges"),
+  badgeDefinitions: createKeys("badgeDefinitions"),
   badgeSpotlight: createKeys("badgeSpotlight"),
   badgeSpotlightSchedule: createKeys("badgeSpotlightSchedule"),
   // Gap Analysis — XP Economy & Creative Expression

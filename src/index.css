@@ -62,11 +62,20 @@
   --radius: 0.75rem; /* prototype interactive radius (btn3d 12px); cards use explicit 20px */
   --background: #f8fafc; /* prototype body — slate-50 */
   --foreground: #0f172a; /* slate-900 */
+
+  /* === SIDEBAR TYPOGRAPHY & ICON TOKENS === */
+  --sidebar-font-family: "Noto Sans", sans-serif;
+  --sidebar-label-size: 14px;
+  --sidebar-label-weight: 600;
+  --sidebar-active-color: #075985;
+  --sidebar-primary-muted: #475569;
+  --sidebar-secondary-color: #5f7390;
+  --sidebar-icon-muted: #91a4bd;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #3b82f6; /* brand blue — primary CTA / active / links */
+  --primary: #2563eb; /* accessible brand blue — primary CTA / active / links */
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9; /* slate-100 */
   --secondary-foreground: #0f172a;
@@ -100,7 +109,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #3b82f6; /* brand blue (prototype is light-only; dark is parity) */
+  --primary: #2563eb; /* accessible brand blue (prototype is light-only; dark is parity) */
   --primary-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -131,9 +140,98 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    font-family: var(--sidebar-font-family);
+    @apply bg-background text-foreground antialiased;
   }
+}
+
+/* === CANONICAL SIDEBAR TYPOGRAPHY & ICON SYSTEM === */
+
+.app-sidebar {
+  font-family: var(--sidebar-font-family);
+}
+
+.sidebar-nav-label {
+  font-family: var(--sidebar-font-family);
+  font-size: var(--sidebar-label-size);
+  font-weight: var(--sidebar-label-weight);
+  font-style: normal;
+  font-stretch: 100%;
+  font-kerning: auto;
+  font-optical-sizing: auto;
+  font-variant: normal;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  text-decoration: none;
+  text-align: start;
+  opacity: 1;
+}
+
+.sidebar-item[data-active="true"] .sidebar-nav-label {
+  color: var(--sidebar-active-color);
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-item[data-group="primary"][data-active="false"] .sidebar-nav-label {
+  color: var(--sidebar-primary-muted); /* #7c8da6 */
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-item[data-variant="companion"][data-active="false"]
+  .sidebar-nav-label {
+  color: var(--sidebar-primary-muted); /* #7c8da6 */
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-item[data-group="secondary"] .sidebar-nav-label {
+  color: var(--sidebar-secondary-color); /* #5f7390 */
+  font-weight: 600;
+  opacity: 1;
+}
+
+.sidebar-section-label {
+  font-family: var(--sidebar-font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  opacity: 1;
+}
+
+/* --- Special Companion Icon Prominence (Requirement 1 & 3) --- */
+.sidebar-item[data-variant="companion"] .sidebar-icon-wrapper {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9999px;
+  opacity: 1;
+  filter: none;
+}
+
+.sidebar-item[data-variant="companion"] .sidebar-icon {
+  width: 22px;
+  height: 22px;
+  opacity: 1;
+  filter: none;
+}
+
+/* --- Standard Inactive Primary Icons (Requirement 4) --- */
+.sidebar-item[data-group="primary"][data-active="false"] .sidebar-icon {
+  color: var(--sidebar-icon-muted); /* #91a4bd */
+  opacity: 1;
+}
+
+/* --- Active Icons (Requirement 5) --- */
+.sidebar-item[data-active="true"] .sidebar-icon {
+  color: #2563eb;
+  opacity: 1;
 }
 
 /* ─── Brand Design Tokens ─────────────────────────────────────────────────── */
@@ -147,7 +245,14 @@
   --gradient-start: #14b8a6; /* Teal */
   --gradient-end: #0382bd; /* Blue */
 
+  /* === GLOBAL PRIMARY ACTION BUTTON TOKENS === */
+  --action-primary: #026fa3;
+  --action-primary-hover: #026fa3;
+  --action-primary-active: #025c88;
+  --action-primary-text: #ffffff;
+
   /* === GRADIENTS === */
+  /* prettier-ignore */
   --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%); /* prototype-exact (adopted Path A) */
   --hero-gradient: linear-gradient(
     135deg,
@@ -199,7 +304,12 @@
   --heatmap-level-2: #4ade80; /* green-400 */
   --heatmap-level-3: #16a34a; /* green-600 */
   --heatmap-level-4: #14532d; /* green-900 — darkest, highest activity */
-  --heatmap-cell-ring: rgba(15, 23, 42, 0.28); /* hover ring (slate-900 @ 28%) */
+  --heatmap-cell-ring: rgba(
+    15,
+    23,
+    42,
+    0.28
+  ); /* hover ring (slate-900 @ 28%) */
   --heatmap-cell-outline: rgba(15, 23, 42, 0.06); /* 1px inset definition */
 }
 
@@ -231,7 +341,12 @@
   --heatmap-level-2: #15803d; /* green-700 */
   --heatmap-level-3: #22c55e; /* green-500 */
   --heatmap-level-4: #86efac; /* green-300 — brightest, highest activity */
-  --heatmap-cell-ring: rgba(226, 232, 240, 0.5); /* hover ring (slate-200 @ 50%) */
+  --heatmap-cell-ring: rgba(
+    226,
+    232,
+    240,
+    0.5
+  ); /* hover ring (slate-200 @ 50%) */
   --heatmap-cell-outline: rgba(255, 255, 255, 0.06);
 }
 
@@ -543,11 +658,11 @@ html.font-x-large {
 
 :root {
   /* Darkened brand blue for the tactile button's pressable bottom edge. */
-  --tactile-edge: #026a9a;
+  --tactile-edge: #025c88;
 }
 
 .dark {
-  --tactile-edge: #01344c;
+  --tactile-edge: #025c88;
 }
 
 /* Elevated card: soft layered shadow + subtle hover lift. Apply alongside the
@@ -573,25 +688,28 @@ html.font-x-large {
   }
 }
 
-/* Tactile (pressable) button surface — a solid brand bottom edge that
-   compresses on :active (Duolingo-style). Applied via the Button `tactile`
-   variant. Keyboard focus ring is inherited from the Button base. */
+/* Tactile (pressable) button surface — solid action palette (#0382bd / #026fa3 / #025c88).
+   Applied via the Button `tactile` variant. Keyboard focus ring is inherited from Button base. */
 .btn-tactile {
-  background: var(--brand-gradient);
-  color: #fff;
-  box-shadow: 0 4px 0 0 var(--tactile-edge);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+  background-color: var(--action-primary, #026fa3);
+  color: var(--action-primary-text, #ffffff);
+  box-shadow: 0 4px 0 0 var(--action-primary-active, #025c88);
+  transition: transform 0.1s ease, box-shadow 0.1s ease,
+    background-color 0.1s ease;
 }
 
 @media (hover: hover) {
   .btn-tactile:hover {
-    filter: brightness(1.05);
+    background-color: var(--action-primary-hover, #026fa3);
+    color: var(--action-primary-text, #ffffff);
   }
 }
 
 .btn-tactile:active {
+  background-color: var(--action-primary-active, #025c88);
   transform: translateY(2px);
-  box-shadow: 0 1px 0 0 var(--tactile-edge);
+  box-shadow: 0 1px 0 0 var(--action-primary-active, #025c88);
+  color: var(--action-primary-text, #ffffff);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -607,10 +725,163 @@ html.font-x-large {
    scrollable content so the fixed bar (see MobileTabBar) never covers the last
    items. Scoped by :has() so it applies ONLY when the bar is present (new chrome
    + small screens), and never on desktop or with the flag off. */
-@media (max-width: 1023.98px) {
+@media (max-width: 639.98px) {
   body:has(.new-mobile-tabbar) main {
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
   }
+}
+
+/* The prototype sidebar scrolls when its role menu exceeds the viewport, but
+   keeps the rail visually clean instead of exposing native scrollbar chrome. */
+[data-tour="primary-nav"] {
+  scrollbar-width: none;
+}
+
+[data-tour="primary-nav"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL TOP BAR chrome (prototype shared.css parity)
+   ═══════════════════════════════════════════════════════════════════ */
+.top-search,
+.top-stats {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .top-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    width: min(280px, 30vw);
+    margin: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 9px 12px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 13px;
+    cursor: text;
+  }
+
+  .top-search:hover {
+    background: #eef2f6;
+    border-color: #cbd5e1;
+  }
+
+  .top-search .kbd {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 800;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 2px 6px;
+    color: #64748b;
+  }
+}
+
+@media (min-width: 640px) {
+  .top-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 999px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .icon-box-liquid {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .icon-box-transparent {
+    background: transparent;
+  }
+
+  .hdr-profile {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+    padding: 3px 3px 3px 10px;
+    border-radius: 999px;
+    transition: background 0.15s;
+  }
+
+  .hdr-profile:hover {
+    background: rgba(15, 23, 42, 0.05);
+  }
+
+  .hdr-profile .hp-txt {
+    display: block !important;
+    text-align: right;
+    line-height: 1.2;
+  }
+}
+
+/* Laptop headers do not have enough horizontal room for the centered search,
+   role metrics, language control, notifications, and a full profile chip.
+   Preserve the primary controls and progressively disclose secondary context. */
+@media (min-width: 640px) and (max-width: 1199px) {
+  .hdr-profile .hp-txt {
+    display: none !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 999px) {
+  /* On medium screens, hide the chips only if there's no room (search also hidden) */
+  .top-stats {
+    display: none;
+  }
+}
+
+.hdr-profile .hp-txt {
+  display: none;
+}
+
+.hdr-profile .hp-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.hdr-profile .hp-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.hdr-profile .hp-ava {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  background: var(--brand-gradient);
+  flex: 0 0 auto;
+  box-shadow: 0 2px 8px rgba(3, 130, 189, 0.25);
 }
 
 /* ─── Auth screens (prototype auth.html) ──────────────────────────────────── */
@@ -622,9 +893,35 @@ html.font-x-large {
  * auth is LIGHT + LTR only (PARITY §E) — no dark variants here by design.
  */
 
-/* Brand/value panel fill (prototype `.auth-brand` uses --hero-gradient). */
+/* Brand/value panel fill & auth page responsive layout */
 .auth-brand-panel {
-  background: var(--hero-gradient);
+  background-color: #030f26;
+}
+
+@media (min-width: 1024px) {
+  .auth-page {
+    direction: ltr;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    grid-template-columns:
+      minmax(0, min(calc(100dvh * 4 / 3), calc(100vw - 420px)))
+      minmax(420px, 1fr);
+  }
+
+  .auth-brand-panel {
+    height: 100dvh;
+  }
+
+  html[dir="rtl"] .auth-form-panel {
+    direction: rtl;
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Text field — prototype `.fld`. */
@@ -632,7 +929,8 @@ html.font-x-large {
   width: 100%;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding-block: 12px;
+  padding-inline: 14px;
   font-size: 14px;
   color: #0f172a;
   background: #fff;

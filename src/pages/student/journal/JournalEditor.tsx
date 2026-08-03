@@ -32,7 +32,6 @@ import {
 } from "@/lib/journalPromptGenerator";
 import { logActivity } from "@/lib/activityLogger";
 import { draftManager } from "@/lib/draftManager";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -52,7 +51,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 
 // ─── Form Schema ─────────────────────────────────────────────────────────────
 
@@ -78,49 +77,44 @@ interface PromptCardProps {
 }
 
 const PromptCard = ({ prompt, onDismiss }: PromptCardProps) => (
-  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-    <div
-      className="px-6 py-4 flex items-center justify-between"
-      style={{
-        background: "var(--brand-gradient)",
-      }}
-    >
-      <div className="flex items-center gap-2">
-        <Lightbulb className="h-5 w-5 text-white" />
-        <h3 className="text-lg font-bold tracking-tight text-white">
-          Reflection Prompt
-        </h3>
-      </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onDismiss}
-        className="text-white/80 hover:text-white hover:bg-white/10"
-        aria-label="Dismiss prompt"
-      >
-        <X className="h-4 w-4" />
-        Dismiss
-      </Button>
-    </div>
-    <div className="p-6 space-y-4">
-      <p className="text-sm text-gray-700 leading-relaxed">
-        {prompt.promptText}
-      </p>
-      <div className="space-y-3">
-        {prompt.questions.map((q: KolbQuestion, i: number) => (
-          <div
-            key={i}
-            className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+  <PCard className="overflow-hidden">
+    <div className="p-6">
+      <SectionHeader
+        icon={Lightbulb}
+        title="Reflection Prompt"
+        action={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDismiss}
+            className="text-gray-500 hover:bg-slate-100 hover:text-gray-700"
+            aria-label="Dismiss prompt"
           >
-            <p className="text-xs font-bold tracking-wide uppercase text-teal-600 mb-1">
-              {q.stage}
-            </p>
-            <p className="text-sm text-gray-700">{q.question}</p>
-          </div>
-        ))}
+            <X className="h-4 w-4" />
+            Dismiss
+          </Button>
+        }
+      />
+      <div className="mt-4 space-y-4">
+        <p className="text-sm leading-relaxed text-gray-700">
+          {prompt.promptText}
+        </p>
+        <div className="space-y-3">
+          {prompt.questions.map((q: KolbQuestion, i: number) => (
+            <div
+              key={i}
+              className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+            >
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-teal-600">
+                {q.stage}
+              </p>
+              <p className="text-sm text-gray-700">{q.question}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </Card>
+  </PCard>
 );
 
 // ─── JournalEditor ───────────────────────────────────────────────────────────
@@ -297,10 +291,10 @@ const JournalEditor = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <BookOpen className="h-6 w-6 text-teal-500" />
-        <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? "Edit Entry" : "New Journal Entry"}
-        </h1>
+        <SectionHeader
+          icon={BookOpen}
+          title={isEditMode ? "Edit Entry" : "New Journal Entry"}
+        />
       </div>
 
       {/* Contextual Prompt */}
@@ -312,70 +306,32 @@ const JournalEditor = () => {
       )}
 
       {/* Editor Form */}
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Course Selector */}
-            <FormField
-              control={form.control}
-              name="course_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Course</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isEditMode}
-                    >
-                      <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder="Select a course" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courses.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* CLO Selector (optional) */}
-            {watchedCourseId && (
+      <PCard>
+        <div className="p-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Course Selector */}
               <FormField
                 control={form.control}
-                name="clo_id"
+                name="course_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Learning Outcome (optional)</FormLabel>
+                    <FormLabel>Course</FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value ?? ""}
-                        onValueChange={(v) =>
-                          field.onChange(v === "__none__" ? "" : v)
-                        }
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isEditMode}
                       >
                         <SelectTrigger className="w-full bg-white">
-                          <SelectValue placeholder="Select a CLO for guided prompts" />
+                          <SelectValue placeholder="Select a course" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">None</SelectItem>
-                          {isLoadingCLOs ? (
-                            <SelectItem value="__loading__" disabled>
-                              Loading…
+                          {courses.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
                             </SelectItem>
-                          ) : (
-                            clos.map((clo) => (
-                              <SelectItem key={clo.id} value={clo.id}>
-                                {clo.title}
-                              </SelectItem>
-                            ))
-                          )}
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -383,72 +339,108 @@ const JournalEditor = () => {
                   </FormItem>
                 )}
               />
-            )}
 
-            {/* Content Textarea */}
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Reflection</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Write your reflection here…"
-                      rows={10}
-                      className="resize-y"
-                    />
-                  </FormControl>
-                  <div className="flex items-center justify-between">
-                    <FormMessage />
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span>{charCount} characters</span>
-                      <span>·</span>
-                      <span data-testid="word-count">{wordCount} words</span>
-                    </div>
-                  </div>
-                </FormItem>
+              {/* CLO Selector (optional) */}
+              {watchedCourseId && (
+                <FormField
+                  control={form.control}
+                  name="clo_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Learning Outcome (optional)</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value ?? ""}
+                          onValueChange={(v) =>
+                            field.onChange(v === "__none__" ? "" : v)
+                          }
+                        >
+                          <SelectTrigger className="w-full bg-white">
+                            <SelectValue placeholder="Select a CLO for guided prompts" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__">None</SelectItem>
+                            {isLoadingCLOs ? (
+                              <SelectItem value="__loading__" disabled>
+                                Loading…
+                              </SelectItem>
+                            ) : (
+                              clos.map((clo) => (
+                                <SelectItem key={clo.id} value={clo.id}>
+                                  {clo.title}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            {/* Share Toggle */}
-            <FormField
-              control={form.control}
-              name="is_shared"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-3">
+              {/* Content Textarea */}
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Reflection</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        aria-label="Share with teacher"
+                      <Textarea
+                        {...field}
+                        placeholder="Write your reflection here…"
+                        rows={10}
+                        className="resize-y"
                       />
                     </FormControl>
-                    <Label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                      <Share2 className="h-4 w-4 text-gray-500" />
-                      Share with teacher
-                    </Label>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <div className="flex items-center justify-between">
+                      <FormMessage />
+                      <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <span>{charCount} characters</span>
+                        <span>·</span>
+                        <span data-testid="word-count">{wordCount} words</span>
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
-            {/* Submit */}
-            <Button
-              type="submit"
-              disabled={isPending}
-              variant="tactile"
-            >
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              <PenLine className="h-4 w-4" />
-              {isEditMode ? "Update Entry" : "Save Entry"}
-            </Button>
-          </form>
-        </Form>
-      </Card>
+              {/* Share Toggle */}
+              <FormField
+                control={form.control}
+                name="is_shared"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-3">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          aria-label="Share with teacher"
+                        />
+                      </FormControl>
+                      <Label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                        <Share2 className="h-4 w-4 text-gray-500" />
+                        Share with teacher
+                      </Label>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Submit */}
+              <Button type="submit" disabled={isPending} variant="tactile">
+                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                <PenLine className="h-4 w-4" />
+                {isEditMode ? "Update Entry" : "Save Entry"}
+              </Button>
+            </form>
+          </Form>
+        </div>
+      </PCard>
     </div>
   );
 };

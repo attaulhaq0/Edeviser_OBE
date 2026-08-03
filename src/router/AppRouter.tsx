@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import RouteGuard from "@/router/RouteGuard";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { Button } from "@/components/ui/button";
 
 // ---------------------------------------------------------------------------
 // Public pages (no auth required)
@@ -27,6 +28,9 @@ const ParentLayout = lazy(() => import("@/pages/parent/ParentLayout"));
 // Admin pages (lazy-loaded)
 // ---------------------------------------------------------------------------
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminAnalyticsPage = lazy(
+  () => import("@/pages/admin/analytics/AdminAnalyticsPage")
+);
 const UserListPage = lazy(() => import("@/pages/admin/users/UserListPage"));
 const UserForm = lazy(() => import("@/pages/admin/users/UserForm"));
 const BulkImportPage = lazy(() => import("@/pages/admin/users/BulkImportPage"));
@@ -65,6 +69,9 @@ const PendingOnboardingPage = lazy(
 const ReportGeneratorPage = lazy(
   () => import("@/pages/admin/reports/ReportGeneratorPage")
 );
+const AdminAccreditationReportsPage = lazy(
+  () => import("@/pages/admin/reports/AdminAccreditationReportsPage")
+);
 const CoordinatorDashboard = lazy(
   () => import("@/pages/coordinator/CoordinatorDashboard")
 );
@@ -74,6 +81,9 @@ const CurriculumMatrixPage = lazy(
   () => import("@/pages/coordinator/CurriculumMatrixPage")
 );
 const TeacherDashboard = lazy(() => import("@/pages/teacher/TeacherDashboard"));
+const TeacherStudentsPage = lazy(
+  () => import("@/pages/teacher/students/TeacherStudentsPage")
+);
 const CLOListPage = lazy(() => import("@/pages/teacher/clos/CLOListPage"));
 const CLOForm = lazy(() => import("@/pages/teacher/clos/CLOForm"));
 const CLODetailPage = lazy(() => import("@/pages/teacher/clos/CLODetailPage"));
@@ -145,15 +155,40 @@ const HabitAnalyticsPage = lazy(
   () => import("@/pages/student/habits/HabitAnalyticsPage")
 );
 const XPHistory = lazy(() => import("@/pages/student/progress/XPHistory"));
+const CLOProgress = lazy(() => import("@/pages/student/progress/CLOProgress"));
+const LearningPathPage = lazy(
+  () => import("@/pages/student/progress/LearningPathPage")
+);
+const StudentBadgesPage = lazy(
+  () => import("@/pages/student/badges/StudentBadgesPage")
+);
+const LearningProfilePage = lazy(
+  () => import("@/pages/student/profile/LearningProfilePage")
+);
+const StudentProfilePage = lazy(
+  () => import("@/features/student/profile/StudentProfilePage")
+);
 const StudentPortfolio = lazy(
   () => import("@/pages/student/portfolio/StudentPortfolio")
 );
 const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
+const ParentSupportPage = lazy(
+  () => import("@/pages/parent/support/ParentSupportPage")
+);
 const ParentPlannerView = lazy(
   () => import("@/pages/parent/planner/ParentPlannerView")
 );
 const ParentProfilePage = lazy(
   () => import("@/pages/parent/settings/ParentProfilePage")
+);
+const ParentCommunicationsPage = lazy(
+  () => import("@/pages/parent/communications/ParentCommunicationsPage")
+);
+const AdminProfilePage = lazy(
+  () => import("@/pages/admin/settings/AdminProfilePage")
+);
+const TeacherProfilePage = lazy(
+  () => import("@/pages/teacher/settings/TeacherProfilePage")
 );
 const CalendarView = lazy(() => import("@/pages/shared/CalendarView"));
 const TimetableView = lazy(() => import("@/pages/shared/TimetableView"));
@@ -166,6 +201,9 @@ const TimetableManager = lazy(
 const FeeManager = lazy(() => import("@/pages/admin/fees/FeeManager"));
 const DataImportPage = lazy(
   () => import("@/pages/admin/import/DataImportPage")
+);
+const AdminAnnouncementsPage = lazy(
+  () => import("@/pages/admin/announcements/AdminAnnouncementsPage")
 );
 
 // ---------------------------------------------------------------------------
@@ -253,6 +291,9 @@ const ThreadDetail = lazy(
 const DiscussionModeration = lazy(
   () => import("@/pages/teacher/discussions/DiscussionModeration")
 );
+const CourseToolRedirect = lazy(
+  () => import("@/pages/teacher/CourseToolRedirect")
+);
 
 // CQI pages
 const CQIManager = lazy(() => import("@/pages/coordinator/cqi/CQIManager"));
@@ -335,6 +376,12 @@ const StudentTeamPage = lazy(
 // Badge Spotlight Manager (task 151)
 const BadgeSpotlightManager = lazy(
   () => import("@/pages/admin/badges/BadgeSpotlightManager")
+);
+const BadgeDefinitionsPage = lazy(
+  () => import("@/pages/admin/badges/BadgeDefinitionsPage")
+);
+const AIGovernancePage = lazy(
+  () => import("@/pages/admin/governance/AIGovernancePage")
 );
 
 // Gap Analysis — Creative Expression & Unpredictability (Task 21)
@@ -437,7 +484,7 @@ const BaselineCoursesListPage = lazy(
   () => import("@/pages/teacher/baseline/BaselineCoursesListPage")
 );
 
-// Institution Settings
+// Institution policy settings (thresholds, grading, language, gamification).
 const InstitutionSettingsPage = lazy(
   () => import("@/pages/admin/settings/InstitutionSettings")
 );
@@ -479,13 +526,13 @@ const PageErrorFallback = () => (
     <p className="text-sm text-gray-500 mb-4">
       Something went wrong loading this page.
     </p>
-    <button
+    <Button
       type="button"
       onClick={() => window.location.reload()}
-      className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+      variant="tactile"
     >
       Reload page
-    </button>
+    </Button>
   </div>
 );
 
@@ -504,23 +551,85 @@ const LoadingFallback = () => (
   </div>
 );
 
+const PublicMain = ({ children }: { children: ReactNode }) => (
+  <main id="main-content" tabIndex={-1}>
+    {children}
+  </main>
+);
+
 // ---------------------------------------------------------------------------
 // AppRouter
 // ---------------------------------------------------------------------------
 const AppRouter = () => (
-  <main id="main-content" tabIndex={-1}>
+  <div>
     <ErrorBoundary fallback={<PageErrorFallback />}>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           {/* Public routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/update-password" element={<UpdatePasswordPage />} />
-          <Route path="/portfolio/:student_id" element={<PublicPortfolio />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route
+            path="/login"
+            element={
+              <PublicMain>
+                <LoginPage />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <PublicMain>
+                <SignUpPage />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/accept-invite/:token"
+            element={
+              <PublicMain>
+                <AcceptInvitePage />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PublicMain>
+                <ResetPasswordPage />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/update-password"
+            element={
+              <PublicMain>
+                <UpdatePasswordPage />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/portfolio/:student_id"
+            element={
+              <PublicMain>
+                <PublicPortfolio />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <PublicMain>
+                <TermsPage />
+              </PublicMain>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <PublicMain>
+                <PrivacyPage />
+              </PublicMain>
+            }
+          />
 
           {/* Admin routes */}
           <Route
@@ -533,7 +642,13 @@ const AppRouter = () => (
           >
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="analytics" element={<AdminAnalyticsPage />} />
+            <Route
+              path="accreditation-reports"
+              element={<AdminAccreditationReportsPage />}
+            />
             <Route path="notifications" element={<NotificationsFeedPage />} />
+            <Route path="announcements" element={<AdminAnnouncementsPage />} />
             <Route path="users" element={<UserListPage />} />
             <Route path="users/new" element={<UserForm />} />
             <Route path="users/import" element={<BulkImportPage />} />
@@ -547,6 +662,7 @@ const AppRouter = () => (
             <Route path="outcomes/new" element={<ILOForm />} />
             <Route path="outcomes/:id/edit" element={<ILOForm />} />
             <Route path="audit-log" element={<AuditLogPage />} />
+            <Route path="governance" element={<AIGovernancePage />} />
             <Route path="security" element={<AdminSecurityPage />} />
             <Route path="bonus-events" element={<BonusXPEventManager />} />
             <Route path="courses" element={<CourseListPage />} />
@@ -582,6 +698,7 @@ const AppRouter = () => (
               element={<HistoricalEvidenceDashboard />}
             />
             <Route path="outcome-chain" element={<OutcomeChainView />} />
+            <Route path="badges" element={<BadgeDefinitionsPage />} />
             <Route
               path="badges/spotlight"
               element={<BadgeSpotlightManager />}
@@ -600,9 +717,15 @@ const AppRouter = () => (
               path="marketplace/economist"
               element={<XPEconomistDashboard />}
             />
-            <Route path="settings/profile" element={<ProfilePage />} />
+            <Route path="settings/profile" element={<AdminProfilePage />} />
+            <Route path="profile" element={<AdminProfilePage />} />
             <Route
               path="settings/institution"
+              element={<DepartmentManager />}
+            />
+            <Route path="structure" element={<DepartmentManager />} />
+            <Route
+              path="settings/configuration"
               element={<InstitutionSettingsPage />}
             />
           </Route>
@@ -621,6 +744,9 @@ const AppRouter = () => (
               element={<Navigate to="/coordinator/dashboard" replace />}
             />
             <Route path="dashboard" element={<CoordinatorDashboard />} />
+            {/* Prototype deep links remain first-class routes alongside the
+                production navigation aliases. */}
+            <Route path="outcomes" element={<PLOListPage />} />
             <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="plos" element={<PLOListPage />} />
             <Route path="plos/new" element={<PLOForm />} />
@@ -628,6 +754,29 @@ const AppRouter = () => (
             <Route path="matrix" element={<CurriculumMatrixPage />} />
             <Route path="cqi" element={<CQIManager />} />
             <Route path="course-file" element={<CourseFileGenerator />} />
+            <Route path="accreditation" element={<CourseFileGenerator />} />
+            <Route
+              path="team-health"
+              element={<TeamHealthReportPage courseScope="all" />}
+            />
+            <Route
+              path="competencies"
+              element={<CompetencyFrameworkManager />}
+            />
+            <Route
+              path="discussions"
+              element={
+                <CourseToolRedirect userRole="coordinator" tool="discussions" />
+              }
+            />
+            <Route
+              path="courses/:courseId/discussions"
+              element={<DiscussionModeration basePath="/coordinator" />}
+            />
+            <Route
+              path="courses/:courseId/discussions/:threadId"
+              element={<ThreadDetail />}
+            />
             <Route path="sankey" element={<SankeyDiagramView />} />
             <Route path="gap-analysis" element={<GapAnalysisView />} />
             <Route path="coverage-heatmap" element={<CoverageHeatmapView />} />
@@ -638,7 +787,9 @@ const AppRouter = () => (
             />
             <Route path="outcome-chain" element={<OutcomeChainView />} />
             <Route path="timetable" element={<TimetableManager />} />
+            <Route path="sessions" element={<SessionManagement />} />
             <Route path="settings/profile" element={<ProfilePage />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           {/* Teacher routes */}
@@ -655,6 +806,7 @@ const AppRouter = () => (
               element={<Navigate to="/teacher/dashboard" replace />}
             />
             <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="students" element={<TeacherStudentsPage />} />
             <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="clos" element={<CLOListPage />} />
             <Route path="clos/new" element={<CLOForm />} />
@@ -697,6 +849,12 @@ const AppRouter = () => (
               element={<QuestionBankPage />}
             />
             <Route
+              path="questions"
+              element={
+                <CourseToolRedirect userRole="teacher" tool="question-bank" />
+              }
+            />
+            <Route
               path="courses/:courseId/question-analytics"
               element={<QuestionAnalyticsDashboard />}
             />
@@ -723,6 +881,12 @@ const AppRouter = () => (
               element={<DiscussionModeration />}
             />
             <Route
+              path="discussions"
+              element={
+                <CourseToolRedirect userRole="teacher" tool="discussions" />
+              }
+            />
+            <Route
               path="courses/:courseId/discussions/:threadId"
               element={<ThreadDetail />}
             />
@@ -744,7 +908,7 @@ const AppRouter = () => (
             <Route path="tutor-handoffs" element={<TeacherHandoffPage />} />
             <Route path="calendar" element={<CalendarView />} />
             <Route path="timetable" element={<TimetableView />} />
-            <Route path="settings/profile" element={<ProfilePage />} />
+            <Route path="settings/profile" element={<TeacherProfilePage />} />
           </Route>
 
           {/* Student routes */}
@@ -814,6 +978,11 @@ const AppRouter = () => (
             <Route path="courses" element={<StudentCoursesListPage />} />
             <Route path="courses/:courseId" element={<StudentCourseDetail />} />
             <Route path="progress" element={<StudentProgressPage />} />
+            <Route path="progress/clos" element={<CLOProgress />} />
+            <Route path="learning-path" element={<LearningPathPage />} />
+            <Route path="badges" element={<StudentBadgesPage />} />
+            <Route path="profile" element={<StudentProfilePage />} />
+            <Route path="learning-profile" element={<LearningProfilePage />} />
             <Route path="journal" element={<StudentJournalPage />} />
             <Route path="transcript" element={<StudentTranscriptPage />} />
             <Route path="fees" element={<StudentFeesPage />} />
@@ -874,8 +1043,16 @@ const AppRouter = () => (
               element={<Navigate to="/parent/dashboard" replace />}
             />
             <Route path="dashboard" element={<ParentDashboard />} />
-            <Route path="notifications" element={<NotificationsFeedPage />} />
+            <Route
+              path="notifications"
+              element={<ParentCommunicationsPage />}
+            />
+            <Route
+              path="communications"
+              element={<ParentCommunicationsPage />}
+            />
             <Route path="children" element={<ParentChildrenPage />} />
+            <Route path="support" element={<ParentSupportPage />} />
             <Route path="progress" element={<ParentProgressPage />} />
             <Route path="attendance" element={<ParentAttendancePage />} />
             <Route path="fees" element={<ParentFeesPage />} />
@@ -889,11 +1066,18 @@ const AppRouter = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Catch-all — friendly 404 (task 1.4) */}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route
+            path="*"
+            element={
+              <PublicMain>
+                <NotFoundPage />
+              </PublicMain>
+            }
+          />
         </Routes>
       </Suspense>
     </ErrorBoundary>
-  </main>
+  </div>
 );
 
 export default AppRouter;

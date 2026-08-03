@@ -161,9 +161,13 @@ const AdminSecurityPage = () => {
                       {a.email}
                     </p>
                     <p className="text-[11px] text-gray-500">
-                      {t("security.failedAttempts", "{{count}} failed attempts", {
-                        count: a.attempt_count,
-                      })}
+                      {t(
+                        "security.failedAttempts",
+                        "{{count}} failed attempts",
+                        {
+                          count: a.attempt_count,
+                        }
+                      )}
                     </p>
                   </div>
                   <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-gray-500">

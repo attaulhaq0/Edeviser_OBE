@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useGatedMotion } from "@/lib/motionGate";
 import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export const OnboardingWizard = ({
   isDay1: isDay1Prop,
 }: OnboardingWizardProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation("student");
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, refetchProfile } = useAuth();
   const studentId = user?.id ?? "";
@@ -121,7 +123,10 @@ export const OnboardingWizard = ({
   // (e.g. /student/onboarding?step=personality).
   const stepParam = searchParams.get("step") as OnboardingStepId | null;
   useEffect(() => {
-    if (!stepParam) return;
+    // Do not consume the deep link until persisted progress is available.
+    // Otherwise the URL step is applied first and then overwritten when the
+    // asynchronous resume effect resolves (observed on direct route loads).
+    if (!stepParam || !progress) return;
     const idx = steps.indexOf(stepParam);
     if (idx >= 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: jump-to-step from URL param
@@ -132,7 +137,7 @@ export const OnboardingWizard = ({
       setSearchParams(next, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on initial param resolution
-  }, [stepParam, steps]);
+  }, [stepParam, steps, progress]);
 
   const currentStep = steps[currentStepIndex] as OnboardingStepId;
   const totalSteps = steps.length;
@@ -342,14 +347,18 @@ export const OnboardingWizard = ({
 
   if (progressLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div
+        className="fixed inset-0 z-[200] flex items-center justify-center bg-white"
+        role="status"
+        aria-label={t("onboarding.shell.loading")}
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-[#0382bd]" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#f0fdfa] via-[#eff6ff] to-[#eef2ff]">
+    <div className="fixed inset-0 z-[200] flex flex-col bg-[linear-gradient(145deg,#f0fdfa_0%,#eff6ff_52%,#eef2ff_100%)]">
       {/* Doodle pattern overlay — same asset used on /login for brand consistency */}
       <div
         className="absolute inset-0 opacity-[0.08] pointer-events-none"
@@ -372,17 +381,27 @@ export const OnboardingWizard = ({
       />
 
       {/* Progress bar */}
-      <div className="relative border-b border-slate-200/50 bg-white/80 backdrop-blur-sm px-6 py-4">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <span className="text-sm font-medium text-gray-600">
-            Step {currentStepIndex + 1} of {totalSteps}
+      <div className="relative border-b border-white/70 bg-white/72 px-5 py-3.5 backdrop-blur-md sm:px-6">
+        <div className="mx-auto flex max-w-[680px] items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-gray-500 sm:text-sm sm:normal-case sm:tracking-normal">
+            {t("onboarding.shell.stepOf", {
+              current: currentStepIndex + 1,
+              total: totalSteps,
+            })}
           </span>
-          <span className="text-sm font-medium text-blue-600">
+          <span className="text-sm font-bold text-[#0382bd]">
             {progressPercent}%
           </span>
         </div>
-        <div className="mx-auto mt-2 max-w-2xl">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="mx-auto mt-2 max-w-[680px]">
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-label={t("onboarding.shell.progressLabel")}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progressPercent}
+          >
             <motion.div
               className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
               initial={motionGate.enter(
@@ -401,7 +420,7 @@ export const OnboardingWizard = ({
 
       {/* Step content */}
       <div className="relative flex-1 overflow-auto">
-        <div className="mx-auto max-w-2xl px-6 py-8">
+        <div className="mx-auto max-w-[680px] px-5 py-7 sm:px-6 sm:py-9">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep}
@@ -420,45 +439,48 @@ export const OnboardingWizard = ({
         </div>
       </div>
 
-      {/* Navigation footer */}
-      <div className="relative border-t border-slate-200/50 bg-white/80 backdrop-blur-sm px-6 py-4">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={goBack}
-            disabled={currentStepIndex === 0}
-            className="gap-1"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back
-          </Button>
+      {/* The welcome screen owns its prototype CTA; avoid duplicating it in
+          the shell footer. Assessment steps retain Back/Skip/Next controls. */}
+      {currentStep !== "welcome" && (
+        <div className="relative border-t border-white/70 bg-white/72 px-5 py-3.5 backdrop-blur-md sm:px-6">
+          <div className="mx-auto flex max-w-[680px] items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={goBack}
+              disabled={currentStepIndex === 0}
+              className="gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {t("onboarding.shell.back")}
+            </Button>
 
-          <div className="flex items-center gap-2">
-            {SKIPPABLE_STEPS.has(currentStep) && (
-              <Button
-                variant="ghost"
-                onClick={handleSkip}
-                className="gap-1 text-gray-500"
-              >
-                <SkipForward className="h-4 w-4" />
-                Skip for Now
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {SKIPPABLE_STEPS.has(currentStep) && (
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                  className="gap-1 text-gray-500"
+                >
+                  <SkipForward className="h-4 w-4" />
+                  {t("onboarding.shell.skip")}
+                </Button>
+              )}
 
-            {currentStep !== "summary" && (
-              <Button
-                onClick={goNext}
-                disabled={currentStepIndex >= totalSteps - 1}
-                variant="tactile"
-                className="gap-1"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            )}
+              {currentStep !== "summary" && (
+                <Button
+                  onClick={goNext}
+                  disabled={currentStepIndex >= totalSteps - 1}
+                  variant="tactile"
+                  className="gap-1"
+                >
+                  {t("onboarding.shell.next")}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

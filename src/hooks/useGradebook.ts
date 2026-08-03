@@ -7,7 +7,12 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
+import { mapToLetterGrade } from "@/lib/letterGradeMapper";
 import { toast } from "sonner";
+
+// ---------------------------------------------------------------------------
+// Matrix computation helper
+// ---------------------------------------------------------------------------
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -425,12 +430,28 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
               ...cat.assignmentIds.map((aId) => {
                 const assignment = assignmentLookup.get(aId);
                 const gradeData = gradeMap.get(`${studentId}:${aId}`);
+                let scoreVal: number | null = null;
+                if (gradeData) {
+                  if (
+                    gradeData.scorePercent !== undefined &&
+                    gradeData.scorePercent !== null
+                  ) {
+                    scoreVal = gradeData.scorePercent;
+                  } else if (
+                    gradeData.totalScore !== undefined &&
+                    gradeData.totalScore !== null
+                  ) {
+                    const totalMarks = assignment?.total_marks || 100;
+                    scoreVal = (gradeData.totalScore / totalMarks) * 100;
+                  }
+                }
                 return {
                   id: aId,
                   title: assignment?.title ?? "Unknown",
                   type: "assignment" as const,
-                  score: gradeData?.totalScore ?? null,
-                  max_score: assignment?.total_marks ?? 100,
+                  score:
+                    scoreVal !== null ? Math.round(scoreVal * 100) / 100 : null,
+                  max_score: 100,
                 };
               }),
               ...cat.quizIds.map((qId) => {
@@ -440,7 +461,7 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
                   id: qId,
                   title: quiz?.title ?? "Unknown",
                   type: "quiz" as const,
-                  score: bestScore ?? null,
+                  score: bestScore !== undefined ? bestScore : null,
                   max_score: 100,
                 };
               }),
@@ -449,10 +470,7 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
             const graded = assessments.filter((a) => a.score !== null);
             const subtotalPercent =
               graded.length > 0
-                ? graded.reduce(
-                    (sum, a) => sum + (a.score! / a.max_score) * 100,
-                    0
-                  ) / graded.length
+                ? graded.reduce((sum, a) => sum + a.score!, 0) / graded.length
                 : 0;
 
             return {
@@ -470,12 +488,14 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
           0
         );
 
+        const roundedFinal = Math.round(finalWeightedGrade * 100) / 100;
+
         return {
           student_id: studentId,
           student_name: studentName,
           categories: catEntries,
-          final_weighted_grade: Math.round(finalWeightedGrade * 100) / 100,
-          letter_grade: "", // Resolved by the view using institution grade scales
+          final_weighted_grade: roundedFinal,
+          letter_grade: mapToLetterGrade(roundedFinal),
         };
       });
 

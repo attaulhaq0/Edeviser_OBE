@@ -3,8 +3,8 @@
 // =============================================================================
 
 import { User, TrendingUp, Flame, BookOpen } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { PCard } from "@/design-system";
 
 interface ParentStudentCardProps {
   studentName: string;
@@ -29,9 +29,9 @@ const ParentStudentCard = ({
   onClick,
   className,
 }: ParentStudentCardProps) => (
-  <Card
+  <PCard
     className={cn(
-      "bg-white border-0 shadow-md rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow",
+      "p-4 cursor-pointer hover:shadow-lg transition-shadow",
       className
     )}
     onClick={onClick}
@@ -73,7 +73,7 @@ const ParentStudentCard = ({
         </div>
       )}
     </div>
-  </Card>
+  </PCard>
 );
 
 export default ParentStudentCard;

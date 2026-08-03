@@ -19,9 +19,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { parseAsString, parseAsInteger, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -114,51 +113,54 @@ const TransactionHistoryPage = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <History className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("transactions.title")}
-          </h1>
-        </div>
-        <XPBalanceBadge size="lg" />
+        <SectionHeader
+          icon={History}
+          title={t("transactions.title")}
+          action={<XPBalanceBadge size="lg" />}
+        />
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
         {FILTER_VALUES.map((value) => (
-          <button
+          <Button
             key={value}
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => {
               setFilter(value);
               setPage(0);
             }}
             className={cn(
-              "px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors",
+              "h-auto rounded-xl px-4 py-1.5 text-sm font-semibold transition-colors",
               typedFilter === value
-                ? "bg-blue-600 text-white"
+                ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-slate-50"
             )}
           >
             {t(`transactions.filters.${value}`)}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Transaction List */}
       {isError ? (
         // Failure: refuse to display transactions, show an error panel (R33.1a).
-        <div
-          role="alert"
-          className="flex flex-col items-center justify-center py-12 text-center"
-        >
-          <AlertTriangle className="h-12 w-12 text-red-400 mb-3" />
-          <p className="text-sm font-semibold text-gray-900">
-            {t("transactions.error.title")}
-          </p>
-          <p className="text-sm text-gray-500 mt-1 max-w-sm">
-            {t("transactions.error.body")}
-          </p>
-        </div>
+        <PCard>
+          <div
+            role="alert"
+            className="flex flex-col items-center justify-center p-12 text-center"
+          >
+            <AlertTriangle className="mb-3 h-12 w-12 text-red-400" />
+            <p className="text-sm font-semibold text-gray-900">
+              {t("transactions.error.title")}
+            </p>
+            <p className="mt-1 max-w-sm text-sm text-gray-500">
+              {t("transactions.error.body")}
+            </p>
+          </div>
+        </PCard>
       ) : isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -166,17 +168,19 @@ const TransactionHistoryPage = () => {
           ))}
         </div>
       ) : !data || data.entries.length === 0 ? (
-        <div className="text-center py-12">
-          <History className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">{t("transactions.empty")}</p>
-        </div>
+        <PCard>
+          <div className="p-12 text-center">
+            <History className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+            <p className="text-sm text-gray-500">{t("transactions.empty")}</p>
+          </div>
+        </PCard>
       ) : (
         <>
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <PCard className="overflow-hidden">
             {data.entries.map((entry) => (
               <TransactionRow key={entry.id} entry={entry} />
             ))}
-          </Card>
+          </PCard>
 
           {/* Pagination */}
           <div className="flex items-center justify-between">

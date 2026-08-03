@@ -41,7 +41,9 @@ const KPICard = ({
         <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
           {label}
         </p>
-        <p className={cn("mt-1 text-2xl font-black", valueClassName)}>{value}</p>
+        <p className={cn("mt-1 text-2xl font-black", valueClassName)}>
+          {value}
+        </p>
       </div>
       {/* Prototype `.kpi-ic`: fixed 38px tile, 11px radius. */}
       <div

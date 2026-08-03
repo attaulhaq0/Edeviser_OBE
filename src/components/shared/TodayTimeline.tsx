@@ -4,11 +4,10 @@
 // =============================================================================
 
 import { useMemo } from "react";
-import { Card } from "@/components/ui/card";
 import StudySessionCard from "@/components/shared/StudySessionCard";
 import PlannerTaskItem from "@/components/shared/PlannerTaskItem";
 import DeadlineItem from "@/components/shared/DeadlineItem";
-import { GradientCardHeader } from "@/design-system";
+import { PCard, SectionHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import { groupByTimeOfDay, isSessionMissed } from "@/lib/plannerUtils";
 import type {
@@ -293,9 +292,11 @@ const TodayTimeline = ({
   const hasItems = sectionOrder.some((key) => grouped[key].length > 0);
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      <GradientCardHeader icon={Clock} title="Today's Timeline" />
-      <div className="p-6 space-y-4">
+    <PCard className="overflow-hidden">
+      <div className="p-5 pb-4">
+        <SectionHeader icon={Clock} title="Today's Timeline" />
+      </div>
+      <div className="space-y-4 px-5 pb-5">
         {/* Timeline Sections */}
         {hasItems ? (
           sectionOrder.map((key) => (
@@ -324,7 +325,7 @@ const TodayTimeline = ({
         {/* Habit Status */}
         <HabitStatusSection habits={habits} />
       </div>
-    </Card>
+    </PCard>
   );
 };
 

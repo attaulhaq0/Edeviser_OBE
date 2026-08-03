@@ -161,8 +161,8 @@ describe("PostQuizReview", () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
     // Wait for data to load
-    expect(await screen.findByText("75%")).toBeInTheDocument();
-    expect(screen.getByText(/Overall Score/)).toBeInTheDocument();
+    expect((await screen.findAllByText("75%")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Overall Score/).length).toBeGreaterThan(0);
   });
 
   it("displays AI explanation text for questions that have one", async () => {
@@ -180,7 +180,7 @@ describe("PostQuizReview", () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
     // CLO IDs are used as badge text (clo_title falls back to clo_id)
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     const cloBadges = screen.getAllByText(/clo-/);
     expect(cloBadges.length).toBeGreaterThan(0);
   });
@@ -188,7 +188,7 @@ describe("PostQuizReview", () => {
   it("renders Bloom's level badges", async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // Bloom's labels: Understanding (2), Remembering (1), Applying (3)
     expect(screen.getByText("Understanding")).toBeInTheDocument();
     expect(screen.getByText("Remembering")).toBeInTheDocument();
@@ -198,7 +198,7 @@ describe("PostQuizReview", () => {
   it('shows "Get Help" link for incorrect answers', async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // q-2 answer is 'A' but correct is 'True', so it's incorrect
     // q-3 answer is 'C' but correct is 'QuickSort', so it's incorrect
     const helpLinks = screen.getAllByText(/Get Help/);
@@ -208,18 +208,18 @@ describe("PostQuizReview", () => {
   it("shows correct/incorrect indicators per question", async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // q-1: answer 'B' === correct 'B' → Correct
     // q-2: answer 'A' !== correct 'True' → Incorrect
     // q-3: answer 'C' !== correct 'QuickSort' → Incorrect
-    expect(screen.getByText("Correct")).toBeInTheDocument();
+    expect(screen.getAllByText("Correct").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Incorrect").length).toBe(2);
   });
 
   it("displays per-CLO score breakdown section", async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     expect(screen.getByText("Per-CLO Score Breakdown")).toBeInTheDocument();
     // clo-1: q-1 correct, q-2 incorrect → 50%
     // clo-2: q-3 incorrect → 0%
@@ -230,7 +230,7 @@ describe("PostQuizReview", () => {
   it('"Get Help" links are scoped to the question CLO', async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     const helpLinks = screen.getAllByText(/Get Help/);
     // q-2 (clo-1) and q-3 (clo-2) are incorrect
     const hrefs = helpLinks.map((link) =>
@@ -243,7 +243,7 @@ describe("PostQuizReview", () => {
   it('labels AI explanations with "AI Explanation" heading', async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // Two questions have explanations (q-1 and q-2), q-3 has null
     const labels = screen.getAllByText("AI Explanation");
     expect(labels.length).toBe(2);
@@ -252,7 +252,7 @@ describe("PostQuizReview", () => {
   it('does not show "Get Help" link for correct answers', async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // q-1 is correct, so only 2 help links (for q-2 and q-3)
     const helpLinks = screen.getAllByText(/Get Help/);
     expect(helpLinks.length).toBe(2);
@@ -261,7 +261,7 @@ describe("PostQuizReview", () => {
   it('renders "Back to Dashboard" button', async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     expect(
       screen.getByRole("link", { name: /Back to Dashboard/i })
     ).toBeInTheDocument();
@@ -284,7 +284,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     expect(screen.getAllByText("Verified Explanation").length).toBeGreaterThan(
       0
     );
@@ -310,7 +310,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // Verified text should appear instead of AI text for q-1
     expect(
       screen.getByText("Teacher-verified OOP explanation.")
@@ -333,7 +333,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     expect(screen.getAllByText("Teacher verified").length).toBeGreaterThan(0);
   });
 
@@ -349,7 +349,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // High confidence (>= 0.8) shows "Verified by course materials"
     expect(
       screen.getAllByText("Verified by course materials").length
@@ -368,7 +368,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     expect(
       screen.getAllByText("This explanation may need teacher verification")
         .length
@@ -390,7 +390,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     expect(screen.getByText("Bloom's Progression")).toBeInTheDocument();
   });
 
@@ -399,8 +399,11 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
-    expect(screen.queryByText("Bloom's Progression")).not.toBeInTheDocument();
+    await screen.findAllByText("75%");
+    expect(screen.getByText("Bloom's Progression")).toBeInTheDocument();
+    expect(
+      screen.getByText("No Bloom’s progression data was recorded.")
+    ).toBeInTheDocument();
   });
 
   it("renders a BloomsProgressionLadder for each unique CLO in the quiz", async () => {
@@ -416,7 +419,7 @@ describe("PostQuizReview", () => {
 
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
-    await screen.findByText("75%");
+    await screen.findAllByText("75%");
     // The quiz has 2 unique CLOs: clo-1 and clo-2
     // Each ladder has an aria-label containing the CLO title
     const ladders = screen.getAllByRole("img", {

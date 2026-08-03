@@ -20,6 +20,7 @@ Edeviser is a Human-Centric OBE (Outcome-Based Education) + Gamification platfor
 - Business logic lives in `src/lib/`, not in components or hooks
 - Use Shadcn/ui components — never raw HTML for interactive elements
 - Use logical CSS properties (`ms-*`, `me-*`, `ps-*`, `pe-*`) not physical (`ml-*`, `mr-*`)
+- Icon Containers: Icon wrappers/badges in section headers and card headers MUST use transparent (`bg-transparent`) or white liquid glass (`bg-white/80 border border-slate-200/60 backdrop-blur-xs`) backgrounds — never solid colored fills
 - Use `@/` path alias for all imports
 - Use Sonner for toast notifications
 - Use Zod schemas for all form validation

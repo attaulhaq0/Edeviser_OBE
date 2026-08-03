@@ -8,9 +8,8 @@ import {
   BookOpen,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { Badge } from "@/components/ui/badge";
-import { Shimmer } from "@/design-system";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
@@ -21,21 +20,16 @@ const ParentChildrenPage = () => {
   const { data: children, isLoading } = useLinkedChildren(user?.id);
 
   // The child cards use the elevated surface shared by the redesigned screens.
-  const childCardClass = "card-elevated border-0 rounded-xl p-6 h-full";
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("parent.children.title", "My Children")}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {t(
-            "parent.children.subtitle",
-            "View progress, gamification, and recent activity for each linked child."
-          )}
-        </p>
-      </div>
+      <SectionHeader
+        icon={GraduationCap}
+        title={t("parent.children.title", "My Children")}
+        description={t(
+          "parent.children.subtitle",
+          "View progress, gamification, and recent activity for each linked child."
+        )}
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -52,7 +46,7 @@ const ParentChildrenPage = () => {
               to={`/parent/planner/${child.student_id}`}
               className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-xl"
             >
-              <Card className={childCardClass}>
+              <PCard className="h-full p-6">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] text-white">
@@ -109,7 +103,7 @@ const ParentChildrenPage = () => {
                     </p>
                   </div>
                 </div>
-              </Card>
+              </PCard>
             </Link>
           ))}
         </div>

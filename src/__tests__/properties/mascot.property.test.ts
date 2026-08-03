@@ -103,7 +103,10 @@ describe("resolvers map to real, bundled assets", () => {
 describe("marketplace companion skins", () => {
   it("every skin references a bundled pose, a name, and non-negative XP price", () => {
     for (const skin of CHARACTER_SKINS) {
-      expect(characterAssetUrl(skin.character, skin.emotion), skin.id).toBeTruthy();
+      expect(
+        characterAssetUrl(skin.character, skin.emotion),
+        skin.id
+      ).toBeTruthy();
       expect(skin.name.length).toBeGreaterThan(0);
       expect(skin.priceXp).toBeGreaterThanOrEqual(0);
     }

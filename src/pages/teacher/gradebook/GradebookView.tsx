@@ -6,7 +6,7 @@ import { useEffect, useMemo } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useGradebookMatrix, useGradeCategories } from "@/hooks/useGradebook";
 import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
 import { mapToLetterGrade } from "@/lib/letterGradeMapper";
 import {
@@ -64,7 +64,8 @@ const GradebookView = () => {
     parseAsString.withDefault("")
   );
 
-  const { data: coursesResult, isLoading: coursesLoading } = useCourses();
+  const { data: coursesResult, isLoading: coursesLoading } =
+    useTeacherCourses();
   const courses = useMemo(
     () => coursesResult?.data ?? [],
     [coursesResult?.data]
@@ -74,18 +75,37 @@ const GradebookView = () => {
   const { data: gradebookData = [], isLoading: gradebookLoading } =
     useGradebookMatrix(courseId || undefined, sectionId || undefined);
   const { data: settings } = useInstitutionSettings();
+  const visibleCategories = useMemo(
+    () =>
+      categories.length > 0
+        ? categories
+        : (gradebookData[0]?.categories ?? []).map((category) => ({
+            id: category.category_id,
+            name: category.category_name,
+            weight_percent: category.weight_percent,
+          })),
+    [categories, gradebookData]
+  );
 
-  // Req 13.1: auto-load the gradebook for the first available course when none
-  // is selected via the URL, so the teacher sees grades without a manual pick.
-  // The course selector below is retained for switching between courses.
+  // Req 13.1: auto-load the first owned course. Also replace a stale or
+  // institution-wide course id left in the URL so teachers never open another
+  // instructor's gradebook through shared query state.
   useEffect(() => {
-    if (!courseId && !coursesLoading && courses.length > 0) {
+    const selectedCourseIsOwned = courses.some(
+      (course) => course.id === courseId
+    );
+    if (
+      !coursesLoading &&
+      courses.length > 0 &&
+      (!courseId || !selectedCourseIsOwned)
+    ) {
       const first = courses[0];
       if (first) {
         void setCourseId(first.id);
+        void setSectionId("");
       }
     }
-  }, [courseId, coursesLoading, courses, setCourseId]);
+  }, [courseId, coursesLoading, courses, setCourseId, setSectionId]);
 
   const gradeScales: GradeScale[] =
     settings?.grade_scales ?? DEFAULT_GRADE_SCALES;
@@ -110,7 +130,10 @@ const GradebookView = () => {
     [classAverages.finalAvg, gradeScales]
   );
 
-  const totalWeight = categories.reduce((sum, c) => sum + c.weight_percent, 0);
+  const totalWeight = visibleCategories.reduce(
+    (sum, category) => sum + category.weight_percent,
+    0
+  );
   const isBalanced = totalWeight === 100;
 
   const selectedCourse = courses.find((c) => c.id === courseId);
@@ -166,12 +189,17 @@ const GradebookView = () => {
         </Select>
 
         {sections.length > 0 && (
-          <Select value={sectionId} onValueChange={setSectionId}>
+          <Select
+            value={sectionId || "all"}
+            onValueChange={(value) =>
+              setSectionId(value === "all" ? "" : value)
+            }
+          >
             <SelectTrigger className="w-[180px] bg-white">
               <SelectValue placeholder="All sections" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All sections</SelectItem>
+              <SelectItem value="all">All sections</SelectItem>
               {sections.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   Section {s.section_code}
@@ -207,7 +235,7 @@ const GradebookView = () => {
           </TabsList>
 
           <TabsContent value="matrix" className="mt-4">
-            {!isBalanced && categories.length > 0 && (
+            {!isBalanced && visibleCategories.length > 0 && (
               <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
                 <Settings className="h-4 w-4" />
                 Category weights don&apos;t sum to 100% ({totalWeight}%).
@@ -225,7 +253,7 @@ const GradebookView = () => {
             ) : (
               <GradebookTable
                 data={enrichedData}
-                categories={categories}
+                categories={visibleCategories}
                 classAverages={classAverages}
                 classAverageLetter={classAverageLetter}
               />

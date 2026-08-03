@@ -11,6 +11,10 @@ const APP_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 const PROTO_PORT = process.env.PROTOTYPE_PORT ?? "4180";
 const PROTO_URL = process.env.PROTOTYPE_URL ?? `http://localhost:${PROTO_PORT}`;
 const CAPTURE_ONLY = process.env.VISUAL_CAPTURE === "1";
+// Set PLAYWRIGHT_CHANNEL=chrome to use an installed Chrome browser when the
+// Playwright-managed Chromium binary is unavailable on a developer machine.
+// CI keeps its managed browser because this remains opt-in.
+const BROWSER_CHANNEL = process.env.PLAYWRIGHT_CHANNEL;
 
 const prototypeServer = {
   command: "node scripts/serve-prototype.mjs",
@@ -32,13 +36,23 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  reporter: [["html", { outputFolder: "playwright-report/visual", open: "never" }]],
+  reporter: [
+    ["html", { outputFolder: "playwright-report/visual", open: "never" }],
+  ],
   use: {
     baseURL: APP_URL,
     trace: "on-first-retry",
     reducedMotion: "reduce",
   },
-  projects: [{ name: "visual-chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "visual-chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(BROWSER_CHANNEL ? { channel: BROWSER_CHANNEL } : {}),
+      },
+    },
+  ],
   // Capture (VISUAL_CAPTURE=1) only needs the prototype server; parity needs both.
   webServer: CAPTURE_ONLY ? [prototypeServer] : [appServer, prototypeServer],
 });

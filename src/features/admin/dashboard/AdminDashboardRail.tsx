@@ -17,13 +17,16 @@
 // =============================================================================
 
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { RailCard, RailHead, RailRow, Shimmer } from "@/design-system";
+import { Button } from "@/components/ui/button";
+import WhyThisPopover from "@/components/shared/WhyThisPopover";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
+import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 import { useDepartmentAnalytics } from "@/hooks/useAdminDashboard";
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { formatNumber } from "@/lib/formatNumber";
@@ -31,21 +34,32 @@ import { formatNumber } from "@/lib/formatNumber";
 const RailLink = ({ to, label }: { to: string; label: string }) => {
   const navigate = useNavigate();
   return (
-    <button
+    <Button
       type="button"
+      variant="link"
+      size="sm"
       onClick={() => navigate(to)}
-      className="mt-2 block text-xs font-extrabold text-blue-600 hover:underline"
+      className="mt-2 h-auto px-0 text-xs font-extrabold text-blue-600"
     >
       {label}
-    </button>
+    </Button>
   );
 };
 
 const AdminDashboardRail = () => {
   const { t } = useTranslation("admin");
   const { institutionId } = useAuth();
+  const location = useLocation();
+  const isAnalyticsRoute = location.pathname === "/admin/analytics";
 
   const aggregate = useAdminDashboardAggregate(institutionId);
+  const analytics = useAdminAnalytics(undefined, undefined, {
+    enabled: isAnalyticsRoute,
+  });
+  const latestAnalyticsPoint =
+    analytics.data?.weeklyActiveLearners[
+      analytics.data.weeklyActiveLearners.length - 1
+    ];
   const departmentsQuery = useDepartmentAnalytics();
 
   const kpis = aggregate.data;
@@ -61,13 +75,66 @@ const AdminDashboardRail = () => {
   return (
     <aside
       aria-label={t("dashboard.rail.label", "Institution")}
-      className="fixed bottom-0 end-0 top-14 z-30 hidden w-80 overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:block"
+      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
     >
       {/* ── Institution (real totals) ── */}
       <RailCard>
         <RailHead title={t("dashboard.rail.institution", "🏛️ Institution")} />
-        {aggregate.isPending ? (
+        <WhyThisPopover
+          title={t("dashboard.rail.institution", "🏛️ Institution")}
+          reasons={[
+            t("common:header.whySignals.admin", {
+              users: formatNumber(kpis?.totalUsers ?? 0),
+              departments: departments.length,
+            }),
+          ]}
+        />
+        {isAnalyticsRoute ? (
+          analytics.isPending ? (
+            <Shimmer className="h-20 rounded-lg" />
+          ) : analytics.isError || !analytics.data ? (
+            <p className="text-xs text-slate-500">
+              {t("dashboard.rail.unavailable", "Live metrics unavailable.")}
+            </p>
+          ) : (
+            <>
+              <RailRow>
+                <span className="min-w-0 flex-1">
+                  {t("dashboard.rail.activeLearners", "Active learners")}
+                </span>
+                <b className="text-[12px] font-extrabold text-slate-900 dark:text-slate-100">
+                  {formatNumber(analytics.data.retentionRisk.total)}
+                </b>
+              </RailRow>
+              <RailRow>
+                <span className="min-w-0 flex-1">
+                  {t("dashboard.rail.weeklyActive", "Weekly active")}
+                </span>
+                <b className="text-[12px] font-extrabold text-green-700">
+                  {latestAnalyticsPoint?.activePercent ?? "—"}
+                  {latestAnalyticsPoint ? "%" : null}
+                </b>
+              </RailRow>
+              <RailRow>
+                <span className="min-w-0 flex-1">
+                  {t("dashboard.rail.retentionRisk", "Retention risk")}
+                </span>
+                <b className="text-[12px] font-extrabold text-amber-700">
+                  {formatNumber(analytics.data.retentionRisk.atRisk)}
+                </b>
+              </RailRow>
+              <RailLink
+                to="/admin/analytics"
+                label={t("dashboard.rail.analytics", "See analytics →")}
+              />
+            </>
+          )
+        ) : aggregate.isPending ? (
           <Shimmer className="h-20 rounded-lg" />
+        ) : aggregate.isError || !kpis ? (
+          <p className="text-xs text-slate-500">
+            {t("dashboard.rail.unavailable", "Live metrics unavailable.")}
+          </p>
         ) : (
           <>
             <RailRow>
@@ -75,15 +142,15 @@ const AdminDashboardRail = () => {
                 {t("dashboard.rail.users", "Users")}
               </span>
               <b className="text-[12px] font-extrabold text-slate-900 dark:text-slate-100">
-                {formatNumber(kpis?.totalUsers ?? 0)}
+                {formatNumber(kpis.totalUsers)}
               </b>
             </RailRow>
             <RailRow>
               <span className="min-w-0 flex-1">
                 {t("dashboard.rail.active", "Active accounts")}
               </span>
-              <b className="text-[12px] font-extrabold text-green-600">
-                {formatNumber(kpis?.activeUsers ?? 0)}
+              <b className="text-[12px] font-extrabold text-green-700">
+                {formatNumber(kpis.activeUsers)}
               </b>
             </RailRow>
             <RailRow>
@@ -91,7 +158,7 @@ const AdminDashboardRail = () => {
                 {t("dashboard.rail.programs", "Programs")}
               </span>
               <b className="text-[12px] font-extrabold text-slate-900 dark:text-slate-100">
-                {formatNumber(kpis?.totalPrograms ?? 0)}
+                {formatNumber(kpis.totalPrograms)}
               </b>
             </RailRow>
             <RailRow>
@@ -99,11 +166,11 @@ const AdminDashboardRail = () => {
                 {t("dashboard.rail.courses", "Courses")}
               </span>
               <b className="text-[12px] font-extrabold text-slate-900 dark:text-slate-100">
-                {formatNumber(kpis?.totalCourses ?? 0)}
+                {formatNumber(kpis.totalCourses)}
               </b>
             </RailRow>
             <RailLink
-              to="/admin/reports"
+              to="/admin/analytics"
               label={t("dashboard.rail.analytics", "See analytics →")}
             />
           </>

@@ -215,19 +215,12 @@ export const useTodayViewData = (
 
           // Query academic habit_logs for today
           const { data, error } = await supabase
-            .from("habit_logs" as never)
+            .from("habit_logs")
             .select("habit_type")
             .eq("student_id", studentId!)
             .eq("date", today);
 
-          if (error) {
-            // Table may not exist in some environments — return defaults
-            console.error(
-              "[useTodayView] habit_logs query failed:",
-              error.message
-            );
-            return status;
-          }
+          if (error) throw error;
 
           for (const row of data ?? []) {
             const r = row as Record<string, unknown>;

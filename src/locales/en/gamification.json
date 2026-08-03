@@ -2,6 +2,7 @@
   "xp": {
     "title": "Experience Points",
     "earned": "+{{amount}} XP",
+    "rewardEarned": "Reward earned",
     "total": "Total XP",
     "history": "XP History",
     "sources": {
@@ -33,6 +34,9 @@
     "mystery": "Mystery Badge",
     "mysteryHint": "Complete hidden challenges to unlock",
     "locked": "Locked"
+  },
+  "mystery": {
+    "overlayLabel": "Mystery reward"
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -75,6 +79,9 @@
     "title": "Level",
     "current": "Level {{level}}",
     "levelUp": "Level Up! 🎉",
-    "nextLevel": "{{xp}} XP to next level"
+    "nextLevel": "{{xp}} XP to next level",
+    "levelUpLabel": "Level Up",
+    "overlayLabel": "Level up to level {{level}}",
+    "dismiss": "Tap anywhere to dismiss"
   }
 }

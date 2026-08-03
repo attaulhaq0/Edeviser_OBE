@@ -4,12 +4,11 @@
    SOURCE OF TRUTH for the rebuilt UI. Values extracted 1:1 from the approved
    prototype (`prototype/shared.css` :root + design-system steering).
 
-   STATUS: ADDITIVE / NOT YET WIRED.
-   - This file is intentionally NOT imported anywhere yet, so it has ZERO runtime
-     impact on the current app. It is the foundation layer for the Path-A rebuild.
-   - Wiring happens in spec task P0 (see .kiro/specs/prototype-frontend-rebuild):
-     at cutover this file becomes the canonical `@theme` and the legacy brand
-     block in `src/index.css` is retired.
+   STATUS: CANONICAL / WIRED.
+   - This file is imported by the app shell entrypoint and provides the shared
+     prototype-derived tokens for the rebuilt UI.
+   - The legacy brand block in `src/index.css` still exists for backward
+     compatibility, but the shell-specific `--app-*` values now come from here.
    - DO NOT import prototype/shared.css or CDN Tailwind into src/. This file
      re-declares the prototype's *values* as real Tailwind v4 tokens.
 
@@ -70,8 +69,18 @@
   --gradient-start: #14b8a6;
   --gradient-end: #0382bd;
   --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%);
-  --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
-  --onboarding-bg: linear-gradient(160deg, #f0fdfa 0%, #eff6ff 50%, #eef2ff 100%);
+  --hero-gradient: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e3a8a 50%,
+    #312e81 100%
+  );
+  --onboarding-bg: linear-gradient(
+    160deg,
+    #f0fdfa 0%,
+    #eff6ff 50%,
+    #eef2ff 100%
+  );
   /* Auth background (preserved from production — an explicit invariant) */
   --auth-bg: linear-gradient(to bottom right, #1e293b, #0f172a, #020617);
 
@@ -102,7 +111,8 @@
   --slate-50: #f8fafc;
 
   /* === ELEVATION (confirm .pcard against prototype at build time) === */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.06);
   --shadow-card-hover: 0 8px 24px rgba(15, 23, 42, 0.1);
   --shadow-panel: 0 16px 48px rgba(0, 0, 0, 0.2);
   --tactile-edge: 0 3px 0 rgba(0, 0, 0, 0.12); /* .btn3d bottom edge */
@@ -110,9 +120,22 @@
   /* === CHROME DIMENSIONS (prototype laptop layout) === */
   --sidebar-w: 264px;
   --rail-w: 328px;
-  --header-h: 57px;
+  --header-h: 56px;
   --feed-max: 1160px;
   --feed-max-wide: 1320px;
+
+  /* === APP SHELL (P1.0 — shared responsive layout contract) ===
+     These are deliberately separate from the raw prototype measurements above:
+     the application shell uses one consistent grid across every role, while
+     individual prototype cards can still use their captured dimensions. */
+  --app-header-h: 52px;
+  --app-sidebar-w: 13.5rem;
+  --app-rail-w: 16.5rem;
+  /* Compact application chrome gives the working feed the same usable area
+     users previously reached by reducing browser zoom, without shrinking text. */
+  --app-content-max: 96rem;
+  --app-gutter: 0.875rem;
+  --app-gutter-mobile: 1rem;
 
   /* === DOMAIN: BLOOM'S TAXONOMY (design-system steering) === */
   --bloom-remember: #a855f7; /* purple-500 */

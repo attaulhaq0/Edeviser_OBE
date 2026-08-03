@@ -4,13 +4,16 @@
 // =============================================================================
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, FileText, Loader2 } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { useStudentContent } from "@/hooks/useStudentContent";
 import { useAuth } from "@/hooks/useAuth";
+import ErrorState from "@/components/shared/ErrorState";
+import { NoData } from "@/components/shared/EmptyState";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import ContentForm from "./ContentForm";
 
 const STATUS_COLORS = {
@@ -20,25 +23,30 @@ const STATUS_COLORS = {
 } as const;
 
 const StudentContentPage = () => {
+  const { t } = useTranslation("common");
   const { profile } = useAuth();
-  const { data: content, isLoading } = useStudentContent(profile?.id);
+  const {
+    data: content,
+    isLoading,
+    isError,
+    refetch,
+  } = useStudentContent(profile?.id);
   const [showForm, setShowForm] = useState(false);
 
-  // Surface cohesion: the content cards adopt the elevated surface used by the
-  // redesigned screens.
-  const contentCardClass = "card-elevated border-0 rounded-xl p-4";
+  const contentCardClass = "p-4";
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">My Content</h1>
-        <Button
-          variant="tactile"
-          onClick={() => setShowForm(true)}
-        >
-          <Plus className="h-4 w-4" /> Create Content
-        </Button>
-      </div>
+      <SectionHeader
+        icon={FileText}
+        title="My Content"
+        description="Create study plans, quiz questions, and explanation drafts."
+        action={
+          <Button variant="tactile" onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4" /> Create Content
+          </Button>
+        }
+      />
 
       {showForm && <ContentForm onClose={() => setShowForm(false)} />}
 
@@ -58,15 +66,23 @@ const StudentContentPage = () => {
         {["all", "pending", "approved"].map((tab) => (
           <TabsContent key={tab} value={tab} className="mt-4">
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-              </div>
+              <Shimmer className="h-48 rounded-xl" />
+            ) : isError ? (
+              <ErrorState
+                message={t("errors.generic")}
+                onRetry={() => void refetch()}
+                retryLabel={t("buttons.retry")}
+              />
+            ) : (content ?? []).filter(
+                (item) => tab === "all" || item.status === tab
+              ).length === 0 ? (
+              <NoData />
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {(content ?? [])
                   .filter((c) => tab === "all" || c.status === tab)
                   .map((item) => (
-                    <Card key={item.id} className={contentCardClass}>
+                    <PCard key={item.id} className={contentCardClass}>
                       <div className="flex items-start gap-3">
                         <div className="p-2 rounded-lg bg-blue-50">
                           <FileText className="h-5 w-5 text-blue-600" />
@@ -97,7 +113,7 @@ const StudentContentPage = () => {
                           </p>
                         </div>
                       </div>
-                    </Card>
+                    </PCard>
                   ))}
               </div>
             )}

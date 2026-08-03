@@ -48,7 +48,9 @@ const ThreadDetail = () => {
     useDiscussionReplies(threadId);
   const createReply = useCreateReply();
   const markAnswer = useMarkAnswer();
-  const isTeacher = profile?.role === "teacher";
+  const canModerate =
+    profile?.role === "teacher" || profile?.role === "coordinator";
+  const discussionBasePath = canModerate ? `/${profile.role}` : "/student";
 
   const form = useForm<CreateReplyFormData>({
     resolver: zodResolver(createReplySchema),
@@ -105,7 +107,9 @@ const ThreadDetail = () => {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => navigate(`/student/courses/${courseId}/discussions`)}
+        onClick={() =>
+          navigate(`${discussionBasePath}/courses/${courseId}/discussions`)
+        }
         className="gap-1"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Forum
@@ -182,7 +186,7 @@ const ThreadDetail = () => {
                     {format(new Date(reply.created_at), "MMM d, yyyy h:mm a")}
                   </p>
                 </div>
-                {isTeacher && !reply.is_answer && !thread.is_resolved && (
+                {canModerate && !reply.is_answer && !thread.is_resolved && (
                   <Button
                     variant="ghost"
                     size="sm"

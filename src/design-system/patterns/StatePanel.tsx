@@ -30,10 +30,7 @@ const StatePanel = ({ variant, message, className }: StatePanelProps) => {
   if (variant === "error") {
     return (
       <div
-        className={cn(
-          "rounded-xl border-0 bg-white p-6 shadow-md",
-          className
-        )}
+        className={cn("rounded-xl border-0 bg-white p-6 shadow-md", className)}
       >
         <p className="text-sm text-red-600" role="alert">
           {message ?? "Something went wrong. Please try again."}

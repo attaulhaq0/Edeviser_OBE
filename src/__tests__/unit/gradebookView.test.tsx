@@ -194,6 +194,7 @@ const mockUseCourses =
 
 vi.mock("@/hooks/useCourses", () => ({
   useCourses: () => mockUseCourses(),
+  useTeacherCourses: () => mockUseCourses(),
 }));
 
 vi.mock("@/hooks/useCourseSections", () => ({

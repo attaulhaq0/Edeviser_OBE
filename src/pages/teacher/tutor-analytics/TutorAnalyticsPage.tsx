@@ -19,7 +19,7 @@ import {
   InlineNoCitationData,
 } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useTutorAnalytics } from "@/hooks/useTutorAnalytics";
 import {
   MessageSquare,
@@ -123,7 +123,8 @@ const UsageLineTooltip = ({ active, payload }: UsageLineTooltipProps) => {
 
 const TutorAnalyticsPage = () => {
   const { user } = useAuth();
-  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
+  const { data: paginatedCourses, isLoading: coursesLoading } =
+    useTeacherCourses();
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
 
   // Filter to teacher's own courses

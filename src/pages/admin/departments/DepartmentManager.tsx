@@ -1,368 +1,429 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Building2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AdminStatCard,
+  AdminStatusPill,
+  adminCardClass,
+  adminPageClass,
+} from "@/design-system";
+import { useCourses } from "@/hooks/useCourses";
 import {
   useDepartments,
   useCreateDepartment,
-  useUpdateDepartment,
   useDeleteDepartment,
+  useUpdateDepartment,
   type Department,
 } from "@/hooks/useDepartments";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useSemesters } from "@/hooks/useSemesters";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Badge,
-  Button,
-  Card,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  PageHeader,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Shimmer,
-} from "@/design-system";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { Plus, Pencil, Trash2, Building2, Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
-import type { Profile } from "@/types/app";
-
-// ─── Schema ──────────────────────────────────────────────────────────────────
-
-const departmentFormSchema = z.object({
-  name: z.string().min(1, "Department name is required").max(255),
-  code: z.string().min(1, "Department code is required").max(50),
-  head_of_department_id: z.string().optional(),
-});
-
-type DepartmentFormData = z.infer<typeof departmentFormSchema>;
-
-// ─── Hook: fetch teachers/coordinators for HoD dropdown ──────────────────────
-
-const useStaffMembers = () => {
-  return useQuery({
-    queryKey: queryKeys.users.list({ role: "staff_for_hod" }),
-    queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("role", ["teacher", "coordinator", "admin"])
-        .eq("is_active", true)
-        .order("full_name", { ascending: true });
-      if (error) throw error;
-      return data as Profile[];
-    },
-    staleTime: 30_000,
-  });
-};
-
-// ─── Department Form Dialog ──────────────────────────────────────────────────
-
-interface DepartmentFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  department?: Department | null;
-  institutionId: string;
-}
-
-const DepartmentFormDialog = ({
-  open,
-  onOpenChange,
-  department,
-  institutionId,
-}: DepartmentFormDialogProps) => {
-  const isEdit = !!department;
-  const createMutation = useCreateDepartment();
-  const updateMutation = useUpdateDepartment(department?.id ?? "");
-  const { data: staff = [], isLoading: isLoadingStaff } = useStaffMembers();
-
-  const form = useForm<DepartmentFormData>({
-    resolver: zodResolver(departmentFormSchema),
-    defaultValues: {
-      name: department?.name ?? "",
-      code: department?.code ?? "",
-      head_of_department_id: department?.head_of_department_id ?? undefined,
-    },
-  });
-
-  const onSubmit = (data: DepartmentFormData) => {
-    if (isEdit) {
-      updateMutation.mutate(
-        {
-          name: data.name,
-          code: data.code,
-          head_of_department_id: data.head_of_department_id || null,
-        },
-        {
-          onSuccess: () => {
-            onOpenChange(false);
-            form.reset();
-          },
-        }
-      );
-    } else {
-      createMutation.mutate(
-        {
-          name: data.name,
-          code: data.code,
-          institution_id: institutionId,
-          head_of_department_id: data.head_of_department_id,
-        },
-        {
-          onSuccess: () => {
-            onOpenChange(false);
-            form.reset();
-          },
-        }
-      );
-    }
-  };
-
-  const isPending = createMutation.isPending || updateMutation.isPending;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit Department" : "Create Department"}
-          </DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Computer Science" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. CS" {...field} disabled={isEdit} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="head_of_department_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Head of Department</FormLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      field.onChange(value === "__none__" ? undefined : value)
-                    }
-                    value={field.value ?? "__none__"}
-                    disabled={isLoadingStaff}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="Select head of department" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {staff.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending} variant="tactile">
-                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEdit ? "Update" : "Create"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// ─── Department Row ──────────────────────────────────────────────────────────
-
-interface DepartmentRowProps {
-  department: Department;
-  onEdit: (department: Department) => void;
-  onDelete: (id: string) => void;
-}
-
-const DepartmentRow = ({
-  department,
-  onEdit,
-  onDelete,
-}: DepartmentRowProps) => (
-  <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4 min-w-0">
-        <div className="p-2 rounded-lg bg-blue-50">
-          <Building2 className="h-5 w-5 text-blue-600" />
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold truncate">{department.name}</p>
-            <Badge variant="outline" className="text-xs">
-              {department.code}
-            </Badge>
-          </div>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {department.head_of_department_id
-              ? "HoD assigned"
-              : "No HoD assigned"}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onEdit(department)}
-          aria-label={`Edit ${department.name}`}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onDelete(department.id)}
-          aria-label={`Delete ${department.name}`}
-        >
-          <Trash2 className="h-4 w-4 text-red-500" />
-        </Button>
-      </div>
-    </div>
-  </Card>
-);
-
-// ─── Department Manager Page ─────────────────────────────────────────────────
+  createDepartmentSchema,
+  type CreateDepartmentFormData,
+} from "@/lib/schemas/department";
 
 const DepartmentManager = () => {
+  const navigate = useNavigate();
   const { institutionId } = useAuth();
-  const { data: departments, isLoading } = useDepartments();
-  const deleteMutation = useDeleteDepartment();
-
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const departmentsQuery = useDepartments();
+  const programsQuery = usePrograms({ pageSize: 100 });
+  const coursesQuery = useCourses({ pageSize: 100 });
+  const semestersQuery = useSemesters();
+  const createDepartment = useCreateDepartment();
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
     null
   );
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [departmentDialogOpen, setDepartmentDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Department | null>(null);
+  const updateDepartment = useUpdateDepartment(editingDepartment?.id ?? "");
+  const deleteDepartment = useDeleteDepartment();
+  const departmentForm = useForm<CreateDepartmentFormData>({
+    resolver: zodResolver(createDepartmentSchema),
+    defaultValues: { name: "", code: "" },
+  });
 
-  const handleEdit = (department: Department) => {
-    setEditingDepartment(department);
-    setDialogOpen(true);
-  };
+  const departments = departmentsQuery.data ?? [];
+  const programs = useMemo(
+    () => programsQuery.data?.data ?? [],
+    [programsQuery.data?.data]
+  );
+  const courses = coursesQuery.data?.data ?? [];
+  const semesters = semestersQuery.data ?? [];
+  const activeSemester = semesters.find((semester) => semester.is_active);
+  const programsByDepartment = useMemo(() => {
+    const grouped = new Map<string, typeof programs>();
+    for (const program of programs) {
+      const key = program.department_id ?? "unassigned";
+      grouped.set(key, [...(grouped.get(key) ?? []), program]);
+    }
+    return grouped;
+  }, [programs]);
 
-  const handleCreate = () => {
+  const openNewDepartment = () => {
     setEditingDepartment(null);
-    setDialogOpen(true);
+    departmentForm.reset({ name: "", code: "" });
+    setDepartmentDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setDeleteTarget(id);
+  const openEditDepartment = (department: Department) => {
+    setEditingDepartment(department);
+    departmentForm.reset({ name: department.name, code: department.code });
+    setDepartmentDialogOpen(true);
+  };
+
+  const submitDepartment = (values: CreateDepartmentFormData) => {
+    if (editingDepartment) {
+      updateDepartment.mutate(values, {
+        onSuccess: () => setDepartmentDialogOpen(false),
+        onError: (error) => toast.error(error.message),
+      });
+      return;
+    }
+    if (!institutionId) {
+      toast.error("Institution context is not ready");
+      return;
+    }
+    createDepartment.mutate(
+      { ...values, institution_id: institutionId },
+      {
+        onSuccess: () => {
+          setDepartmentDialogOpen(false);
+          departmentForm.reset({ name: "", code: "" });
+        },
+      }
+    );
   };
 
   const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteMutation.mutate(deleteTarget, {
-        onSuccess: () => setDeleteTarget(null),
-      });
-    }
+    if (!deleteTarget) return;
+    deleteDepartment.mutate(deleteTarget.id, {
+      onSuccess: () => setDeleteTarget(null),
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Departments"
-        action={
-          <Button onClick={handleCreate} variant="tactile">
-            <Plus className="h-4 w-4" /> Add Department
-          </Button>
-        }
-      />
+    <div className={adminPageClass}>
+      <div>
+        <h1 className="text-xl font-black tracking-tight text-slate-900">
+          Institution Structure
+        </h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Departments, programs, courses &amp; semesters in your institution.
+        </p>
+      </div>
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Shimmer key={i} className="h-20 rounded-xl" />
-          ))}
-        </div>
-      ) : (departments ?? []).length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <Building2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No departments yet. Create your first department to get started.
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {(departments ?? []).map((dept) => (
-            <DepartmentRow
-              key={dept.id}
-              department={dept}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <AdminStatCard label="Departments" value={departments.length} />
+        <AdminStatCard
+          label="Programs"
+          value={programsQuery.data?.count ?? programs.length}
+        />
+        <AdminStatCard
+          label="Active courses"
+          value={courses.filter((course) => course.is_active).length}
+        />
+        <AdminStatCard
+          label="Current semester"
+          value={activeSemester?.name ?? "—"}
+          tone="teal"
+        />
+      </div>
 
-      <DepartmentFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        department={editingDepartment}
-        institutionId={institutionId ?? ""}
-      />
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+        <section>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+              Departments &amp; programs
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={openNewDepartment}
+              >
+                <Plus className="size-4" /> Add Department
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/settings/configuration")}
+              >
+                Institution settings
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {departments.map((department) => {
+              const departmentPrograms =
+                programsByDepartment.get(department.id) ?? [];
+              return (
+                <div key={department.id} className={`${adminCardClass} p-3.5`}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span
+                        className="inline-flex size-8 items-center justify-center rounded-xl border border-slate-200/60 bg-white/80 text-base shadow-sm backdrop-blur-xs"
+                        aria-hidden="true"
+                      >
+                        <Building2 className="size-4 text-sky-600" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-slate-900">
+                          {department.name}
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          <span className="font-bold text-slate-700">
+                            {department.code}
+                          </span>{" "}
+                          · {departmentPrograms.length} programs
+                        </p>
+                        <p className="text-[11px] font-semibold text-slate-400">
+                          {department.head_of_department_id
+                            ? "HoD assigned"
+                            : "No HoD assigned"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          navigate(
+                            `/admin/programs/new?departmentId=${department.id}`
+                          )
+                        }
+                      >
+                        {" "}
+                        <Plus className="size-4" /> Program
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Edit ${department.name}`}
+                        onClick={() => openEditDepartment(department)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Delete ${department.name}`}
+                        onClick={() => setDeleteTarget(department)}
+                      >
+                        <Trash2 className="size-4 text-slate-400" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-2 divide-y divide-slate-100">
+                    {departmentPrograms.map((program) => {
+                      const programCourses = courses.filter(
+                        (course) => course.program_id === program.id
+                      );
+                      return (
+                        <div
+                          key={program.id}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-slate-900">
+                              {program.name}
+                            </p>
+                            <p className="text-[11px] text-slate-500">
+                              {program.code} · {programCourses.length} courses
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs font-bold text-blue-600"
+                            onClick={() =>
+                              navigate(`/admin/courses?programId=${program.id}`)
+                            }
+                          >
+                            Manage courses →
+                          </Button>
+                        </div>
+                      );
+                    })}
+                    {departmentPrograms.length === 0 ? (
+                      <p className="py-3 text-xs text-slate-500">
+                        No programs assigned yet.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+            {departments.length === 0 && !departmentsQuery.isLoading ? (
+              <div
+                className={`${adminCardClass} p-8 text-center text-sm text-slate-500`}
+              >
+                No departments yet. Create your first department to get started.
+              </div>
+            ) : null}
+          </div>
+        </section>
 
+        <section>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+              Semesters
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/semesters")}
+            >
+              {" "}
+              <Plus className="size-4" /> New semester
+            </Button>
+          </div>
+          <div
+            className={`${adminCardClass} divide-y divide-slate-100 overflow-hidden`}
+          >
+            {semesters.map((semester) => {
+              const now = new Date();
+              const isUpcoming = new Date(semester.start_date) > now;
+              const isPast = new Date(semester.end_date) < now;
+              return (
+                <div
+                  key={semester.id}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      {semester.name}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {semester.start_date} – {semester.end_date}
+                    </p>
+                  </div>
+                  <AdminStatusPill
+                    tone={
+                      semester.is_active
+                        ? "green"
+                        : isUpcoming
+                        ? "blue"
+                        : isPast
+                        ? "slate"
+                        : "amber"
+                    }
+                  >
+                    {semester.is_active
+                      ? "Active"
+                      : isUpcoming
+                      ? "Upcoming"
+                      : isPast
+                      ? "Past"
+                      : "Current"}
+                  </AdminStatusPill>
+                </div>
+              );
+            })}
+            {semesters.length === 0 && !semestersQuery.isLoading ? (
+              <p className="px-4 py-8 text-sm text-slate-500">
+                No semesters yet.
+              </p>
+            ) : null}
+          </div>
+        </section>
+      </div>
+
+      <Dialog
+        open={departmentDialogOpen}
+        onOpenChange={setDepartmentDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingDepartment ? "Edit department" : "New department"}
+            </DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={departmentForm.handleSubmit(submitDepartment)}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="department-name">Name</Label>
+              <Input
+                id="department-name"
+                {...departmentForm.register("name")}
+                placeholder="Computer Science"
+              />
+              {departmentForm.formState.errors.name ? (
+                <p className="text-xs text-red-600">
+                  {departmentForm.formState.errors.name.message}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="department-code">Code</Label>
+              <Input
+                id="department-code"
+                {...departmentForm.register("code")}
+                placeholder="CS"
+              />
+              {departmentForm.formState.errors.code ? (
+                <p className="text-xs text-red-600">
+                  {departmentForm.formState.errors.code.message}
+                </p>
+              ) : null}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDepartmentDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="tactile"
+                disabled={
+                  createDepartment.isPending || updateDepartment.isPending
+                }
+              >
+                {editingDepartment ? "Save changes" : "Create department"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
-        title="Delete Department"
-        description="Are you sure you want to delete this department? Deletion is blocked if active programs exist."
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete department?"
+        description="This is allowed only when no programs are assigned to the department."
+        confirmLabel="Delete"
         onConfirm={confirmDelete}
-        isPending={deleteMutation.isPending}
+        isPending={deleteDepartment.isPending}
+        variant="destructive"
       />
     </div>
   );

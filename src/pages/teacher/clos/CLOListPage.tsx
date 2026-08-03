@@ -6,7 +6,7 @@ import { createColumns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useCLOs, useDeleteCLO } from "@/hooks/useCLOs";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,7 +30,8 @@ const CLOListPage = () => {
   const [cloToDelete, setCloToDelete] = useState<LearningOutcome | null>(null);
   const [page, setPage] = useState(1);
 
-  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
+  const { data: paginatedCourses, isLoading: coursesLoading } =
+    useTeacherCourses();
   const courses = paginatedCourses?.data;
   const {
     data: paginatedCLOs,
@@ -61,10 +62,7 @@ const CLOListPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">
           Course Learning Outcomes
         </h1>
-        <Button
-          variant="tactile"
-          onClick={() => navigate("/teacher/clos/new")}
-        >
+        <Button variant="tactile" onClick={() => navigate("/teacher/clos/new")}>
           <Plus className="h-4 w-4" /> Add CLO
         </Button>
       </div>

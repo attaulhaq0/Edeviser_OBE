@@ -53,7 +53,13 @@ export type CharacterEmotion =
 export type CharacterSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 /** Motion presets — ported from the prototype character keyframes. */
-export type CharacterAnimation = "none" | "float" | "in" | "wave" | "pop" | "nudge";
+export type CharacterAnimation =
+  | "none"
+  | "float"
+  | "in"
+  | "wave"
+  | "pop"
+  | "nudge";
 
 export const CHARACTER_IDS: readonly CharacterId[] = ["foxi", "penguin", "owl"];
 
@@ -234,11 +240,14 @@ export function pickMascot(state: MascotState): MascotPick {
   if (state.context === "tutor") return { character: "owl", emotion: "wise" };
   if (state.context === "needsAttention" || state.hasWeakClo)
     return { character: "owl", emotion: "concerned" };
-  if (state.context === "habit") return { character: "penguin", emotion: "happy" };
+  if (state.context === "habit")
+    return { character: "penguin", emotion: "happy" };
   if (state.context === "reflection")
     return { character: "penguin", emotion: "proud" };
-  if (state.context === "focus") return { character: "foxi", emotion: "focused" };
-  if (state.context === "empty") return { character: "foxi", emotion: "curious" };
+  if (state.context === "focus")
+    return { character: "foxi", emotion: "focused" };
+  if (state.context === "empty")
+    return { character: "foxi", emotion: "curious" };
   if (typeof state.streakDays === "number" && state.streakDays >= 7)
     return { character: "foxi", emotion: "proud" };
   return { character: "foxi", emotion: "happy" };

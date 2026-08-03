@@ -1,0 +1,277 @@
+- generic:
+    - generic:
+        - navigation:
+            - link:
+                - /url: "#main-content"
+                - text: Skip to main content
+        - generic:
+            - generic:
+                - banner:
+                    - generic:
+                        - generic:
+                            - link:
+                                - /url: /admin
+                                - generic: Edeviser
+                        - generic:
+                            - button:
+                                - generic: Search
+                                - generic: ⌘K
+                        - generic:
+                            - generic:
+                                - generic:
+                                    - generic: 🏛️
+                                    - generic: 40 learners
+                                - generic:
+                                    - generic: 📊
+                                    - generic: 100% active
+                            - generic:
+                                - button: English
+                            - button
+                            - button [expanded]:
+                                - generic:
+                                    - generic: Mrs. Priya Venkatesh
+                                    - generic: Institution Admin
+                - generic:
+                    - complementary:
+                        - generic:
+                            - generic: Edeviser
+                            - generic:
+                                - navigation:
+                                    - generic:
+                                        - link:
+                                            - /url: /admin/dashboard
+                                            - generic: Home
+                                        - link:
+                                            - /url: /admin/analytics
+                                            - generic: Analytics
+                                        - link:
+                                            - /url: /admin/governance
+                                            - generic: 🛡️
+                                            - generic: AI-Gov
+                                        - link:
+                                            - /url: /admin/users
+                                            - generic: People
+                                        - link:
+                                            - /url: /admin/settings/profile
+                                            - generic: Me
+                                - generic:
+                                    - paragraph: More
+                                    - generic:
+                                        - link:
+                                            - /url: /admin/marketplace
+                                            - generic: 🛍️
+                                            - generic: Marketplace
+                                        - link:
+                                            - /url: /admin/settings/institution
+                                            - generic: 🏛️
+                                            - generic: Institution Structure
+                                        - link:
+                                            - /url: /admin/import
+                                            - generic: 📥
+                                            - generic: Bulk Import
+                                        - link:
+                                            - /url: /admin/badges
+                                            - generic: 🏅
+                                            - generic: Badge Definitions
+                                        - link:
+                                            - /url: /admin/security
+                                            - generic: 🔒
+                                            - generic: Security
+                                        - link:
+                                            - /url: /admin/fees
+                                            - generic: 💳
+                                            - generic: Fees Management
+                                        - link:
+                                            - /url: /admin/announcements
+                                            - generic: 📣
+                                            - generic: Announcements
+                                        - link:
+                                            - /url: /admin/notifications
+                                            - generic: 🔔
+                                            - generic: Notifications
+                    - generic:
+                        - main:
+                            - generic:
+                                - generic:
+                                    - generic:
+                                        - generic:
+                                            - heading [level=1]: Fees Management
+                                            - paragraph: Fee structures & collection status, institution-wide.
+                                        - button: New fee structure
+                                    - generic:
+                                        - generic:
+                                            - paragraph: Expected
+                                            - paragraph: QAR 832,000.00
+                                        - generic:
+                                            - paragraph: Collected
+                                            - paragraph: QAR 45,000.00
+                                        - generic:
+                                            - paragraph: Collection rate
+                                            - paragraph: 5%
+                                        - generic:
+                                            - paragraph: Overdue accounts
+                                            - paragraph: "3"
+                                    - generic:
+                                        - generic:
+                                            - generic: 📋
+                                            - heading [level=2]: New fee structure
+                                        - generic:
+                                            - generic:
+                                                - generic: Fee type
+                                                - textbox:
+                                                    - /placeholder: Tuition, lab, library…
+                                            - generic:
+                                                - generic: Program
+                                                - combobox:
+                                                    - generic: Select a program
+                                                - combobox
+                                            - generic:
+                                                - generic: Semester
+                                                - combobox:
+                                                    - generic: Select a semester
+                                                - combobox
+                                            - generic:
+                                                - generic: Amount
+                                                - spinbutton: "0"
+                                            - generic:
+                                                - generic: Due date
+                                                - textbox
+                                            - generic:
+                                                - button: Cancel
+                                                - button [disabled]: Create fee structure
+                                            - paragraph: Select a program and a semester to create a fee structure.
+                                    - generic:
+                                        - generic:
+                                            - generic: 📊
+                                            - heading [level=2]: Fee structures
+                                        - generic:
+                                            - table:
+                                                - rowgroup:
+                                                    - row:
+                                                        - columnheader: Programme
+                                                        - columnheader: Term
+                                                        - columnheader: Fee type
+                                                        - columnheader: Amount
+                                                        - columnheader: Due
+                                                        - columnheader: Paid / total
+                                                        - columnheader: Collection
+                                                - rowgroup:
+                                                    - row:
+                                                        - cell: Science Department
+                                                        - cell: 2025-2026 Fall Term
+                                                        - cell: lab
+                                                        - cell: QAR 800.00
+                                                        - cell: 2025-09-20
+                                                        - cell: QAR 0.00 / QAR 32,000.00
+                                                        - cell:
+                                                            - generic: 0%
+                                                    - row:
+                                                        - cell: English Department
+                                                        - cell: 2025-2026 Fall Term
+                                                        - cell: tuition
+                                                        - cell: QAR 5,000.00
+                                                        - cell: 2025-09-15
+                                                        - cell: QAR 45,000.00 / QAR 200,000.00
+                                                        - cell:
+                                                            - generic: 23%
+                                                    - row:
+                                                        - cell: Mathematics Department
+                                                        - cell: 2025-2026 Fall Term
+                                                        - cell: tuition
+                                                        - cell: QAR 5,000.00
+                                                        - cell: 2025-09-15
+                                                        - cell: QAR 0.00 / QAR 200,000.00
+                                                        - cell:
+                                                            - generic: 0%
+                                                    - row:
+                                                        - cell: Science Department
+                                                        - cell: 2025-2026 Fall Term
+                                                        - cell: tuition
+                                                        - cell: QAR 5,200.00
+                                                        - cell: 2025-09-15
+                                                        - cell: QAR 0.00 / QAR 208,000.00
+                                                        - cell:
+                                                            - generic: 0%
+                                                    - row:
+                                                        - cell: Social Studies Department
+                                                        - cell: 2025-2026 Fall Term
+                                                        - cell: tuition
+                                                        - cell: QAR 4,800.00
+                                                        - cell: 2025-09-15
+                                                        - cell: QAR 0.00 / QAR 192,000.00
+                                                        - cell:
+                                                            - generic: 0%
+                                    - generic:
+                                        - generic:
+                                            - generic: ⚠️
+                                            - heading [level=2]: Overdue accounts
+                                            - generic: 3 accounts
+                                        - generic:
+                                            - generic:
+                                                - generic: "!"
+                                                - generic:
+                                                    - paragraph: Student account
+                                                    - paragraph: 1e223d05 · QAR 0.00 overdue since 2025-09-16
+                                            - generic:
+                                                - generic: "!"
+                                                - generic:
+                                                    - paragraph: Student account
+                                                    - paragraph: 6bd2592c · QAR 0.00 overdue since 2025-09-16
+                                            - generic:
+                                                - generic: "!"
+                                                - generic:
+                                                    - paragraph: Student account
+                                                    - paragraph: dcb17274 · QAR 2,500.00 overdue since 2025-09-15
+                    - complementary:
+                        - generic:
+                            - generic: 🏛️ Institution
+                            - button: Why am I seeing this?
+                            - generic:
+                                - generic: Users
+                                - generic: "68"
+                            - generic:
+                                - generic: Active accounts
+                                - generic: "68"
+                            - generic:
+                                - generic: Programs
+                                - generic: "4"
+                            - generic:
+                                - generic: Courses
+                                - generic: "4"
+                            - button: See analytics →
+                        - generic:
+                            - generic: 🛡️ AI governance
+                            - generic:
+                                - generic: Autonomy ceiling
+                                - generic: A2 · approve
+                            - paragraph: AI never acts on institution data without human approval.
+                        - generic:
+                            - generic: Departments
+                            - generic:
+                                - generic:
+                                    - generic: Social Studies Department
+                                    - generic: 76%
+                                - generic:
+                                    - generic: English Department
+                                    - generic: 75%
+                                - generic:
+                                    - generic: Mathematics Department
+                                    - generic: 75%
+                                - button: All departments →
+        - region "Notifications alt+T"
+        - generic:
+            - button
+    - generic:
+        - generic:
+            - button
+    - menu "Mrs. Priya Venkatesh Mrs. Priya Venkatesh Institution Admin" [active] [ref=f67e391]:
+        - generic [ref=f67e392]:
+            - paragraph [ref=f67e393]: Mrs. Priya Venkatesh
+            - paragraph [ref=f67e394]: principal@noor-international.test
+        - separator [ref=f67e395]
+        - menuitem "My Profile" [ref=f67e396] [cursor=pointer]
+        - menuitem "Institution Settings" [ref=f67e398] [cursor=pointer]
+        - menuitem "Take the tour" [ref=f67e400] [cursor=pointer]
+        - menuitem "Theme" [ref=f67e402] [cursor=pointer]
+        - separator [ref=f67e404]
+        - menuitem "Sign out" [ref=f67e405] [cursor=pointer]

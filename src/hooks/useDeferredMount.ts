@@ -23,8 +23,7 @@ export const useDeferredMount = (delayMs = 500): boolean => {
   useEffect(() => {
     // Use requestIdleCallback when available so we don't block the main thread
     const ric =
-      typeof window !== "undefined" &&
-      "requestIdleCallback" in window
+      typeof window !== "undefined" && "requestIdleCallback" in window
         ? window.requestIdleCallback
         : null;
 

@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Button, SectionHeader, Shimmer } from "@/design-system";
+import { Button, HeroCarousel, SectionHeader, Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";
 import { usePrograms } from "@/hooks/usePrograms";
@@ -64,8 +64,8 @@ import {
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { cn } from "@/lib/utils";
 
-const BRAND_GRADIENT = "var(--brand-gradient)";
-const HERO_GRADIENT = "var(--hero-gradient)";
+const BRAND_SURFACE = "#0f172a";
+const HERO_SURFACE = "#0f172a";
 
 /** Prototype `.pcard` surface (20px radius, hairline, two-layer depth). */
 const CARD =
@@ -86,6 +86,13 @@ const PILL: Record<Tone, string> = {
   green: "bg-green-50 text-green-700 border-green-100",
   blue: "bg-blue-50 text-blue-700 border-blue-100",
   slate: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
+const EVIDENCE_LABELS: Record<string, string> = {
+  cloMapping: "CLO ↔ PLO mappings",
+  samples: "Student work evidence",
+  analysis: "Attainment analysis",
+  cqi: "CQI recommendations",
 };
 
 const CQI_TONE: Record<CQIPlanStatus, Tone> = {
@@ -169,13 +176,19 @@ const ActionChip = ({
     </>
   );
   return to ? (
-    <Link to={to} className={cls}>
-      {inner}
-    </Link>
+    <Button asChild variant="ghost" size="sm" className={cls}>
+      <Link to={to}>{inner}</Link>
+    </Button>
   ) : (
-    <button type="button" onClick={onClick} className={cls}>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className={cls}
+    >
       {inner}
-    </button>
+    </Button>
   );
 };
 
@@ -219,18 +232,22 @@ const CoordinatorDashboardScreen = () => {
   const lang = i18n.language;
 
   const aggregate = useCoordinatorDashboardAggregate(institutionId);
-  const avgAttainment = aggregate.data?.avgAttainmentPercent ?? 0;
-  const cloCoverage = aggregate.data?.cloCoveragePercent ?? 0;
+  const avgAttainment = aggregate.data?.avgAttainmentPercent ?? null;
+  const cloCoverage = aggregate.data?.cloCoveragePercent ?? null;
 
   const { data: paginatedPrograms } = usePrograms(undefined, {
     enabled: !!institutionId,
   });
-  const programsCount = paginatedPrograms?.data?.length ?? 0;
+  const programsCount =
+    aggregate.data?.assignedPrograms ?? paginatedPrograms?.data?.length ?? null;
 
   const ai = useCoordinatorAiInsights(institutionId);
 
   const attainment = useCoordinatorOutcomeAttainment(institutionId);
-  const threshold = attainment.data?.successThreshold ?? 70;
+  const threshold =
+    aggregate.data?.targetAttainment ??
+    attainment.data?.successThreshold ??
+    null;
   const measuredPlos = useMemo(
     () => (attainment.data?.plos ?? []).filter((p) => p.attainment != null),
     [attainment.data]
@@ -238,11 +255,15 @@ const CoordinatorDashboardScreen = () => {
   const belowTargetPlos = useMemo(
     () =>
       measuredPlos
-        .filter((p) => (p.attainment as number) < threshold)
+        .filter(
+          (p) => threshold != null && (p.attainment as number) < threshold
+        )
         .sort((a, b) => (a.attainment as number) - (b.attainment as number)),
     [measuredPlos, threshold]
   );
-  const belowTargetCount = belowTargetPlos.length;
+  const belowTargetCount =
+    aggregate.data?.belowTargetCount ??
+    (threshold != null ? belowTargetPlos.length : null);
   const lowestPlo = useMemo(
     () =>
       measuredPlos.reduce<AttainmentPLO | null>(
@@ -349,65 +370,124 @@ const CoordinatorDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ── Program-health hero (greeting + real action chips) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
-            <Compass className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold tracking-tight">
-              {t("dashboard.hub.title", "Program health, prepared")}
-            </h1>
-            <p className="text-[12px] text-white/75">
-              {t(
-                "dashboard.hub.subtitle",
-                "Outcome attainment across your programs — nothing changes without your review."
+      {/* ── Program-health carousel (briefing + real decision context) ── */}
+      <HeroCarousel
+        ariaLabel={t("dashboard.hub.carouselLabel", "Program highlights")}
+        className="rounded-2xl text-white shadow-lg"
+        style={{ backgroundColor: HERO_SURFACE }}
+        slides={[
+          <div key="briefing" className="min-h-[126px] p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                <Compass className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold tracking-tight">
+                  {t("dashboard.hub.title", "Program health, prepared")}
+                </h1>
+                <p className="text-[12px] text-white/75">
+                  {t(
+                    "dashboard.hub.subtitle",
+                    "Outcome attainment across your programs — nothing changes without your review."
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {belowTargetCount != null && belowTargetCount > 0 ? (
+                <ActionChip
+                  icon={TrendingDown}
+                  label={t("dashboard.hub.ploBelow", {
+                    defaultValue: "Review {{count}} below-target PLO",
+                    count: belowTargetCount,
+                  })}
+                  onClick={() =>
+                    document
+                      .getElementById("alerts-sec")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                />
+              ) : (
+                <ActionChip
+                  icon={CheckCircle2}
+                  label={t("dashboard.hub.ploTitle", "PLOs on track")}
+                  to="/coordinator/plos"
+                />
               )}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {belowTargetCount > 0 ? (
-            <ActionChip
-              icon={TrendingDown}
-              label={t("dashboard.hub.ploBelow", {
-                defaultValue: "Review {{count}} below-target PLO",
-                count: belowTargetCount,
-              })}
-              onClick={() =>
-                document
-                  .getElementById("alerts-sec")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }
-            />
-          ) : (
-            <ActionChip
-              icon={CheckCircle2}
-              label={t("dashboard.hub.ploTitle", "PLOs on track")}
-              to="/coordinator/plos"
-            />
-          )}
-          <ActionChip
-            icon={Grid3X3}
-            label={t("dashboard.hub.openMatrix", "Open curriculum matrix")}
-            to="/coordinator/matrix"
-          />
-          {readiness != null && (
-            <ActionChip
-              icon={ShieldCheck}
-              label={t("dashboard.hub.accred", {
-                defaultValue: "Accreditation · {{pct}}%",
-                pct: readiness,
-              })}
-              to="/coordinator/course-file"
-            />
-          )}
-        </div>
-      </section>
+              <ActionChip
+                icon={Grid3X3}
+                label={t("dashboard.hub.openMatrix", "Open curriculum matrix")}
+                to="/coordinator/matrix"
+              />
+            </div>
+          </div>,
+          ...(lowestPlo?.attainment != null
+            ? [
+                <div
+                  key="lowest-plo"
+                  className="flex min-h-[126px] items-center gap-4 p-5"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                    <TrendingDown className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-200">
+                      {t("dashboard.hub.watchEyebrow", "Decision context")}
+                    </p>
+                    <h2 className="mt-0.5 truncate text-lg font-bold">
+                      {lowestPlo.title}
+                    </h2>
+                    <p className="mt-1 text-[12px] text-white/75">
+                      {t("dashboard.hub.watchBody", {
+                        defaultValue:
+                          "{{percent}}% attainment · {{affected}} students below target",
+                        percent: lowestPlo.attainment,
+                        affected: lowestPlo.affectedStudents,
+                      })}
+                    </p>
+                  </div>
+                  <ActionChip
+                    icon={ArrowRight}
+                    label={t("dashboard.hub.reviewPlo", "Review")}
+                    to="/coordinator/plos"
+                  />
+                </div>,
+              ]
+            : []),
+          ...(readiness != null
+            ? [
+                <div
+                  key="accreditation"
+                  className="flex min-h-[126px] items-center gap-4 p-5"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                    <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-green-200">
+                      {t(
+                        "dashboard.hub.accreditationEyebrow",
+                        "Accreditation readiness"
+                      )}
+                    </p>
+                    <h2 className="mt-0.5 text-lg font-bold">{readiness}%</h2>
+                    <p className="mt-1 text-[12px] text-white/75">
+                      {t("dashboard.hub.accreditationBody", {
+                        defaultValue: "{{count}} evidence items in the pack",
+                        count: evidencePack.length,
+                      })}
+                    </p>
+                  </div>
+                  <ActionChip
+                    icon={ShieldCheck}
+                    label={t("dashboard.hub.openPack", "Open pack")}
+                    to="/coordinator/accreditation"
+                  />
+                </div>,
+              ]
+            : []),
+        ]}
+      />
 
       {/* ── KPI row (each card filters into its view) ── */}
       {aggregate.isPending || attainment.isPending ? (
@@ -420,21 +500,29 @@ const CoordinatorDashboardScreen = () => {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KpiFilter
             label={t("dashboard.kpi.programs", "Programs")}
-            value={programsCount}
+            value={programsCount ?? "—"}
             filterLabel={t("dashboard.kpi.manage", "Manage")}
             to="/coordinator/matrix"
           />
           <KpiFilter
             label={t("dashboard.kpi.avgPlo", "Avg PLO")}
-            value={`${avgAttainment}%`}
-            valueClass={attainmentValueClass(avgAttainment)}
+            value={avgAttainment != null ? `${avgAttainment}%` : "—"}
+            valueClass={
+              avgAttainment != null
+                ? attainmentValueClass(avgAttainment)
+                : undefined
+            }
             filterLabel={t("dashboard.kpi.allOutcomes", "All outcomes")}
             to="/coordinator/plos"
           />
           <KpiFilter
             label={t("dashboard.kpi.belowTarget", "Below target")}
-            value={belowTargetCount}
-            valueClass={belowTargetCount > 0 ? "text-amber-600" : undefined}
+            value={belowTargetCount ?? "—"}
+            valueClass={
+              belowTargetCount != null && belowTargetCount > 0
+                ? "text-amber-600"
+                : undefined
+            }
             filterLabel={t("dashboard.kpi.filterBelow", "Filter below-target")}
             to="/coordinator/gap-analysis"
           />
@@ -443,7 +531,7 @@ const CoordinatorDashboardScreen = () => {
             value={readiness != null ? `${readiness}%` : "—"}
             valueClass="text-green-600"
             filterLabel={t("dashboard.kpi.openPack", "Open pack")}
-            to="/coordinator/course-file"
+            to="/coordinator/accreditation"
           />
         </div>
       )}
@@ -481,7 +569,7 @@ const CoordinatorDashboardScreen = () => {
           <div className="rounded-[20px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">
             {t("dashboard.alerts.error", "Couldn't load outcome attainment.")}
           </div>
-        ) : belowTargetCount > 0 ? (
+        ) : belowTargetCount != null && belowTargetCount > 0 ? (
           <div className="space-y-3">
             {belowTargetPlos.slice(0, 3).map((plo) => {
               const att = plo.attainment as number;
@@ -535,7 +623,8 @@ const CoordinatorDashboardScreen = () => {
                         {t("dashboard.alerts.gapBody", {
                           defaultValue:
                             "{{gap}} pts below the {{threshold}}% success threshold.",
-                          gap: threshold - att,
+                          pct: att,
+                          gap: threshold != null ? threshold - att : "—",
                           threshold,
                         })}
                       </p>
@@ -605,29 +694,48 @@ const CoordinatorDashboardScreen = () => {
         >
           <SectionHeader
             icon={LayoutGrid}
-            title={t("dashboard.gap.title", "Curriculum coverage")}
+            title={t(
+              cloCoverage === 100
+                ? "dashboard.gap.completeTitle"
+                : cloCoverage == null
+                ? "dashboard.gap.unknownTitle"
+                : "dashboard.gap.title",
+              cloCoverage === 100
+                ? "Curriculum coverage complete"
+                : cloCoverage == null
+                ? "Curriculum coverage"
+                : "Curriculum gap detected"
+            )}
             className="mb-3"
           />
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-gray-900">
-              {cloCoverage}%
+              {cloCoverage != null ? `${cloCoverage}%` : "—"}
             </span>
             <p className="min-w-0 flex-1 text-xs text-gray-500">
-              {t("dashboard.gap.body", {
-                defaultValue:
-                  "of PLOs have at least one mapped assessment. Review the matrix for coverage holes.",
-              })}
+              {t(
+                cloCoverage === 100
+                  ? "dashboard.gap.completeBody"
+                  : cloCoverage == null
+                  ? "dashboard.gap.unknownBody"
+                  : "dashboard.gap.body",
+                cloCoverage === 100
+                  ? "All configured outcomes have mapped assessments."
+                  : cloCoverage == null
+                  ? "Live curriculum coverage is unavailable."
+                  : "of PLOs have at least one mapped assessment. Review the matrix for coverage holes."
+              )}
             </p>
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-blue-500"
-              style={{ width: `${cloCoverage}%` }}
+              style={{ width: `${cloCoverage ?? 0}%` }}
             />
           </div>
           <span
             className="mt-3 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
-            style={{ background: "#0382bd" }}
+            style={{ background: "var(--action-primary)" }}
           >
             {t("dashboard.gap.cta", "Open matrix")}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -641,7 +749,7 @@ const CoordinatorDashboardScreen = () => {
             title={t("dashboard.evidence.title", "Accreditation evidence")}
             action={
               <Link
-                to="/coordinator/course-file"
+                to="/coordinator/accreditation"
                 className="text-xs font-bold text-sky-700 hover:underline"
               >
                 {t("dashboard.evidence.open", "Open →")}
@@ -653,6 +761,10 @@ const CoordinatorDashboardScreen = () => {
             <div
               className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100"
               role="progressbar"
+              aria-label={t(
+                "dashboard.evidence.overall",
+                "Overall accreditation readiness"
+              )}
               aria-valuenow={readiness ?? 0}
               aria-valuemin={0}
               aria-valuemax={100}
@@ -685,7 +797,10 @@ const CoordinatorDashboardScreen = () => {
                         className={cn("h-3.5 w-3.5 shrink-0", cls)}
                         aria-hidden="true"
                       />
-                      {t(`dashboard.evidence.item.${item.key}`, item.key)}
+                      {t(
+                        `dashboard.evidence.item.${item.key}`,
+                        EVIDENCE_LABELS[item.key] ?? item.key
+                      )}
                     </span>
                     <span className={cn("text-[11px] font-semibold", cls)}>
                       {t(`dashboard.evidence.state.${item.state}`, item.state)}
@@ -782,7 +897,7 @@ const CoordinatorDashboardScreen = () => {
         </p>
         <span
           className="hidden shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold text-white sm:inline"
-          style={{ background: BRAND_GRADIENT }}
+          style={{ backgroundColor: BRAND_SURFACE }}
         >
           {t("dashboard.footer.tag", "Review-first")}
         </span>

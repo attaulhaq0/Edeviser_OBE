@@ -13,7 +13,6 @@ import {
   useInitiateVote,
   useCastVote,
 } from "@/hooks/useReplacementVotes";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TeamMemberList, {
   type TeamMemberItem,
@@ -25,7 +24,7 @@ import ChallengeProgressBar from "@/components/shared/ChallengeProgressBar";
 import CooperationScoreDisplay from "@/components/shared/CooperationScoreDisplay";
 import PeerTeachingMomentCard from "@/components/shared/PeerTeachingMomentCard";
 import ReplacementVoteCard from "@/components/shared/ReplacementVoteCard";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { TEAM_BADGE_DEFINITIONS } from "@/lib/teamBadgeDefinitions";
 import {
   Users,
@@ -96,11 +95,13 @@ const TeamProfilePage = () => {
   if (!profile) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Team Profile</h1>
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">Team not found.</p>
-        </Card>
+        <SectionHeader icon={Users} title="Team Profile" />
+        <PCard>
+          <div className="p-8 text-center">
+            <Users className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+            <p className="text-sm text-gray-500">Team not found.</p>
+          </div>
+        </PCard>
       </div>
     );
   }
@@ -131,7 +132,7 @@ const TeamProfilePage = () => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+        <PCard className="group p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -145,9 +146,9 @@ const TeamProfilePage = () => {
               <Zap className="h-5 w-5 text-amber-500" />
             </div>
           </div>
-        </Card>
+        </PCard>
 
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+        <PCard className="group p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -161,9 +162,9 @@ const TeamProfilePage = () => {
               <Flame className="h-5 w-5 text-orange-500 animate-streak-flame" />
             </div>
           </div>
-        </Card>
+        </PCard>
 
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+        <PCard className="group p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -175,174 +176,130 @@ const TeamProfilePage = () => {
               <Users className="h-5 w-5 text-blue-600" />
             </div>
           </div>
-        </Card>
+        </PCard>
 
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+        <PCard className="group p-4">
           <CooperationScoreDisplay score={team.cooperation_score} />
-        </Card>
+        </PCard>
       </div>
 
       {/* Members Section */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Users className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Members
-          </h2>
-        </div>
+      <PCard className="overflow-hidden">
         <div className="p-6">
+          <SectionHeader icon={Users} title="Members" />
           <TeamMemberList members={memberItems} totalTeamXp={team.xp_total} />
         </div>
-      </Card>
+      </PCard>
 
       {/* Badges Section */}
       {badgeItems.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <Trophy className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              Badges
-            </h2>
-          </div>
+        <PCard className="overflow-hidden">
           <div className="p-6">
+            <SectionHeader icon={Trophy} title="Badges" />
             <TeamBadgeCollection badges={badgeItems} />
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Active Challenges */}
       {activeChallenges.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <Target className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              Active Challenges
-            </h2>
-          </div>
-          <div className="p-6 space-y-4">
-            {activeChallenges.map((challenge) => (
-              <div key={challenge.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">{challenge.title}</p>
-                  <Badge variant="outline" className="text-xs">
-                    {challenge.challenge_type}
-                  </Badge>
+        <PCard className="overflow-hidden">
+          <div className="p-6">
+            <SectionHeader icon={Target} title="Active Challenges" />
+            <div className="mt-4 space-y-4">
+              {activeChallenges.map((challenge) => (
+                <div key={challenge.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">{challenge.title}</p>
+                    <Badge variant="outline" className="text-xs">
+                      {challenge.challenge_type}
+                    </Badge>
+                  </div>
+                  <ChallengeProgressBar
+                    current={challenge.current_progress}
+                    goal={challenge.goal_target}
+                    label={challenge.title}
+                  />
+                  {challenge.completed_at && (
+                    <p className="text-xs text-green-600 font-medium">
+                      ✓ Completed{" "}
+                      {new Date(challenge.completed_at).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
-                <ChallengeProgressBar
-                  current={challenge.current_progress}
-                  goal={challenge.goal_target}
-                  label={challenge.title}
-                />
-                {challenge.completed_at && (
-                  <p className="text-xs text-green-600 font-medium">
-                    ✓ Completed{" "}
-                    {new Date(challenge.completed_at).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Teaching Moments Section */}
       {teachingMoments.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <BookOpen className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              Teaching Moments
-            </h2>
+        <PCard className="overflow-hidden">
+          <div className="p-6">
+            <SectionHeader icon={BookOpen} title="Teaching Moments" />
+            <div className="mt-4 space-y-4">
+              {teachingMoments.map((moment) => (
+                <PeerTeachingMomentCard
+                  key={moment.id}
+                  title={moment.title}
+                  explanationText={moment.explanation_text}
+                  mediaUrl={moment.media_url}
+                  authorName={moment.author_id}
+                  createdAt={moment.created_at}
+                />
+              ))}
+            </div>
           </div>
-          <div className="p-6 space-y-4">
-            {teachingMoments.map((moment) => (
-              <PeerTeachingMomentCard
-                key={moment.id}
-                title={moment.title}
-                explanationText={moment.explanation_text}
-                mediaUrl={moment.media_url}
-                authorName={moment.author_id}
-                createdAt={moment.created_at}
-              />
-            ))}
-          </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Replacement Votes Section (Task 5.6) */}
       {(openVotes.length > 0 || (isCaptain && inactiveMembers.length > 0)) && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <Vote className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              Replacement Votes
-            </h2>
-          </div>
+        <PCard className="overflow-hidden">
           <div className="p-6">
-            <ReplacementVoteCard
-              vote={
-                openVotes[0]
-                  ? {
-                      id: openVotes[0].id,
-                      targetMemberName: openVotes[0].target_member_id,
-                      targetMemberId: openVotes[0].target_member_id,
-                      status: openVotes[0].status,
-                      votesFor: openVotes[0].votes_for,
-                      votesAgainst: openVotes[0].votes_against,
-                      createdAt: openVotes[0].created_at,
-                      resolvedAt: openVotes[0].resolved_at,
-                      teacherOverride: openVotes[0].teacher_override,
-                    }
-                  : null
-              }
-              isCaptain={isCaptain}
-              isTeacher={false}
-              totalMembers={memberItems.length}
-              inactiveMembers={inactiveMembers}
-              onInitiateVote={(targetMemberId) => {
-                initiateVoteMutation.mutate({
-                  team_id: teamId!,
-                  target_member_id: targetMemberId,
-                  initiated_by: user?.id ?? "",
-                });
-              }}
-              onCastVote={(voteId, voteFor) => {
-                castVoteMutation.mutate({
-                  voteId,
-                  teamId: teamId!,
-                  voteFor,
-                });
-              }}
-              isInitiating={initiateVoteMutation.isPending}
-              isCasting={castVoteMutation.isPending}
-            />
+            <SectionHeader icon={Vote} title="Replacement Votes" />
+            <div className="mt-4">
+              <ReplacementVoteCard
+                vote={
+                  openVotes[0]
+                    ? {
+                        id: openVotes[0].id,
+                        targetMemberName: openVotes[0].target_member_id,
+                        targetMemberId: openVotes[0].target_member_id,
+                        status: openVotes[0].status,
+                        votesFor: openVotes[0].votes_for,
+                        votesAgainst: openVotes[0].votes_against,
+                        createdAt: openVotes[0].created_at,
+                        resolvedAt: openVotes[0].resolved_at,
+                        teacherOverride: openVotes[0].teacher_override,
+                      }
+                    : null
+                }
+                isCaptain={isCaptain}
+                isTeacher={false}
+                totalMembers={memberItems.length}
+                inactiveMembers={inactiveMembers}
+                onInitiateVote={(targetMemberId) => {
+                  initiateVoteMutation.mutate({
+                    team_id: teamId!,
+                    target_member_id: targetMemberId,
+                    initiated_by: user?.id ?? "",
+                  });
+                }}
+                onCastVote={(voteId, voteFor) => {
+                  castVoteMutation.mutate({
+                    voteId,
+                    teamId: teamId!,
+                    voteFor,
+                  });
+                }}
+                isInitiating={initiateVoteMutation.isPending}
+                isCasting={castVoteMutation.isPending}
+              />
+            </div>
           </div>
-        </Card>
+        </PCard>
       )}
     </div>
   );

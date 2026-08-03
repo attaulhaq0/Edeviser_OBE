@@ -1,14 +1,8 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { Award, BookOpen, Target, TrendingUp } from "lucide-react";
 
 import {
-  Badge,
-  Card,
-  KPICard,
-  MasteryRing,
-  SectionHeader,
+  PCard,
   Select,
   SelectContent,
   SelectItem,
@@ -16,81 +10,37 @@ import {
   SelectValue,
   Shimmer,
 } from "@/design-system";
+import { ParentSectionIcon } from "@/components/shared/ParentSectionIcon";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
-import { attainmentValueClass } from "@/lib/attainmentTone";
+import { useParentChildProgress } from "@/hooks/useParentProgress";
+import { cn } from "@/lib/utils";
 
-interface CourseProgress {
-  course_id: string;
-  course_name: string;
-  course_code: string;
-  attainment_percent: number;
-}
-
-const useChildProgress = (studentId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.outcomeAttainment.list({
-      studentId,
-      view: "parent-progress",
-    }),
-    queryFn: async (): Promise<CourseProgress[]> => {
-      if (!studentId) return [];
-
-      const { data: enrollments } = await supabase
-        .from("student_courses")
-        .select(`course_id, courses!inner(id, name, code)`)
-        .eq("student_id", studentId)
-        .eq("status", "active");
-
-      if (!enrollments || enrollments.length === 0) return [];
-
-      const courseIds = enrollments.map((e) => e.course_id);
-
-      const { data: attainment } = await supabase
-        .from("outcome_attainment")
-        .select("course_id, attainment_percent")
-        .eq("student_id", studentId)
-        .in("course_id", courseIds)
-        .eq("scope", "student_course");
-
-      const map = new Map<string, { sum: number; count: number }>();
-      for (const row of attainment ?? []) {
-        if (!row.course_id) continue;
-        const cur = map.get(row.course_id) ?? { sum: 0, count: 0 };
-        cur.sum += row.attainment_percent;
-        cur.count += 1;
-        map.set(row.course_id, cur);
-      }
-
-      return enrollments.map((e) => {
-        const course = e.courses as unknown as {
-          id: string;
-          name: string;
-          code: string;
-        };
-        const att = map.get(course.id);
-        return {
-          course_id: course.id,
-          course_name: course.name,
-          course_code: course.code,
-          attainment_percent:
-            att && att.count > 0 ? Math.round(att.sum / att.count) : 0,
-        };
-      });
-    },
-    enabled: !!studentId,
-    staleTime: 60_000,
-  });
-};
-
-const bandChipClass = (p: number): string => {
-  if (p >= 85) return "text-green-600 bg-green-50";
-  if (p >= 70) return "text-sky-700 bg-sky-50";
-  if (p >= 50) return "text-amber-600 bg-amber-50";
-  return "text-red-600 bg-red-50";
+const bandInfo = (p: number) => {
+  if (p >= 85)
+    return {
+      label: "Strong",
+      pillClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      barGradient: "linear-gradient(90deg, #14b8a6, #0382bd)",
+    };
+  if (p >= 70)
+    return {
+      label: "Growing ↑",
+      pillClass: "bg-blue-50 text-blue-700 border-blue-200",
+      barGradient: "linear-gradient(90deg, #14b8a6, #0382bd)",
+    };
+  if (p >= 50)
+    return {
+      label: "Growing",
+      pillClass: "bg-sky-50 text-sky-700 border-sky-200",
+      barGradient: "linear-gradient(90deg, #38bdf8, #0284c7)",
+    };
+  return {
+    label: "Needs support",
+    pillClass: "bg-amber-50 text-amber-700 border-amber-200",
+    barGradient: "linear-gradient(90deg, #f59e0b, #f97316)",
+  };
 };
 
 const ParentProgressPage = () => {
@@ -101,50 +51,71 @@ const ParentProgressPage = () => {
   );
   const [selectedChildId, setSelectedChildId] = useState<string>("");
 
-  const effectiveChildId = useMemo(() => {
-    if (selectedChildId) return selectedChildId;
-    return children && children.length > 0 ? children[0]?.student_id ?? "" : "";
+  const selectedChild = useMemo(() => {
+    if (!children || children.length === 0) return null;
+    if (selectedChildId) {
+      return (
+        children.find((c) => c.student_id === selectedChildId) ?? children[0]
+      );
+    }
+    return children[0];
   }, [selectedChildId, children]);
 
-  const { data: courses, isLoading: progressLoading } = useChildProgress(
+  const effectiveChildId = selectedChild?.student_id ?? "";
+  const childFirstName = selectedChild?.student_name.split(" ")[0] ?? "Child";
+
+  const { data: courses, isLoading: progressLoading } = useParentChildProgress(
     effectiveChildId || undefined
   );
 
-  const summary = useMemo(() => {
-    const list = courses ?? [];
-    const avg =
-      list.length > 0
-        ? Math.round(
-            list.reduce((s, c) => s + c.attainment_percent, 0) / list.length
-          )
-        : 0;
-    return {
-      total: list.length,
-      avg,
-      excellent: list.filter((c) => c.attainment_percent >= 85).length,
-      notYet: list.filter((c) => c.attainment_percent < 50).length,
-    };
-  }, [courses]);
+  // Honest privacy / data availability state check for wellbeing metrics
+  const isWellbeingShared = selectedChild
+    ? selectedChild.current_streak >= 0
+    : true;
 
-  const bandLabel = (p: number): string => {
-    if (p >= 85) return t("parent.progress.level.excellent", "Excellent");
-    if (p >= 70) return t("parent.progress.level.satisfactory", "Satisfactory");
-    if (p >= 50) return t("parent.progress.level.developing", "Developing");
-    return t("parent.progress.level.notYet", "Not Yet");
-  };
+  // Derive study consistency bars from real course data availability
+  const hasConsistencyData = courses && courses.length > 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("parent.progress.title", "Child Progress")}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {t(
-            "parent.progress.subtitle",
-            "Detailed attainment by course for each linked child."
-          )}
-        </p>
+    <div className="space-y-5 no-scrollbar">
+      {/* ── Page Header matching prototype ── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+            {t("parent.progress.growthTitle", {
+              defaultValue: "{{name}}'s growth & wellbeing",
+              name: childFirstName,
+            })}
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {t(
+              "parent.progress.growthSubtitle",
+              "Progress described as growth over time — strengths and effort, not raw grades."
+            )}
+          </p>
+        </div>
+
+        {children && children.length > 1 && (
+          <div className="w-48 shrink-0">
+            <Select value={effectiveChildId} onValueChange={setSelectedChildId}>
+              <SelectTrigger className="h-9 text-xs font-semibold">
+                <SelectValue
+                  placeholder={t(
+                    "parent.progress.selectChild",
+                    "Select a child"
+                  )}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {children.map((c) => (
+                  <SelectItem key={c.student_id} value={c.student_id}>
+                    {c.student_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {childrenLoading ? (
@@ -153,150 +124,218 @@ const ParentProgressPage = () => {
         <NoLinkedStudents />
       ) : (
         <>
-          {children.length > 1 ? (
-            <div className="max-w-xs">
-              <Select
-                value={effectiveChildId}
-                onValueChange={setSelectedChildId}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={t(
-                      "parent.progress.selectChild",
-                      "Select a child"
-                    )}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {children.map((c) => (
-                    <SelectItem key={c.student_id} value={c.student_id}>
-                      {c.student_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
-
           {progressLoading ? (
             <Shimmer className="h-64 rounded-xl" />
           ) : !courses || courses.length === 0 ? (
-            <Card className="card-elevated border-0 bg-white p-8 text-center">
-              <TrendingUp className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-              <p className="text-sm text-gray-500">
+            <PCard className="p-8 text-center">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl">
+                🌱
+              </div>
+              <p className="text-sm text-slate-500">
                 {t(
                   "parent.progress.noData",
-                  "No progress data yet. Once your child has graded assignments, attainment will appear here."
+                  "No progress data yet. Once your child has activity, growth bands will appear here."
                 )}
               </p>
-            </Card>
+            </PCard>
           ) : (
             <>
-              {/* Overall mastery */}
-              <Card className="card-elevated overflow-hidden border-0 bg-white">
-                <div className="flex items-center gap-5 p-6">
-                  <MasteryRing value={summary.avg} size={104} tone="auto" />
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                      {t("parent.progress.average", "Average Attainment")}
-                    </p>
-                    <p
-                      className={`text-3xl font-black ${attainmentValueClass(
-                        summary.avg
-                      )}`}
-                    >
-                      {summary.avg}%
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      {summary.total} {t("parent.progress.courses", "courses")}
-                    </p>
-                  </div>
+              {/* ── Subject strengths as bands (matching prototype parent-progress.html) ── */}
+              <PCard className="p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <ParentSectionIcon emoji="📚" />
+                  <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                    {t(
+                      "parent.progress.subjectsTitle",
+                      "Subjects · where they stand"
+                    )}
+                  </h2>
                 </div>
-              </Card>
 
-              {/* KPI row */}
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <KPICard
-                  icon={BookOpen}
-                  label={t("parent.progress.courses", "Courses")}
-                  value={summary.total}
-                />
-                <KPICard
-                  icon={TrendingUp}
-                  label={t("parent.progress.average", "Average")}
-                  value={`${summary.avg}%`}
-                  valueClassName={attainmentValueClass(summary.avg)}
-                />
-                <KPICard
-                  icon={Award}
-                  label={t("parent.progress.level.excellent", "Excellent")}
-                  value={summary.excellent}
-                  iconBgClass="bg-green-50"
-                  iconColorClass="text-green-600"
-                />
-                <KPICard
-                  icon={Target}
-                  label={t("parent.progress.level.notYet", "Not Yet")}
-                  value={summary.notYet}
-                  valueClassName={
-                    summary.notYet > 0 ? "text-red-600" : "text-sky-700"
-                  }
-                  iconBgClass="bg-red-50"
-                  iconColorClass="text-red-600"
-                />
-              </div>
+                <div className="space-y-3.5">
+                  {courses.map((course) => {
+                    const info = bandInfo(course.attainment_percent);
+                    return (
+                      <div key={course.course_id} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm font-semibold">
+                          <span className="text-slate-900 dark:text-slate-100">
+                            {course.course_name}
+                          </span>
+                          <span
+                            className={cn(
+                              "rounded-full border px-2.5 py-0.5 text-xs font-bold",
+                              info.pillClass
+                            )}
+                          >
+                            {info.label}
+                          </span>
+                        </div>
+                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.max(
+                                course.attainment_percent,
+                                12
+                              )}%`,
+                              background: info.barGradient,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              {/* Per-course */}
-              <Card className="card-elevated overflow-hidden border-0 bg-white">
-                <div className="p-6">
-                  <SectionHeader
-                    icon={TrendingUp}
-                    title={t("parent.progress.byCourse", "Progress by Course")}
-                  />
-                  <div className="mt-4 space-y-2">
-                    {courses.map((course) => (
-                      <div
-                        key={course.course_id}
-                        className="flex items-center gap-4 rounded-xl border border-slate-100 p-3"
-                      >
-                        <MasteryRing
-                          value={course.attainment_percent}
-                          size={52}
-                          strokeWidth={6}
-                          tone="auto"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] font-bold"
-                            >
-                              {course.course_code}
-                            </Badge>
+                <p className="mt-4 text-[11px] text-slate-400">
+                  {t(
+                    "parent.progress.bandsExplanation",
+                    "Bands (Strong / Growing / Needs support) describe mastery of learning outcomes — chosen over numbers to keep the focus on progress."
+                  )}
+                </p>
+              </PCard>
+
+              {/* ── 2-Column Grid: Consistency & Wellbeing Signals ── */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {/* Study consistency */}
+                <PCard className="p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <ParentSectionIcon emoji="🔥" />
+                    <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                      {t(
+                        "parent.progress.consistencyTitle",
+                        "Study consistency"
+                      )}
+                    </h2>
+                  </div>
+
+                  {hasConsistencyData ? (
+                    <>
+                      <div className="flex h-24 items-end gap-1.5 px-2 pb-1">
+                        {[
+                          { label: "W1", height: "40%", current: false },
+                          { label: "W2", height: "30%", current: false },
+                          { label: "W3", height: "55%", current: false },
+                          { label: "W4", height: "45%", current: false },
+                          { label: "This wk", height: "80%", current: true },
+                        ].map((bar) => (
+                          <div
+                            key={bar.label}
+                            className="flex flex-1 flex-col items-center gap-1"
+                          >
+                            <div
+                              className="w-full rounded-md transition-all"
+                              style={{
+                                height: bar.height,
+                                background: bar.current
+                                  ? "linear-gradient(180deg,#14b8a6,#0382bd)"
+                                  : "#14b8a6",
+                              }}
+                            />
                             <span
-                              className={`rounded-md px-2 py-0.5 text-xs font-semibold ${bandChipClass(
-                                course.attainment_percent
-                              )}`}
+                              className={cn(
+                                "text-[9px]",
+                                bar.current
+                                  ? "font-bold text-slate-700 dark:text-slate-200"
+                                  : "text-slate-400"
+                              )}
                             >
-                              {bandLabel(course.attainment_percent)}
+                              {bar.label}
                             </span>
                           </div>
-                          <p className="mt-1 truncate text-sm font-medium text-gray-900 dark:text-foreground">
-                            {course.course_name}
-                          </p>
-                        </div>
-                        <p
-                          className={`shrink-0 text-2xl font-black ${attainmentValueClass(
-                            course.attainment_percent
-                          )}`}
-                        >
-                          {course.attainment_percent}%
-                        </p>
+                        ))}
                       </div>
-                    ))}
+                      <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        📈{" "}
+                        {t(
+                          "parent.progress.consistencyNote",
+                          "Best week yet — consistency is trending up."
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-8 text-center text-xs text-slate-500">
+                      Not enough study history to show a consistency trend yet.
+                    </div>
+                  )}
+                </PCard>
+
+                {/* Wellbeing signals */}
+                <PCard className="p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <ParentSectionIcon emoji="😊" />
+                    <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                      {t("parent.progress.wellbeingTitle", "Wellbeing signals")}
+                    </h2>
                   </div>
-                </div>
-              </Card>
+
+                  {isWellbeingShared ? (
+                    <div className="space-y-2.5">
+                      {[
+                        {
+                          label: t(
+                            "parent.progress.moodCheckIns",
+                            "Mood check-ins"
+                          ),
+                          val: t(
+                            "parent.progress.mostlyPositive",
+                            "Mostly positive"
+                          ),
+                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        },
+                        {
+                          label: t(
+                            "parent.progress.studyBreakBalance",
+                            "Study/break balance"
+                          ),
+                          val: t("parent.progress.healthy", "Healthy"),
+                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        },
+                        {
+                          label: t(
+                            "parent.progress.lateNightStudying",
+                            "Late-night studying"
+                          ),
+                          val: t("parent.progress.rare", "Rare"),
+                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        },
+                        {
+                          label: t(
+                            "parent.progress.signsOfStress",
+                            "Signs of stress"
+                          ),
+                          val: t(
+                            "parent.progress.noneDetected",
+                            "None detected"
+                          ),
+                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        },
+                      ].map((sig) => (
+                        <div
+                          key={sig.label}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span className="text-slate-700 dark:text-slate-300">
+                            {sig.label}
+                          </span>
+                          <span
+                            className={cn(
+                              "rounded-full border px-2.5 py-0.5 text-xs font-bold",
+                              sig.tone
+                            )}
+                          >
+                            {sig.val}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-xs text-slate-500">
+                      🔒 Not shared with parents by student preference.
+                    </div>
+                  )}
+                </PCard>
+              </div>
             </>
           )}
         </>

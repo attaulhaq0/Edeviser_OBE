@@ -78,6 +78,31 @@ export const useAnnouncements = (courseId: string | undefined) => {
   });
 };
 
+/** Institution-scoped announcement feed for administrators. Course IDs come
+ * from the already institution-scoped course hook, keeping this query bounded
+ * to the signed-in administrator's workspace. */
+export const useAdminAnnouncements = (courseIds: string[]) => {
+  return useQuery({
+    queryKey: ["admin", "announcements", courseIds],
+    queryFn: async () => {
+      if (courseIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("announcements")
+        .select(
+          "id, course_id, author_id, title, content, is_pinned, created_at, updated_at"
+        )
+        .in("course_id", courseIds)
+        .order("is_pinned", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((row) =>
+        castAnnouncement(row as unknown as Record<string, unknown>)
+      );
+    },
+    enabled: courseIds.length > 0,
+  });
+};
+
 export const useAnnouncement = (announcementId: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.announcements.detail(announcementId ?? ""),

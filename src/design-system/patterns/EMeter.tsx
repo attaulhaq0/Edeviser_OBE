@@ -89,7 +89,13 @@ export interface EMeterProps {
   className?: string;
 }
 
-const EMeter = ({ value, variant, pro = false, label, className }: EMeterProps) => {
+const EMeter = ({
+  value,
+  variant,
+  pro = false,
+  label,
+  className,
+}: EMeterProps) => {
   const pct = clampPercent(value);
 
   return (
@@ -107,7 +113,10 @@ const EMeter = ({ value, variant, pro = false, label, className }: EMeterProps) 
     >
       <span
         className="block h-full rounded-[inherit] transition-[width] duration-500 motion-reduce:transition-none"
-        style={{ width: `${pct}%`, background: emeterFillBackground(variant, pro) }}
+        style={{
+          width: `${pct}%`,
+          background: emeterFillBackground(variant, pro),
+        }}
       />
     </div>
   );

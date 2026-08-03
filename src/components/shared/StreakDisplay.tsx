@@ -1,6 +1,6 @@
 import { Flame, Snowflake, Trophy, RefreshCw } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { getNextMilestone, getMilestoneProgress } from "@/lib/streakMilestones";
+import { PCard } from "@/design-system";
 
 const TOTAL_ACTIVE_MILESTONES = [30, 60, 100, 200, 365] as const;
 
@@ -51,10 +51,7 @@ const StreakDisplay = ({
     totalActiveDays > 0 && isTotalActiveMilestone(totalActiveDays);
 
   return (
-    <Card
-      className="bg-white border-0 shadow-md rounded-xl p-4"
-      data-focus-hide="true"
-    >
+    <PCard className="p-4" data-focus-hide="true">
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-lg bg-orange-50">
           <Flame className="h-5 w-5 text-orange-500 animate-streak-flame" />
@@ -163,7 +160,7 @@ const StreakDisplay = ({
           All milestones reached!
         </p>
       )}
-    </Card>
+    </PCard>
   );
 };
 

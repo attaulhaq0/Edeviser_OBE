@@ -84,10 +84,30 @@ const SEMESTERS: Semester[] = [
 const mockCreateMutate = vi.fn();
 
 vi.mock("@/hooks/useFees", () => ({
-  useFeeStructures: vi.fn(() => ({ data: [], isLoading: false })),
+  useFeeStructures: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  })),
   useCreateFeeStructure: vi.fn(() => ({
     mutate: mockCreateMutate,
     isPending: false,
+  })),
+}));
+
+vi.mock("@/hooks/useAdminFeePayments", () => ({
+  useAdminFeePayments: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  })),
+}));
+
+vi.mock("@/hooks/useAdminFeeEnrollmentCounts", () => ({
+  useAdminFeeEnrollmentCounts: vi.fn(() => ({
+    data: { byProgram: {} },
+    isLoading: false,
+    isError: false,
   })),
 }));
 

@@ -17,6 +17,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface HeroCarouselProps {
@@ -42,6 +44,7 @@ const HeroCarousel = ({
   autoAdvanceMs = 7000,
   ariaLabel = "Highlights",
 }: HeroCarouselProps) => {
+  const { t } = useTranslation("common");
   const count = slides.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -95,22 +98,26 @@ const HeroCarousel = ({
     >
       {multi && (
         <>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={() => go(current - 1)}
-            aria-label="Previous slide"
-            className="absolute start-1.5 top-1/2 z-[5] flex h-[26px] w-[26px] -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white transition-colors hover:bg-white/25"
+            aria-label={t("carousel.previous")}
+            className="absolute start-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white hover:bg-white/25 hover:text-white"
           >
             <span aria-hidden="true">&lsaquo;</span>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={() => go(current + 1)}
-            aria-label="Next slide"
-            className="absolute end-1.5 top-1/2 z-[5] flex h-[26px] w-[26px] -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white transition-colors hover:bg-white/25"
+            aria-label={t("carousel.next")}
+            className="absolute end-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white hover:bg-white/25 hover:text-white"
           >
             <span aria-hidden="true">&rsaquo;</span>
-          </button>
+          </Button>
         </>
       )}
 
@@ -127,7 +134,10 @@ const HeroCarousel = ({
             className="min-w-0 flex-[0_0_100%]"
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} of ${count}`}
+            aria-label={t("carousel.slideOf", {
+              current: i + 1,
+              total: count,
+            })}
           >
             {slide}
           </div>
@@ -137,15 +147,16 @@ const HeroCarousel = ({
       {multi && (
         <div className="flex justify-center gap-[5px] pb-2.5 pt-2">
           {slides.map((_, i) => (
-            <button
+            <Button
               key={i}
               type="button"
+              variant="ghost"
               onClick={() => go(i)}
-              aria-label={`Go to slide ${i + 1}`}
+              aria-label={t("carousel.goTo", { number: i + 1 })}
               aria-current={i === current}
               className={cn(
-                "h-1 rounded-sm transition-all duration-150",
-                i === current ? "w-[22px] bg-white" : "w-4 bg-white/25"
+                "!h-1 min-h-0 rounded-sm p-0 transition-all duration-150 hover:bg-white/50",
+                i === current ? "!w-[22px] bg-white" : "!w-4 bg-white/25"
               )}
             />
           ))}

@@ -42,6 +42,7 @@ import {
 import {
   Badge,
   Button,
+  HeroCarousel,
   KPICard,
   SectionHeader,
   Shimmer,
@@ -53,8 +54,8 @@ import { attainmentValueClass } from "@/lib/attainmentTone";
 import { formatNumber } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
 
-const BRAND_GRADIENT = "var(--brand-gradient)";
-const HERO_GRADIENT = "var(--hero-gradient)";
+const BRAND_SURFACE = "#0f172a";
+const HERO_SURFACE = "#0f172a";
 
 /** Prototype `.pcard` surface. */
 const CARD =
@@ -77,10 +78,12 @@ const AdminDashboardScreen = () => {
 
   const aggregate = useAdminDashboardAggregate(institutionId);
   const kpis = aggregate.data;
-  const totalUsers = kpis?.totalUsers ?? 0;
-  const activeUsers = kpis?.activeUsers ?? 0;
-  const totalCourses = kpis?.totalCourses ?? 0;
-  const totalPrograms = kpis?.totalPrograms ?? 0;
+  const displayMetric = (value: number | null | undefined) =>
+    aggregate.isError || value == null ? "—" : formatNumber(value);
+  const totalUsers = kpis?.totalUsers;
+  const activeUsers = kpis?.activeUsers;
+  const totalCourses = kpis?.totalCourses;
+  const totalPrograms = kpis?.totalPrograms;
 
   const roleEntries = useMemo(() => {
     const byRole = kpis?.usersByRole ?? {};
@@ -110,7 +113,7 @@ const AdminDashboardScreen = () => {
             measuredDepts.reduce((s, d) => s + d.avg_plo_attainment, 0) /
               measuredDepts.length
           )
-        : 0,
+        : null,
     [measuredDepts]
   );
   const lowestDept =
@@ -120,63 +123,106 @@ const AdminDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ── Institution hero (greeting + real status chips) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
-            <Building2 className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold tracking-tight">
-              {t("dashboard.hero.title", "Your institution, this week")}
-            </h1>
-            <p className="text-[12px] text-white/75">
-              {t(
-                "dashboard.hero.subtitle",
-                "De-identified, institution-wide signals — no individual student data."
-              )}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/users")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-          >
-            <Users className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("dashboard.hero.users", {
-              defaultValue: "{{n}} users",
-              n: formatNumber(totalUsers),
-            })}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/reports")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-          >
-            <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("dashboard.hero.active", {
-              defaultValue: "{{n}} active",
-              n: formatNumber(activeUsers),
-            })}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/programs")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-          >
-            <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("dashboard.hero.programs", {
-              defaultValue: "{{n}} programs",
-              n: formatNumber(totalPrograms),
-            })}
-          </button>
-        </div>
-      </section>
+      {/* ── Institution carousel (overview + real executive watch item) ── */}
+      <HeroCarousel
+        ariaLabel={t("dashboard.hero.carouselLabel", "Institution highlights")}
+        className="rounded-2xl text-white shadow-lg"
+        style={{ background: HERO_SURFACE }}
+        slides={[
+          <div key="overview" className="min-h-[126px] p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                <Building2 className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold tracking-tight">
+                  {t("dashboard.hero.title", "Your institution, this week")}
+                </h1>
+                <p className="text-[12px] text-white/75">
+                  {t(
+                    "dashboard.hero.subtitle",
+                    "De-identified, institution-wide signals — no individual student data."
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/users")}
+                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+              >
+                <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("dashboard.hero.users", {
+                  defaultValue: "{{n}} users",
+                  n: displayMetric(totalUsers),
+                })}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/users")}
+                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+              >
+                <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("dashboard.hero.active", {
+                  defaultValue: "{{n}} active",
+                  n: displayMetric(activeUsers),
+                })}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/programs")}
+                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+              >
+                <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("dashboard.hero.programs", {
+                  defaultValue: "{{n}} programs",
+                  n: displayMetric(totalPrograms),
+                })}
+              </Button>
+            </div>
+          </div>,
+          ...(lowestDept
+            ? [
+                <div
+                  key="watch-item"
+                  className="flex min-h-[126px] items-center gap-4 p-5"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                    <Lightbulb className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-200">
+                      {t("dashboard.hero.watchEyebrow", "Executive watch item")}
+                    </p>
+                    <h2 className="mt-0.5 truncate text-lg font-bold">
+                      {lowestDept.department_name}
+                    </h2>
+                    <p className="mt-1 text-[12px] text-white/75">
+                      {t("dashboard.hero.watchBody", {
+                        defaultValue:
+                          "{{percent}}% average PLO attainment · lowest measured department",
+                        percent: Math.round(lowestDept.avg_plo_attainment),
+                      })}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => navigate("/admin/analytics")}
+                    className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
+                  >
+                    {t("dashboard.hero.openAnalytics", "Review")}
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                </div>,
+              ]
+            : []),
+        ]}
+      />
 
       {/* ── KPI row (real aggregate metrics) ── */}
       {kpiLoading ? (
@@ -190,25 +236,27 @@ const AdminDashboardScreen = () => {
           <KPICard
             icon={Users}
             label={t("dashboard.totalUsers", "Users")}
-            value={formatNumber(totalUsers)}
+            value={displayMetric(totalUsers)}
           />
           <KPICard
             icon={UserCheck}
             label={t("dashboard.activeUsers", "Active users")}
-            value={formatNumber(activeUsers)}
+            value={displayMetric(activeUsers)}
             iconBgClass="bg-green-50"
             iconColorClass="text-green-600"
           />
           <KPICard
             icon={TrendingUp}
             label={t("dashboard.avgMastery", "Avg mastery")}
-            value={`${avgMastery}%`}
-            valueClassName={attainmentValueClass(avgMastery)}
+            value={avgMastery != null ? `${avgMastery}%` : "—"}
+            valueClassName={
+              avgMastery != null ? attainmentValueClass(avgMastery) : undefined
+            }
           />
           <KPICard
             icon={GraduationCap}
             label={t("dashboard.courses", "Courses")}
-            value={formatNumber(totalCourses)}
+            value={displayMetric(totalCourses)}
           />
         </div>
       )}
@@ -222,16 +270,23 @@ const AdminDashboardScreen = () => {
         />
         {kpiLoading ? (
           <Shimmer className="h-16 rounded-lg" />
+        ) : aggregate.isError ? (
+          <p className="text-sm text-slate-500">
+            {t(
+              "dashboard.insight.unavailable",
+              "Live institution metrics are unavailable."
+            )}
+          </p>
         ) : (
           <>
             <p className="text-sm leading-relaxed text-gray-700">
               {t("dashboard.insight.body", {
                 defaultValue:
                   "Your institution has {{users}} users ({{active}} active) across {{programs}} programs and {{courses}} courses.",
-                users: formatNumber(totalUsers),
-                active: formatNumber(activeUsers),
-                programs: formatNumber(totalPrograms),
-                courses: formatNumber(totalCourses),
+                users: displayMetric(totalUsers),
+                active: displayMetric(activeUsers),
+                programs: displayMetric(totalPrograms),
+                courses: displayMetric(totalCourses),
               })}
               {lowestDept && (
                 <>
@@ -248,7 +303,7 @@ const AdminDashboardScreen = () => {
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 variant="tactile"
-                onClick={() => navigate("/admin/reports")}
+                onClick={() => navigate("/admin/analytics")}
               >
                 {t("dashboard.insight.analytics", "See analytics")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -272,13 +327,15 @@ const AdminDashboardScreen = () => {
             icon={School}
             title={t("dashboard.departments.title", "Departments by mastery")}
             action={
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => navigate("/admin/outcomes")}
-                className="text-xs font-bold text-sky-700 hover:underline"
+                className="h-auto p-0 text-xs font-bold text-sky-700 hover:underline"
               >
                 {t("dashboard.departments.all", "All →")}
-              </button>
+              </Button>
             }
             className="mb-3"
           />
@@ -330,13 +387,15 @@ const AdminDashboardScreen = () => {
             icon={Users}
             title={t("dashboard.usersByRole", "Users by role")}
             action={
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => navigate("/admin/users")}
-                className="text-xs font-bold text-sky-700 hover:underline"
+                className="h-auto p-0 text-xs font-bold text-sky-700 hover:underline"
               >
                 {t("dashboard.manage", "Manage →")}
-              </button>
+              </Button>
             }
             className="mb-3"
           />
@@ -384,7 +443,7 @@ const AdminDashboardScreen = () => {
         </p>
         <span
           className="hidden shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold text-white sm:inline"
-          style={{ background: BRAND_GRADIENT }}
+          style={{ background: BRAND_SURFACE }}
         >
           {t("dashboard.autonomy.tag", "Governed")}
         </span>

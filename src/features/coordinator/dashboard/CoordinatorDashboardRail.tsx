@@ -10,7 +10,7 @@
 //   - useCoordinatorAccreditationReadiness → readiness %
 //
 // Faithful to the dashboard's "no invented gap" rule: the prototype's specific
-// "Concurrency has no mapped assessment" line has no backend, so the curriculum
+// Curriculum gap copy must be derived from the live coverage contract.
 // card shows the REAL coverage % + a link to the matrix instead of naming a gap.
 // =============================================================================
 
@@ -19,6 +19,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { RailCard, RailHead, RailRow, Shimmer } from "@/design-system";
+import { Button } from "@/components/ui/button";
+import WhyThisPopover from "@/components/shared/WhyThisPopover";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";
@@ -28,13 +30,15 @@ import { useCoordinatorAccreditationReadiness } from "@/hooks/useCoordinatorAccr
 const RailLink = ({ to, label }: { to: string; label: string }) => {
   const navigate = useNavigate();
   return (
-    <button
+    <Button
       type="button"
+      variant="link"
+      size="sm"
       onClick={() => navigate(to)}
-      className="mt-2 block text-xs font-extrabold text-blue-600 hover:underline"
+      className="mt-2 h-auto px-0 text-xs font-extrabold text-blue-600"
     >
       {label}
-    </button>
+    </Button>
   );
 };
 
@@ -46,25 +50,31 @@ const CoordinatorDashboardRail = () => {
   const attainment = useCoordinatorOutcomeAttainment(institutionId);
   const accred = useCoordinatorAccreditationReadiness(institutionId);
 
-  const threshold = attainment.data?.successThreshold ?? 70;
+  const threshold =
+    aggregate.data?.targetAttainment ??
+    attainment.data?.successThreshold ??
+    null;
   const belowTarget = useMemo(
     () =>
       (attainment.data?.plos ?? [])
         .filter(
-          (p) => p.attainment != null && (p.attainment as number) < threshold
+          (p) =>
+            threshold != null &&
+            p.attainment != null &&
+            (p.attainment as number) < threshold
         )
         .sort((a, b) => (a.attainment as number) - (b.attainment as number))
         .slice(0, 3),
     [attainment.data, threshold]
   );
 
-  const cloCoverage = aggregate.data?.cloCoveragePercent ?? 0;
+  const cloCoverage = aggregate.data?.cloCoveragePercent ?? null;
   const readiness = accred.data?.readinessPercent ?? null;
 
   return (
     <aside
       aria-label={t("dashboard.rail.label", "Program alerts")}
-      className="fixed bottom-0 end-0 top-14 z-30 hidden w-80 overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:block"
+      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
     >
       {/* ── Attainment alerts (real below-target PLOs) ── */}
       <RailCard>
@@ -73,6 +83,14 @@ const CoordinatorDashboardRail = () => {
           right={
             belowTarget.length > 0 ? String(belowTarget.length) : undefined
           }
+        />
+        <WhyThisPopover
+          title={t("dashboard.rail.alerts", "📉 Attainment alerts")}
+          reasons={[
+            t("common:header.whySignals.coordinator", {
+              belowTarget: belowTarget.length,
+            }),
+          ]}
         />
         {attainment.isPending ? (
           <Shimmer className="h-16 rounded-lg" />
@@ -112,6 +130,10 @@ const CoordinatorDashboardRail = () => {
         />
         {aggregate.isPending ? (
           <Shimmer className="h-12 rounded-lg" />
+        ) : aggregate.isError || cloCoverage == null ? (
+          <p className="text-xs text-slate-500">
+            {t("dashboard.rail.unavailable", "Live metrics unavailable.")}
+          </p>
         ) : (
           <>
             <RailRow>
@@ -121,7 +143,9 @@ const CoordinatorDashboardRail = () => {
               <b
                 className={cn(
                   "text-[12px] font-extrabold",
-                  cloCoverage >= 70 ? "text-green-600" : "text-amber-700"
+                  cloCoverage >= (threshold ?? 70)
+                    ? "text-green-600"
+                    : "text-amber-700"
                 )}
               >
                 {cloCoverage}%
@@ -153,7 +177,7 @@ const CoordinatorDashboardRail = () => {
               </b>
             </RailRow>
             <RailLink
-              to="/coordinator/course-file"
+              to="/coordinator/accreditation"
               label={t("dashboard.rail.reviewDraft", "Review draft →")}
             />
           </>

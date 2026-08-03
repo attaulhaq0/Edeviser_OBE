@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CalendarClock, ChevronRight, Sparkles } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AttainmentInfo from "@/components/shared/AttainmentInfo";
+import { PCard } from "@/design-system";
 import { cn } from "@/lib/utils";
 import { formatLocalDate } from "@/lib/formatDate";
 import { resolveCourseColor } from "@/lib/courseColor";
@@ -41,7 +41,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
   const hasAttainment = course.attainment_percent !== null;
 
   return (
-    <Card className="relative bg-white border-0 shadow-md rounded-xl h-full overflow-hidden transition-shadow hover:shadow-lg focus-within:ring-2 focus-within:ring-blue-500">
+    <PCard className="relative h-full w-full min-w-0 overflow-hidden transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)] focus-within:ring-2 focus-within:ring-blue-500">
       {/* Course color identifier (R9.3) */}
       <div
         className="absolute inset-y-0 start-0 w-1.5"
@@ -196,7 +196,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

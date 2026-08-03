@@ -23,6 +23,7 @@ import { sanitizePostgrestValue } from "@/lib/sanitizeFilter";
 export interface CourseFilters {
   search?: string;
   programId?: string;
+  teacherId?: string;
   page?: number;
   pageSize?: number;
 }
@@ -74,6 +75,10 @@ export const useCourses = (
         query = query.eq("program_id", filters.programId);
       }
 
+      if (filters.teacherId) {
+        query = query.eq("teacher_id", filters.teacherId);
+      }
+
       if (filters.search) {
         const safe = sanitizePostgrestValue(filters.search);
         query = query.or(`name.ilike.%${safe}%,code.ilike.%${safe}%`);
@@ -90,6 +95,18 @@ export const useCourses = (
     },
     staleTime: 30_000,
   });
+};
+
+/** Course list constrained to the signed-in teacher's ownership. */
+export const useTeacherCourses = (
+  filters: Omit<CourseFilters, "teacherId"> = {},
+  options?: { enabled?: boolean }
+) => {
+  const { user } = useAuth();
+  return useCourses(
+    { ...filters, teacherId: user?.id },
+    { enabled: !!user?.id && (options?.enabled ?? true) }
+  );
 };
 
 // ─── useCourse — single course detail ────────────────────────────────────────

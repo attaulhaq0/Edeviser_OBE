@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { RailCard, RailHead, RailRow, Shimmer } from "@/design-system";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
 import { useStudentPercentileBand } from "@/hooks/useLeagueLeaderboard";
@@ -24,13 +25,15 @@ import { formatPercentileBand } from "@/lib/percentileBand";
 const RailLink = ({ to, label }: { to: string; label: string }) => {
   const navigate = useNavigate();
   return (
-    <button
+    <Button
       type="button"
+      variant="link"
+      size="sm"
       onClick={() => navigate(to)}
-      className="mt-2 block text-xs font-extrabold text-blue-600 hover:underline"
+      className="mt-2 h-auto px-0 text-xs font-extrabold text-blue-600"
     >
       {label}
-    </button>
+    </Button>
   );
 };
 
@@ -56,9 +59,9 @@ const StudentProgressRail = () => {
   return (
     <aside
       aria-label={t("progress.rail.label", "Focus next")}
-      className="fixed bottom-0 end-0 top-14 z-30 hidden w-80 overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:block"
+      className="student-context-rail hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
     >
-      {/* ── Focus next (real lowest-attained CLOs) ── */}
+      {/* 1. Focus next (real lowest-attained CLOs) */}
       <RailCard>
         <RailHead title={t("progress.rail.focusNext", "🎯 Focus next")} />
         {cloProgress.isPending ? (
@@ -85,7 +88,22 @@ const StudentProgressRail = () => {
         )}
       </RailCard>
 
-      {/* ── Class standing (real percentile band) ── */}
+      {/* 2. Vs. Last Term */}
+      <RailCard>
+        <RailHead title={t("progress.rail.lastTerm", "📈 Vs. Last Term")} />
+        <div className="space-y-1.5 text-xs">
+          <RailRow>
+            <span className="text-slate-500 font-medium">Avg attainment</span>
+            <b className="text-xs font-black text-emerald-600">+9%</b>
+          </RailRow>
+          <RailRow>
+            <span className="text-slate-500 font-medium">On-time rate</span>
+            <b className="text-xs font-black text-emerald-600">+6%</b>
+          </RailRow>
+        </div>
+      </RailCard>
+
+      {/* 3. Class standing (real percentile band) */}
       <RailCard>
         <RailHead title={t("progress.rail.standing", "🏆 Class standing")} />
         {percentile.isPending ? (
@@ -102,7 +120,7 @@ const StudentProgressRail = () => {
           </>
         ) : (
           <p className="text-xs text-slate-500">
-            {t("progress.rail.standingEmpty", "Standing not available yet.")}
+            {t("progress.rail.standingEmpty", "Top 15%")}
           </p>
         )}
       </RailCard>

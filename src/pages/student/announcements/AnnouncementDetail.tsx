@@ -2,6 +2,7 @@
 // Requirements: 75.5
 // Feature: qa-partner-review-remediation — Req 15.4: student mark-as-read upsert.
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   useAnnouncement,
@@ -9,19 +10,25 @@ import {
 } from "@/hooks/useAnnouncements";
 import { useAuth } from "@/hooks/useAuth";
 import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { AnnouncementAttachmentList } from "@/components/shared/AnnouncementAttachmentList";
+import ErrorState from "@/components/shared/ErrorState";
 import { ArrowLeft, Megaphone, Pin, Clock, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 
 const AnnouncementDetail = () => {
+  const { t } = useTranslation("common");
   const { announcementId } = useParams<{ announcementId: string }>();
   const navigate = useNavigate();
   const { user, role } = useAuth();
-  const { data: announcement, isLoading } = useAnnouncement(announcementId);
+  const {
+    data: announcement,
+    isLoading,
+    isError,
+    refetch,
+  } = useAnnouncement(announcementId);
   const markRead = useMarkAnnouncementRead();
 
   // Record a read receipt when a student views the announcement. Idempotent via
@@ -46,6 +53,16 @@ const AnnouncementDetail = () => {
         <Shimmer className="h-8 w-48 rounded-lg" />
         <Shimmer className="h-64 rounded-xl" />
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        message={t("errors.generic")}
+        onRetry={() => void refetch()}
+        retryLabel={t("buttons.retry")}
+      />
     );
   }
 
@@ -76,28 +93,23 @@ const AnnouncementDetail = () => {
         <ArrowLeft className="h-4 w-4 me-1" /> Back
       </Button>
 
-      <Card
-        className={`bg-white border-0 shadow-md rounded-xl overflow-hidden ${
+      <PCard
+        className={`overflow-hidden ${
           announcement.is_pinned ? "ring-1 ring-amber-200" : ""
         }`}
       >
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Megaphone className="h-5 w-5 text-white" />
-          <h1 className="text-lg font-bold tracking-tight text-white flex-1">
-            {announcement.title}
-          </h1>
-          {announcement.is_pinned && (
-            <Badge className="bg-white/20 text-white border-0 text-xs">
-              <Pin className="h-3 w-3 me-1" /> Pinned
-            </Badge>
-          )}
-        </div>
-        <div className="p-6">
+        <div className="p-6 space-y-4">
+          <SectionHeader
+            icon={Megaphone}
+            title={announcement.title}
+            action={
+              announcement.is_pinned ? (
+                <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+                  <Pin className="h-3 w-3 me-1" /> Pinned
+                </Badge>
+              ) : null
+            }
+          />
           <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-700">
             {announcement.content}
           </div>
@@ -128,7 +140,7 @@ const AnnouncementDetail = () => {
             <AnnouncementAttachmentList announcementId={announcementId} />
           )}
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

@@ -569,11 +569,7 @@ const RubricBuilder = () => {
 
             {/* Submit */}
             <div className="flex items-center gap-3 pt-4">
-              <Button
-                type="submit"
-                disabled={isPending}
-                variant="tactile"
-              >
+              <Button type="submit" disabled={isPending} variant="tactile">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEdit ? "Update Rubric" : "Create Rubric"}
               </Button>

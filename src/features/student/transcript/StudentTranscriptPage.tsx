@@ -9,10 +9,22 @@
 
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Download, FileText, GraduationCap, Loader2, TrendingUp } from "lucide-react";
+import {
+  Download,
+  FileText,
+  GraduationCap,
+  Loader2,
+  TrendingUp,
+} from "lucide-react";
 import { toast } from "sonner";
 
-import { Button, HeroCard, PageHeader, PCard, SectionCard } from "@/design-system";
+import {
+  Button,
+  HeroCard,
+  PageHeader,
+  PCard,
+  SectionCard,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useGenerateTranscript } from "@/hooks/useTranscript";
 

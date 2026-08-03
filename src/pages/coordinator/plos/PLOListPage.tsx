@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DndContext,
@@ -27,7 +27,6 @@ import { usePLOs, useDeletePLO, useReorderPLOs } from "@/hooks/usePLOs";
 import { usePrograms } from "@/hooks/usePrograms";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -35,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shimmer } from "@/design-system";
+import { PCard, Shimmer } from "@/design-system";
 import {
   Plus,
   GripVertical,
@@ -75,15 +74,17 @@ const SortableRow = ({ plo, index }: SortableRowProps) => {
       style={style}
       className="flex items-center gap-3 rounded-lg border bg-white px-4 py-3 shadow-sm"
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-xs"
         className="cursor-grab touch-none text-gray-400 hover:text-gray-600"
         aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
       >
         <GripVertical className="h-4 w-4" />
-      </button>
+      </Button>
       <span className="w-8 text-sm font-medium text-gray-500">{index + 1}</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{plo.title}</p>
@@ -175,10 +176,21 @@ const PLOListPage = () => {
     [localOrder]
   );
 
-  const columns = createColumns(
-    (id) => navigate(`/coordinator/plos/${id}/edit`),
-    (plo) => setPloToDelete(plo),
-    isDragMode
+  const programNames = useMemo(
+    () =>
+      new Map((programs ?? []).map((program) => [program.id, program.name])),
+    [programs]
+  );
+
+  const columns = useMemo(
+    () =>
+      createColumns(
+        (id) => navigate(`/coordinator/plos/${id}/edit`),
+        (plo) => setPloToDelete(plo),
+        isDragMode,
+        programNames
+      ),
+    [isDragMode, navigate, programNames]
   );
 
   return (
@@ -278,7 +290,7 @@ const PLOListPage = () => {
           </Button>
         </NoCourses>
       ) : isDragMode ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+        <PCard className="p-4">
           <p className="text-xs text-gray-500 mb-3">
             Drag items to reorder, then click Save Order.
           </p>
@@ -298,7 +310,7 @@ const PLOListPage = () => {
               </div>
             </SortableContext>
           </DndContext>
-        </Card>
+        </PCard>
       ) : (
         <DataTable
           columns={columns}

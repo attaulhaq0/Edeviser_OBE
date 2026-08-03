@@ -4,6 +4,7 @@ import { validateEnv } from "@/lib/envValidation";
 import { initAnalyticsIfConsented } from "@/lib/analyticsConsent";
 import "@/lib/i18n";
 import App from "@/App";
+import "@/design-system/tokens.css";
 import "@/index.css";
 
 // Validate required env vars before rendering — warns clearly if missing
@@ -28,7 +29,19 @@ if (!envValid) {
   // Dev-only: log a11y violations to browser console via axe-core
   if (import.meta.env.DEV) {
     import("@axe-core/react").then((axe) => {
-      axe.default(React, ReactDOM, 1000);
+      const auditWhenReady = (startedAt: number) => {
+        const hasSkipTarget = document.getElementById("main-content") !== null;
+        const timedOut = Date.now() - startedAt >= 5000;
+
+        if (hasSkipTarget || timedOut) {
+          axe.default(React, ReactDOM, 1000);
+          return;
+        }
+
+        window.setTimeout(() => auditWhenReady(startedAt), 100);
+      };
+
+      auditWhenReady(Date.now());
     });
   }
 

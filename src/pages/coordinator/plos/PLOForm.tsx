@@ -30,13 +30,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Link2, AlertTriangle } from "lucide-react";
 import { InlineNoILOs } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { LearningOutcome } from "@/types/app";
+import { PCard } from "@/design-system";
 
 // ─── ILO Mapping types ──────────────────────────────────────────────────────
 
@@ -78,7 +78,7 @@ const CreatePLODetailsForm = () => {
   };
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+    <PCard className="max-w-2xl p-6">
       <h2 className="text-lg font-bold tracking-tight mb-4">PLO Details</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -188,7 +188,7 @@ const CreatePLODetailsForm = () => {
           </div>
         </form>
       </Form>
-    </Card>
+    </PCard>
   );
 };
 
@@ -243,7 +243,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
   };
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+    <PCard className="max-w-2xl p-6">
       <h2 className="text-lg font-bold tracking-tight mb-4">PLO Details</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -345,7 +345,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
           </div>
         </form>
       </Form>
-    </Card>
+    </PCard>
   );
 };
 
@@ -454,25 +454,25 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
 
   if (isLoadingILOs || isLoadingMappings) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+      <PCard className="max-w-2xl p-6">
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
         </div>
-      </Card>
+      </PCard>
     );
   }
 
   if (ilos.length === 0) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+      <PCard className="max-w-2xl p-6">
         <h2 className="text-lg font-bold tracking-tight mb-2">ILO Mappings</h2>
         <InlineNoILOs />
-      </Card>
+      </PCard>
     );
   }
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+    <PCard className="max-w-2xl p-6">
       <div className="flex items-center gap-2 mb-4">
         <Link2 className="h-5 w-5 text-blue-600" />
         <h2 className="text-lg font-bold tracking-tight">ILO Mappings</h2>
@@ -496,9 +496,11 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
                   : "border-slate-200 bg-white"
               }`}
             >
-              <button
+              <Button
                 type="button"
                 onClick={() => handleToggle(ilo.id)}
+                variant="outline"
+                size="icon-xs"
                 className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                   isEnabled
                     ? "bg-blue-600 border-blue-600 text-white"
@@ -521,7 +523,7 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
                     />
                   </svg>
                 )}
-              </button>
+              </Button>
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{ilo.title}</p>
@@ -591,7 +593,7 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
           Save Mappings
         </Button>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

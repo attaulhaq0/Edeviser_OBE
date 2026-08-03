@@ -16,7 +16,12 @@ import {
   DEFAULT_MAX_DIFF_RATIO,
   PIXELMATCH_THRESHOLD,
 } from "./screen-map";
-import { comparePng, referencePath, diffOutputPath, hasReference } from "./compare";
+import {
+  comparePng,
+  referencePath,
+  diffOutputPath,
+  hasReference,
+} from "./compare";
 
 const FREEZE_ANIMATIONS =
   "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}";
@@ -64,8 +69,9 @@ for (const screen of active) {
         await page.addStyleTag({ content: FREEZE_ANIMATIONS });
         await page
           .evaluate(async () => {
-            await (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts
-              ?.ready;
+            await (
+              document as unknown as { fonts?: { ready?: Promise<unknown> } }
+            ).fonts?.ready;
           })
           .catch(() => {});
 
@@ -84,9 +90,9 @@ for (const screen of active) {
         ).toBe(false);
         expect(
           result.diffRatio,
-          `pixel diff ${(result.diffRatio * 100).toFixed(2)}% exceeds ${(max * 100).toFixed(
-            0
-          )}%${result.diffPath ? ` — see ${result.diffPath}` : ""}`
+          `pixel diff ${(result.diffRatio * 100).toFixed(2)}% exceeds ${(
+            max * 100
+          ).toFixed(0)}%${result.diffPath ? ` — see ${result.diffPath}` : ""}`
         ).toBeLessThanOrEqual(max);
       });
     }

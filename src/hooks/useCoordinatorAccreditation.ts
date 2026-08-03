@@ -95,6 +95,7 @@ export const useAccreditationApprovals = (institutionId?: string | null) => {
         const { data, error } = await supabase
           .from("accreditation_approvals" as never)
           .select("stage, status, sort_order")
+          .eq("institution_id", institutionId ?? "")
           .returns<AccreditationApprovalRow[]>();
         if (error || !data) return [];
         return data;

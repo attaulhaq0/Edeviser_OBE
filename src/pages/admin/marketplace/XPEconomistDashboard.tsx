@@ -3,7 +3,7 @@
 // Task 22.1
 // =============================================================================
 
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
@@ -48,7 +48,7 @@ const XPEconomistDashboard = () => {
         <>
           {/* KPI Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+            <PCard className="group p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -64,9 +64,9 @@ const XPEconomistDashboard = () => {
                   <Activity className="h-5 w-5 text-blue-600" />
                 </div>
               </div>
-            </Card>
+            </PCard>
 
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+            <PCard className="group p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -88,9 +88,9 @@ const XPEconomistDashboard = () => {
                   )}
                 </div>
               </div>
-            </Card>
+            </PCard>
 
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+            <PCard className="group p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -104,9 +104,9 @@ const XPEconomistDashboard = () => {
                   <TrendingUp className="h-5 w-5 text-amber-600" />
                 </div>
               </div>
-            </Card>
+            </PCard>
 
-            <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+            <PCard className="group p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -120,15 +120,15 @@ const XPEconomistDashboard = () => {
                   <DollarSign className="h-5 w-5 text-purple-600" />
                 </div>
               </div>
-            </Card>
+            </PCard>
           </div>
 
           {/* XP Velocity Chart */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+          <PCard className="overflow-hidden p-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background: "var(--brand-gradient)",
+                backgroundColor: "#0f172a",
               }}
             >
               <Activity className="h-5 w-5 text-white" />
@@ -188,7 +188,7 @@ const XPEconomistDashboard = () => {
                 ))}
               </div>
             </div>
-          </Card>
+          </PCard>
         </>
       )}
     </div>

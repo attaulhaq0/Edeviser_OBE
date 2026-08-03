@@ -33,6 +33,15 @@ npm run test:visual:capture
 npm run test:visual
 ```
 
+If the Playwright-managed Chromium download is unavailable but Google Chrome is
+installed locally, opt into that browser for both commands so captures and diffs
+use the same engine:
+
+```bash
+npx cross-env PLAYWRIGHT_CHANNEL=chrome npm run test:visual:capture
+npx cross-env PLAYWRIGHT_CHANNEL=chrome npm run test:visual
+```
+
 ## Adding a screen to the gate
 
 1. Build the screen in the new design system and route it.
@@ -72,17 +81,17 @@ These screens are built on `@/design-system` and now carry an `appPath` in
 (flipping the flag is the deliberate "I claim this matches the prototype" step,
 and pixel parity must be verified on the machine that captured the references).
 
-| Screen id              | App route                | Reference exists |
-| ---------------------- | ------------------------ | ---------------- |
-| `student-dashboard`    | `/student/dashboard`     | yes              |
-| `teacher-dashboard`    | `/teacher/dashboard`     | yes              |
-| `parent-dashboard`     | `/parent/dashboard`      | yes              |
-| `coordinator-dashboard`| `/coordinator/dashboard` | yes              |
-| `admin-dashboard`      | `/admin/dashboard`       | yes              |
-| `student-transcript`   | `/student/transcript`    | yes              |
-| `admin-security`       | `/admin/security`        | yes              |
-| `shared-notifications` | `/student/notifications` | yes              |
-| `shared-fees`          | `/student/fees`          | yes              |
+| Screen id               | App route                | Reference exists |
+| ----------------------- | ------------------------ | ---------------- |
+| `student-dashboard`     | `/student/dashboard`     | yes              |
+| `teacher-dashboard`     | `/teacher/dashboard`     | yes              |
+| `parent-dashboard`      | `/parent/dashboard`      | yes              |
+| `coordinator-dashboard` | `/coordinator/dashboard` | yes              |
+| `admin-dashboard`       | `/admin/dashboard`       | yes              |
+| `student-transcript`    | `/student/transcript`    | yes              |
+| `admin-security`        | `/admin/security`        | yes              |
+| `shared-notifications`  | `/student/notifications` | yes              |
+| `shared-fees`           | `/student/fees`          | yes              |
 
 To activate the gate for a screen (run on the machine that holds the references):
 

@@ -1,11 +1,11 @@
 /**
  * Feature: ui-consistency-global-fixes
- * Property: Single Profile Entry Point in the Chrome (clauses 2.31, 3.31)
- * Task 111
+ * Feature: prototype-frontend-rebuild
+ * Property: Every role exposes the prototype's primary "Me" destination.
  *
  * Verifies that:
- * 1. No sidebar nav contains a link to the role's profile route
- * 2. The profile route is only accessible via the header's ProfileDropdown
+ * 1. Every role sidebar contains its profile route
+ * 2. The header ProfileDropdown continues to expose profile access
  */
 
 import { describe, it, expect } from "vitest";
@@ -23,58 +23,44 @@ const readFileSafe = (relPath: string): string | null => {
   }
 };
 
-// Role → layout file + profile route
+// Role → prototype profile route
 const ROLE_CONFIGS = [
   {
     role: "admin",
-    layoutFile: "src/pages/admin/AdminLayout.tsx",
     profileRoute: "/admin/settings/profile",
   },
   {
     role: "coordinator",
-    layoutFile: "src/pages/coordinator/CoordinatorLayout.tsx",
     profileRoute: "/coordinator/settings/profile",
   },
   {
     role: "teacher",
-    layoutFile: "src/pages/teacher/TeacherLayout.tsx",
     profileRoute: "/teacher/settings/profile",
   },
   {
     role: "student",
-    layoutFile: "src/pages/student/StudentLayout.tsx",
-    profileRoute: "/student/settings/profile",
+    profileRoute: "/student/profile",
   },
   {
     role: "parent",
-    layoutFile: "src/pages/parent/ParentLayout.tsx",
-    profileRoute: "/parent/settings/profile",
+    profileRoute: "/parent/profile",
   },
 ] as const;
 
-describe("chromeEntryPoints.property.test — single profile entry point (clauses 2.31, 3.31)", () => {
+describe("chromeEntryPoints.property.test — prototype profile entry points", () => {
   /**
-   * Property: No orphan Profile NavLink in sidebar navItems
+   * Property: every role has a primary Me route in the unified nav source.
    *
-   * For each role layout, the navItems array must NOT contain an entry
-   * whose `to` matches the role's profile route. The profile route is
-   * accessible only via the ProfileDropdown in the TopBar/header.
+   * The rebuilt prototype makes Me one of the main role destinations. Keeping
+   * it in navItems also makes the desktop sidebar and mobile tab bar agree.
    */
-  it("no sidebar navItems array contains a profile route entry", () => {
+  it("the unified sidebar source contains every role profile route", () => {
+    const content = readFileSafe("src/lib/navItems.ts");
+    if (!content) return;
+
     fc.assert(
       fc.property(fc.constantFrom(...ROLE_CONFIGS), (config) => {
-        const content = readFileSafe(config.layoutFile);
-        if (!content) return; // File doesn't exist — skip
-
-        // Extract all `to:` values from the navItems array
-        // Pattern: to: "/some/route" or to: '/some/route'
-        const toMatches = content.matchAll(/\bto:\s*["']([^"']+)["']/g);
-
-        for (const match of toMatches) {
-          const route = match[1];
-          // The profile route must NOT appear in the navItems
-          expect(route).not.toBe(config.profileRoute);
-        }
+        expect(content).toContain(`to: "${config.profileRoute}"`);
       }),
       { numRuns: 100 }
     );
@@ -94,13 +80,9 @@ describe("chromeEntryPoints.property.test — single profile entry point (clause
 
     fc.assert(
       fc.property(fc.constantFrom(...ROLE_CONFIGS), (_config) => {
-        // The ProfileDropdown should reference the profile route pattern
-        // It uses a routeMap, so check for the role key and the route pattern
-        const hasProfileRoutePattern =
-          profileDropdownContent.includes(`/settings/profile`) ||
-          profileDropdownContent.includes(`settings/profile`);
-
-        expect(hasProfileRoutePattern).toBe(true);
+        expect(profileDropdownContent).toContain(
+          `${_config.role}: "${_config.profileRoute}"`
+        );
       }),
       { numRuns: 100 }
     );

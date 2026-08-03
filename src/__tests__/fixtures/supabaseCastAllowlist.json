@@ -1,6 +1,18 @@
 {
-  "maxCount": 148,
+  "maxCount": 151,
   "entries": [
+    {
+      "file": "src/features/parent/dashboard/ParentDashboardScreen.tsx",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/pages/parent/settings/ParentProfilePage.tsx",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/pages/parent/support/ParentSupportPage.tsx",
+      "pattern": "insert-as-never"
+    },
     {
       "file": "src/hooks/useBloomsProgression.ts",
       "pattern": "from-as-never"
@@ -248,10 +260,6 @@
     {
       "file": "src/hooks/useTieredBadges.ts",
       "pattern": "upsert-as-never"
-    },
-    {
-      "file": "src/hooks/useTodayView.ts",
-      "pattern": "from-as-never"
     },
     {
       "file": "src/hooks/useUsers.ts",

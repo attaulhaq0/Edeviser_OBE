@@ -447,6 +447,9 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let activeJobId: string | null = null;
+  let serviceClient: ReturnType<typeof createClient> | null = null;
+
   try {
     // ── Auth: require admin or coordinator ───────────────────────────
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -478,6 +481,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+    serviceClient = adminClient;
 
     // Role + institution live in the profiles table, NOT the JWT (app_metadata
     // is empty on this project). Resolve them server-side from profiles by the
@@ -497,8 +501,10 @@ serve(async (req) => {
       user.app_metadata?.institution_id ??
       user.user_metadata?.institution_id ??
       "";
-    void callerInstitutionId; // resolved for parity with shared helper; report scopes by program.institution_id
-    if (!["admin", "coordinator"].includes(callerRole)) {
+    if (
+      !["admin", "coordinator"].includes(callerRole) ||
+      !callerInstitutionId
+    ) {
       return new Response(
         JSON.stringify({
           error: "Forbidden: admin or coordinator role required",
@@ -538,6 +544,34 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    if (program.institution_id !== callerInstitutionId) {
+      return new Response(
+        JSON.stringify({
+          error: "Forbidden: program belongs to another institution",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Persist the real generation lifecycle. The job is only marked completed
+    // after the generated PDF is uploaded and its signed URL is available.
+    activeJobId = crypto.randomUUID();
+    const { error: jobCreateError } = await supabase
+      .from("accreditation_report_jobs")
+      .insert({
+        id: activeJobId,
+        institution_id: callerInstitutionId,
+        program_id,
+        semester_id: semester_id ?? null,
+        template,
+        requested_by: user.id,
+        status: "processing",
+      });
+    if (jobCreateError) throw jobCreateError;
 
     // ── Fetch semester info (optional) ────────────────────────────────────
     let semesterName: string | null = null;
@@ -830,6 +864,29 @@ serve(async (req) => {
       );
     }
 
+    const { error: jobCompleteError } = await supabase
+      .from("accreditation_report_jobs")
+      .update({
+        status: "completed",
+        storage_path: fileName,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", activeJobId);
+    if (jobCompleteError) throw jobCompleteError;
+
+    const { error: reportRecordError } = await supabase
+      .from("accreditation_generated_reports")
+      .insert({
+        job_id: activeJobId,
+        institution_id: callerInstitutionId,
+        program_id,
+        template,
+        storage_path: fileName,
+        file_name: fileName.split("/").pop() ?? "Accreditation_Report.pdf",
+        file_size_bytes: pdfBytes.byteLength,
+      });
+    if (reportRecordError) throw reportRecordError;
+
     // ── Optional email delivery ───────────────────────────────────────────
     if (email_to) {
       try {
@@ -872,6 +929,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        job_id: activeJobId,
+        storage_path: fileName,
         download_url: signedUrl.signedUrl,
         file_name: fileName,
         program_name: program.name,
@@ -883,6 +942,15 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    if (activeJobId && serviceClient) {
+      await serviceClient
+        .from("accreditation_report_jobs")
+        .update({
+          status: "failed",
+          error_message: error instanceof Error ? error.message : String(error),
+        })
+        .eq("id", activeJobId);
+    }
     return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

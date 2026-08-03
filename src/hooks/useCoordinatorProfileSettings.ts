@@ -31,6 +31,10 @@ export interface CoordinatorAcademicProfile {
   academic_rank: string | null;
   highest_degree: string | null;
   years_experience: number | null;
+  phone: string | null;
+  office_location: string | null;
+  office_hours: string | null;
+  bio: string | null;
 }
 
 const EMPTY_ACADEMIC: CoordinatorAcademicProfile = {
@@ -39,6 +43,10 @@ const EMPTY_ACADEMIC: CoordinatorAcademicProfile = {
   academic_rank: null,
   highest_degree: null,
   years_experience: null,
+  phone: null,
+  office_location: null,
+  office_hours: null,
+  bio: null,
 };
 
 // The academic columns may not yet exist in the generated Database type, so we
@@ -49,6 +57,10 @@ interface ProfileAcademicRow {
   academic_rank?: string | null;
   highest_degree?: string | null;
   years_experience?: number | null;
+  phone?: string | null;
+  office_location?: string | null;
+  office_hours?: string | null;
+  bio?: string | null;
 }
 
 export const useCoordinatorAcademicProfile = (userId?: string | null) => {
@@ -76,6 +88,10 @@ export const useCoordinatorAcademicProfile = (userId?: string | null) => {
           typeof row.years_experience === "number"
             ? row.years_experience
             : null,
+        phone: row.phone ?? null,
+        office_location: row.office_location ?? null,
+        office_hours: row.office_hours ?? null,
+        bio: row.bio ?? null,
       };
     },
   });

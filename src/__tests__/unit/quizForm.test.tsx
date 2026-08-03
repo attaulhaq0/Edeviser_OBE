@@ -23,6 +23,13 @@ vi.mock("@/hooks/useCourses", () => ({
     },
     isLoading: false,
   }),
+  useTeacherCourses: vi.fn().mockReturnValue({
+    data: {
+      data: [{ id: "course-1", code: "CS101", name: "Intro to CS" }],
+      count: 1,
+    },
+    isLoading: false,
+  }),
 }));
 
 vi.mock("@/hooks/useCLOs", () => ({

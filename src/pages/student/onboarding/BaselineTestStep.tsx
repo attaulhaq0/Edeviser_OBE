@@ -201,11 +201,7 @@ const SingleCourseTest = ({
     return (
       <div className="py-16 text-center text-sm text-gray-500">
         No baseline questions available for this course.
-        <Button
-          onClick={onComplete}
-          variant="tactile"
-          className="mt-4"
-        >
+        <Button onClick={onComplete} variant="tactile" className="mt-4">
           Continue
         </Button>
       </div>

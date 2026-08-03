@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -135,10 +135,18 @@ const AttributeMappings = ({
             key={m.id}
             variant="outline"
             className="border-red-200 bg-red-50 text-red-700"
-            title={`Weight ${m.weight}%`}
+            title={`Weight ${
+              m.weight <= 1 ? Math.round(m.weight * 100) : Math.round(m.weight)
+            }%`}
           >
             {resolveName(outcomeNameById.get(m.outcome_id))}
-            <span className="opacity-60">· {m.weight}%</span>
+            <span className="opacity-60">
+              ·{" "}
+              {m.weight <= 1
+                ? Math.round(m.weight * 100)
+                : Math.round(m.weight)}
+              %
+            </span>
           </Badge>
         ))}
       </div>
@@ -188,6 +196,7 @@ const AttributeRow = ({
       variant="ghost"
       size="sm"
       onClick={onDelete}
+      aria-label={`Delete ${attr.name}`}
       className="text-slate-400 hover:text-red-500 shrink-0"
     >
       <Trash2 className="h-3.5 w-3.5" />
@@ -237,11 +246,11 @@ const GraduateAttributeManager = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Graduate Attributes</h1>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden p-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background: "var(--brand-gradient)",
+            backgroundColor: "#0f172a",
           }}
         >
           <Award className="h-5 w-5 text-white" />
@@ -270,9 +279,9 @@ const GraduateAttributeManager = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
+      <PCard className="max-w-2xl p-6">
         <h2 className="text-lg font-bold tracking-tight mb-4">
           Add Graduate Attribute
         </h2>
@@ -321,7 +330,7 @@ const GraduateAttributeManager = () => {
             </Button>
           </form>
         </Form>
-      </Card>
+      </PCard>
 
       <ConfirmDialog
         open={!!deleteTarget}

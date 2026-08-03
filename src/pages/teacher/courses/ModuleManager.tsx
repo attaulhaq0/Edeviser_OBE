@@ -638,9 +638,8 @@ const ModuleManager = () => {
     selectedCourseId ||
     (courses && courses.length > 0 ? courses[0]?.id ?? "" : "");
 
-  const { data: modules, isLoading: modulesLoading } = useCourseModules(
-    effectiveCourseId || undefined
-  );
+  const { data: modules, isLoading: modulesLoading } =
+    useCourseModules(effectiveCourseId);
 
   const createModule = useCreateModule();
   const updateModule = useUpdateModule();

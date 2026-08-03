@@ -12,12 +12,11 @@ import {
   useMyChallengeProgress,
   useChallengeLeaderboardParticipants,
 } from "@/hooks/useChallengeParticipation";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ChallengeProgressBar from "@/components/shared/ChallengeProgressBar";
 import ChallengeLeaderboard from "@/components/shared/ChallengeLeaderboard";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import {
   ArrowLeft,
   Trophy,
@@ -73,7 +72,7 @@ const ChallengeDetailPage = () => {
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 me-1" /> Back
         </Button>
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
+        <PCard className="p-8 text-center">
           <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
           <p className="text-sm font-semibold text-gray-700">
             Something went wrong
@@ -81,7 +80,7 @@ const ChallengeDetailPage = () => {
           <p className="text-sm text-gray-500">
             We couldn't load this challenge. Please try again.
           </p>
-        </Card>
+        </PCard>
       </div>
     );
   }
@@ -93,9 +92,9 @@ const ChallengeDetailPage = () => {
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 me-1" /> Back
         </Button>
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
+        <PCard className="p-8 text-center">
           <p className="text-sm text-gray-500">Challenge not found.</p>
-        </Card>
+        </PCard>
       </div>
     );
   }
@@ -112,7 +111,7 @@ const ChallengeDetailPage = () => {
 
       {/* Completion Banner */}
       {isCompleted && (
-        <Card className="bg-green-50 border-0 shadow-md rounded-xl p-4">
+        <PCard className="bg-green-50 p-4">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-6 w-6 text-green-600" />
             <div>
@@ -125,25 +124,16 @@ const ChallengeDetailPage = () => {
               </p>
             </div>
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Challenge Info */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          {isCooperative ? (
-            <Handshake className="h-5 w-5 text-white" />
-          ) : (
-            <Trophy className="h-5 w-5 text-white" />
-          )}
-          <h1 className="text-lg font-bold tracking-tight text-white">
-            {challenge.title}
-          </h1>
+      <PCard className="overflow-hidden gap-0 py-0">
+        <div className="p-6 pb-0">
+          <SectionHeader
+            icon={isCooperative ? Handshake : Trophy}
+            title={challenge.title}
+          />
         </div>
         <div className="p-6 space-y-4">
           <p className="text-sm text-gray-600">{challenge.description}</p>
@@ -192,21 +182,13 @@ const ChallengeDetailPage = () => {
             />
           </div>
         </div>
-      </Card>
+      </PCard>
 
       {/* Leaderboard — hidden for cooperative challenges */}
       {!isCooperative && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <Trophy className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              Leaderboard
-            </h2>
+        <PCard className="overflow-hidden gap-0 py-0">
+          <div className="p-6 pb-0">
+            <SectionHeader icon={Trophy} title="Leaderboard" />
           </div>
           <div className="p-6">
             <ChallengeLeaderboard
@@ -215,17 +197,17 @@ const ChallengeDetailPage = () => {
               goalTarget={challenge.goal_target}
             />
           </div>
-        </Card>
+        </PCard>
       )}
 
       {isCooperative && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6 text-center">
+        <PCard className="p-6 text-center">
           <Handshake className="h-8 w-8 text-green-500 mx-auto mb-2" />
           <p className="text-sm text-gray-500">
             This is a cooperative challenge — everyone works together toward the
             goal. No leaderboard is shown.
           </p>
-        </Card>
+        </PCard>
       )}
     </div>
   );

@@ -44,17 +44,23 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "parent-1" }, profile: { full_name: "Pat" } }),
 }));
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ParentDashboard from "@/pages/parent/ParentDashboard";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+const createTestQueryClient = () =>
+  new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 const renderDashboard = () =>
   render(
-    <MemoryRouter>
-      <ParentDashboard />
-    </MemoryRouter>
+    <QueryClientProvider client={createTestQueryClient()}>
+      <MemoryRouter>
+        <ParentDashboard />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 
 const CHILD = {

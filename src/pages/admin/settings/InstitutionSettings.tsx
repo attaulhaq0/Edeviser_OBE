@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import {
   Select,
   SelectContent,
@@ -28,7 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GradientCardHeader, Shimmer } from "@/design-system";
+import { Shimmer } from "@/design-system";
+import { AdminCardHeader } from "@/design-system";
 import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "react-i18next";
@@ -140,8 +141,8 @@ const InstitutionSettings = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Attainment Thresholds Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={Settings} title="Attainment Thresholds" />
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader icon={Settings} title="Attainment Thresholds" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure the percentage thresholds for attainment level
@@ -246,14 +247,11 @@ const InstitutionSettings = () => {
                 )}
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* Accreditation Body Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader
-              icon={GraduationCap}
-              title="Accreditation Body"
-            />
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader icon={GraduationCap} title="Accreditation Body" />
             <div className="p-6">
               <FormField
                 control={form.control}
@@ -287,11 +285,11 @@ const InstitutionSettings = () => {
                 )}
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* Grade Scales Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={GraduationCap} title="Grade Scales" />
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader icon={GraduationCap} title="Grade Scales" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure letter grade mapping for the gradebook. Each row
@@ -421,11 +419,11 @@ const InstitutionSettings = () => {
                 Add Grade
               </Button>
             </div>
-          </Card>
+          </PCard>
 
           {/* Streak Sabbatical Card — Requirement 125.3, 125.4 */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={Flame} title="Streak Sabbatical" />
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader icon={Flame} title="Streak Sabbatical" />
             <div className="p-6 space-y-4">
               <FormField
                 control={form.control}
@@ -453,11 +451,11 @@ const InstitutionSettings = () => {
                 )}
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* League Tier Thresholds Card — Requirement 132.5 */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader icon={Trophy} title="League Tier Thresholds" />
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader icon={Trophy} title="League Tier Thresholds" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure the cumulative XP thresholds for each League Tier.
@@ -554,11 +552,11 @@ const InstitutionSettings = () => {
                 />
               </div>
             </div>
-          </Card>
+          </PCard>
 
           {/* Default Language Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <GradientCardHeader
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader
               icon={Globe}
               title={t("settings.defaultLanguage")}
             />
@@ -600,7 +598,7 @@ const InstitutionSettings = () => {
                 )}
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* Submit */}
           <Button

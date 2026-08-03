@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format, parseISO, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WeeklyCalendarGrid from "@/components/shared/WeeklyCalendarGrid";
 import WeeklyGoalPanel from "@/components/shared/WeeklyGoalPanel";
@@ -62,6 +61,7 @@ import type {
   CreateStudySessionInput,
   CreatePlannerTaskInput,
 } from "@/lib/schemas/planner";
+import { PCard, SectionHeader } from "@/design-system";
 import {
   CalendarDays,
   ChevronLeft,
@@ -311,15 +311,11 @@ const WeeklyPlannerPage = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="h-6 w-6 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Weekly Planner
-            </h1>
-            <p className="text-sm text-gray-500">{weekLabel}</p>
-          </div>
-        </div>
+        <SectionHeader
+          icon={CalendarDays}
+          title="Weekly Planner"
+          description={weekLabel}
+        />
 
         <div className="flex items-center gap-2">
           {/* Week navigation */}
@@ -415,7 +411,7 @@ const WeeklyPlannerPage = () => {
 
         {/* Check Progress / Reflect Tabs */}
         <div className="lg:col-span-2">
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <PCard className="overflow-hidden">
             <Tabs defaultValue="progress">
               <div className="border-b px-6 py-3">
                 <TabsList className="gap-2 bg-transparent p-0">
@@ -498,7 +494,7 @@ const WeeklyPlannerPage = () => {
                 </div>
               </TabsContent>
             </Tabs>
-          </Card>
+          </PCard>
         </div>
       </div>
 

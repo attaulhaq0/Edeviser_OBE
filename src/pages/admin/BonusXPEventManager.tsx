@@ -292,11 +292,7 @@ const BonusEventFormDialog = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isPending}
-                variant="tactile"
-              >
+              <Button type="submit" disabled={isPending} variant="tactile">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEditMode ? "Update" : "Create"}
               </Button>
@@ -345,10 +341,7 @@ const BonusXPEventManager = () => {
           <Sparkles className="h-6 w-6 text-amber-500" />
           <h1 className="text-2xl font-bold tracking-tight">Bonus XP Events</h1>
         </div>
-        <Button
-          variant="tactile"
-          onClick={handleCreate}
-        >
+        <Button variant="tactile" onClick={handleCreate}>
           <Plus className="h-4 w-4" /> Add Event
         </Button>
       </div>

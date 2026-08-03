@@ -153,7 +153,7 @@ describe("CoordinatorDashboard (prototype rebuild)", () => {
     // Exactly one PLO (PLO B at 60%) is below the 70% threshold.
     expect(screen.getByText("1")).toBeInTheDocument();
     // The below-target PLO surfaces as an alert row.
-    expect(screen.getByText("PLO B")).toBeInTheDocument();
+    expect(screen.getAllByText("PLO B")).toHaveLength(2);
   });
 
   it("wires the CQI timeline from useCQIPlans", () => {

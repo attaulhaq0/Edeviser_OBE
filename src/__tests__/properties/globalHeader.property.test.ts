@@ -36,16 +36,17 @@ const ROLE_LAYOUTS = [
 
 describe("globalHeader.property.test — full-width header + single settings entry (clauses 2.27, 2.28, 3.27, 3.28)", () => {
   /**
-   * Property: Every role layout uses GlobalHeader (no sidebar)
+   * Property: Every role layout uses the shared shell (which owns GlobalHeader)
    */
-  it("every role layout imports GlobalHeader and has no sidebar <aside>", () => {
+  it("every role layout uses RoleAppShell and has no sidebar <aside>", () => {
     fc.assert(
       fc.property(fc.constantFrom(...ROLE_LAYOUTS), (layout) => {
         const content = readFileSafe(layout.file);
         if (!content) return;
 
-        // Must import GlobalHeader
-        expect(content).toContain("GlobalHeader");
+        // The shared shell owns GlobalHeader so all roles receive the exact
+        // same chrome without duplicating header composition per layout.
+        expect(content).toContain("RoleAppShell");
 
         // Must NOT contain a sidebar <aside> element
         expect(content).not.toMatch(/<aside\b/);
@@ -56,6 +57,12 @@ describe("globalHeader.property.test — full-width header + single settings ent
       }),
       { numRuns: 100 }
     );
+  });
+
+  it("RoleAppShell owns the shared GlobalHeader", () => {
+    const shell = readFileSafe("src/app/RoleAppShell.tsx");
+    expect(shell).not.toBeNull();
+    expect(shell).toContain("GlobalHeader");
   });
 
   /**
@@ -78,6 +85,9 @@ describe("globalHeader.property.test — full-width header + single settings ent
     for (const line of headerLines) {
       expect(line).not.toMatch(/max-w-\w+/);
     }
+
+    // <header> already carries the banner landmark; a nested role duplicates it.
+    expect(content).not.toContain('role="banner"');
   });
 
   /**
@@ -91,6 +101,16 @@ describe("globalHeader.property.test — full-width header + single settings ent
     const sidebar = readFileSafe("src/components/shared/Sidebar.tsx");
     if (!sidebar) return;
     expect(sidebar).toContain('data-tour="primary-nav"');
+  });
+
+  it("keeps the desktop sidebar brand above the full-width header", () => {
+    const header = readFileSafe("src/components/shared/GlobalHeader.tsx");
+    const sidebar = readFileSafe("src/components/shared/Sidebar.tsx");
+
+    expect(header).not.toBeNull();
+    expect(sidebar).not.toBeNull();
+    expect(header).toContain("z-[100]");
+    expect(sidebar).toContain("min-[640px]:z-[110]");
   });
 
   /**

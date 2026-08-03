@@ -1,7 +1,6 @@
 // Task 120.2: Coverage Heatmap View page
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { parseAsString, useQueryState } from "nuqs";
 import { useCoverageHeatmap } from "@/hooks/useVisualizationData";
@@ -23,7 +22,7 @@ import {
 import HeatmapLegend from "@/components/shared/HeatmapLegend";
 import { NoData } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
-import { Shimmer } from "@/design-system";
+import { SectionCard, Shimmer } from "@/design-system";
 import { Grid3X3 } from "lucide-react";
 
 type ColorMode = "evidence" | "attainment";
@@ -81,19 +80,8 @@ const CoverageHeatmapView = () => {
         </div>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Grid3X3 className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            CLO × Course Matrix
-          </h2>
-        </div>
-        <div className="p-4 overflow-x-auto">
+      <SectionCard icon={Grid3X3} title="CLO × Course Matrix" className="p-4">
+        <div className="overflow-x-auto">
           {!programId ? (
             <p className="text-sm text-slate-400 text-center py-12">
               Select a program to view coverage.
@@ -110,75 +98,81 @@ const CoverageHeatmapView = () => {
             <NoData className="py-12" />
           ) : (
             <>
-            <table className="w-full text-xs border-collapse min-w-[600px]">
-              <thead>
-                <tr>
-                  <th className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-start">
-                    CLO
-                  </th>
-                  {matrix.course_ids.map((cid) => (
-                    <th
-                      key={cid}
-                      className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold truncate max-w-[120px]"
-                    >
-                      {matrix.course_labels[cid]}
+              <table className="w-full text-xs border-collapse min-w-[600px]">
+                <thead>
+                  <tr>
+                    <th className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-start">
+                      CLO
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {matrix.clo_ids.map((cloId) => (
-                  <tr key={cloId}>
-                    <td className="p-2 border border-slate-200 text-slate-700 font-medium truncate max-w-[200px]">
-                      {matrix.clo_labels[cloId]}
-                    </td>
-                    {matrix.course_ids.map((courseId) => {
-                      const cell = matrix.cells.get(`${cloId}:${courseId}`);
-                      const bgColor = cell
-                        ? colorMode === "evidence"
-                          ? getEvidenceCountColor(cell.evidence_count)
-                          : getAttainmentColor(cell.avg_attainment)
-                        : "#ffffff";
-                      return (
-                        <td
-                          key={courseId}
-                          className="p-2 border border-slate-200 text-center font-medium"
-                          style={{
-                            backgroundColor: bgColor,
-                            // Flip text to white on the dark evidence cells so
-                            // the number keeps ≥4.5:1 contrast (WCAG 1.4.3).
-                            color: cell ? getHeatmapCellTextColor(bgColor) : undefined,
-                          }}
-                        >
-                          {cell ? (
-                            colorMode === "evidence" ? (
-                              cell.evidence_count
-                            ) : (
-                              `${Math.round(cell.avg_attainment)}%`
-                            )
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
-                        </td>
-                      );
-                    })}
+                    {matrix.course_ids.map((cid) => (
+                      <th
+                        key={cid}
+                        className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold truncate max-w-[120px]"
+                      >
+                        {matrix.course_labels[cid]}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Legend — shared key legend (also used by the teacher
+                </thead>
+                <tbody>
+                  {matrix.clo_ids.map((cloId) => (
+                    <tr key={cloId}>
+                      <td className="p-2 border border-slate-200 text-slate-700 font-medium truncate max-w-[200px]">
+                        {matrix.clo_labels[cloId]}
+                      </td>
+                      {matrix.course_ids.map((courseId) => {
+                        const cell = matrix.cells.get(`${cloId}:${courseId}`);
+                        const bgColor = cell
+                          ? colorMode === "evidence"
+                            ? getEvidenceCountColor(cell.evidence_count)
+                            : getAttainmentColor(cell.avg_attainment)
+                          : "#ffffff";
+                        return (
+                          <td
+                            key={courseId}
+                            className="p-2 border border-slate-200 text-center font-medium"
+                            style={{
+                              backgroundColor: bgColor,
+                              // Flip text to white on the dark evidence cells so
+                              // the number keeps ≥4.5:1 contrast (WCAG 1.4.3).
+                              color: cell
+                                ? getHeatmapCellTextColor(bgColor)
+                                : undefined,
+                            }}
+                          >
+                            {cell ? (
+                              colorMode === "evidence" ? (
+                                cell.evidence_count
+                              ) : (
+                                `${Math.round(cell.avg_attainment)}%`
+                              )
+                            ) : (
+                              <span className="text-slate-300">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Legend — shared key legend (also used by the teacher
                 student-performance heatmap). Explains the active color scale
                 (previously missing, leaving cell colors unlabeled). */}
-            <HeatmapLegend
-              className="mt-4"
-              data-testid="coverage-heatmap-legend"
-              title={colorMode === "evidence" ? "Evidence count" : "Attainment"}
-              items={colorMode === "evidence" ? EVIDENCE_LEGEND : ATTAINMENT_LEGEND}
-            />
+              <HeatmapLegend
+                className="mt-4"
+                data-testid="coverage-heatmap-legend"
+                title={
+                  colorMode === "evidence" ? "Evidence count" : "Attainment"
+                }
+                items={
+                  colorMode === "evidence" ? EVIDENCE_LEGEND : ATTAINMENT_LEGEND
+                }
+              />
             </>
           )}
         </div>
-      </Card>
+      </SectionCard>
     </div>
   );
 };

@@ -124,11 +124,7 @@ const FallbackPanel = ({
       {title}
     </h2>
     <p className="mb-6 max-w-md text-sm text-gray-500">{body}</p>
-    <Button
-      onClick={onContinue}
-      variant="tactile"
-      className="gap-1"
-    >
+    <Button onClick={onContinue} variant="tactile" className="gap-1">
       {continueLabel}
     </Button>
   </div>

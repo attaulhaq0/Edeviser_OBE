@@ -54,20 +54,22 @@ export const useTimetableSlots = () => {
 
       if (role === "student") {
         // Get sections from enrolled courses
-        const { data: enrollments } = await supabase
+        const { data: enrollments, error } = await supabase
           .from("student_courses")
           .select("section_id")
           .eq("student_id", user.id)
           .not("section_id", "is", null);
+        if (error) throw error;
         sectionIds = (enrollments ?? [])
           .map((e) => e.section_id)
           .filter((id): id is string => !!id);
       } else if (role === "teacher") {
         // Get sections assigned to teacher
-        const { data: sections } = await supabase
+        const { data: sections, error } = await supabase
           .from("course_sections")
           .select("id")
           .eq("teacher_id", user.id);
+        if (error) throw error;
         sectionIds = (sections ?? []).map((s) => s.id);
       }
 
@@ -92,10 +94,11 @@ export const useTimetableSlots = () => {
       if (error) throw error;
 
       // Fetch section + course info for enrichment
-      const { data: sections } = await supabase
+      const { data: sections, error: sectionsError } = await supabase
         .from("course_sections")
         .select("id, section_code, course_id, courses(name)")
         .in("id", sectionIds);
+      if (sectionsError) throw sectionsError;
 
       const sectionMap = new Map<
         string,

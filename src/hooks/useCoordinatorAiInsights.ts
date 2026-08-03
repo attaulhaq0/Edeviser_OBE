@@ -33,12 +33,20 @@ export interface CoordinatorAiInsight {
 }
 
 export const useCoordinatorAiInsights = (institutionId?: string | null) => {
+  // The source function is intentionally opt-in until its deployed version is
+  // present in the target Supabase project. This prevents a missing function
+  // from producing noisy CORS/404 errors in production and keeps the dashboard
+  // on its deterministic live-data cards. Enable after deploying the local
+  // function with VITE_COORDINATOR_AI_INSIGHTS_ENABLED=true.
+  const functionEnabled =
+    import.meta.env.VITE_COORDINATOR_AI_INSIGHTS_ENABLED === "true";
+
   return useQuery({
     queryKey: queryKeys.aiSuggestions.list({
       view: "coordinatorInsights",
       institutionId: institutionId ?? null,
     }),
-    enabled: !!institutionId,
+    enabled: !!institutionId && functionEnabled,
     // Insights are cached server-side (6h); avoid hammering the function.
     staleTime: 30 * 60 * 1000,
     retry: false,

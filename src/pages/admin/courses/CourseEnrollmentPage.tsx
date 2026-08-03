@@ -15,7 +15,7 @@ import {
 import { useCourseSections } from "@/hooks/useCourseSections";
 import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import {
   Dialog,
   DialogContent,
@@ -135,17 +135,17 @@ const CourseEnrollmentPage = () => {
 
       {/* Course Info Card */}
       {courseLoading ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+        <PCard className="p-4">
           <div className="flex items-center gap-2 text-gray-400">
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading course info…
           </div>
-        </Card>
+        </PCard>
       ) : course ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+        <PCard className="p-4">
           <p className="text-lg font-bold tracking-tight">{course.name}</p>
           <p className="text-sm text-gray-500">Code: {course.code}</p>
-        </Card>
+        </PCard>
       ) : null}
 
       {/* Enrolled Students Table */}

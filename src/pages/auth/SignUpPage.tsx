@@ -222,7 +222,11 @@ const SignUpPage = () => {
       {/* Step 2: Account Form */}
       {step === "account" && currentInstitution && (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+            noValidate
+          >
             {/* Institution display */}
             <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3">
               {currentInstitution.logo_url && (

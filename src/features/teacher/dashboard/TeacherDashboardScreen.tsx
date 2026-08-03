@@ -50,7 +50,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Button, KPICard, SectionHeader, Shimmer } from "@/design-system";
+import {
+  Button,
+  HeroCarousel,
+  KPICard,
+  SectionHeader,
+  Shimmer,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeacherDashboardAggregate } from "@/hooks/useTeacherDashboardAggregate";
 import {
@@ -64,10 +70,10 @@ import {
   type AIAtRiskPrediction,
 } from "@/hooks/useAtRiskPredictions";
 import { attainmentValueClass } from "@/lib/attainmentTone";
+import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
 
 const HERO_GRADIENT = "var(--hero-gradient)";
-const BRAND_GRADIENT = "var(--brand-gradient)";
 
 /** Canonical Bloom's-level dot colors (design-system domain coding). */
 const BLOOM_DOT: Record<string, string> = {
@@ -179,12 +185,9 @@ const ActionTile = ({
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center gap-3 rounded-[20px] border border-[#eef2f6] bg-white p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
+    className="flex items-center gap-3 rounded-4xl border border-[#eef2f6] bg-white p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
   >
-    <span
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
-      style={{ background: BRAND_GRADIENT }}
-    >
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 shadow-2xs backdrop-blur-xs text-teal-700">
       <Icon className="h-5 w-5" aria-hidden="true" />
     </span>
     <div className="min-w-0">
@@ -215,9 +218,10 @@ const TeacherDashboardScreen = () => {
   const atRiskCount = kpis?.atRiskCount ?? 0;
   const pending = kpis?.pendingSubmissions ?? 0;
   const firstName =
-    (profile?.full_name ?? "Teacher").split(" ")[0] ?? "Teacher";
+    getDisplayFirstName(profile?.full_name) ??
+    t("dashboard.teacherFallback", "Teacher");
 
-  // ── Triage grouping (real data, derived severity) ──
+  // ── Triage grouping (real data, derived severity, MAX 3 ON DASHBOARD) ──
   const [triTab, setTriTab] = useState<Severity | null>(null);
   const triageStudents = useMemo(() => atRisk.data ?? [], [atRisk.data]);
   const buckets = useMemo(() => {
@@ -225,7 +229,10 @@ const TeacherDashboardScreen = () => {
     for (const s of triageStudents) b[severityOf(s)].push(s);
     return b;
   }, [triageStudents]);
-  const visibleTriage = triTab ? buckets[triTab] : triageStudents;
+  const visibleTriage = useMemo(() => {
+    const list = triTab ? buckets[triTab] : triageStudents;
+    return list.slice(0, 3);
+  }, [triTab, buckets, triageStudents]);
 
   const nudge = (studentId: string, name: string) => {
     sendNudge.mutate(
@@ -275,77 +282,115 @@ const TeacherDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ── Hero (AI-prepared briefing: greeting + real status chips) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-4 text-white shadow-lg"
+      {/* ── Hero carousel (briefing + real teaching momentum) ── */}
+      <HeroCarousel
+        ariaLabel={t("dashboard.hero.label", "Teaching highlights")}
+        className="rounded-2xl text-white shadow-lg"
         style={{ background: HERO_GRADIENT }}
-      >
-        <div
-          className="pointer-events-none absolute -right-8 -top-11 h-[150px] w-[150px]"
-          style={{
-            background:
-              "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
-          }}
-        />
-        <div className="relative flex items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
-            <GraduationCap className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-bold tracking-tight">
-              {t("dashboard.greeting", "Good day, {{name}}", {
-                name: firstName,
-              })}{" "}
-              👋
-            </h1>
-            <p className="truncate text-[12px] text-white/70">
-              {t(
-                "dashboard.welcome.subtitle",
-                "Here's your teaching cockpit — nothing acts without your OK."
+        slides={[
+          <div key="briefing" className="relative min-h-29 p-4">
+            <div
+              className="pointer-events-none absolute -inset-e-8 -top-11 h-37.5 w-37.5"
+              style={{
+                background:
+                  "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
+              }}
+            />
+            <div className="relative flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                <GraduationCap className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-lg font-bold tracking-tight">
+                  {t("dashboard.greeting", "Good day, {{name}}", {
+                    name: firstName,
+                  })}{" "}
+                  👋
+                </h1>
+                <p className="truncate text-[12px] text-white/70">
+                  {t(
+                    "dashboard.welcome.subtitle",
+                    "Here's your teaching cockpit — nothing acts without your OK."
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="relative mt-3 flex flex-wrap gap-2">
+              {atRiskCount > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    document
+                      .getElementById("triage-sec")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                  className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("dashboard.hero.needAttention", {
+                    defaultValue: "{{n}} students need attention",
+                    n: atRiskCount,
+                  })}
+                </Button>
               )}
-            </p>
-          </div>
-        </div>
-        {/* Status chips — only those backed by real aggregate data. */}
-        <div className="relative mt-3 flex flex-wrap gap-2">
-          {atRiskCount > 0 && (
-            <button
+              {pending > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => navigate("/teacher/grading")}
+                  className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                >
+                  <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("dashboard.hero.toGrade", {
+                    defaultValue: "{{n}} submissions to grade",
+                    n: pending,
+                  })}
+                </Button>
+              )}
+            </div>
+          </div>,
+          <div key="momentum" className="flex min-h-29 items-center gap-4 p-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+              <TrendingUp className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-teal-200">
+                {t("dashboard.hero.momentumEyebrow", "Teaching momentum")}
+              </p>
+              <h2 className="mt-0.5 text-lg font-bold">
+                {t("dashboard.hero.mastery", {
+                  defaultValue: "{{percent}}% average mastery",
+                  percent: avgAttainment,
+                })}
+              </h2>
+              <p className="mt-1 text-[12px] text-white/70">
+                {t("dashboard.hero.momentumBody", {
+                  defaultValue:
+                    "{{graded}} graded this week · {{pending}} still in queue",
+                  graded: kpis?.gradedThisWeek ?? 0,
+                  pending,
+                })}
+              </p>
+            </div>
+            <Button
               type="button"
-              onClick={() =>
-                document
-                  .getElementById("triage-sec")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
+              variant="ghost"
+              onClick={() => navigate("/teacher/gradebook")}
+              className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
             >
-              <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
-              {t("dashboard.hero.needAttention", {
-                defaultValue: "{{n}} students need attention",
-                n: atRiskCount,
-              })}
-            </button>
-          )}
-          {pending > 0 && (
-            <button
-              type="button"
-              onClick={() => navigate("/teacher/grading")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-            >
-              <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
-              {t("dashboard.hero.toGrade", {
-                defaultValue: "{{n}} submissions to grade",
-                n: pending,
-              })}
-            </button>
-          )}
-        </div>
-      </section>
+              {t("dashboard.hero.openGradebook", "Open")}
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          </div>,
+        ]}
+      />
 
       {/* ── KPI row (real aggregate metrics) ── */}
       {aggregate.isPending ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Shimmer key={i} className="h-24 rounded-[20px]" />
+            <Shimmer key={i} className="h-24 rounded-4xl" />
           ))}
         </div>
       ) : (
@@ -389,10 +434,10 @@ const TeacherDashboardScreen = () => {
           action={
             <button
               type="button"
-              onClick={() => navigate("/teacher/gradebook")}
+              onClick={() => navigate("/teacher/students")}
               className="text-xs font-bold text-sky-700 hover:underline"
             >
-              {t("dashboard.triage.all", "All students →")}
+              {t("dashboard.triage.all", "View all students →")}
             </button>
           }
           className="mb-3"
@@ -436,79 +481,95 @@ const TeacherDashboardScreen = () => {
         {atRisk.isPending ? (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, i) => (
-              <Shimmer key={i} className="h-28 rounded-[20px]" />
+              <Shimmer key={i} className="h-28 rounded-4xl" />
             ))}
           </div>
         ) : atRisk.isError ? (
-          <div className="rounded-[20px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-4xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
             {t("dashboard.triage.error", "Couldn't load student triage.")}
           </div>
         ) : visibleTriage.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {visibleTriage.map((s) => {
               const sev = severityOf(s);
               const style = SEVERITY_STYLE[sev];
               return (
                 <div
                   key={s.id}
-                  className="overflow-hidden rounded-[20px] border border-[#eef2f6] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]"
+                  className="student-triage-row flex flex-col gap-3 rounded-2xl border border-[#eef2f6] bg-white p-3.5 shadow-xs transition-all hover:border-slate-200 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={cn(
-                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-black",
-                          style.lead
-                        )}
-                      >
-                        {initials(s.full_name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-gray-900">
-                            {s.full_name}
-                          </p>
-                          <span
-                            className={cn(
-                              "rounded-full border px-2 py-0.5 text-[10px] font-bold",
-                              style.pill
-                            )}
-                          >
-                            {style.label}
-                          </span>
-                        </div>
-                        {s.risk_reasons.length > 0 && (
-                          <p className="mt-1 text-xs text-gray-600">
-                            {s.risk_reasons.join(" · ")}
-                          </p>
-                        )}
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <Button
-                            variant="tactile"
-                            className="h-8 px-3 text-xs"
-                            disabled={sendNudge.isPending}
-                            onClick={() => nudge(s.id, s.full_name)}
-                          >
-                            <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-                            {t("dashboard.triage.nudge", "Send nudge")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="h-8 px-3 text-xs"
-                            onClick={() => navigate("/teacher/gradebook")}
-                          >
-                            {t("dashboard.triage.view", "View student")}
-                          </Button>
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      className={cn(
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black",
+                        style.lead
+                      )}
+                    >
+                      {initials(s.full_name)}
                     </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {s.full_name}
+                        </p>
+                        <span
+                          className={cn(
+                            "rounded-full border px-2 py-0.5 text-[10px] font-bold shrink-0",
+                            style.pill
+                          )}
+                        >
+                          {style.label}
+                        </span>
+                      </div>
+                      {s.risk_reasons.length > 0 && (
+                        <p className="mt-0.5 truncate text-xs text-gray-600">
+                          {s.risk_reasons.join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="tactile"
+                      className="h-8 px-3 text-xs flex-1 sm:flex-none justify-center"
+                      disabled={sendNudge.isPending}
+                      onClick={() => nudge(s.id, s.full_name)}
+                      aria-label={`Send nudge to ${s.full_name}`}
+                    >
+                      <Bell className="h-3.5 w-3.5 me-1" aria-hidden="true" />
+                      {t("dashboard.triage.nudge", "Send nudge")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-8 px-3 text-xs flex-1 sm:flex-none justify-center"
+                      onClick={() => navigate("/teacher/students")}
+                      aria-label={`View ${s.full_name}`}
+                    >
+                      {t("dashboard.triage.view", "View student")}
+                    </Button>
                   </div>
                 </div>
               );
             })}
+
+            {triageStudents.length > 3 && (
+              <div className="pt-1 text-end">
+                <button
+                  type="button"
+                  onClick={() => navigate("/teacher/students")}
+                  className="text-xs font-extrabold text-blue-600 hover:underline"
+                >
+                  {t("dashboard.triage.viewAllCount", {
+                    defaultValue: "View all {{count}} at-risk students →",
+                    count: triageStudents.length,
+                  })}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="rounded-[20px] border border-[#eef2f6] bg-white p-6 text-center text-sm text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+          <div className="rounded-4xl border border-[#eef2f6] bg-white p-6 text-center text-sm text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
             {t(
               "dashboard.triage.empty",
               "No students flagged — everyone's on track."
@@ -520,22 +581,23 @@ const TeacherDashboardScreen = () => {
       {/* ── At-risk · AI prediction  +  Bloom's coverage ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* At-risk students · AI prediction (useAtRiskPredictions) */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={AlertTriangle}
-            title={t(
-              "dashboard.prediction.title",
-              "At-risk students · AI prediction"
-            )}
+            title={t("dashboard.prediction.title", "Student risk signals")}
             action={
               predictions.data && predictions.data.length > 0 ? (
-                <span className="rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                <span className="rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                   {t("dashboard.prediction.flagged", {
-                    defaultValue: "{{n}} flagged",
+                    defaultValue: "{{n}} AI model flagged",
                     n: predictions.data.length,
                   })}
                 </span>
-              ) : undefined
+              ) : (
+                <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                  Standard rules active
+                </span>
+              )
             }
           />
           <div className="mt-3">
@@ -636,7 +698,7 @@ const TeacherDashboardScreen = () => {
                         <Button
                           variant="outline"
                           className="h-8 px-3 text-xs"
-                          onClick={() => navigate("/teacher/gradebook")}
+                          onClick={() => navigate("/teacher/students")}
                         >
                           {t("dashboard.triage.view", "View student")}
                         </Button>
@@ -646,18 +708,26 @@ const TeacherDashboardScreen = () => {
                 })}
               </div>
             ) : (
-              <p className="py-6 text-center text-sm text-gray-500">
-                {t(
-                  "dashboard.prediction.empty",
-                  "No AI risk predictions right now."
-                )}
-              </p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-center">
+                <p className="text-xs font-bold text-slate-700">
+                  {t(
+                    "dashboard.prediction.emptyTitle",
+                    `Rule-based risk: ${triageStudents.length} students flagged`
+                  )}
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {t(
+                    "dashboard.prediction.emptySubtitle",
+                    "AI predictive model: Not configured · Active signals are tracked via standard attendance & CLO rules."
+                  )}
+                </p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Bloom's coverage (real bloomsDistribution — teacher-wide) */}
-        <div className="rounded-[20px] border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={Brain}
             title={t("dashboard.bloomsDistribution", "Bloom's coverage")}

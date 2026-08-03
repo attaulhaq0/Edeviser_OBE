@@ -1,5 +1,5 @@
 import { parseAsString, useQueryState } from "nuqs";
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,7 +136,7 @@ const PendingOnboardingPage = () => {
           ))}
         </div>
       ) : filtered.length > 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <PCard className="overflow-hidden">
           <div className="divide-y divide-slate-100">
             {filtered.map((student) => {
               const daysSinceCreation = differenceInDays(
@@ -191,14 +191,14 @@ const PendingOnboardingPage = () => {
               );
             })}
           </div>
-        </Card>
+        </PCard>
       ) : (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-12 text-center">
+        <PCard className="p-12 text-center">
           <UserX className="h-10 w-10 text-gray-300 mx-auto mb-3" />
           <p className="text-sm text-gray-500">
             All students have completed onboarding.
           </p>
-        </Card>
+        </PCard>
       )}
     </div>
   );
