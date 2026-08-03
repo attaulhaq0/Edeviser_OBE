@@ -15,6 +15,7 @@ import {
   Lightbulb,
   X,
   ArrowLeft,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,7 @@ import {
   useJournalEntry,
   useCreateJournalEntry,
   useUpdateJournalEntry,
+  useDeleteJournalEntry,
 } from "@/hooks/useJournal";
 import { useCLOs } from "@/hooks/useCLOs";
 import { useStudentCourseProgram } from "@/hooks/useStudentCourseProgram";
@@ -141,6 +143,7 @@ const JournalEditor = () => {
   // Mutations
   const createMutation = useCreateJournalEntry();
   const updateMutation = useUpdateJournalEntry();
+  const deleteMutation = useDeleteJournalEntry();
 
   // Form setup
   const form = useForm<JournalFormData>({
@@ -267,8 +270,25 @@ const JournalEditor = () => {
     }
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const isPending =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
   const isLoading = isLoadingEntry || isLoadingCourses;
+
+  const handleDelete = () => {
+    if (!id || !isEditMode || !window.confirm("Delete this journal entry?")) {
+      return;
+    }
+
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Journal entry deleted");
+        navigate("/student/journal");
+      },
+      onError: (err) => toast.error(err.message),
+    });
+  };
 
   if (isLoading) {
     return (
@@ -437,6 +457,18 @@ const JournalEditor = () => {
                 <PenLine className="h-4 w-4" />
                 {isEditMode ? "Update Entry" : "Save Entry"}
               </Button>
+              {isEditMode && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={isPending}
+                  onClick={handleDelete}
+                  className="ms-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Entry
+                </Button>
+              )}
             </form>
           </Form>
         </div>

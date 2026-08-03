@@ -867,7 +867,7 @@ const LoginPage = () => {
             <span>Secure. Private. Built for education.</span>
           </div>
 
-          <div className="fixed bottom-4 inset-e-4 hidden sm:block">
+          <div className="fixed bottom-4 right-4 hidden sm:block">
             <img
               src={foxiSmiling}
               alt="Mascot Badge"

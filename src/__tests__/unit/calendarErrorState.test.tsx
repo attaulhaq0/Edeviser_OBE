@@ -19,6 +19,18 @@ vi.mock("@/hooks/useCalendar", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: "student-1" }, role: "student" }),
+}));
+
+vi.mock("@/hooks/useTimetable", () => ({
+  useTimetableSlots: () => ({ data: [] }),
+}));
+
+vi.mock("@/hooks/useWeeklyPlanner", () => ({
+  useWeeklyPlannerData: () => ({ tasks: [], isError: false }),
+}));
+
 import CalendarView from "@/pages/shared/CalendarView";
 
 const renderView = () =>

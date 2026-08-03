@@ -58,11 +58,13 @@ export const getDeadlineUrgency = (
 };
 
 export const useCalendarEvents = (month?: number, year?: number) => {
-  const { user } = useAuth();
+  const { user, role, institutionId } = useAuth();
 
   return useQuery({
     queryKey: queryKeys.calendarEvents.list({ month, year, userId: user?.id }),
     queryFn: async (): Promise<CalendarEvent[]> => {
+      if (!user) return [];
+
       const events: CalendarEvent[] = [];
       const now = new Date();
       const m = month ?? now.getMonth() + 1;
@@ -72,49 +74,107 @@ export const useCalendarEvents = (month?: number, year?: number) => {
       const nextY = m + 1 > 12 ? y + 1 : y;
       const endDate = `${nextY}-${String(nextM).padStart(2, "0")}-01`;
 
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from("assignments")
-        .select("id, title, due_date, course_id")
-        .gte("due_date", startDate)
-        .lt("due_date", endDate);
-      if (assignmentsError) throw assignmentsError;
+      // Calendar deadlines must be scoped to the signed-in user's teaching or
+      // enrollment graph. RLS is still the final guard, but an explicit scope
+      // prevents a broad public assignment query from leaking unrelated rows
+      // and keeps the calendar useful when a user has no course enrollments.
+      let courseIds: string[] = [];
+      const courseNames = new Map<string, string>();
 
-      for (const a of assignments ?? []) {
-        events.push({
-          id: a.id,
-          title: a.title,
-          date: a.due_date,
-          type: "assignment",
-          course_id: a.course_id,
-          color: "#3b82f6",
-        });
+      if (role === "student") {
+        const { data: enrollments, error: enrollmentError } = await supabase
+          .from("student_courses")
+          .select("course_id")
+          .eq("student_id", user.id)
+          .eq("status", "active");
+        if (enrollmentError) throw enrollmentError;
+        courseIds = [
+          ...new Set(
+            (enrollments ?? [])
+              .map((enrollment) => enrollment.course_id)
+              .filter((courseId): courseId is string => !!courseId)
+          ),
+        ];
+      } else if (role === "teacher") {
+        const { data: teacherCourses, error: teacherCourseError } =
+          await supabase
+            .from("courses")
+            .select("id, name")
+            .eq("teacher_id", user.id)
+            .eq("is_active", true);
+        if (teacherCourseError) throw teacherCourseError;
+        for (const course of teacherCourses ?? []) {
+          courseNames.set(course.id, course.name);
+        }
+        courseIds = (teacherCourses ?? []).map((course) => course.id);
       }
 
-      const { data: quizzes, error: quizzesError } = await supabase
-        .from("quizzes")
-        .select("id, title, due_date, course_id")
-        .gte("due_date", startDate)
-        .lt("due_date", endDate);
-      if (quizzesError) throw quizzesError;
+      if (courseIds.length > 0 && courseNames.size < courseIds.length) {
+        const { data: courses, error: coursesError } = await supabase
+          .from("courses")
+          .select("id, name")
+          .in("id", courseIds);
+        if (coursesError) throw coursesError;
+        for (const course of courses ?? []) {
+          courseNames.set(course.id, course.name);
+        }
+      }
 
-      for (const q of quizzes ?? []) {
-        if (q.due_date) {
+      if (courseIds.length > 0) {
+        const { data: assignments, error: assignmentsError } = await supabase
+          .from("assignments")
+          .select("id, title, due_date, course_id")
+          .in("course_id", courseIds)
+          .gte("due_date", startDate)
+          .lt("due_date", endDate);
+        if (assignmentsError) throw assignmentsError;
+
+        for (const a of assignments ?? []) {
           events.push({
-            id: q.id,
-            title: q.title,
-            date: q.due_date,
-            type: "quiz",
-            course_id: q.course_id,
-            color: "#8b5cf6",
+            id: a.id,
+            title: a.title,
+            date: a.due_date,
+            type: "assignment",
+            course_id: a.course_id,
+            course_name: courseNames.get(a.course_id),
+            color: "#3b82f6",
           });
         }
       }
 
-      const { data: academic, error: academicError } = await supabase
+      if (courseIds.length > 0) {
+        const { data: quizzes, error: quizzesError } = await supabase
+          .from("quizzes")
+          .select("id, title, due_date, course_id")
+          .in("course_id", courseIds)
+          .gte("due_date", startDate)
+          .lt("due_date", endDate);
+        if (quizzesError) throw quizzesError;
+
+        for (const q of quizzes ?? []) {
+          if (q.due_date) {
+            events.push({
+              id: q.id,
+              title: q.title,
+              date: q.due_date,
+              type: "quiz",
+              course_id: q.course_id,
+              course_name: courseNames.get(q.course_id),
+              color: "#8b5cf6",
+            });
+          }
+        }
+      }
+
+      let academicQuery = supabase
         .from("academic_calendar_events")
         .select("id, title, start_date")
         .gte("start_date", startDate)
         .lt("start_date", endDate);
+      if (institutionId) {
+        academicQuery = academicQuery.eq("institution_id", institutionId);
+      }
+      const { data: academic, error: academicError } = await academicQuery;
       if (academicError) throw academicError;
 
       for (const e of academic ?? []) {

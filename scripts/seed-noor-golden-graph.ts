@@ -52,6 +52,14 @@ const NOOR_INSTITUTION_ID = "4de6a0a2-758b-47f3-ab7e-984bb974d88b";
 // Fixed deterministic seed anchor timestamp
 const SEED_TIMESTAMP = "2026-08-01T12:00:00.000Z";
 const SEED_VERSION = "1.0.0-noor-golden-graph";
+const SEED_EXECUTION = new Date();
+
+const futureDueDate = (daysFromSeed: number, hourUtc: number): string => {
+  const due = new Date(SEED_EXECUTION);
+  due.setUTCDate(due.getUTCDate() + daysFromSeed);
+  due.setUTCHours(hourUtc, 0, 0, 0);
+  return due.toISOString();
+};
 
 const SEED_MANIFEST = {
   institutionId: NOOR_INSTITUTION_ID,
@@ -96,6 +104,15 @@ const SEED_MANIFEST = {
   discussionId: "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
   replyId: "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
   assignmentId: "cccccccc-cccc-4ccc-cccc-cccccccccccc",
+  upcomingAssignmentIds: {
+    essayOutline: "cccccccc-cccc-4ccc-cccc-cccccccccc01",
+    ratiosProject: "cccccccc-cccc-4ccc-cccc-cccccccccc02",
+    mathReflection: "cccccccc-cccc-4ccc-cccc-cccccccccc03",
+  },
+  journalEntryIds: {
+    mathReflection: "f8111111-1111-4111-a111-111111111101",
+    englishReflection: "f8222222-2222-4222-a222-222222222202",
+  },
   submissionIds: {
     sub1: "dddddddd-dddd-4ddd-dddd-dddddddddddd", // Aarav
     sub2: "eeeeeeee-eeee-4eee-eeee-eeeeeeeeeeee", // Mei Lin
@@ -562,9 +579,69 @@ async function seedNoorGoldenGraph() {
           title: "Analytical Essay First Draft",
           description: "Submit a 500-word essay analyzing Chapter 3 themes.",
           total_marks: 100,
-          due_date: "2026-08-10T23:59:59.000Z",
+          due_date: futureDueDate(2, 23),
           created_by: SEED_MANIFEST.teacherId,
           created_at: SEED_TIMESTAMP,
+        },
+        {
+          id: SEED_MANIFEST.upcomingAssignmentIds.essayOutline,
+          course_id: SEED_MANIFEST.courseIds.eng7,
+          title: "Analytical Essay Outline Revision",
+          description:
+            "Revise your thesis and evidence outline using peer feedback.",
+          total_marks: 50,
+          due_date: futureDueDate(3, 16),
+          created_by: SEED_MANIFEST.teacherId,
+          created_at: SEED_TIMESTAMP,
+        },
+        {
+          id: SEED_MANIFEST.upcomingAssignmentIds.ratiosProject,
+          course_id: SEED_MANIFEST.courseIds.math6,
+          title: "Ratios & Proportions Investigation",
+          description:
+            "Submit a worked investigation showing two real-world ratio models.",
+          total_marks: 75,
+          due_date: futureDueDate(5, 16),
+          created_by: SEED_MANIFEST.teacherKimId,
+          created_at: SEED_TIMESTAMP,
+        },
+        {
+          id: SEED_MANIFEST.upcomingAssignmentIds.mathReflection,
+          course_id: SEED_MANIFEST.courseIds.math6,
+          title: "Mathematical Thinking Reflection",
+          description:
+            "Reflect on the strategy you used to solve a multi-step problem.",
+          total_marks: 40,
+          due_date: futureDueDate(8, 16),
+          created_by: SEED_MANIFEST.teacherKimId,
+          created_at: SEED_TIMESTAMP,
+        },
+      ],
+      { onConflict: "id" }
+    )
+  );
+
+  console.log("📔 Seeding Noor student reflection journal entries...");
+  await strictQuery(
+    supabase.from("journal_entries").upsert(
+      [
+        {
+          id: SEED_MANIFEST.journalEntryIds.mathReflection,
+          student_id: SEED_MANIFEST.primaryStudentId,
+          course_id: SEED_MANIFEST.courseIds.math6,
+          content:
+            "Today I compared two ratio models and noticed that the unit labels made the relationship much easier to explain. I first made an incorrect assumption about the scale, then checked the equivalent fractions and corrected my work. Next time I will write the units beside every step before calculating.",
+          is_shared: false,
+          created_at: futureDueDate(-2, 18),
+        },
+        {
+          id: SEED_MANIFEST.journalEntryIds.englishReflection,
+          student_id: SEED_MANIFEST.primaryStudentId,
+          course_id: SEED_MANIFEST.courseIds.eng7,
+          content:
+            "The essay outline helped me see that a strong claim needs evidence and an explanation connecting the evidence back to the question. Peer feedback showed me where my reasoning jumped too quickly. I revised the thesis and added a sentence explaining why each quotation supports the argument.",
+          is_shared: false,
+          created_at: futureDueDate(-1, 18),
         },
       ],
       { onConflict: "id" }
@@ -974,6 +1051,16 @@ async function seedNoorGoldenGraph() {
       entity_type: "assignment",
       entity_id: SEED_MANIFEST.assignmentId,
     },
+    ...Object.values(SEED_MANIFEST.upcomingAssignmentIds).map((entityId) => ({
+      seed_run_id: SEED_MANIFEST.seedRunId,
+      entity_type: "assignment",
+      entity_id: entityId,
+    })),
+    ...Object.values(SEED_MANIFEST.journalEntryIds).map((entityId) => ({
+      seed_run_id: SEED_MANIFEST.seedRunId,
+      entity_type: "journal_entry",
+      entity_id: entityId,
+    })),
     {
       seed_run_id: SEED_MANIFEST.seedRunId,
       entity_type: "submission",
