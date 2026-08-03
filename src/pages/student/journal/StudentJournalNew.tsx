@@ -1,41 +1,20 @@
 // =============================================================================
-// StudentJournalNew — redesigned learning journal (P3, spec task 3.1)
+// StudentJournalNew — prototype-aligned journal body
 // =============================================================================
-//
-// List + create-dialog archetype gated behind `newUiModules` (see the wrapper
-// in StudentJournalPage.tsx). REUSES every existing hook, the create-entry
-// mutation, the CLO-contextual guided-prompt generation, the reflection-prompt
-// templates, and the word-count / XP-eligibility logic VERBATIM (R10.1–R10.3a).
-// Only presentation changes: the CTA + save buttons use the tactile Button
-// variant and entry cards use `.card-elevated`. i18n reuses the exact `student`
-// namespace `journal.*` keys. Flag-off keeps the legacy page byte-identical.
+// The page deliberately keeps the existing TanStack Query/Supabase hooks and
+// mutation intact. This component only changes the presentation and composes
+// the same data into the reflection, journey, prompt and timeline sections
+// from the Journal prototype.
 // =============================================================================
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  BookOpen,
-  CalendarDays,
-  Check,
-  Flame,
-  Lightbulb,
-  PenLine,
-  Plus,
-  Sparkles,
-} from "lucide-react";
 import { Link } from "react-router-dom";
+import { BookOpen, Check, ChevronDown, Lightbulb, PenLine } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -44,28 +23,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { KPICard, PCard, Shimmer } from "@/design-system";
 import EmptyState from "@/components/shared/EmptyState";
+import MascotCharacter from "@/design-system/mascot/MascotCharacter";
+import { PCard, Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
-import { useJournalEntries, useCreateJournalEntry } from "@/hooks/useJournal";
-import { useJournalCourseOptions } from "@/hooks/useJournalCourseOptions";
 import { useCLOs } from "@/hooks/useCLOs";
+import { useCreateJournalEntry, useJournalEntries } from "@/hooks/useJournal";
+import { useJournalCourseOptions } from "@/hooks/useJournalCourseOptions";
 import {
   generateJournalPrompt,
   type GeneratedJournalPrompt,
 } from "@/lib/journalPromptGenerator";
+import { getJournalInsights } from "@/lib/journalInsights";
 import {
   REFLECTION_PROMPT_TEMPLATES,
   seedContentWithPrompt,
 } from "@/lib/reflectionPrompts";
-import { getJournalInsights } from "@/lib/journalInsights";
 import { toast } from "sonner";
 
-/**
- * Builds the seed text for a CLO-contextual guided prompt: the intro followed
- * by the Kolb reflection questions as scaffolding.
- */
 const buildGuidedSeed = (prompt: GeneratedJournalPrompt): string => {
   const questions = prompt.questions.map((q) => `• ${q.question}`).join("\n");
   return `${prompt.promptText}\n\n${questions}`;
@@ -75,45 +50,35 @@ const StudentJournalNew = () => {
   const { t, i18n } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id;
-
-  const [isCreating, setIsCreating] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const entryRef = useRef<HTMLTextAreaElement>(null);
+  const [selectedCourse, setSelectedCourse] = useState("");
   const [content, setContent] = useState("");
 
   const { data: entries, isLoading: entriesLoading } = useJournalEntries();
   const { data: courses } = useJournalCourseOptions(studentId);
   const createEntry = useCreateJournalEntry();
-
-  // CLOs for the selected course drive the existing CLO-contextual prompt
-  // generator. Matches the pattern used in JournalEditor.
   const { data: closData } = useCLOs(selectedCourse || undefined);
   const clos = useMemo(() => closData?.data ?? [], [closData]);
-
-  // Build a guided, CLO-contextual prompt when context is available. When no
-  // course/CLO context exists — or the generator is otherwise unavailable —
-  // this is null and the page falls back to the static templates + free-text
-  // (basic unguided journal), so journaling always remains possible (R10.3a).
   const guidedPrompt = useMemo((): GeneratedJournalPrompt | null => {
     if (!selectedCourse) return null;
-    const cloWithBlooms = clos.find((c) => c.blooms_level);
-    if (!cloWithBlooms || !cloWithBlooms.blooms_level) return null;
+    const clo = clos.find((item) => item.blooms_level);
+    if (!clo?.blooms_level) return null;
     try {
       return generateJournalPrompt({
-        cloTitle: cloWithBlooms.title,
-        bloomsLevel: cloWithBlooms.blooms_level,
-        // Real attainment would come from outcome_attainment; "Developing"
-        // is a neutral default that yields the full set of reflection stages.
+        cloTitle: clo.title,
+        bloomsLevel: clo.blooms_level,
         attainmentLevel: "Developing",
       });
     } catch {
-      // Generator unavailable — fall back to the unguided journal (R10.3a).
       return null;
     }
-  }, [selectedCourse, clos]);
+  }, [clos, selectedCourse]);
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-
-  const courseLookup = new Map((courses ?? []).map((c) => [c.id, c]));
+  const characterCount = content.length;
+  const courseLookup = new Map(
+    (courses ?? []).map((course) => [course.id, course])
+  );
   const insights = useMemo(() => getJournalInsights(entries ?? []), [entries]);
   const dailyPrompt = t(
     REFLECTION_PROMPT_TEMPLATES[
@@ -131,292 +96,316 @@ const StudentJournalNew = () => {
       ...options,
     }).format(new Date(date));
 
+  const focusComposer = () => {
+    entryRef.current?.focus();
+  };
+
   const handleSelectTemplate = (promptText: string) => {
-    setContent((prev) => seedContentWithPrompt(prev, promptText));
+    setContent((previous) => seedContentWithPrompt(previous, promptText));
+    requestAnimationFrame(focusComposer);
   };
 
   const handleSubmit = async () => {
-    if (!selectedCourse || content.trim().length === 0) return;
+    const courseId = selectedCourse || courses?.[0]?.id;
+    if (!courseId || wordCount < 50) return;
     try {
       await createEntry.mutateAsync({
-        course_id: selectedCourse,
+        course_id: courseId,
         content: content.trim(),
       });
       toast.success(t("journal.created", "Journal entry saved"));
       setContent("");
-      setSelectedCourse("");
-      setIsCreating(false);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to save entry";
-      toast.error(message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save entry"
+      );
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <div className="mx-auto w-full max-w-[1180px] space-y-5 pb-5">
+      <div className="flex items-center justify-between gap-3 px-1">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("journal.title", "Learning Journal")}
+          <h1 className="text-xl font-black tracking-tight text-slate-900">
+            {t("journal.title", "Reflection Journal")}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-xs text-slate-500">
             {t(
               "journal.subtitle",
-              "Reflect on what you've learned. Earn 20 XP per entry of 50+ words."
+              "Reflect, grow, and make your learning visible."
             )}
           </p>
         </div>
-        <Dialog open={isCreating} onOpenChange={setIsCreating}>
-          <DialogTrigger asChild>
-            <Button variant="tactile">
-              <Plus className="h-4 w-4" />
-              {t("journal.newEntry", "New Entry")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {t("journal.dialog.title", "New Journal Entry")}
-              </DialogTitle>
-              <DialogDescription>
-                {t(
-                  "journal.dialog.description",
-                  "Reflect on a recent class, assignment, or concept."
-                )}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="course">
-                  {t("journal.dialog.course", "Course")}
-                </Label>
-                <Select
-                  value={selectedCourse}
-                  onValueChange={setSelectedCourse}
-                >
-                  <SelectTrigger id="course">
-                    <SelectValue
-                      placeholder={t(
-                        "journal.dialog.selectCourse",
-                        "Select a course"
-                      )}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(courses ?? []).map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.code} — {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Reflection prompt templates — always available so the journal
-                  is guided rather than a bare textbox (R10.1, R10.2). */}
-              <div className="space-y-2">
-                <Label>
-                  {t("journal.prompts.title", "Reflection prompts")}
-                </Label>
-                <p className="text-xs text-gray-500">
-                  {t(
-                    "journal.prompts.hint",
-                    "Pick a prompt to get started, or just write freely below."
-                  )}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {REFLECTION_PROMPT_TEMPLATES.map((template) => {
-                    const promptText = t(template.i18nKey);
-                    return (
-                      <Button
-                        key={template.id}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full"
-                        onClick={() => handleSelectTemplate(promptText)}
-                      >
-                        <Lightbulb className="me-1.5 h-3.5 w-3.5 text-amber-500" />
-                        {promptText}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                {/* CLO-contextual guided prompt from the existing generator,
-                    shown only when course/CLO context is available (R10.3). */}
-                {guidedPrompt && (
-                  <div className="space-y-2 rounded-lg border border-teal-200 bg-teal-50 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
-                        {t("journal.prompts.guided", "Guided reflection")}
-                      </p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-teal-700 hover:bg-teal-100"
-                        onClick={() =>
-                          handleSelectTemplate(buildGuidedSeed(guidedPrompt))
-                        }
-                      >
-                        {t("journal.prompts.use", "Use this prompt")}
-                      </Button>
-                    </div>
-                    <p className="text-sm leading-relaxed text-gray-700">
-                      {guidedPrompt.promptText}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="content">
-                  {t("journal.dialog.content", "Reflection")}
-                </Label>
-                <Textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={8}
-                  placeholder={t(
-                    "journal.dialog.placeholder",
-                    "What did you learn? What was challenging? What questions do you have?"
-                  )}
-                />
-                <p className="text-xs text-gray-500">
-                  {wordCount} {t("journal.dialog.words", "words")}
-                  {wordCount >= 50 && (
-                    <span className="ms-2 font-semibold text-green-600">
-                      ✓ {t("journal.dialog.xpEarned", "+20 XP eligible")}
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreating(false)}
-                disabled={createEntry.isPending}
-              >
-                {t("common.cancel", "Cancel")}
-              </Button>
-              <Button
-                variant="tactile"
-                onClick={handleSubmit}
-                disabled={
-                  !selectedCourse ||
-                  content.trim().length === 0 ||
-                  createEntry.isPending
-                }
-              >
-                {createEntry.isPending
-                  ? t("common.saving", "Saving...")
-                  : t("common.save", "Save")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-xl"
+          onClick={focusComposer}
+        >
+          <PenLine className="me-2 size-4" />
+          {t("journal.newEntry", "New Entry")}
+        </Button>
       </div>
 
-      <PCard className="p-5 sm:p-6">
-        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-          <div className="flex gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <PenLine className="size-5" aria-hidden="true" />
+      <PCard className="overflow-hidden p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-2.5">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg">
+              📝
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-base font-black tracking-tight text-slate-900">
-                {t("journal.today.title")}
+                {t("journal.today.title", "Today's Reflection")}
               </h2>
-              <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-500">
-                {t("journal.today.description")}
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                {t(
+                  "journal.today.description",
+                  "What did you learn today? Reflect on your progress, thoughts, or anything meaningful."
+                )}
               </p>
             </div>
           </div>
-          <Button variant="tactile" onClick={() => setIsCreating(true)}>
-            <PenLine className="size-4" />
-            {t("journal.today.cta")}
-          </Button>
+          <div className="hidden shrink-0 items-start gap-2 sm:flex">
+            <div className="relative mt-1 max-w-[150px] rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-slate-600 shadow-sm before:absolute before:start-[-7px] before:top-4 before:size-3 before:rotate-45 before:border-b before:border-s-amber-300 before:bg-amber-50">
+              {t(
+                "journal.today.mascotMessage",
+                "Every reflection makes you stronger! ✨"
+              )}
+            </div>
+            <MascotCharacter
+              character="foxi"
+              emotion="happy"
+              size="md"
+              animation="float"
+              alt={t(
+                "journal.today.mascotAlt",
+                "Foxi cheering your reflection"
+              )}
+              className="-mt-2"
+            />
+          </div>
+        </div>
+
+        <div className="relative mt-4">
+          <Textarea
+            ref={entryRef}
+            value={content}
+            maxLength={1000}
+            rows={4}
+            onChange={(event) => setContent(event.target.value)}
+            placeholder={t(
+              "journal.dialog.placeholder",
+              "Write your thoughts here…"
+            )}
+            className="resize-none rounded-xl border-slate-200 bg-slate-50 p-3.5 pe-20 text-sm focus:border-blue-400 focus:ring-blue-100"
+            aria-label={t("journal.dialog.content", "Reflection")}
+          />
+          <span className="pointer-events-none absolute bottom-3 end-3.5 text-[11px] text-slate-400">
+            {characterCount} / 1000
+          </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold text-slate-500">
+            {t("journal.prompts.hint", "Need inspiration? Try these:")}
+          </p>
+          {courses && courses.length > 1 ? (
+            <div className="flex items-center gap-2">
+              <Label
+                htmlFor="journal-course"
+                className="text-[11px] text-slate-500"
+              >
+                {t("journal.dialog.course", "Course")}
+              </Label>
+              <Select
+                value={selectedCourse || courses?.[0]?.id || ""}
+                onValueChange={setSelectedCourse}
+              >
+                <SelectTrigger
+                  id="journal-course"
+                  className="h-8 w-[190px] rounded-lg text-xs"
+                >
+                  <SelectValue
+                    placeholder={t(
+                      "journal.dialog.selectCourse",
+                      "Select a course"
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.code} — {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {REFLECTION_PROMPT_TEMPLATES.map((template) => {
+            const promptText = t(template.i18nKey);
+            return (
+              <Button
+                key={template.id}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-auto rounded-full px-3 py-1.5 text-xs font-semibold text-slate-600"
+                onClick={() => handleSelectTemplate(promptText)}
+              >
+                <Lightbulb className="me-1.5 size-3.5 text-amber-500" />
+                {promptText}
+              </Button>
+            );
+          })}
+        </div>
+        {guidedPrompt ? (
+          <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
+                {t("journal.prompts.guided", "Guided reflection")}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-teal-700 hover:bg-teal-100"
+                onClick={() =>
+                  handleSelectTemplate(buildGuidedSeed(guidedPrompt))
+                }
+              >
+                {t("journal.prompts.use", "Use this prompt")}
+              </Button>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              {guidedPrompt.promptText}
+            </p>
+          </div>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600">
+            ⭐ {t("journal.today.xp", "+20 XP for journaling")}
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-slate-400">
+              {wordCount >= 50
+                ? t("journal.today.ready", "Ready ✓")
+                : t(
+                    "journal.today.wordsNeeded",
+                    "{{count}} more words for +20 XP",
+                    {
+                      count: Math.max(0, 50 - wordCount),
+                    }
+                  )}
+            </span>
+            <Button
+              type="button"
+              variant="tactile"
+              onClick={handleSubmit}
+              disabled={
+                wordCount < 50 ||
+                !(selectedCourse || courses?.[0]?.id) ||
+                createEntry.isPending
+              }
+              className="rounded-xl"
+            >
+              {createEntry.isPending
+                ? t("common.saving", "Saving…")
+                : `💾 ${t("journal.today.save", "Save Reflection")}`}
+            </Button>
+          </div>
         </div>
       </PCard>
 
       {entriesLoading ? (
-        <div className="space-y-4">
-          <Shimmer className="h-72 rounded-[20px]" />
+        <>
+          <Shimmer className="h-64 rounded-[20px]" />
           <Shimmer className="h-52 rounded-[20px]" />
-        </div>
+        </>
       ) : (
         <>
           <PCard className="p-5 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
-                  <BookOpen className="size-4" aria-hidden="true" />
+                <span className="flex size-8 items-center justify-center rounded-lg bg-violet-50 text-lg">
+                  📔
                 </span>
                 <h2 className="text-base font-black tracking-tight text-slate-900">
-                  {t("journal.journey.title")}
+                  {t("journal.journey.title", "Your Journaling Journey")}
                 </h2>
               </div>
-              <Badge
-                variant="outline"
-                className="rounded-lg px-2.5 py-1 text-xs text-slate-500"
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-500"
               >
-                {t("journal.journey.thisWeek")}
-              </Badge>
+                {t("journal.journey.thisWeek", "This Week")}
+                <ChevronDown className="size-3.5" />
+              </button>
             </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <KPICard
-                icon={BookOpen}
-                label={t("journal.journey.entriesThisWeek")}
-                value={insights.entriesThisWeek}
-                iconBgClass="bg-teal-50"
-                iconColorClass="text-teal-600"
-                valueClassName="text-slate-900"
-              />
-              <KPICard
-                icon={Flame}
-                label={t("journal.journey.dayStreak")}
-                value={insights.streak}
-                iconBgClass="bg-orange-50"
-                iconColorClass="text-orange-600"
-                valueClassName="text-slate-900"
-              />
-              <KPICard
-                icon={Sparkles}
-                label={t("journal.journey.substantive")}
-                value={insights.substantiveThisWeek}
-                iconBgClass="bg-amber-50"
-                iconColorClass="text-amber-600"
-                valueClassName="text-slate-900"
-              />
-              <KPICard
-                icon={CalendarDays}
-                label={t("journal.journey.totalEntries")}
-                value={insights.totalEntries}
-                iconBgClass="bg-blue-50"
-                iconColorClass="text-blue-600"
-                valueClassName="text-slate-900"
-              />
+            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+              {[
+                [
+                  "📖",
+                  insights.entriesThisWeek,
+                  t("journal.journey.entriesThisWeek", "Entries this week"),
+                  "bg-teal-50",
+                ],
+                [
+                  "🔥",
+                  insights.streak,
+                  t("journal.journey.dayStreak", "Day streak"),
+                  "bg-red-50",
+                ],
+                [
+                  "⭐",
+                  insights.substantiveThisWeek * 20,
+                  t("journal.journey.xpEarned", "XP earned this week"),
+                  "bg-amber-50",
+                ],
+                [
+                  "📅",
+                  insights.totalEntries,
+                  t("journal.journey.totalEntries", "Total entries"),
+                  "bg-blue-50",
+                ],
+              ].map(([icon, value, label, iconBg]) => (
+                <div key={String(label)} className="flex items-center gap-3">
+                  <div
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-lg ${iconBg}`}
+                  >
+                    {icon}
+                  </div>
+                  <div>
+                    <p className="text-xl font-black leading-none text-slate-900">
+                      {value}
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-500">{label}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="mt-6 border-t border-slate-100 pt-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-bold text-slate-700">
-                  {t("journal.journey.weeklyStreak")}
+            <div className="mt-5 border-t border-slate-100 pt-4">
+              <div className="mb-2.5 flex items-center justify-between gap-2">
+                <p className="text-xs font-bold text-slate-700">
+                  🔥{" "}
+                  {t(
+                    "journal.journey.weeklyStreak",
+                    "This week's reflection streak"
+                  )}
                 </p>
-                <span className="text-xs font-semibold text-teal-700">
-                  {t("journal.journey.daysOfWeek", {
-                    count: insights.days.filter((day) => day.hasEntry).length,
-                  })}
+                <span className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-[11px] font-bold text-teal-600">
+                  {t("journal.journey.keepAlive", "Keep it alive today!")}
                 </span>
               </div>
               <ol
-                className="mt-4 grid grid-cols-7 gap-1.5"
-                aria-label={t("journal.journey.weeklyStreak")}
+                className="flex gap-1.5"
+                aria-label={t(
+                  "journal.journey.weeklyStreak",
+                  "This week's reflection streak"
+                )}
               >
                 {insights.days.map((day) => {
                   const isToday =
@@ -425,95 +414,116 @@ const StudentJournalNew = () => {
                   return (
                     <li
                       key={day.date.toISOString()}
-                      className="flex flex-col items-center gap-1.5"
+                      className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
                     >
                       <span
                         className={
                           day.hasEntry
-                            ? "flex size-8 items-center justify-center rounded-[10px] bg-teal-600 text-white"
+                            ? "flex size-[30px] items-center justify-center rounded-[10px] bg-teal-600 text-sm font-black text-white"
                             : isToday
-                            ? "flex size-8 items-center justify-center rounded-[10px] border-2 border-dashed border-teal-600 text-teal-700"
-                            : "flex size-8 items-center justify-center rounded-[10px] bg-slate-100 text-slate-300"
+                            ? "flex size-[30px] items-center justify-center rounded-[10px] border-2 border-dashed border-teal-600 text-sm font-black text-teal-700"
+                            : "flex size-[30px] items-center justify-center rounded-[10px] bg-slate-100 text-sm font-black text-slate-300"
                         }
-                        aria-label={formatEntryDate(day.date, {
-                          weekday: "long",
-                        })}
                       >
-                        {day.hasEntry ? (
-                          <Check className="size-4" aria-hidden="true" />
-                        ) : (
-                          "·"
-                        )}
+                        {day.hasEntry ? <Check className="size-4" /> : "·"}
                       </span>
-                      <span className="text-[11px] font-bold text-slate-500">
+                      <span className="text-[10px] font-extrabold text-slate-400">
                         {formatEntryDate(day.date, { weekday: "narrow" })}
                       </span>
                     </li>
                   );
                 })}
               </ol>
+              <div className="mb-1.5 mt-4 flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold text-slate-500">
+                  {t(
+                    "journal.journey.habitForming",
+                    "Habit forming · {{count}} / 7 days this week",
+                    {
+                      count: insights.days.filter((day) => day.hasEntry).length,
+                    }
+                  )}
+                </p>
+                <p className="text-[11px] font-bold text-slate-400">
+                  {t(
+                    "journal.journey.perfectWeek",
+                    "{{count}} more for a perfect week 🏅",
+                    {
+                      count: Math.max(
+                        0,
+                        7 - insights.days.filter((day) => day.hasEntry).length
+                      ),
+                    }
+                  )}
+                </p>
+              </div>
+              <div className="h-[9px] overflow-hidden rounded-full bg-slate-200">
+                <span
+                  className="block h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-500"
+                  style={{
+                    width: `${Math.round(
+                      (insights.days.filter((day) => day.hasEntry).length / 7) *
+                        100
+                    )}%`,
+                  }}
+                />
+              </div>
             </div>
           </PCard>
 
-          <div className="flex items-center gap-3 rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50 p-4">
-            <Lightbulb
-              className="size-5 shrink-0 text-teal-700"
-              aria-hidden="true"
-            />
-            <p className="text-sm text-slate-600">
-              <span className="font-semibold">
-                {t("journal.dailyPrompt.label")}
-              </span>{" "}
-              <span className="font-bold text-slate-800">{dailyPrompt}</span>
+          <div className="flex items-center gap-3 rounded-xl border border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50 p-3.5 text-xs text-slate-600">
+            <span className="text-lg">💭</span>
+            <p>
+              {t("journal.dailyPrompt.label", "Today's prompt:")}{" "}
+              <b className="font-bold text-slate-800">{dailyPrompt}</b>
             </p>
           </div>
 
           <PCard className="p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                  <CalendarDays className="size-4" aria-hidden="true" />
+                <span className="flex size-8 items-center justify-center rounded-lg bg-amber-50 text-lg">
+                  🗂️
                 </span>
                 <h2 className="text-base font-black tracking-tight text-slate-900">
-                  {t("journal.pastEntries")}
+                  {t("journal.pastEntries", "Past Entries")}
                 </h2>
               </div>
-              <span className="text-xs font-semibold text-slate-500">
-                {t("journal.entryCount", { count: insights.totalEntries })}
+              <span className="text-xs font-bold text-blue-600">
+                {t("journal.viewAll", "View all entries →")}
               </span>
             </div>
-
             {!entries || entries.length === 0 ? (
-              <div className="pt-5">
-                <EmptyState
-                  icon={<PenLine className="h-12 w-12 text-gray-400" />}
-                  title={t("journal.empty.title", "No journal entries yet")}
-                  description={t("journal.empty.description")}
-                />
-              </div>
+              <EmptyState
+                icon={<PenLine className="h-12 w-12 text-gray-400" />}
+                title={t("journal.empty.title", "No journal entries yet")}
+                description={t(
+                  "journal.empty.description",
+                  "Start your learning journal — reflect on a class or concept and earn XP."
+                )}
+              />
             ) : (
-              <ol className="mt-5 space-y-4">
+              <ol className="relative">
                 {entries.map((entry, index) => {
                   const course = courseLookup.get(entry.course_id);
                   return (
-                    <li key={entry.id} className="relative flex gap-3 ps-1">
-                      {index < entries.length - 1 && (
-                        <span
-                          className="absolute start-[7px] top-5 h-[calc(100%+0.75rem)] w-px bg-slate-200"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <span
-                        className="relative mt-1.5 size-3.5 shrink-0 rounded-full border-[3px] border-teal-100 bg-teal-600"
-                        aria-hidden="true"
-                      />
+                    <li
+                      key={entry.id}
+                      className="relative flex gap-3 pb-3 last:pb-0"
+                    >
+                      <span className="relative mt-1.5 flex w-4 shrink-0 justify-center">
+                        <span className="z-10 size-3.5 rounded-full border-[3px] border-teal-100 bg-teal-600" />
+                        {index < entries.length - 1 ? (
+                          <span className="absolute top-4 h-[calc(100%+0.75rem)] w-0.5 bg-slate-200" />
+                        ) : null}
+                      </span>
                       <Link
                         to={`/student/journal/${entry.id}`}
                         className="min-w-0 flex-1 rounded-xl border border-slate-100 bg-white p-3 transition-colors hover:border-blue-200 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <time
-                            className="text-xs font-bold text-slate-400"
+                            className="text-[11px] font-bold text-slate-400"
                             dateTime={entry.created_at}
                           >
                             {formatEntryDate(entry.created_at)}
@@ -528,10 +538,24 @@ const StudentJournalNew = () => {
                             </Badge>
                           ) : null}
                         </div>
-                        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                        <p className="mt-0.5 line-clamp-1 text-sm font-bold text-slate-900">
+                          {entry.content.split(/\r?\n/)[0]}
+                        </p>
+                        <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-xs leading-relaxed text-slate-500">
                           {entry.content}
                         </p>
                       </Link>
+                      <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
+                        <span className="text-[10px] font-bold text-green-600">
+                          +20 XP
+                        </span>
+                        <MascotCharacter
+                          character="penguin"
+                          emotion="happy"
+                          size="xs"
+                          decorative
+                        />
+                      </div>
                     </li>
                   );
                 })}

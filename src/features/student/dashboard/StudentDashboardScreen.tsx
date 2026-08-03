@@ -721,16 +721,16 @@ const StudentDashboardScreen = () => {
       {/* ── Daily Review + Weekly Activity ── */}
       <div className="grid gap-3 lg:grid-cols-2">
         {/* Daily Review (spaced repetition) */}
-        <div className="rounded-2xl bg-white p-4 shadow-md">
+        <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-md">
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-slate-700">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-transparent text-slate-700">
               <Repeat2 className="h-4 w-4" aria-hidden="true" />
             </span>
             <p className="text-[13px] font-black tracking-tight text-slate-900">
               {t("dashboard.review.title", "Daily Review")}
             </p>
             {streak > 0 && (
-              <span className="ms-auto rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-600">
+              <span className="ms-auto rounded-full border border-orange-100 bg-orange-50 px-2.5 py-1 text-[10px] font-black text-orange-600">
                 🔥{" "}
                 {t("dashboard.review.streak", "{{n}}-day streak", {
                   n: streak,
@@ -761,10 +761,11 @@ const StudentDashboardScreen = () => {
               </div>
               <Button
                 variant="tactile"
-                className="h-9 w-full"
+                className="h-9 w-full justify-between px-3.5 text-xs font-black"
                 onClick={() => navigate("/student/today")}
               >
-                {t("dashboard.review.start", "Start review")}
+                <span>{t("dashboard.review.start", "Start Review")}</span>
+                <b className="font-black">+15 XP</b>
               </Button>
             </>
           ) : (
