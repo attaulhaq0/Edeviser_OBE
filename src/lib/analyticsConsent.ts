@@ -1,5 +1,5 @@
 // Task 86.2: Analytics consent utilities
-// Manages cookie consent state in localStorage and conditionally initializes Sentry
+// Manages cookie consent state in localStorage for optional analytics integrations.
 
 const CONSENT_KEY = "edeviser_cookie_consent";
 
@@ -35,21 +35,7 @@ export const hasAnalyticsConsent = (): boolean => {
 };
 
 export const initAnalyticsIfConsented = (): void => {
-  if (!hasAnalyticsConsent()) return;
-
-  // Lazily initialize Sentry only when analytics consent is granted
-  import("@sentry/react")
-    .then((Sentry) => {
-      if (Sentry.isInitialized()) return;
-      Sentry.init({
-        dsn: import.meta.env.VITE_SENTRY_DSN,
-        environment: import.meta.env.MODE,
-        tracesSampleRate: 0.1,
-        replaysSessionSampleRate: 0,
-        replaysOnErrorSampleRate: 1.0,
-      });
-    })
-    .catch((err) => {
-      console.error("[analyticsConsent] Failed to initialize Sentry:", err);
-    });
+  // Consent is retained for analytics integrations that may be enabled later.
+  // Do not load a replay/feedback SDK on every route just to honor consent.
+  void hasAnalyticsConsent();
 };

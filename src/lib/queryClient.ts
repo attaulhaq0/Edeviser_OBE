@@ -1,5 +1,4 @@
 import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
-import * as Sentry from "@sentry/react";
 import { toast } from "sonner";
 
 /**
@@ -11,8 +10,7 @@ import { toast } from "sonner";
  * handlers are a defense-in-depth FALLBACK — per-hook handling stays primary.
  *
  * Behaviour:
- *   - ALWAYS log (console + Sentry). Sentry is a no-op until consent-gated init,
- *     so this is safe to call unconditionally.
+ *   - ALWAYS log to the console.
  *   - Toast is DEDUP-AWARE: a query/mutation opts out with
  *     `meta: { suppressGlobalError: true }` so hooks that already toast their own
  *     message never double-toast.
@@ -95,7 +93,6 @@ export const handleGlobalQueryError = (
   meta?: Record<string, unknown>
 ): void => {
   console.error("[query error]", error);
-  Sentry.captureException(error, { tags: { source: "queryCache" } });
   if (optedOut(meta)) return;
   toast.error(is429(error) ? RATE_LIMIT_MESSAGE : getErrorMessage(error));
 };
@@ -109,7 +106,6 @@ export const handleGlobalMutationError = (
   meta?: Record<string, unknown>
 ): void => {
   console.error("[mutation error]", error);
-  Sentry.captureException(error, { tags: { source: "mutationCache" } });
   if (optedOut(meta)) return;
   if (is429(error)) toast.error(RATE_LIMIT_MESSAGE);
 };

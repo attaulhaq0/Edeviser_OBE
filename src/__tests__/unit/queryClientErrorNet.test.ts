@@ -3,7 +3,7 @@
 // Feature: production-bug-fixes, Req 6 — global query/mutation error safety net.
 // -----------------------------------------------------------------------------
 // Verifies the dedup-aware handlers:
-//   - always log (console + Sentry)
+//   - always log to the console
 //   - query net toasts a fallback unless meta.suppressGlobalError (no double-toast)
 //   - mutation net only surfaces the shared 429 notice (hooks toast their own)
 // =============================================================================
@@ -11,11 +11,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const toastError = vi.fn();
 vi.mock("sonner", () => ({ toast: { error: (m: string) => toastError(m) } }));
-
-const captureException = vi.fn();
-vi.mock("@sentry/react", () => ({
-  captureException: (...a: unknown[]) => captureException(...a),
-}));
 
 import {
   handleGlobalQueryError,
@@ -30,10 +25,9 @@ describe("Global error safety net (production-bug-fixes Req 6)", () => {
   });
 
   describe("handleGlobalQueryError", () => {
-    it("logs (console + Sentry) and toasts when not opted out", () => {
+    it("logs and toasts when not opted out", () => {
       handleGlobalQueryError(new Error("boom"), undefined);
       expect(console.error).toHaveBeenCalledTimes(1);
-      expect(captureException).toHaveBeenCalledTimes(1);
       expect(toastError).toHaveBeenCalledWith("boom");
     });
 
@@ -42,7 +36,6 @@ describe("Global error safety net (production-bug-fixes Req 6)", () => {
         suppressGlobalError: true,
       });
       expect(console.error).toHaveBeenCalledTimes(1);
-      expect(captureException).toHaveBeenCalledTimes(1);
       expect(toastError).not.toHaveBeenCalled();
     });
 
@@ -58,7 +51,6 @@ describe("Global error safety net (production-bug-fixes Req 6)", () => {
     it("logs always but does not toast a generic message (hooks own their toast)", () => {
       handleGlobalMutationError(new Error("save failed"), undefined);
       expect(console.error).toHaveBeenCalledTimes(1);
-      expect(captureException).toHaveBeenCalledTimes(1);
       expect(toastError).not.toHaveBeenCalled();
     });
 

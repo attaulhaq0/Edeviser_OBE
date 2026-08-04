@@ -80,7 +80,6 @@ export const MISSING_TRANSLATION_MARKER = "⚠ ";
  * internationalized page must be surfaced rather than silently rendering the
  * raw key or the English fallback (R29.3a). We:
  *   1. log it (always), and
- *   2. drop a Sentry breadcrumb when monitoring is initialized,
  * so the failure is observable in production without crashing the surface.
  */
 const reportMissingTranslation = (
@@ -98,21 +97,6 @@ const reportMissingTranslation = (
   if (typeof console !== "undefined") {
     console.error(detail);
   }
-
-  // Best-effort Sentry breadcrumb; never let monitoring failures bubble up.
-  void import("@sentry/react")
-    .then((Sentry) => {
-      if (Sentry.isInitialized()) {
-        Sentry.addBreadcrumb({
-          category: "i18n",
-          level: "warning",
-          message: detail,
-        });
-      }
-    })
-    .catch(() => {
-      /* monitoring unavailable — the console error above is the fallback */
-    });
 };
 
 i18n.use(initReactI18next).init({
