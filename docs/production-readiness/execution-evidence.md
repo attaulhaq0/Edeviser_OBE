@@ -37,10 +37,35 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `5fba5ee0` (pushed; no merge performed). The latest GitHub
+- PR #237 branch head before this evidence update: `39f325c9` (pushed; no merge performed). The latest GitHub
   CI and Pre-Deployment runs reached terminal success for Build, Test,
   Unit + Property, Bundle Size, E2E, Lighthouse, security/static/report audits,
   RLS, migration lint, Type Check, Vercel, and lint.
+
+## Post-staging tenant and history audit
+
+- Production migration history remains 376 versions and contains none of the
+  four bounded invitation/Parent/Auth versions; no production schema or
+  function deployment was performed. The current PR remains unmerged.
+- Read-only tenant counts match the approved fixtures: Noor 40 students,
+  20 parents, 4 teachers, 3 coordinators, 1 admin (68 profiles); Demo has
+  exactly five role fixtures and zero courses, sections, assignments,
+  submissions, journals, notifications, or enrollments; Gulf has 30 students,
+  15 parents, 3 teachers, 2 coordinators, 1 admin (51 profiles).
+- Noor's connected review data currently contains five pending schedules with
+  two duplicate groups (four rows total). This is recorded as a production
+  data-quality blocker; no Noor rows were modified because the approved scope
+  forbids altering Noor data.
+- Gulf reset dry-run (not executed) counted 51 profiles/auth users, 3 courses,
+  9 sections, 270 class sessions, 12 assignments, 90 enrollments, 927
+  submissions, 2 journal entries, 418 notifications, 15 parent links, and
+  zero owned storage objects. Tenant-link verification remains 35/35
+  same-institution and 0 cross-institution links overall.
+- Storage inventory and Auth sign-in aggregates were inspected read-only; no
+  production data was exported. The history-scrub procedure, affected-ref
+  manifest, collaborator warning, backup, force-push order, and post-scrub
+  checks are documented in `history-scrub-plan.md`; execution remains manual
+  and intentionally unperformed.
 
 ## Final Git-associated Micro staging attempt (2026-08-04)
 
