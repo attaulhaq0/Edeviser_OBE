@@ -1,9 +1,53 @@
 
 begin;
 
+-- The live database already had these tables when this repair was applied.
+-- Keep a clean replay deterministic when the later consolidated migration
+-- (20260823000013) is the first local definition of the communication schema.
+create table if not exists public.communication_threads (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.institutions(id),
+  course_id uuid references public.courses(id),
+  subject text not null,
+  created_by uuid not null references public.profiles(id),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.communication_messages (
+  id uuid primary key default gen_random_uuid(),
+  thread_id uuid not null references public.communication_threads(id) on delete cascade,
+  sender_id uuid not null references public.profiles(id),
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.communication_reads (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.communication_messages(id) on delete cascade,
+  user_id uuid not null references public.profiles(id),
+  read_at timestamptz not null default now(),
+  unique(message_id, user_id)
+);
+
 drop policy if exists "communication_threads_access" on public.communication_threads;
 drop policy if exists "communication_messages_access" on public.communication_messages;
 drop policy if exists "communication_reads_access" on public.communication_reads;
+
+drop table if exists public.communication_thread_participants;
+create table public.communication_thread_participants (
+  id uuid primary key default gen_random_uuid(),
+  thread_id uuid not null references public.communication_threads(id) on delete cascade,
+  user_id uuid not null references public.profiles(id),
+  role varchar(30) not null,
+  joined_at timestamptz not null default now(),
+  unique (thread_id, user_id)
+);
+create index communication_thread_participants_thread_idx
+  on public.communication_thread_participants(thread_id);
+create index communication_thread_participants_user_idx
+  on public.communication_thread_participants(user_id);
+
+alter table public.communication_thread_participants enable row level security;
 
 drop function if exists public.auth_user_is_thread_participant(uuid);
 create function public.auth_user_is_thread_participant(p_thread_id uuid)
@@ -23,22 +67,6 @@ $$;
 
 revoke all on function public.auth_user_is_thread_participant(uuid) from public, anon;
 grant execute on function public.auth_user_is_thread_participant(uuid) to authenticated;
-
-drop table if exists public.communication_thread_participants;
-create table public.communication_thread_participants (
-  id uuid primary key default gen_random_uuid(),
-  thread_id uuid not null references public.communication_threads(id) on delete cascade,
-  user_id uuid not null references public.profiles(id),
-  role varchar(30) not null,
-  joined_at timestamptz not null default now(),
-  unique (thread_id, user_id)
-);
-create index communication_thread_participants_thread_idx
-  on public.communication_thread_participants(thread_id);
-create index communication_thread_participants_user_idx
-  on public.communication_thread_participants(user_id);
-
-alter table public.communication_thread_participants enable row level security;
 
 create policy "communication_thread_participants_read"
   on public.communication_thread_participants
