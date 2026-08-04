@@ -67,11 +67,13 @@ a production-readiness sign-off.
 - The Vault metadata query exposed only the secret name `service_role_key`; it
   did not expose any email or webhook secret names. Secret values were not
   read.
-- Migration drift is present: the repository replay checker sees 365 local
-  migrations, while the live Supabase migration inventory reports 376. The
-  live-only set includes eleven August 2, 2026 repair/hardening migrations
-  covering communication participants, analytics RPCs, coordinator workspace,
-  ACLs, and AI governance that are not checked into this tree.
+- Migration drift was reconciled from the approved Supabase migration-history
+  workflow: the repository now contains 376 migrations, matching the 376 live
+  versions. The eleven August 2, 2026 repair/hardening definitions were read
+  from `supabase_migrations.schema_migrations.statements`, imported without
+  credential matches, and parity-checked. The coordinator ACL migration has a
+  documented `to_regprocedure` guard because its live version predates the
+  function it references.
 - Vercel project `prj_DJFo5rshhylIUSrtFT99dHmfJq8j` is active and its latest
   branch deployment for commit `3cf75a9e` is still building. The latest ready
   preview for `7be00654` is available, while the latest production deployment
@@ -171,15 +173,16 @@ a production-readiness sign-off.
 - The audit E2E stage is now an executable preview-only Playwright stage; its
   current local result is `skipped` with all five required preview settings
   reported missing, rather than the prior “stub” message.
-- The live-only migration drift must be reconciled through the approved
-  Supabase migration workflow before another production migration is proposed;
-  no undocumented SQL was copied into `supabase/migrations`. The attempted
-  staging branch inherited the same replay failure and was deleted.
+- A true local database replay is still required. The approved `supabase db
+reset --local --yes` attempt could not start because Docker Desktop is not
+  running in this environment; filename/order checks are not being treated as
+  a clean replay. No replacement staging branch has been created.
 - The eleven live-only versions currently identified are
   `20260802010514`, `20260802012851`, `20260802013226`, `20260802013702`,
   `20260802020342`, `20260802021540`, `20260802024348`, `20260802030803`,
   `20260802032049`, `20260802044854`, and `20260802045332`. Their exact SQL
-  definitions have not been copied or invented locally.
+  definitions were retrieved exactly; only the coordinator ACL operation was
+  wrapped in the documented replay guard.
 - GitHub Actions for the latest pushed head are still running; their final
   status must be rechecked before any claim that CI or the Audit Report passed.
   No merge has been performed.
