@@ -20,6 +20,7 @@ import {
 import { runReportStage } from "./report.ts";
 import { runRlsStage } from "./rls-matrix.ts";
 import { runSecurityStage } from "./security-scan.ts";
+import { runStaticStage } from "./static-stage.ts";
 import type { StageName, StageResult } from "./types.ts";
 
 type StageFn = () => Promise<StageResult>;
@@ -30,6 +31,7 @@ export const stages: Record<StageName, StageFn> = {
   propertyTests: runPropertyTestsStage,
   build: runBuildStage,
   security: runSecurityStage,
+  static: runStaticStage,
   connectivity: runConnectivityStage,
   rls: runRlsStage,
   cron: runCronStage,

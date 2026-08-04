@@ -12,6 +12,7 @@ const KNOWN_STAGES: readonly StageName[] = [
   "propertyTests",
   "build",
   "security",
+  "static",
   "connectivity",
   "rls",
   "cron",
