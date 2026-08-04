@@ -33,7 +33,7 @@ a production-readiness sign-off.
 - The branch was deleted successfully after evidence capture. Verification at
   `2026-08-04T11:44:24Z` showed only the production `main` branch remained.
   Using the confirmed `$0.01344/hour` rate and the short lifetime, estimated
-  accrued branch cost is under `$0.002`; no branch remains active.
+  accrued branch cost is approximately `$0.002`; no branch remains active.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
