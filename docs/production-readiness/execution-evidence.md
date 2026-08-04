@@ -78,7 +78,9 @@ a production-readiness sign-off.
 
 - `npm run lint` — passed with zero warnings.
 - `npx tsc --noEmit` — passed.
-- `npm test` — 643 files, 6,102 tests passed.
+- `npm test` / `npm run test:coverage` — 643 files, 6,104 tests passed;
+  coverage thresholds passed (33.39% statements, 29.03% branches,
+  27.35% functions, 34.65% lines).
 - Focused invitation/parent/security tests — passed.
 - `npm run db:check-replay` — 365 migrations clean.
 - `npm run db:check-dup-names` — no new collisions.
@@ -136,7 +138,14 @@ a production-readiness sign-off.
 - The live-only migration drift must be reconciled through the approved
   Supabase migration workflow before another production migration is proposed;
   no undocumented SQL was copied into `supabase/migrations`.
-- The current draft PR #237 has Vercel, lint, type-check, SQL migration lint,
-  RLS smoke, RLS isolation, security audit, and preflight checks passing. The
-  full Test and Unit + Property Tests jobs remain in progress; no merge has
+- PR #237 latest run `30872464046` has Test (13m), Build, Bundle Size, E2E,
+  Lighthouse, lint, type-check, SQL migration lint, RLS smoke/isolation,
+  lockfile, and Vercel preview checks passing. The companion pre-deployment
+  run `30872464042` has Unit + Property Tests (12m), Build, static scanners,
+  and type/lint checks passing, but Security Scan and Audit Report fail on the
+  historical service-role JWT blocker and resulting No-Go report. No merge has
   been performed.
+- Commit `b1cdbd29` adds a CI-only fetch guard for the loopback Supabase
+  fallback URL. It keeps hermetic unit/property tests from opening real
+  retrying sockets; the full local coverage suite still passes and no
+  application runtime behavior changes.
