@@ -5,7 +5,7 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `a211201a` (pushed; no merge performed; CI and audit runs are still in progress).
+- PR #237 branch head: `adf98067` (pushed; no merge performed; CI and audit runs are still in progress).
 - The original checked-in service-role JWT finding was removed from the current
   tree. The repaired historical migration contains no credential literal and
   the security scanner reports only masked findings.
