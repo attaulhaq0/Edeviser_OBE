@@ -33,7 +33,7 @@ const BLOOM_LABELS: Record<number, string> = {
 };
 
 const BLOOM_COLORS: Record<number, string> = {
-  1: "bg-purple-500 text-white",
+  1: "bg-blue-500 text-white",
   2: "bg-blue-500 text-white",
   3: "bg-green-500 text-white",
   4: "bg-yellow-500 text-gray-900",

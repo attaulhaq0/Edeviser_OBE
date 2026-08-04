@@ -171,7 +171,7 @@ const MCQOptions = ({
           <span
             className={cn(
               "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold",
-              !showCorrectAnswer && isSelected && "bg-white/20 text-white",
+              !showCorrectAnswer && isSelected && "bg-slate-700/40 text-white",
               !showCorrectAnswer && !isSelected && "bg-slate-200 text-gray-600",
               isOptionCorrect && "bg-green-500 text-white",
               isOptionIncorrect && "bg-red-500 text-white",

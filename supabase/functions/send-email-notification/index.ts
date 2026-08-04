@@ -482,10 +482,12 @@ serve(async (req) => {
 
     // ── Send email via Resend with retry ──────────────────────────────
     const fromAddress =
-      Deno.env.get("RESEND_FROM_ADDRESS") ?? "Edeviser <noreply@edeviser.com>";
+      Deno.env.get("EMAIL_FROM") ?? "Edeviser <team@edeviser.com>";
+    const replyTo = Deno.env.get("EMAIL_REPLY_TO")?.trim();
 
     const result = await sendWithRetry(resendApiKey, {
       from: fromAddress,
+      ...(replyTo ? { reply_to: replyTo } : {}),
       to,
       subject,
       html,

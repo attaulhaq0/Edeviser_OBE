@@ -26,7 +26,7 @@ const bandInfo = (p: number) => {
     };
   if (p >= 70)
     return {
-      label: "Growing ↑",
+      label: "Growing",
       pillClass: "bg-blue-50 text-blue-700 border-blue-200",
       barGradient: "linear-gradient(90deg, #14b8a6, #0382bd)",
     };
@@ -68,13 +68,12 @@ const ParentProgressPage = () => {
     effectiveChildId || undefined
   );
 
-  // Honest privacy / data availability state check for wellbeing metrics
-  const isWellbeingShared = selectedChild
-    ? selectedChild.current_streak >= 0
-    : true;
-
-  // Derive study consistency bars from real course data availability
-  const hasConsistencyData = courses && courses.length > 0;
+  // Only show a trend when the canonical gamification record has real
+  // activity. Course enrollment alone is not a wellbeing signal.
+  const hasConsistencyData = Boolean(
+    selectedChild &&
+      (selectedChild.current_streak > 0 || selectedChild.xp_total > 0)
+  );
 
   return (
     <div className="space-y-5 no-scrollbar">
@@ -154,6 +153,19 @@ const ParentProgressPage = () => {
 
                 <div className="space-y-3.5">
                   {courses.map((course) => {
+                    if (!course.has_evidence) {
+                      return (
+                        <div
+                          key={course.course_id}
+                          className="rounded-xl border border-dashed border-slate-200 p-3 text-xs text-slate-500"
+                        >
+                          <span className="font-semibold text-slate-700">
+                            {course.course_name}
+                          </span>{" "}
+                          · No released outcome evidence yet.
+                        </div>
+                      );
+                    }
                     const info = bandInfo(course.attainment_percent);
                     return (
                       <div key={course.course_id} className="space-y-1">
@@ -211,46 +223,10 @@ const ParentProgressPage = () => {
 
                   {hasConsistencyData ? (
                     <>
-                      <div className="flex h-24 items-end gap-1.5 px-2 pb-1">
-                        {[
-                          { label: "W1", height: "40%", current: false },
-                          { label: "W2", height: "30%", current: false },
-                          { label: "W3", height: "55%", current: false },
-                          { label: "W4", height: "45%", current: false },
-                          { label: "This wk", height: "80%", current: true },
-                        ].map((bar) => (
-                          <div
-                            key={bar.label}
-                            className="flex flex-1 flex-col items-center gap-1"
-                          >
-                            <div
-                              className="w-full rounded-md transition-all"
-                              style={{
-                                height: bar.height,
-                                background: bar.current
-                                  ? "linear-gradient(180deg,#14b8a6,#0382bd)"
-                                  : "#14b8a6",
-                              }}
-                            />
-                            <span
-                              className={cn(
-                                "text-[9px]",
-                                bar.current
-                                  ? "font-bold text-slate-700 dark:text-slate-200"
-                                  : "text-slate-400"
-                              )}
-                            >
-                              {bar.label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
-                        📈{" "}
-                        {t(
-                          "parent.progress.consistencyNote",
-                          "Best week yet — consistency is trending up."
-                        )}
+                      <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-3 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        🔥 {selectedChild?.current_streak ?? 0}-day shared
+                        activity streak · {selectedChild?.xp_total ?? 0} XP
+                        recorded.
                       </div>
                     </>
                   ) : (
@@ -269,71 +245,10 @@ const ParentProgressPage = () => {
                     </h2>
                   </div>
 
-                  {isWellbeingShared ? (
-                    <div className="space-y-2.5">
-                      {[
-                        {
-                          label: t(
-                            "parent.progress.moodCheckIns",
-                            "Mood check-ins"
-                          ),
-                          val: t(
-                            "parent.progress.mostlyPositive",
-                            "Mostly positive"
-                          ),
-                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        },
-                        {
-                          label: t(
-                            "parent.progress.studyBreakBalance",
-                            "Study/break balance"
-                          ),
-                          val: t("parent.progress.healthy", "Healthy"),
-                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        },
-                        {
-                          label: t(
-                            "parent.progress.lateNightStudying",
-                            "Late-night studying"
-                          ),
-                          val: t("parent.progress.rare", "Rare"),
-                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        },
-                        {
-                          label: t(
-                            "parent.progress.signsOfStress",
-                            "Signs of stress"
-                          ),
-                          val: t(
-                            "parent.progress.noneDetected",
-                            "None detected"
-                          ),
-                          tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        },
-                      ].map((sig) => (
-                        <div
-                          key={sig.label}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span className="text-slate-700 dark:text-slate-300">
-                            {sig.label}
-                          </span>
-                          <span
-                            className={cn(
-                              "rounded-full border px-2.5 py-0.5 text-xs font-bold",
-                              sig.tone
-                            )}
-                          >
-                            {sig.val}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center text-xs text-slate-500">
-                      🔒 Not shared with parents by student preference.
-                    </div>
-                  )}
+                  <div className="py-8 text-center text-xs text-slate-500">
+                    🔒 No approved wellbeing summary is available yet. Private
+                    journals, reflections and tutor conversations remain hidden.
+                  </div>
                 </PCard>
               </div>
             </>

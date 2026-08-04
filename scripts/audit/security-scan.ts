@@ -148,6 +148,73 @@ const isSourceClientFile = (path: string): boolean => {
   return /\.(ts|tsx)$/.test(rel);
 };
 
+// A service-role JWT must never appear in checked-in SQL, source, or test
+// fixtures. This scan deliberately decodes only the JWT payload locally and
+// reports a short prefix; it never emits the usable token.
+const JWT_LITERAL_REGEX =
+  /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
+
+const isServiceRoleJwt = (token: string): boolean => {
+  const payload = token.split(".")[1];
+  if (!payload) return false;
+  try {
+    const padded = payload.padEnd(
+      payload.length + ((4 - (payload.length % 4)) % 4),
+      "="
+    );
+    const decoded = JSON.parse(
+      Buffer.from(padded, "base64url").toString("utf8")
+    ) as { role?: unknown };
+    return decoded.role === "service_role";
+  } catch {
+    return false;
+  }
+};
+
+export const scanCheckedInServiceRoleLiterals = (): readonly Finding[] => {
+  const roots = [resolve("supabase", "migrations"), resolve("src")].filter(
+    existsSync
+  );
+  const findings: Finding[] = [];
+
+  for (const root of roots) {
+    const files = walkFiles(root, (name) =>
+      /\.(sql|ts|tsx|js|mjs)$/.test(name)
+    );
+    for (const file of files) {
+      const contents = readFileSync(file, "utf8");
+      const lines = contents.split("\n");
+      for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+        const line = lines[lineIndex] ?? "";
+        JWT_LITERAL_REGEX.lastIndex = 0;
+        let match: RegExpExecArray | null = JWT_LITERAL_REGEX.exec(line);
+        while (match !== null) {
+          const token = match[0];
+          if (isServiceRoleJwt(token)) {
+            findings.push({
+              severity: "Blocker",
+              requirementId: "13.1",
+              message:
+                "A service-role JWT literal is checked into repository code. Rotate/revoke it and remove the literal through an approved security response.",
+              location: {
+                file: relative(process.cwd(), file),
+                line: lineIndex + 1,
+              },
+              detail: {
+                patternName: "checked-in-service-role-jwt",
+                matchPreview: `${token.slice(0, 12)}…`,
+              },
+            });
+          }
+          match = JWT_LITERAL_REGEX.exec(line);
+        }
+      }
+    }
+  }
+
+  return findings;
+};
+
 // ─── Scan 13.1: built-bundle secret pattern scan ──────────────────────────
 
 interface ScanSecretsResult {
@@ -414,6 +481,7 @@ export const runSecurityStage = async (): Promise<StageResult> => {
   const auditLogFindings = scanAuditLogCoverage();
   const zodResolverFindings = scanZodResolverPresence();
   const edgeFunctionFindings = scanEdgeFunctionBodyValidation();
+  const checkedInSecretFindings = scanCheckedInServiceRoleLiterals();
 
   const allFindings: readonly Finding[] = [
     ...bundleScan.findings,
@@ -421,6 +489,7 @@ export const runSecurityStage = async (): Promise<StageResult> => {
     ...auditLogFindings,
     ...zodResolverFindings,
     ...edgeFunctionFindings,
+    ...checkedInSecretFindings,
   ];
 
   const artifact: FindingsArtifact = {

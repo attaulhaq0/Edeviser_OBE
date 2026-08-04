@@ -1,0 +1,93 @@
+# Production-readiness execution evidence
+
+This is a local evidence snapshot for the Edeviser execution brief. It is not
+a production-readiness sign-off.
+
+## VERIFIED live evidence
+
+- Supabase project queried: `cdlgtbvxlxjpcddjazzx`.
+- Current counts: 3 institutions, 124 profiles, 35 parent links, 0
+  invitations.
+- Noor role counts: 40 students, 20 parents, 4 teachers, 3 coordinators, 1
+  admin.
+- Demo role counts: exactly 1 each of admin, coordinator, teacher, student,
+  and parent; no Demo courses, enrollments, assignments, submissions, or
+  journals were found.
+- Gulf currently has seeded profiles and academic activity, so it is not yet
+  the requested clean initial tenant.
+- Live `invitations` still stores a raw `token` and has no hashed-token or
+  lifecycle columns. Live `parent_student_links` still has the legacy six
+  columns and 35 verified rows.
+- Deployed functions: `send-invitation-email` version 9 and
+  `send-email-notification` version 12. The new preview, accept, parent-link,
+  and webhook functions are not deployed.
+- Live `handle_new_user` still trusts role/institution metadata, references
+  post-migration columns that do not exist, and catches all exceptions.
+
+## IMPLEMENTED locally
+
+- Canonical invitation helpers and email modes in
+  `supabase/functions/_shared/invitation.ts`.
+- Profile-derived authentication in `supabase/functions/_shared/auth.ts`.
+- Hashed-token invitation sender, invitation preview, secure acceptance,
+  parent-link workflow, and signed Resend webhook functions.
+- Public route JWT configuration for preview, acceptance, and webhook in
+  `supabase/config.toml`.
+- Browser parent management now calls the server workflow only; it does not
+  call `auth.admin`, write profiles, or insert parent links directly.
+- Self-registration UI exposes Student only; role and institution claims are
+  not submitted by the auth provider.
+- Parent dashboards show explicit insufficient-evidence states instead of
+  fabricated progress/wellbeing trends.
+- RTL physical spacing and design-token violations addressed; baseline course
+  lists now use bounded pagination.
+
+## TESTED locally
+
+- `npm run lint` — passed with zero warnings.
+- `npx tsc --noEmit` — passed.
+- `npm test` — 643 files, 6,101 tests passed.
+- Focused invitation/parent/security tests — passed.
+- `npm run db:check-replay` — 365 migrations clean.
+- `npm run db:check-dup-names` — no new collisions.
+- Edge schema-contract checker — clean with 46 explicitly documented
+  pre-migration findings.
+- i18n parity — all namespaces passed.
+- Production build — passed.
+- Local Daily Review visual check — passed at `http://127.0.0.1:4173/student/dashboard`;
+  Noor's Aarav Sharma account rendered five pending review schedules and the
+  Start Review action navigated to `/student/today`.
+- Security audit stage after payload validation — 0 findings.
+- Design-token audit stage — 0 findings.
+- Focused dashboard/auth tests after the latest UI work — 3 files, 34 tests
+  passed.
+
+## BLOCKED / REQUIRES MANUAL ACTION
+
+- The Supabase safety gate rejected the broad invitation/parent-link migration.
+  No alternate DDL path was used. Applying the reviewed migration requires
+  explicit production approval, a backup/rollback gate, and preferably a
+  development branch.
+- Edge Function deployment is blocked until the migration contract is live.
+- `RESEND_WEBHOOK_SECRET` presence and provider delivery cannot be verified
+  without reading secrets or sending an allowlisted sandbox email.
+- Full audit remains No-Go because the local environment lacks `CRON_SECRET`,
+  the locked bundle budget is above its historical baseline (1,442.2 KB gzip
+  versus a 1,216.1 KB baseline), and the E2E audit stage is still not backed by
+  a configured preview run. These are not represented as green production
+  checks.
+- Vercel project/environment inspection requires a connector with access to
+  team `team_Gvw1Dz7IlxIG5evqwlsNkZHb`.
+- The repository contains a historical service-role JWT literal in
+  `supabase/migrations/20260520063547_store_service_role_key_in_vault.sql`.
+  It was not printed or modified because migrations are managed and the
+  current safety gate forbids an unreviewed production DDL change. The key
+  must be rotated/revoked and the repository/history scrubbed through an
+  approved security response before sign-off.
+- Playwright fixture setup now refuses to seed unless
+  `E2E_FIXTURES_ENABLED=true`, `SUPABASE_DB_ENV=preview`, and explicit preview
+  URL/anon-key values are present; no production fallback key or URL remains in
+  the fixture setup.
+- The audit E2E stage is now an executable preview-only Playwright stage; its
+  current local result is `skipped` with all five required preview settings
+  reported missing, rather than the prior “stub” message.

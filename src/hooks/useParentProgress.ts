@@ -7,6 +7,7 @@ export interface ParentCourseProgress {
   course_name: string;
   course_code: string;
   attainment_percent: number;
+  has_evidence: boolean;
 }
 
 export const useParentChildProgress = (studentId: string | undefined) =>
@@ -61,6 +62,7 @@ export const useParentChildProgress = (studentId: string | undefined) =>
             aggregate && aggregate.count > 0
               ? Math.round(aggregate.sum / aggregate.count)
               : 0,
+          has_evidence: Boolean(aggregate && aggregate.count > 0),
         };
       });
     },

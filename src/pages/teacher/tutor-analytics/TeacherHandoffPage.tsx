@@ -286,7 +286,7 @@ const TeacherHandoffPage = () => {
               className={cn(
                 "rounded-full px-1.5 py-0.5 text-[10px] font-black",
                 statusTab === key
-                  ? "bg-white/20 text-white"
+                  ? "bg-slate-700/40 text-white"
                   : "bg-slate-100 text-slate-600"
               )}
             >

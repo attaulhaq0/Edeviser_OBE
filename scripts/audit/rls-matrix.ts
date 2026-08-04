@@ -344,7 +344,12 @@ export const runRlsStage = async (): Promise<StageResult> => {
     for (const file of migrationFiles) {
       const content = readFileSync(resolve(MIGRATIONS_DIR, file), "utf8");
       // Extract CREATE TABLE statements
-      const tableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)/gi;
+      // Accept both unqualified and schema-qualified CREATE TABLE statements
+      // (for example `CREATE TABLE public.evidence`). Capture only the final
+      // identifier so append-only checks use the same table names as the
+      // generated schema snapshot.
+      const tableRegex =
+        /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:[A-Za-z_][\w$]*\.)?([A-Za-z_][\w$]*)/gi;
       let match: RegExpExecArray | null;
       while ((match = tableRegex.exec(content)) !== null) {
         const tableName = match[1].toLowerCase();

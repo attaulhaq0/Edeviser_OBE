@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PCard } from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,186 +21,197 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, UserPlus } from "lucide-react";
+import { Loader2, Link2, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 import { Shimmer } from "@/design-system";
-import { useQuery } from "@tanstack/react-query";
 
 const schema = z.object({
-  parent_email: z.string().email("Valid email required"),
-  parent_name: z.string().min(1, "Name is required"),
+  parent_email: z.string(),
+  parent_id: z.string(),
   student_id: z.string().min(1, "Student is required"),
-  relationship: z.string().min(1, "Relationship is required"),
+  relationship: z.enum(["mother", "father", "guardian", "other"]),
+  relationship_label: z.string().max(80).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
 
-const useStudents = () => {
-  return useQuery({
-    queryKey: ["students-for-parent-invite"],
-    queryFn: async () => {
+type Person = { id: string; full_name: string; email: string };
+
+const usePeople = (role: "student" | "parent") =>
+  useQuery({
+    queryKey: ["admin", "people", role, "parent-link"],
+    queryFn: async (): Promise<Person[]> => {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, email")
-        .eq("role", "student")
+        .eq("role", role)
+        .eq("is_active", true)
         .order("full_name");
       if (error) throw error;
-      return (data ?? []) as Array<{
-        id: string;
-        full_name: string;
-        email: string;
-      }>;
+      return (data ?? []) as Person[];
     },
   });
-};
 
 const ParentInvitePage = () => {
-  const { user, institutionId } = useAuth();
-  const { data: students = [], isLoading: studentsLoading } = useStudents();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const studentsQuery = usePeople("student");
+  const parentsQuery = usePeople("parent");
+  const [mode, setMode] = useState<"invite" | "existing">("invite");
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       parent_email: "",
-      parent_name: "",
+      parent_id: "",
       student_id: "",
-      relationship: "parent",
+      relationship: "guardian",
+      relationship_label: "",
     },
   });
 
   const onSubmit = async (data: FormData) => {
+    if (!user) {
+      toast.error("You must be signed in as an administrator");
+      return;
+    }
+    if (mode === "invite" && !data.parent_email.trim()) {
+      form.setError("parent_email", { message: "Parent email is required" });
+      return;
+    }
+    if (mode === "existing" && !data.parent_id) {
+      form.setError("parent_id", { message: "Select a parent" });
+      return;
+    }
+    if (data.relationship === "other" && !data.relationship_label?.trim()) {
+      form.setError("relationship_label", {
+        message: "Add a safe relationship label",
+      });
+      return;
+    }
+
     setIsPending(true);
     try {
-      // Create parent profile via admin API
-      const { data: authData, error: authErr } =
-        await supabase.auth.admin.createUser({
-          email: data.parent_email,
-          email_confirm: true,
-          user_metadata: {
-            full_name: data.parent_name,
-            role: "parent",
-            institution_id: institutionId,
-          },
-        });
-      if (authErr) throw new Error(authErr.message);
-
-      const parentId = authData.user?.id;
-      if (!parentId) throw new Error("Failed to create parent user");
-
-      // Create profile record
-      const { error: profileErr } = await supabase.from("profiles").upsert({
-        id: parentId,
-        email: data.parent_email,
-        full_name: data.parent_name,
-        role: "parent",
-        institution_id: institutionId ?? "",
+      const { data: result, error } = await supabase.functions.invoke(
+        "parent-link",
+        {
+          body:
+            mode === "invite"
+              ? {
+                  action: "invite",
+                  student_id: data.student_id,
+                  parent_email: data.parent_email,
+                  relationship: data.relationship,
+                  relationship_label: data.relationship_label,
+                }
+              : {
+                  action: "link_existing",
+                  student_id: data.student_id,
+                  parent_id: data.parent_id,
+                  relationship: data.relationship,
+                  relationship_label: data.relationship_label,
+                },
+        }
+      );
+      if (error || !result?.success) {
+        toast.error(
+          result?.message ??
+            error?.message ??
+            "Parent relationship could not be saved"
+        );
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["admin", "people"] });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.parentStudentLinks.list({}),
       });
-      if (profileErr) throw new Error(profileErr.message);
-
-      // Create parent-student link
-      const { error: linkErr } = await supabase
-        .from("parent_student_links")
-        .insert({
-          parent_id: parentId,
-          student_id: data.student_id,
-          relationship: data.relationship,
-          verified: true,
-        });
-      if (linkErr) throw new Error(linkErr.message);
-
-      await logAuditEvent({
-        action: "create",
-        entity_type: "parent_invite",
-        entity_id: parentId,
-        changes: {
-          parent_email: data.parent_email,
-          student_id: data.student_id,
-        },
-        performed_by: user?.id ?? "",
-      });
-
-      toast.success("Parent invited and linked to student");
+      toast.success(
+        mode === "invite"
+          ? result.existingParent
+            ? "Pending relationship created for the existing parent"
+            : "Parent invitation sent"
+          : "Parent linked and verified"
+      );
       form.reset();
-    } catch (err) {
-      toast.error((err as Error).message);
+    } catch {
+      toast.error("Parent relationship could not be saved");
     } finally {
       setIsPending(false);
     }
   };
 
+  const students = studentsQuery.data ?? [];
+  const parents = parentsQuery.data ?? [];
+  const loading = studentsQuery.isLoading || parentsQuery.isLoading;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-2xl font-bold tracking-tight">
-          Invite Parent / Guardian
+          Family / Guardians
         </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Manage same-institution parent relationships without moving accounts
+          between tenants.
+        </p>
       </div>
 
       <PCard className="overflow-hidden p-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            backgroundColor: "#0f172a",
-          }}
-        >
-          <UserPlus className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-2 bg-slate-900 px-6 py-4">
+          {mode === "invite" ? (
+            <UserPlus className="h-5 w-5 text-white" />
+          ) : (
+            <Link2 className="h-5 w-5 text-white" />
+          )}
           <h2 className="text-lg font-bold tracking-tight text-white">
-            New Parent Invite
+            {mode === "invite"
+              ? "Invite Parent / Guardian"
+              : "Link Existing Parent"}
           </h2>
         </div>
-        <div className="p-6">
-          <p className="text-sm text-slate-500 mb-6">
-            Create a parent account and link it to a student. The parent will
-            receive read-only access to their child's academic data.
+        <div className="space-y-5 p-6">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={mode === "invite" ? "tactile" : "outline"}
+              size="sm"
+              onClick={() => setMode("invite")}
+            >
+              <Mail className="size-4" />
+              Invite new parent
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "existing" ? "tactile" : "outline"}
+              size="sm"
+              onClick={() => setMode("existing")}
+            >
+              <Link2 className="size-4" />
+              Link existing parent
+            </Button>
+          </div>
+          <p className="text-sm text-slate-500">
+            The server derives the institution from your administrator profile
+            and the selected student. Cross-institution links are rejected.
           </p>
-          {studentsLoading ? (
+          {loading ? (
             <Shimmer className="h-32 rounded-lg" />
           ) : (
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4 max-w-xl"
+                className="max-w-xl space-y-4"
               >
-                <FormField
-                  control={form.control}
-                  name="parent_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Parent Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="parent_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Parent Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="parent@example.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <FormField
                   control={form.control}
                   name="student_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Link to Student</FormLabel>
+                      <FormLabel>Student</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -210,9 +222,9 @@ const ParentInvitePage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {students.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.full_name} ({s.email})
+                          {students.map((student) => (
+                            <SelectItem key={student.id} value={student.id}>
+                              {student.full_name} ({student.email})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -221,6 +233,54 @@ const ParentInvitePage = () => {
                     </FormItem>
                   )}
                 />
+                {mode === "invite" ? (
+                  <FormField
+                    control={form.control}
+                    name="parent_email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Parent email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="parent@example.com"
+                            autoComplete="email"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="parent_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Existing parent</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Select a parent" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {parents.map((parent) => (
+                              <SelectItem key={parent.id} value={parent.id}>
+                                {parent.full_name} ({parent.email})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="relationship"
@@ -237,21 +297,40 @@ const ParentInvitePage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="parent">Parent</SelectItem>
+                          <SelectItem value="mother">Mother</SelectItem>
+                          <SelectItem value="father">Father</SelectItem>
                           <SelectItem value="guardian">Guardian</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                {form.watch("relationship") === "other" ? (
+                  <FormField
+                    control={form.control}
+                    name="relationship_label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Relationship label</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. aunt" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : null}
                 <Button type="submit" disabled={isPending} variant="tactile">
                   {isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : mode === "invite" ? (
+                    <Mail className="h-4 w-4" />
                   ) : (
-                    <Plus className="h-4 w-4" />
+                    <Link2 className="h-4 w-4" />
                   )}
-                  Invite Parent
+                  {mode === "invite" ? "Send invitation" : "Link and verify"}
                 </Button>
               </form>
             </Form>

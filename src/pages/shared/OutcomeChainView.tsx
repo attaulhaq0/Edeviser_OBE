@@ -229,8 +229,8 @@ const PloCard = ({ plo }: { plo: PloNode }) => (
 
 // ── GA node (level between ILO and PLO, Req 16.3) ────────────────────────────
 const GaCard = ({ ga }: { ga: GraduateAttributeNode }) => (
-  <div className="flex items-center gap-2 rounded-xl border border-purple-100 bg-purple-50/50 px-3 py-2">
-    <Award className="h-4 w-4 text-purple-500 shrink-0" />
+  <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+    <Award className="h-4 w-4 text-blue-500 shrink-0" />
     <span className="text-sm font-medium truncate">{resolveName(ga.name)}</span>
     {ga.weight !== null && (
       <span className="text-[10px] text-slate-400">· {ga.weight}%</span>

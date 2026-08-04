@@ -109,7 +109,7 @@ const BENEFIT_TONES: Record<BenefitCardProps["tone"], string> = {
 };
 
 const BenefitCard = ({ emoji, tone, title, description }: BenefitCardProps) => (
-  <Card className="flex flex-row items-center gap-3 rounded-xl border border-white/60 bg-white/80 p-3.5 shadow-sm backdrop-blur">
+  <Card className="flex flex-row items-center gap-3 rounded-xl border border-slate-200/60 bg-white p-3.5 shadow-sm">
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg ${BENEFIT_TONES[tone]}`}
       aria-hidden="true"

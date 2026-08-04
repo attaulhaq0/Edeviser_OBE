@@ -39,6 +39,7 @@ import {
   Button,
   HeroCarousel,
   MascotCharacter,
+  PCard,
   Shimmer,
 } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
@@ -151,6 +152,21 @@ const greetingTimeOfDay = (): "morning" | "afternoon" | "evening" => {
   return "evening";
 };
 
+/** Keep real CLO titles readable in the compact Daily Review chips. */
+const compactReviewLabel = (title: string): string => {
+  const appliedProcedures = title.match(
+    /^Apply (.+?) procedures to new problems$/i
+  );
+  if (appliedProcedures?.[1]) return `${appliedProcedures[1]} procedures`;
+
+  const evaluatedArguments = title.match(
+    /^Evaluate arguments and solutions in (.+)$/i
+  );
+  if (evaluatedArguments?.[1]) return `${evaluatedArguments[1]} evaluation`;
+
+  return title;
+};
+
 const StudentDashboardScreen = () => {
   const { t } = useTranslation("student");
   const navigate = useNavigate();
@@ -227,7 +243,12 @@ const StudentDashboardScreen = () => {
     reviewCounts.set(r.cloId, (reviewCounts.get(r.cloId) ?? 0) + 1);
   const reviewChips = [...reviewCounts.entries()]
     .map(([cloId, n]) => ({
-      label: cloTitleById.get(cloId) ?? t("dashboard.review.card", "Review"),
+      id: cloId,
+      label: compactReviewLabel(
+        cloTitleById.get(cloId) ?? t("dashboard.review.card", "Review")
+      ),
+      sourceLabel:
+        cloTitleById.get(cloId) ?? t("dashboard.review.card", "Review"),
       count: n,
     }))
     .slice(0, 4);
@@ -277,7 +298,7 @@ const StudentDashboardScreen = () => {
             <span className="-mt-0.5 text-base font-black">{level.level}</span>
           </div>
         </ProgressRing>
-        <div className="min-w-0 flex-1 pr-12">
+        <div className="min-w-0 flex-1 pe-12">
           <h1 className="truncate text-sm font-bold tracking-tight">
             {t(`dashboard.greeting.${greetingTimeOfDay()}`, "Good day")},{" "}
             {firstName} 👋
@@ -312,7 +333,7 @@ const StudentDashboardScreen = () => {
         size="md"
         animation="float"
         decorative
-        className="pointer-events-none absolute bottom-0 right-1"
+        className="pointer-events-none absolute bottom-0 end-1"
       />
     </div>,
   ];
@@ -721,9 +742,9 @@ const StudentDashboardScreen = () => {
       {/* ── Daily Review + Weekly Activity ── */}
       <div className="grid gap-3 lg:grid-cols-2">
         {/* Daily Review (spaced repetition) */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-md">
+        <PCard className="p-4">
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-transparent text-slate-700">
+            <span className="flex h-7 w-7 items-center justify-center rounded-[9px] border border-slate-200/80 bg-white/80 text-sky-700 backdrop-blur-xs">
               <Repeat2 className="h-4 w-4" aria-hidden="true" />
             </span>
             <p className="text-[13px] font-black tracking-tight text-slate-900">
@@ -742,7 +763,7 @@ const StudentDashboardScreen = () => {
             <Shimmer className="h-16 rounded-lg" />
           ) : pendingReviews.length > 0 ? (
             <>
-              <p className="mb-2.5 text-xs text-gray-500">
+              <p className="-mt-1 mb-2.5 text-xs text-gray-500">
                 {t("dashboard.review.due", {
                   defaultValue:
                     "{{n}} cards due · adaptive spacing strengthens your weakest CLOs",
@@ -750,10 +771,19 @@ const StudentDashboardScreen = () => {
                 })}
               </p>
               <div className="mb-3 flex flex-wrap gap-1.5">
-                {reviewChips.map((chip) => (
+                {reviewChips.map((chip, index) => (
                   <span
-                    key={chip.label}
-                    className="rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700"
+                    key={chip.id}
+                    title={chip.sourceLabel}
+                    className={cn(
+                      "inline-block max-w-[12rem] truncate rounded-full border px-2 py-1 text-[10px] font-bold",
+                      index % 3 === 0 &&
+                        "border-orange-100 bg-orange-50 text-orange-700",
+                      index % 3 === 1 &&
+                        "border-blue-100 bg-blue-50 text-blue-700",
+                      index % 3 === 2 &&
+                        "border-teal-100 bg-teal-50 text-teal-700"
+                    )}
                   >
                     {chip.label} ×{chip.count}
                   </span>
@@ -776,7 +806,7 @@ const StudentDashboardScreen = () => {
               )}
             </p>
           )}
-        </div>
+        </PCard>
 
         {/* This Week's Activity (habit heatmap) */}
         <div className="rounded-2xl bg-white p-4 shadow-md">

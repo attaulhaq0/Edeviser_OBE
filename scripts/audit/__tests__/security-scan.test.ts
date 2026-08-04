@@ -15,6 +15,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   scanBuiltBundleSecrets,
+  scanCheckedInServiceRoleLiterals,
   scanViteEnvAllowlist,
 } from "../security-scan.ts";
 
@@ -143,6 +144,27 @@ describe("scanBuiltBundleSecrets (Task 13.1, Req 13.1)", () => {
     const result = scanBuiltBundleSecrets();
     expect(result.bundleExists).toBe(true);
     expect(result.findings).toEqual([]);
+  });
+});
+
+describe("scanCheckedInServiceRoleLiterals (Req 13.1)", () => {
+  it("flags a service-role JWT in a migration without exposing the token", () => {
+    const token =
+      "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature";
+    const migration = join(
+      workspaceDir,
+      "supabase",
+      "migrations",
+      "20260101000000_secret.sql"
+    );
+    mkdirSync(join(migration, ".."), { recursive: true });
+    writeFileSync(migration, `select vault.create_secret('${token}');`, "utf8");
+
+    const findings = scanCheckedInServiceRoleLiterals();
+    expect(findings).toHaveLength(1);
+    expect(findings[0]?.severity).toBe("Blocker");
+    expect(findings[0]?.detail?.matchPreview).toBe("eyJhbGciOiJI…");
+    expect(JSON.stringify(findings)).not.toContain(token);
   });
 });
 

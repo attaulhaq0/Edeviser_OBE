@@ -188,7 +188,7 @@ const ProgramAccreditationManager = () => {
             size="sm"
             variant="secondary"
             onClick={() => setDialogOpen(true)}
-            className="bg-white/20 text-white hover:bg-white/30 border-0"
+            className="bg-slate-700/40 text-white hover:bg-slate-700/50 border-0"
             data-testid="add-accreditation"
           >
             <Plus className="h-4 w-4" />

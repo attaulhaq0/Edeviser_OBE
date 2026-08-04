@@ -7,7 +7,12 @@ const corsHeaders = {
 };
 
 interface AuthResult {
-  user: { id: string; role: string; institution_id: string } | null;
+  user: {
+    id: string;
+    role: string;
+    institution_id: string;
+    is_active: boolean;
+  } | null;
   error: string | null;
 }
 
@@ -35,34 +40,37 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
     return { user: null, error: "Unauthorized" };
   }
 
-  // Role + institution live in the profiles table, NOT the JWT (app_metadata is
-  // empty on this project). Resolve them server-side from profiles by the
-  // caller's id, mirroring the already-deployed ai-feedback-draft pattern. The
-  // JWT-metadata values are retained as a fallback so any future token that DOES
-  // carry the role/institution still works (preservation).
+  // Role and institution are canonical profile data, never JWT metadata.
   const adminClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
-  const { data: callerProfile } = await adminClient
+  const { data: callerProfile, error: profileError } = await adminClient
     .from("profiles")
-    .select("role, institution_id")
+    .select("role, institution_id, is_active")
     .eq("id", user.id)
     .maybeSingle();
 
-  const role =
-    (callerProfile?.role as string) ??
-    user.app_metadata?.role ??
-    user.user_metadata?.role ??
-    "";
-  const institutionId =
-    (callerProfile?.institution_id as string) ??
-    user.app_metadata?.institution_id ??
-    user.user_metadata?.institution_id ??
-    "";
+  // Authorization is derived exclusively from the canonical profile. JWT
+  // metadata is user-controlled at signup and must never grant a role or
+  // tenant context. Missing/inactive profiles are denied consistently.
+  if (
+    profileError ||
+    !callerProfile ||
+    callerProfile.is_active !== true ||
+    typeof callerProfile.role !== "string" ||
+    typeof callerProfile.institution_id !== "string"
+  ) {
+    return { user: null, error: "Profile is missing or inactive" };
+  }
 
   return {
-    user: { id: user.id, role, institution_id: institutionId },
+    user: {
+      id: user.id,
+      role: callerProfile.role,
+      institution_id: callerProfile.institution_id,
+      is_active: true,
+    },
     error: null,
   };
 }
