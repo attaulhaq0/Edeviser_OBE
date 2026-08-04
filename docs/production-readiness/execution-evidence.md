@@ -3,6 +3,23 @@
 This is a local evidence snapshot for the Edeviser execution brief. It is not
 a production-readiness sign-off.
 
+## CURRENT PR SNAPSHOT (2026-08-04)
+
+- PR #237 branch head: `2bf22d49` (pushed; no merge performed).
+- The original checked-in service-role JWT finding was removed from the current
+  tree. The repaired historical migration contains no credential literal and
+  the security scanner reports only masked findings.
+- Local security audit: passed with 0 findings (run
+  `a284fe5c-5635-46ad-bce6-5ff2c5253d7b`).
+- Local bundle audit: passed after removing the static optional error-telemetry
+  SDK from the production graph: 1,286.2 KB gzip, below the 1,306.4 KB cap
+  (previous measurement 1,442.2 KB).
+- i18n audit: locale parity passed; technical route/chart prop false positives
+  were removed from the scanner. 633 genuine/legacy Minor literal findings
+  remain for a separate translation backlog and are not hidden.
+- `npm audit` could not reach the registry security endpoint in this sandbox;
+  no vulnerability count is claimed. `npm ls --depth=0` completed.
+
 ## VERIFIED live evidence
 
 - Supabase project queried: `cdlgtbvxlxjpcddjazzx`.
@@ -94,9 +111,14 @@ a production-readiness sign-off.
 - Local Daily Review visual check — passed at `http://127.0.0.1:4173/student/dashboard`;
   Noor's Aarav Sharma account rendered five pending review schedules and the
   Start Review action navigated to `/student/today`.
-- Security audit stage — blocked by one historical service-role JWT literal in
-  the managed migration `supabase/migrations/20260520063547_store_service_role_key_in_vault.sql`.
-  The scanner reports only a masked prefix; the token was not printed.
+- Security audit stage — passed after removing the historical service-role JWT
+  literal from `supabase/migrations/20260520063547_store_service_role_key_in_vault.sql`.
+  The scanner reports only masked prefixes; the token was not printed.
+- Bundle/performance audit — passed at 1,286.2 KB gzip against the 1,306.4 KB
+  cap after removing the static optional telemetry SDK from the production
+  graph. The existing local error boundary and console safety net remain.
+- i18n scanner focused tests — 16 tests passed; route and chart configuration
+  props are ignored while visible JSX literals remain reported.
 - Design-token audit stage — 0 findings.
 - Focused dashboard/auth tests after the latest UI work — 3 files, 34 tests
   passed.
@@ -112,10 +134,10 @@ a production-readiness sign-off.
 - Edge Function deployment is blocked until the migration contract is live.
 - `RESEND_WEBHOOK_SECRET` presence and provider delivery cannot be verified
   without reading secrets or sending an allowlisted sandbox email.
-- Full audit remains No-Go because the local environment lacks `CRON_SECRET`,
-  the locked bundle budget is above its historical baseline (1,442.2 KB gzip
-  versus a 1,216.1 KB baseline), and the E2E audit stage is still not backed by
-  a configured preview run. These are not represented as green production
+- Full production sign-off remains blocked because the local environment lacks
+  `CRON_SECRET`, the preview E2E stage is not backed by a configured preview
+  run, and invitation/Parent schema/functions have not been deployed to an
+  isolated Supabase branch. These are not represented as green production
   checks.
 - Vercel project/environment inspection requires a connector with access to
   team `team_Gvw1Dz7IlxIG5evqwlsNkZHb`; project/deployment metadata is now
@@ -127,12 +149,9 @@ a production-readiness sign-off.
   `https://app.edeviser.com` and retain redirect patterns
   `https://app.edeviser.com/**`, `https://e-deviser.vercel.app/**`, and
   `http://localhost:5173/**` during the domain transition.
-- The repository contains a historical service-role JWT literal in
-  `supabase/migrations/20260520063547_store_service_role_key_in_vault.sql`.
-  It was not printed or modified because migrations are managed and the
-  current safety gate forbids an unreviewed production DDL change. The key
-  must be rotated/revoked and the repository/history scrubbed through an
-  approved security response before sign-off.
+- The exposed legacy key still requires Supabase Dashboard rotation/revocation
+  and a separate history-scrub plan. No production key was read, disabled, or
+  claimed as rotated.
 - Playwright fixture setup now refuses to seed unless
   `E2E_FIXTURES_ENABLED=true`, `SUPABASE_DB_ENV=preview`, and explicit preview
   URL/anon-key values are present; no production fallback key or URL remains in
@@ -143,13 +162,9 @@ a production-readiness sign-off.
 - The live-only migration drift must be reconciled through the approved
   Supabase migration workflow before another production migration is proposed;
   no undocumented SQL was copied into `supabase/migrations`.
-- PR #237 latest run `30872464046` has Test (13m), Build, Bundle Size, E2E,
-  Lighthouse, lint, type-check, SQL migration lint, RLS smoke/isolation,
-  lockfile, and Vercel preview checks passing. The companion pre-deployment
-  run `30872464042` has Unit + Property Tests (12m), Build, static scanners,
-  and type/lint checks passing, but Security Scan and Audit Report fail on the
-  historical service-role JWT blocker and resulting No-Go report. No merge has
-  been performed.
+- GitHub Actions for the latest pushed head are still running; their final
+  status must be rechecked before any claim that CI or the Audit Report passed.
+  No merge has been performed.
 - Commit `b1cdbd29` adds a CI-only fetch guard for the loopback Supabase
   fallback URL. It keeps hermetic unit/property tests from opening real
   retrying sockets; the full local coverage suite still passes and no
