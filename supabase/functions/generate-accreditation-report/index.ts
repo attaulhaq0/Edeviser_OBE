@@ -491,16 +491,8 @@ serve(async (req) => {
       .select("role, institution_id")
       .eq("id", user.id)
       .maybeSingle();
-    const callerRole =
-      (callerProfile?.role as string) ??
-      user.app_metadata?.role ??
-      user.user_metadata?.role ??
-      "";
-    const callerInstitutionId =
-      (callerProfile?.institution_id as string) ??
-      user.app_metadata?.institution_id ??
-      user.user_metadata?.institution_id ??
-      "";
+    const callerRole = (callerProfile?.role as string) ?? "";
+    const callerInstitutionId = (callerProfile?.institution_id as string) ?? "";
     if (
       !["admin", "coordinator"].includes(callerRole) ||
       !callerInstitutionId

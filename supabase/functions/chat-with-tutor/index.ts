@@ -654,16 +654,34 @@ serve(async (req) => {
   }
 
   const studentId = user.id;
-  const institutionId =
-    user.app_metadata?.institution_id ??
-    user.user_metadata?.institution_id ??
-    "";
 
   // Service-role client for server-side operations (bypasses RLS)
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
+
+  // Tenant and account state are authoritative in profiles. JWT metadata is
+  // user-controlled at signup and must never determine AI tenant scope.
+  const { data: callerProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("institution_id, role, is_active")
+    .eq("id", studentId)
+    .maybeSingle();
+  if (
+    profileError ||
+    !callerProfile?.institution_id ||
+    callerProfile.is_active === false
+  ) {
+    return new Response(
+      JSON.stringify({ error: "Forbidden: active profile required" }),
+      {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  const institutionId = callerProfile.institution_id as string;
 
   // Parse and validate request body
   let body: unknown;

@@ -63,6 +63,11 @@ a production-readiness sign-off.
   not submitted by the auth provider.
 - Parent dashboards show explicit insufficient-evidence states instead of
   fabricated progress/wellbeing trends.
+- Tutor and accreditation AI functions now derive institution scope from an
+  active `profiles` row; JWT role/institution metadata is not used as an
+  authorization fallback.
+- Scheduled streak/weekly-summary and student-export links now use `APP_URL`
+  with the canonical `https://app.edeviser.com` fallback.
 - RTL physical spacing and design-token violations addressed; baseline course
   lists now use bounded pagination.
 

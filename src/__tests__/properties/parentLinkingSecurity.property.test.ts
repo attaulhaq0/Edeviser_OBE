@@ -44,4 +44,30 @@ describe("Parent linking security invariants", () => {
       expect(page).not.toContain(tenantId);
     }
   });
+
+  it("derives AI tenant scope from active profiles rather than JWT metadata", () => {
+    const tutor = read("supabase/functions/chat-with-tutor/index.ts");
+    const accreditation = read(
+      "supabase/functions/generate-accreditation-report/index.ts"
+    );
+    expect(tutor).toContain('.from("profiles")');
+    expect(tutor).toContain('select("institution_id, role, is_active")');
+    expect(tutor).not.toContain("user.app_metadata?.institution_id");
+    expect(tutor).not.toContain("user.user_metadata?.institution_id");
+    expect(accreditation).not.toContain("user.app_metadata?.institution_id");
+    expect(accreditation).not.toContain("user.user_metadata?.institution_id");
+  });
+
+  it("uses APP_URL for scheduled links instead of deriving a Vercel URL from Supabase", () => {
+    for (const file of [
+      "supabase/functions/weekly-summary-cron/index.ts",
+      "supabase/functions/streak-risk-cron/index.ts",
+      "supabase/functions/export-student-data/index.ts",
+    ]) {
+      const source = read(file);
+      expect(source).toContain("app.edeviser.com");
+      expect(source).not.toContain('replace(".supabase.co", ".vercel.app")');
+      expect(source).not.toContain("https://edeviser.vercel.app");
+    }
+  });
 });
