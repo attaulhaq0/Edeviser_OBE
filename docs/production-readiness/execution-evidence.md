@@ -19,6 +19,12 @@ a production-readiness sign-off.
   remain for a separate translation backlog and are not hidden.
 - `npm audit` could not reach the registry security endpoint in this sandbox;
   no vulnerability count is claimed. `npm ls --depth=0` completed.
+- An isolated Supabase branch was created only for staging at
+  `2026-08-04T09:36:08Z` (project ref `ihlinzbozveqleybhxnu`) at the approved
+  $0.01344/hour rate. Inherited replay reached `MIGRATIONS_FAILED` after
+  `20260504032900`, so no invitation/Parent DDL or functions were applied.
+  The branch was deleted and absent from the branch list by
+  `2026-08-04T09:39:53Z`; estimated accrued cost is under $0.001.
 
 ## VERIFIED live evidence
 
@@ -136,9 +142,8 @@ a production-readiness sign-off.
   without reading secrets or sending an allowlisted sandbox email.
 - Full production sign-off remains blocked because the local environment lacks
   `CRON_SECRET`, the preview E2E stage is not backed by a configured preview
-  run, and invitation/Parent schema/functions have not been deployed to an
-  isolated Supabase branch. These are not represented as green production
-  checks.
+  run, and the available isolated Supabase branch could not complete inherited
+  migration replay. These are not represented as green production checks.
 - Vercel project/environment inspection requires a connector with access to
   team `team_Gvw1Dz7IlxIG5evqwlsNkZHb`; project/deployment metadata is now
   readable, but environment-variable names and Auth URL settings were not
@@ -161,7 +166,8 @@ a production-readiness sign-off.
   reported missing, rather than the prior “stub” message.
 - The live-only migration drift must be reconciled through the approved
   Supabase migration workflow before another production migration is proposed;
-  no undocumented SQL was copied into `supabase/migrations`.
+  no undocumented SQL was copied into `supabase/migrations`. The attempted
+  staging branch inherited the same replay failure and was deleted.
 - GitHub Actions for the latest pushed head are still running; their final
   status must be rechecked before any claim that CI or the Audit Report passed.
   No merge has been performed.
