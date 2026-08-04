@@ -148,9 +148,9 @@ const isSourceClientFile = (path: string): boolean => {
   return /\.(ts|tsx)$/.test(rel);
 };
 
-// A service-role JWT must never appear in checked-in SQL, source, or test
-// fixtures. This scan deliberately decodes only the JWT payload locally and
-// reports a short prefix; it never emits the usable token.
+// A service-role JWT must never appear in checked-in SQL, frontend source, or
+// server/Edge Function source. This scan deliberately decodes only the JWT
+// payload locally and reports a short prefix; it never emits the usable token.
 const JWT_LITERAL_REGEX =
   /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
 
@@ -172,9 +172,12 @@ const isServiceRoleJwt = (token: string): boolean => {
 };
 
 export const scanCheckedInServiceRoleLiterals = (): readonly Finding[] => {
-  const roots = [resolve("supabase", "migrations"), resolve("src")].filter(
-    existsSync
-  );
+  const roots = [
+    resolve("supabase", "migrations"),
+    resolve("supabase", "functions"),
+    resolve("src"),
+    resolve("api"),
+  ].filter(existsSync);
   const findings: Finding[] = [];
 
   for (const root of roots) {

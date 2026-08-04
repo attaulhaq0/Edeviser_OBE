@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getManagedServerKey } from "./serverSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,7 +44,7 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
   // Role and institution are canonical profile data, never JWT metadata.
   const adminClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    getManagedServerKey()
   );
   const { data: callerProfile, error: profileError } = await adminClient
     .from("profiles")
@@ -92,7 +93,12 @@ export function authenticateCronRequest(req: Request): {
 
   // Also accept service role key in Authorization header (for internal calls)
   const authHeader = req.headers.get("Authorization") ?? "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  let serviceRoleKey = "";
+  try {
+    serviceRoleKey = getManagedServerKey();
+  } catch {
+    serviceRoleKey = "";
+  }
   if (serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey) {
     return { authorized: true, error: null };
   }

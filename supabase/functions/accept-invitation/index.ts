@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import {
   hashToken,
@@ -49,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   const service = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    getManagedServerKey()
   );
   const forwardedIp = req.headers.get("x-real-ip")?.trim() ?? "";
   const clientIp = /^[0-9a-fA-F:.]+$/.test(forwardedIp)

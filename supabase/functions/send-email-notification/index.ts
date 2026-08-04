@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -373,7 +374,12 @@ serve(async (req) => {
   try {
     // ── Auth: require admin role or internal service call ────────────
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    let serviceRoleKey = "";
+    try {
+      serviceRoleKey = getManagedServerKey();
+    } catch {
+      serviceRoleKey = "";
+    }
     const isServiceRole =
       serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
@@ -398,7 +404,7 @@ serve(async (req) => {
       // mirroring the already-deployed ai-feedback-draft pattern.
       const adminClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+        getManagedServerKey()
       );
       const { data: callerProfile } = await adminClient
         .from("profiles")
@@ -431,7 +437,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();

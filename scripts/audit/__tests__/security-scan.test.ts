@@ -166,6 +166,46 @@ describe("scanCheckedInServiceRoleLiterals (Req 13.1)", () => {
     expect(findings[0]?.detail?.matchPreview).toBe("eyJhbGciOiJI…");
     expect(JSON.stringify(findings)).not.toContain(token);
   });
+
+  it("flags a service-role JWT in server and frontend source", () => {
+    const token =
+      "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.signature";
+    const serverFile = join(
+      workspaceDir,
+      "supabase",
+      "functions",
+      "health",
+      "index.ts"
+    );
+    const frontendFile = join(workspaceDir, "src", "lib", "unsafe.ts");
+    mkdirSync(join(serverFile, ".."), { recursive: true });
+    mkdirSync(join(frontendFile, ".."), { recursive: true });
+    writeFileSync(serverFile, `const serverToken = '${token}';`, "utf8");
+    writeFileSync(frontendFile, `const clientToken = '${token}';`, "utf8");
+
+    const findings = scanCheckedInServiceRoleLiterals();
+    expect(findings).toHaveLength(2);
+    expect(findings.every((finding) => finding.severity === "Blocker")).toBe(
+      true
+    );
+    expect(JSON.stringify(findings)).not.toContain(token);
+  });
+
+  it("does not classify an ordinary JWT-shaped fixture as service-role", () => {
+    const token =
+      "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoicmVmcmVzaF9hcGlrZXkifQ.signature";
+    const fixture = join(
+      workspaceDir,
+      "supabase",
+      "functions",
+      "health",
+      "fixture.ts"
+    );
+    mkdirSync(join(fixture, ".."), { recursive: true });
+    writeFileSync(fixture, `const fixtureToken = '${token}';`, "utf8");
+
+    expect(scanCheckedInServiceRoleLiterals()).toEqual([]);
+  });
 });
 
 describe("scanViteEnvAllowlist (Task 13.2, Req 13.2)", () => {

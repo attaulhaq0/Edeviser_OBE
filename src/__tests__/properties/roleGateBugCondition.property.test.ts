@@ -216,11 +216,11 @@ describe("Property 1 (preservation): service-role / cron branch still authorizes
     );
   });
 
-  it("authenticateCronRequest preserves the service-role/cron authorization path in source", () => {
+  it("authenticateCronRequest preserves the managed-key/cron authorization path in source", () => {
     const source = readFileSafe("supabase/functions/_shared/auth.ts");
-    // The cron/service-role branch (x-cron-secret + service-role-key fallback) must remain present.
+    // The cron/server-key branch (x-cron-secret + managed-key fallback) must remain present.
     expect(source).toContain("authenticateCronRequest");
     expect(source).toMatch(/x-cron-secret/);
-    expect(source).toMatch(/SUPABASE_SERVICE_ROLE_KEY/);
+    expect(source).toContain("getManagedServerKey");
   });
 });

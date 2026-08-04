@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { authenticateRequest } from "../_shared/auth.ts";
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import {
   appUrl,
   canSendTo,
@@ -131,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   const service = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    getManagedServerKey()
   );
   const mode = readEmailMode();
   const baseIdempotency =

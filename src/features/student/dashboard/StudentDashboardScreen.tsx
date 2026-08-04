@@ -30,6 +30,7 @@ import {
   Check,
   ChevronRight,
   Megaphone,
+  Repeat2,
   ShieldQuestion,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -244,10 +245,14 @@ const StudentDashboardScreen = () => {
     .map(([cloId, n]) => ({
       id: cloId,
       label: compactReviewLabel(
-        cloTitleById.get(cloId) ?? t("dashboard.review.card", "Review")
+        pendingReviews.find((review) => review.cloId === cloId)?.cloTitle ??
+          cloTitleById.get(cloId) ??
+          t("dashboard.review.card", "Review")
       ),
       sourceLabel:
-        cloTitleById.get(cloId) ?? t("dashboard.review.card", "Review"),
+        pendingReviews.find((review) => review.cloId === cloId)?.cloTitle ??
+        cloTitleById.get(cloId) ??
+        t("dashboard.review.card", "Review"),
       count: n,
     }))
     .slice(0, 4);
@@ -741,13 +746,13 @@ const StudentDashboardScreen = () => {
       {/* ── Daily Review + Weekly Activity ── */}
       <div className="grid gap-3 lg:grid-cols-2">
         {/* Daily Review (spaced repetition) */}
-        <PCard className="p-4">
+        <PCard className="min-h-[128px] p-4" data-testid="daily-review-card">
           <div className="mb-2 flex items-center gap-2">
             <span
               className="flex h-7 w-7 items-center justify-center rounded-[9px] border border-slate-200/80 bg-white/80 text-sm backdrop-blur-xs"
               aria-hidden="true"
             >
-              🔁
+              <Repeat2 className="h-4 w-4 text-sky-600" />
             </span>
             <p className="text-[13px] font-black tracking-tight text-slate-900">
               {t("dashboard.review.title", "Daily Review")}
