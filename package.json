@@ -21,6 +21,7 @@
     "analyze": "cross-env ANALYZE=true vite build",
     "lighthouse": "lhci autorun || true",
     "audit": "tsx scripts/audit/run.ts --env=ci",
+    "tenant:operations": "tsx scripts/tenant-operations.ts",
     "audit:install-browsers": "playwright install chromium webkit --with-deps",
     "prepare": "husky",
     "changeset": "changeset",
