@@ -156,5 +156,42 @@
     "arabicName": "Arabic Name",
     "arabicTitlePlaceholder": "Enter title in Arabic (optional)",
     "arabicNamePlaceholder": "Enter name in Arabic (optional)"
+  },
+  "parentInvite": {
+    "title": "Family / Guardians",
+    "subtitle": "Manage same-institution parent relationships without moving accounts between tenants.",
+    "inviteTitle": "Invite Parent / Guardian",
+    "existingTitle": "Link Existing Parent",
+    "inviteNew": "Invite new parent",
+    "linkExisting": "Link existing parent",
+    "securityNote": "The server derives the institution from your administrator profile and the selected student. Cross-institution links are rejected.",
+    "student": "Student",
+    "selectStudent": "Select student",
+    "parentEmail": "Parent email",
+    "existingParent": "Existing parent",
+    "selectParent": "Select a parent",
+    "relationship": "Relationship",
+    "relationshipLabel": "Relationship label",
+    "relationshipLabelPlaceholder": "e.g. aunt",
+    "sendInvitation": "Send invitation",
+    "linkAndVerify": "Link and verify",
+    "relationships": {
+      "mother": "Mother",
+      "father": "Father",
+      "guardian": "Guardian",
+      "other": "Other"
+    },
+    "errors": {
+      "adminRequired": "You must be signed in as an administrator",
+      "emailRequired": "Parent email is required",
+      "parentRequired": "Select a parent",
+      "relationshipLabelRequired": "Add a safe relationship label",
+      "saveFailed": "Parent relationship could not be saved"
+    },
+    "success": {
+      "pendingExisting": "Pending relationship created for the existing parent",
+      "invitationSent": "Parent invitation sent",
+      "linked": "Parent linked and verified"
+    }
   }
 }

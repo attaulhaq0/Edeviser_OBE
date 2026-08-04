@@ -27,6 +27,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { queryKeys } from "@/lib/queryKeys";
 import { Shimmer } from "@/design-system";
+import { useTranslation } from "react-i18next";
 
 const schema = z.object({
   parent_email: z.string(),
@@ -56,6 +57,7 @@ const usePeople = (role: "student" | "parent") =>
   });
 
 const ParentInvitePage = () => {
+  const { t } = useTranslation("admin");
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const studentsQuery = usePeople("student");
@@ -76,20 +78,24 @@ const ParentInvitePage = () => {
 
   const onSubmit = async (data: FormData) => {
     if (!user) {
-      toast.error("You must be signed in as an administrator");
+      toast.error(t("parentInvite.errors.adminRequired"));
       return;
     }
     if (mode === "invite" && !data.parent_email.trim()) {
-      form.setError("parent_email", { message: "Parent email is required" });
+      form.setError("parent_email", {
+        message: t("parentInvite.errors.emailRequired"),
+      });
       return;
     }
     if (mode === "existing" && !data.parent_id) {
-      form.setError("parent_id", { message: "Select a parent" });
+      form.setError("parent_id", {
+        message: t("parentInvite.errors.parentRequired"),
+      });
       return;
     }
     if (data.relationship === "other" && !data.relationship_label?.trim()) {
       form.setError("relationship_label", {
-        message: "Add a safe relationship label",
+        message: t("parentInvite.errors.relationshipLabelRequired"),
       });
       return;
     }
@@ -121,7 +127,7 @@ const ParentInvitePage = () => {
         toast.error(
           result?.message ??
             error?.message ??
-            "Parent relationship could not be saved"
+            t("parentInvite.errors.saveFailed")
         );
         return;
       }
@@ -132,13 +138,13 @@ const ParentInvitePage = () => {
       toast.success(
         mode === "invite"
           ? result.existingParent
-            ? "Pending relationship created for the existing parent"
-            : "Parent invitation sent"
-          : "Parent linked and verified"
+            ? t("parentInvite.success.pendingExisting")
+            : t("parentInvite.success.invitationSent")
+          : t("parentInvite.success.linked")
       );
       form.reset();
     } catch {
-      toast.error("Parent relationship could not be saved");
+      toast.error(t("parentInvite.errors.saveFailed"));
     } finally {
       setIsPending(false);
     }
@@ -152,11 +158,10 @@ const ParentInvitePage = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
-          Family / Guardians
+          {t("parentInvite.title")}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Manage same-institution parent relationships without moving accounts
-          between tenants.
+          {t("parentInvite.subtitle")}
         </p>
       </div>
 
@@ -169,8 +174,8 @@ const ParentInvitePage = () => {
           )}
           <h2 className="text-lg font-bold tracking-tight text-white">
             {mode === "invite"
-              ? "Invite Parent / Guardian"
-              : "Link Existing Parent"}
+              ? t("parentInvite.inviteTitle")
+              : t("parentInvite.existingTitle")}
           </h2>
         </div>
         <div className="space-y-5 p-6">
@@ -182,7 +187,7 @@ const ParentInvitePage = () => {
               onClick={() => setMode("invite")}
             >
               <Mail className="size-4" />
-              Invite new parent
+              {t("parentInvite.inviteNew")}
             </Button>
             <Button
               type="button"
@@ -191,12 +196,11 @@ const ParentInvitePage = () => {
               onClick={() => setMode("existing")}
             >
               <Link2 className="size-4" />
-              Link existing parent
+              {t("parentInvite.linkExisting")}
             </Button>
           </div>
           <p className="text-sm text-slate-500">
-            The server derives the institution from your administrator profile
-            and the selected student. Cross-institution links are rejected.
+            {t("parentInvite.securityNote")}
           </p>
           {loading ? (
             <Shimmer className="h-32 rounded-lg" />
@@ -211,14 +215,16 @@ const ParentInvitePage = () => {
                   name="student_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Student</FormLabel>
+                      <FormLabel>{t("parentInvite.student")}</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
                       >
                         <FormControl>
                           <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Select student" />
+                            <SelectValue
+                              placeholder={t("parentInvite.selectStudent")}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -239,7 +245,7 @@ const ParentInvitePage = () => {
                     name="parent_email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Parent email</FormLabel>
+                        <FormLabel>{t("parentInvite.parentEmail")}</FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -258,14 +264,18 @@ const ParentInvitePage = () => {
                     name="parent_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Existing parent</FormLabel>
+                        <FormLabel>
+                          {t("parentInvite.existingParent")}
+                        </FormLabel>
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                         >
                           <FormControl>
                             <SelectTrigger className="bg-white">
-                              <SelectValue placeholder="Select a parent" />
+                              <SelectValue
+                                placeholder={t("parentInvite.selectParent")}
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -286,7 +296,7 @@ const ParentInvitePage = () => {
                   name="relationship"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Relationship</FormLabel>
+                      <FormLabel>{t("parentInvite.relationship")}</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -297,10 +307,18 @@ const ParentInvitePage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="mother">Mother</SelectItem>
-                          <SelectItem value="father">Father</SelectItem>
-                          <SelectItem value="guardian">Guardian</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="mother">
+                            {t("parentInvite.relationships.mother")}
+                          </SelectItem>
+                          <SelectItem value="father">
+                            {t("parentInvite.relationships.father")}
+                          </SelectItem>
+                          <SelectItem value="guardian">
+                            {t("parentInvite.relationships.guardian")}
+                          </SelectItem>
+                          <SelectItem value="other">
+                            {t("parentInvite.relationships.other")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -313,9 +331,16 @@ const ParentInvitePage = () => {
                     name="relationship_label"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Relationship label</FormLabel>
+                        <FormLabel>
+                          {t("parentInvite.relationshipLabel")}
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. aunt" {...field} />
+                          <Input
+                            placeholder={t(
+                              "parentInvite.relationshipLabelPlaceholder"
+                            )}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -330,7 +355,9 @@ const ParentInvitePage = () => {
                   ) : (
                     <Link2 className="h-4 w-4" />
                   )}
-                  {mode === "invite" ? "Send invitation" : "Link and verify"}
+                  {mode === "invite"
+                    ? t("parentInvite.sendInvitation")
+                    : t("parentInvite.linkAndVerify")}
                 </Button>
               </form>
             </Form>

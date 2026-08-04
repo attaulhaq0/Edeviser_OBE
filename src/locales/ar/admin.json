@@ -156,5 +156,42 @@
     "arabicName": "الاسم بالعربية",
     "arabicTitlePlaceholder": "أدخل العنوان بالعربية (اختياري)",
     "arabicNamePlaceholder": "أدخل الاسم بالعربية (اختياري)"
+  },
+  "parentInvite": {
+    "title": "العائلة وأولياء الأمور",
+    "subtitle": "إدارة علاقات أولياء الأمور داخل المؤسسة دون نقل الحسابات بين المؤسسات.",
+    "inviteTitle": "دعوة ولي أمر أو وصي",
+    "existingTitle": "ربط ولي أمر حالي",
+    "inviteNew": "دعوة ولي أمر جديد",
+    "linkExisting": "ربط ولي أمر حالي",
+    "securityNote": "يستمد الخادم المؤسسة من ملف المسؤول والطالب المحدد، ويتم رفض الروابط بين المؤسسات.",
+    "student": "الطالب",
+    "selectStudent": "اختر طالباً",
+    "parentEmail": "البريد الإلكتروني لولي الأمر",
+    "existingParent": "ولي أمر حالي",
+    "selectParent": "اختر ولي أمر",
+    "relationship": "صلة القرابة",
+    "relationshipLabel": "وصف صلة القرابة",
+    "relationshipLabelPlaceholder": "مثال: عمة",
+    "sendInvitation": "إرسال الدعوة",
+    "linkAndVerify": "ربط وتحقق",
+    "relationships": {
+      "mother": "الأم",
+      "father": "الأب",
+      "guardian": "الوصي",
+      "other": "أخرى"
+    },
+    "errors": {
+      "adminRequired": "يجب تسجيل الدخول بصفتك مسؤولاً",
+      "emailRequired": "بريد ولي الأمر مطلوب",
+      "parentRequired": "اختر ولي أمر",
+      "relationshipLabelRequired": "أضف وصفاً آمناً لصلة القرابة",
+      "saveFailed": "تعذر حفظ علاقة ولي الأمر"
+    },
+    "success": {
+      "pendingExisting": "تم إنشاء علاقة معلقة لولي الأمر الحالي",
+      "invitationSent": "تم إرسال دعوة ولي الأمر",
+      "linked": "تم ربط ولي الأمر والتحقق منه"
+    }
   }
 }
