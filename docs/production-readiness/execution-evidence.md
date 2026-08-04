@@ -34,6 +34,11 @@ a production-readiness sign-off.
 - The Vault metadata query exposed only the secret name `service_role_key`; it
   did not expose any email or webhook secret names. Secret values were not
   read.
+- Migration drift is present: the repository replay checker sees 365 local
+  migrations, while the live Supabase migration inventory reports 376. The
+  live-only set includes eleven August 2, 2026 repair/hardening migrations
+  covering communication participants, analytics RPCs, coordinator workspace,
+  ACLs, and AI governance that are not checked into this tree.
 
 ## IMPLEMENTED locally
 
@@ -104,6 +109,9 @@ a production-readiness sign-off.
 - The audit E2E stage is now an executable preview-only Playwright stage; its
   current local result is `skipped` with all five required preview settings
   reported missing, rather than the prior “stub” message.
+- The live-only migration drift must be reconciled through the approved
+  Supabase migration workflow before another production migration is proposed;
+  no undocumented SQL was copied into `supabase/migrations`.
 - The current draft PR #237 has Vercel, lint, type-check, SQL migration lint,
   RLS smoke, RLS isolation, security audit, and preflight checks passing. The
   full Test and Unit + Property Tests jobs remain in progress; no merge has
