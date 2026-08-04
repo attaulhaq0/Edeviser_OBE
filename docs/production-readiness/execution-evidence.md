@@ -5,7 +5,7 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `2bf22d49` (pushed; no merge performed).
+- PR #237 branch head: `7b5701d9` (pushed; no merge performed).
 - The original checked-in service-role JWT finding was removed from the current
   tree. The repaired historical migration contains no credential literal and
   the security scanner reports only masked findings.
@@ -19,6 +19,9 @@ a production-readiness sign-off.
   remain for a separate translation backlog and are not hidden.
 - `npm audit` could not reach the registry security endpoint in this sandbox;
   no vulnerability count is claimed. `npm ls --depth=0` completed.
+- All repository Edge Functions and Vercel cron routes now resolve the managed
+  server key helper; the legacy fallback is explicit and opt-in. Runtime
+  deployment verification remains pending.
 - An isolated Supabase branch was created only for staging at
   `2026-08-04T09:36:08Z` (project ref `ihlinzbozveqleybhxnu`) at the approved
   $0.01344/hour rate. Inherited replay reached `MIGRATIONS_FAILED` after
