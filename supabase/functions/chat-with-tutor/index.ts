@@ -1673,9 +1673,7 @@ serve(async (req) => {
             await fetch(awardXpUrl, {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${Deno.env.get(
-                  "SUPABASE_SERVICE_ROLE_KEY"
-                )}`,
+                Authorization: `Bearer ${getManagedServerKey()}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
@@ -1937,9 +1935,7 @@ serve(async (req) => {
                 const planResponse = await fetch(planUpdateUrl, {
                   method: "POST",
                   headers: {
-                    Authorization: `Bearer ${Deno.env.get(
-                      "SUPABASE_SERVICE_ROLE_KEY"
-                    )}`,
+                    Authorization: `Bearer ${getManagedServerKey()}`,
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({

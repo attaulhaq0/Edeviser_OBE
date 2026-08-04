@@ -32,6 +32,7 @@ import {
   SeedRequestSchema,
   TeardownRequestSchema,
 } from "./schemas.ts";
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 
 // ─── CORS ──────────────────────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ const makeServiceClient = (): SupabaseClient => {
   const serviceRoleKey = getManagedServerKey();
   if (!url || !serviceRoleKey) {
     throw new Error(
-      "audit-fixtures: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing"
+      "audit-fixtures: SUPABASE_URL or managed server key missing"
     );
   }
   return createClient(url, serviceRoleKey, {
