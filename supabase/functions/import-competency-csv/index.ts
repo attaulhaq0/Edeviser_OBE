@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // Task 114.4: CSV import Edge Function for competency frameworks
 // Parses CSV, builds three-level hierarchy: Domain → Competency → Indicator
 
@@ -88,7 +89,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const { framework_id, csv_content } = await req.json();

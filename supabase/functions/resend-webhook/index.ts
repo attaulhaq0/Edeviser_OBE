@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { invitationCorsHeaders, jsonResponse } from "../_shared/invitation.ts";
 
@@ -99,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   const service = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    getManagedServerKey()
   );
   const { data: insertedEvent, error: insertError } = await service
     .from("email_delivery_events")

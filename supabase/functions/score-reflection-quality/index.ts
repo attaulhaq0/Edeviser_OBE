@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // =============================================================================
 // score-reflection-quality — Score reflection quality (originality, relevance, depth)
 // Fetches recent reflections for comparison, computes scores, persists result.
@@ -216,7 +217,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = (await req.json()) as ScoreRequest;

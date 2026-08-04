@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // =============================================================================
 // Edge Function: resolve-mystery-reward
 // Mystery reward box resolution — probability-weighted outcome selection
@@ -72,7 +73,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();

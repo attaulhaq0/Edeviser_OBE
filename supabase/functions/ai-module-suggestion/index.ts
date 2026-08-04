@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -225,7 +226,7 @@ serve(async (req) => {
   try {
     // ── Auth: require authenticated user ─────────────────────────────
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const serviceRoleKey = getManagedServerKey();
     const isServiceRole =
       serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
@@ -257,7 +258,7 @@ serve(async (req) => {
       // Role lives in profiles, not the JWT (app_metadata is empty here).
       const adminClientForRole = createClient(
         Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+        getManagedServerKey()
       );
       const { data: callerProfile } = await adminClientForRole
         .from("profiles")
@@ -275,7 +276,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const { student_id } = await req.json();

@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // =============================================================================
 // coordinator-ai-insights — AI attainment insights for coordinators
 // =============================================================================
@@ -297,7 +298,7 @@ serve(async (req) => {
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     // Role + institution live in profiles, not the JWT.

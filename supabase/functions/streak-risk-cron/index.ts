@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -21,7 +22,7 @@ serve(async (req) => {
     const cronSecret = req.headers.get("x-cron-secret");
     const expectedSecret = Deno.env.get("CRON_SECRET");
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const serviceRoleKey = getManagedServerKey();
     const isServiceRole =
       serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
     const isCron = expectedSecret && cronSecret === expectedSecret;
@@ -40,7 +41,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const todayUTC = new Date().toISOString().slice(0, 10); // YYYY-MM-DD

@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -17,7 +18,7 @@ serve(async (req) => {
     // which passes the service role key as the Authorization bearer token.
     // Verify the caller is using the service role key.
     const authHeader = req.headers.get("Authorization");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceRoleKey = getManagedServerKey();
     if (!authHeader || authHeader !== `Bearer ${serviceRoleKey}`) {
       return new Response(
         JSON.stringify({ error: "Unauthorized — service role key required" }),
