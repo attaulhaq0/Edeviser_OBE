@@ -488,14 +488,15 @@ serve(async (req) => {
     // caller's id, mirroring the already-deployed ai-feedback-draft pattern.
     const { data: callerProfile } = await adminClient
       .from("profiles")
-      .select("role, institution_id")
+      .select("role, institution_id, is_active")
       .eq("id", user.id)
       .maybeSingle();
     const callerRole = (callerProfile?.role as string) ?? "";
     const callerInstitutionId = (callerProfile?.institution_id as string) ?? "";
     if (
       !["admin", "coordinator"].includes(callerRole) ||
-      !callerInstitutionId
+      !callerInstitutionId ||
+      callerProfile?.is_active !== true
     ) {
       return new Response(
         JSON.stringify({

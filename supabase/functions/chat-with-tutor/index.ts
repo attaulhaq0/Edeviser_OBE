@@ -671,7 +671,7 @@ serve(async (req) => {
   if (
     profileError ||
     !callerProfile?.institution_id ||
-    callerProfile.is_active === false
+    callerProfile.is_active !== true
   ) {
     return new Response(
       JSON.stringify({ error: "Forbidden: active profile required" }),
