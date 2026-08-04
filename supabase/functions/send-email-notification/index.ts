@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { canSendTo, readEmailMode } from "../_shared/invitation.ts";
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 
 const corsHeaders = {
@@ -451,6 +452,36 @@ serve(async (req) => {
     }
 
     const { to, template, data } = validation.data;
+    const emailMode = readEmailMode();
+
+    // Email is opt-in for every environment. The default is disabled, and
+    // sandbox delivery is limited to the explicitly configured allowlist.
+    if (emailMode === "disabled") {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          errorCode: "EMAIL_DISABLED",
+          message: "Email sending is disabled",
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    if (!canSendTo(to, emailMode)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          errorCode: "EMAIL_NOT_ALLOWLISTED",
+          message: "Recipient is not allowlisted for sandbox email",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // ── Check email preferences (opt-out) ─────────────────────────────
     if (OPT_OUT_TEMPLATES.includes(template)) {

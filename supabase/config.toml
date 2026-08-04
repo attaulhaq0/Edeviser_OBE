@@ -399,3 +399,12 @@ verify_jwt = false
 
 [functions.resend-webhook]
 verify_jwt = false
+
+[functions.send-invitation-email]
+verify_jwt = true
+
+[functions.parent-link]
+verify_jwt = true
+
+[functions.send-email-notification]
+verify_jwt = true
