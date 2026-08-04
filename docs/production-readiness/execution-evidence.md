@@ -37,7 +37,31 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `87cc4f77` (pushed; no merge performed; CI and audit runs are still in progress).
+- PR #237 branch head: `1df843f0` (pushed; no merge performed; CI and audit runs are still in progress).
+
+## Post-staging hardening and local verification
+
+- `send-email-notification` now imports the shared email-mode guard and returns
+  `EMAIL_DISABLED` by default or `EMAIL_NOT_ALLOWLISTED` for sandbox recipients
+  outside `EMAIL_ALLOWLIST`; it cannot call Resend while disabled. The Supabase
+  config now declares all six invitation/Parent functions with their intended
+  JWT settings.
+- `npm run lint` passed after excluding generated `supabase/.temp` output from
+  ESLint. `npx tsc --noEmit` and `npm run build` passed.
+- Full Vitest replay passed with the constrained local worker setting:
+  645 files / 6,113 tests. The unconstrained run showed resource/network
+  timeouts in this runner; targeted failures passed when isolated.
+- Security audit passed with 0 findings; static audit passed; report audit was
+  `Go` with 0 blockers, 0 critical, 0 major, and 633 minor findings.
+- Bundle Size Check passed in GitHub Actions. i18n namespace parity and all
+  three migration/schema checks passed locally (380 migrations; no new
+  duplicate names; edge schema baseline clean).
+- `npm audit` identified 35 total advisories (1 critical, 21 high, 7 moderate,
+  6 low), mostly development/tooling transitive dependencies; the production
+  graph reported 2 advisories (1 high through `react-router`, 1 low direct
+  `react-router-dom`). No `npm audit fix --force` was run. CI remains pinned to
+  `.nvmrc` Node 20; the local runner is Node 26 and is not treated as runtime
+  parity evidence.
 - The original checked-in service-role JWT finding was removed from the current
   tree. The repaired historical migration contains no credential literal and
   the security scanner reports only masked findings.
