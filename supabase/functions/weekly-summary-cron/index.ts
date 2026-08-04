@@ -83,10 +83,10 @@ serve(async (req) => {
 
     let sent = 0;
     const errors: Array<{ student_id: string; error: string }> = [];
-    const dashboardUrl = `${
-      Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".vercel.app") ??
-      "https://edeviser.vercel.app"
-    }/student/dashboard`;
+    const appUrl = (Deno.env.get("APP_URL") ?? "https://app.edeviser.com")
+      .trim()
+      .replace(/\/+$/, "");
+    const dashboardUrl = `${appUrl}/student/dashboard`;
 
     for (const student of students) {
       try {

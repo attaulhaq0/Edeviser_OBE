@@ -110,10 +110,10 @@ serve(async (req) => {
     let notified = 0;
     const errors: Array<{ student_id: string; error: string }> = [];
 
-    const loginUrl = `${
-      Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".vercel.app") ??
-      "https://edeviser.vercel.app"
-    }/login`;
+    const appUrl = (Deno.env.get("APP_URL") ?? "https://app.edeviser.com")
+      .trim()
+      .replace(/\/+$/, "");
+    const loginUrl = `${appUrl}/login`;
 
     for (const student of atRiskStudents) {
       const profile = profileMap.get(student.student_id);
