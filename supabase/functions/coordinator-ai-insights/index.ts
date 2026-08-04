@@ -306,12 +306,8 @@ serve(async (req) => {
       .select("role, institution_id")
       .eq("id", caller.id)
       .maybeSingle();
-    const role =
-      (callerProfile?.role as string) ?? caller.app_metadata?.role ?? "";
-    const institutionId =
-      (callerProfile?.institution_id as string) ??
-      caller.app_metadata?.institution_id ??
-      "";
+    const role = (callerProfile?.role as string) ?? "";
+    const institutionId = (callerProfile?.institution_id as string) ?? "";
     if (!["coordinator", "admin"].includes(role)) {
       return json(
         { error: "Forbidden: coordinator or admin role required" },

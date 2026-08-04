@@ -280,11 +280,7 @@ serve(async (req) => {
             .select("role")
             .eq("id", user.id)
             .maybeSingle();
-          const role =
-            (callerProfile?.role as string) ??
-            user.app_metadata?.role ??
-            user.user_metadata?.role ??
-            "";
+          const role = (callerProfile?.role as string) ?? "";
           if (role !== "admin") {
             return jsonResponse(
               {

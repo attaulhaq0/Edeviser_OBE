@@ -452,11 +452,7 @@ serve(async (req) => {
       .select("role, institution_id")
       .eq("id", user.id)
       .maybeSingle();
-    const callerRole =
-      (callerProfile?.role as string) ??
-      user.app_metadata?.role ??
-      user.user_metadata?.role ??
-      "";
+    const callerRole = (callerProfile?.role as string) ?? "";
     if (!["admin", "coordinator"].includes(callerRole)) {
       return new Response(
         JSON.stringify({

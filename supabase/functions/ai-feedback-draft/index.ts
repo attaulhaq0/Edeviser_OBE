@@ -309,11 +309,7 @@ serve(async (req) => {
       .select("role")
       .eq("id", caller.id)
       .maybeSingle();
-    const callerRole =
-      (callerProfile?.role as string) ??
-      caller.app_metadata?.role ??
-      caller.user_metadata?.role ??
-      "";
+    const callerRole = (callerProfile?.role as string) ?? "";
     if (!["teacher", "admin"].includes(callerRole)) {
       return new Response(
         JSON.stringify({ error: "Forbidden: teacher or admin role required" }),
