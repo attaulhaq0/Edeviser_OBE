@@ -23,6 +23,17 @@ a production-readiness sign-off.
   and webhook functions are not deployed.
 - Live `handle_new_user` still trusts role/institution metadata, references
   post-migration columns that do not exist, and catches all exceptions.
+- Supabase Edge Function inventory contains 54 active functions. The deployed
+  invitation sender is v9 and the notification sender is v12; preview,
+  acceptance, parent-link, and Resend webhook functions are not deployed.
+- Supabase advisors currently report 50 security warnings and 811 performance
+  notices (539 warnings, 272 informational). The leading security findings
+  include anonymous execution of legacy `SECURITY DEFINER` invitation/auth
+  RPCs; the leading performance findings include unindexed foreign keys and
+  multiple permissive policies.
+- The Vault metadata query exposed only the secret name `service_role_key`; it
+  did not expose any email or webhook secret names. Secret values were not
+  read.
 
 ## IMPLEMENTED locally
 
@@ -46,7 +57,7 @@ a production-readiness sign-off.
 
 - `npm run lint` — passed with zero warnings.
 - `npx tsc --noEmit` — passed.
-- `npm test` — 643 files, 6,101 tests passed.
+- `npm test` — 643 files, 6,102 tests passed.
 - Focused invitation/parent/security tests — passed.
 - `npm run db:check-replay` — 365 migrations clean.
 - `npm run db:check-dup-names` — no new collisions.
@@ -57,7 +68,9 @@ a production-readiness sign-off.
 - Local Daily Review visual check — passed at `http://127.0.0.1:4173/student/dashboard`;
   Noor's Aarav Sharma account rendered five pending review schedules and the
   Start Review action navigated to `/student/today`.
-- Security audit stage after payload validation — 0 findings.
+- Security audit stage — blocked by one historical service-role JWT literal in
+  the managed migration `supabase/migrations/20260520063547_store_service_role_key_in_vault.sql`.
+  The scanner reports only a masked prefix; the token was not printed.
 - Design-token audit stage — 0 findings.
 - Focused dashboard/auth tests after the latest UI work — 3 files, 34 tests
   passed.
@@ -91,3 +104,7 @@ a production-readiness sign-off.
 - The audit E2E stage is now an executable preview-only Playwright stage; its
   current local result is `skipped` with all five required preview settings
   reported missing, rather than the prior “stub” message.
+- The current draft PR #237 has Vercel, lint, type-check, SQL migration lint,
+  RLS smoke, RLS isolation, security audit, and preflight checks passing. The
+  full Test and Unit + Property Tests jobs remain in progress; no merge has
+  been performed.
