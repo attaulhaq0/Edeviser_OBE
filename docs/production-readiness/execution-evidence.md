@@ -5,7 +5,7 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `adf98067` (pushed; no merge performed; CI and audit runs are still in progress).
+- PR #237 branch head: `64c47b18` (pushed; no merge performed; CI and audit runs are still in progress).
 - The original checked-in service-role JWT finding was removed from the current
   tree. The repaired historical migration contains no credential literal and
   the security scanner reports only masked findings.
@@ -22,12 +22,17 @@ a production-readiness sign-off.
 - All repository Edge Functions and Vercel cron routes now resolve the managed
   server key helper; the legacy fallback is explicit and opt-in. Runtime
   deployment verification remains pending.
-- An isolated Supabase branch was created only for staging at
-  `2026-08-04T09:36:08Z` (project ref `ihlinzbozveqleybhxnu`) at the approved
-  $0.01344/hour rate. Inherited replay reached `MIGRATIONS_FAILED` after
-  `20260504032900`, so no invitation/Parent DDL or functions were applied.
-  The branch was deleted and absent from the branch list by
-  `2026-08-04T09:39:53Z`; estimated accrued cost is under $0.001.
+- The first isolated Supabase branch (`a266169e-a7d2-45ff-9f4a-f8be72ea59b0`,
+  created `2026-08-04T09:36:08Z`) reached `MIGRATIONS_FAILED` after
+  `20260504032900` and was deleted without applying invitation/Parent DDL or
+  functions. After the local clean replay gate passed, one replacement branch
+  (`9e2e2c94-cae2-4061-a0be-ffe749bd9cda`, project ref
+  `wlvcavrzbwaggwppbdep`) was created at `2026-08-04T11:05:15Z`. Supabase's
+  protected-main initializer still failed before a healthy terminal state
+  because the unmerged PR tree is not used by branch creation; no bounded
+  migrations or functions were applied. It was deleted immediately and was
+  absent from the branch list at `2026-08-04T11:09:29Z`; estimated accrued
+  cost for the replacement is approximately `$0.00095` at `$0.01344/hour`.
 
 ## VERIFIED live evidence
 
@@ -117,8 +122,10 @@ a production-readiness sign-off.
   coverage thresholds passed (33.39% statements, 29.03% branches,
   27.35% functions, 34.65% lines).
 - Focused invitation/parent/security tests — passed.
-- `npm run db:check-replay` — 365 migrations clean.
+- `npm run db:check-replay` — 376 migrations clean.
 - `npm run db:check-dup-names` — no new collisions.
+- `npx supabase db reset --local --yes` — true clean replay passed after the
+  local Supabase stack was recreated; all 376 migrations applied.
 - Edge schema-contract checker — clean with 46 explicitly documented
   pre-migration findings.
 - i18n parity — all namespaces passed.
@@ -173,16 +180,17 @@ a production-readiness sign-off.
 - The audit E2E stage is now an executable preview-only Playwright stage; its
   current local result is `skipped` with all five required preview settings
   reported missing, rather than the prior “stub” message.
-- A true local database replay is still required. The approved `supabase db
-reset --local --yes` attempt could not start because Docker Desktop is not
-  running in this environment; filename/order checks are not being treated as
-  a clean replay. No replacement staging branch has been created.
+- The local clean replay gate is now satisfied. The replacement remote branch
+  still could not reach a healthy terminal state because branch creation uses
+  protected `main`, not the unmerged PR tree; the branch was deleted and no
+  remote staging environment remains active.
 - The eleven live-only versions currently identified are
   `20260802010514`, `20260802012851`, `20260802013226`, `20260802013702`,
   `20260802020342`, `20260802021540`, `20260802024348`, `20260802030803`,
   `20260802032049`, `20260802044854`, and `20260802045332`. Their exact SQL
-  definitions were retrieved exactly; only the coordinator ACL operation was
-  wrapped in the documented replay guard.
+  definitions were retrieved exactly; replay-safe compatibility guards were
+  added only where live definitions referenced tables/functions created later
+  in the local chronology, with no invented live-only SQL.
 - GitHub Actions for the latest pushed head are still running; their final
   status must be rechecked before any claim that CI or the Audit Report passed.
   No merge has been performed.
