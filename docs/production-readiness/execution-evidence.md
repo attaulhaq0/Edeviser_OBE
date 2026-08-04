@@ -5,7 +5,7 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `7b5701d9` (pushed; no merge performed).
+- PR #237 branch head: `a211201a` (pushed; no merge performed; CI and audit runs are still in progress).
 - The original checked-in service-role JWT finding was removed from the current
   tree. The repaired historical migration contains no credential literal and
   the security scanner reports only masked findings.
@@ -44,6 +44,10 @@ a production-readiness sign-off.
 - Live `invitations` still stores a raw `token` and has no hashed-token or
   lifecycle columns. Live `parent_student_links` still has the legacy six
   columns and 35 verified rows.
+- The production `public` schema query found no `email_deliveries` or
+  `email_delivery_events` tables, even though the local invitation, parent-link,
+  and Resend webhook functions reference them; this remains a migration/runtime
+  blocker and was not repaired in production.
 - Deployed functions: `send-invitation-email` version 9 and
   `send-email-notification` version 12. The new preview, accept, parent-link,
   and webhook functions are not deployed.
