@@ -171,6 +171,11 @@ a production-readiness sign-off.
   Supabase migration workflow before another production migration is proposed;
   no undocumented SQL was copied into `supabase/migrations`. The attempted
   staging branch inherited the same replay failure and was deleted.
+- The eleven live-only versions currently identified are
+  `20260802010514`, `20260802012851`, `20260802013226`, `20260802013702`,
+  `20260802020342`, `20260802021540`, `20260802024348`, `20260802030803`,
+  `20260802032049`, `20260802044854`, and `20260802045332`. Their exact SQL
+  definitions have not been copied or invented locally.
 - GitHub Actions for the latest pushed head are still running; their final
   status must be rechecked before any claim that CI or the Audit Report passed.
   No merge has been performed.
