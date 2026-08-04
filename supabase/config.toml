@@ -408,3 +408,5 @@ verify_jwt = true
 
 [functions.send-email-notification]
 verify_jwt = true
+
+# PR 237 preview synchronization marker; no runtime configuration change.
