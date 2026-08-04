@@ -11,6 +11,7 @@ export default tseslint.config(
       "dist",
       "node_modules",
       "supabase/functions",
+      "supabase/.temp",
       "src/components/ui",
       ".claude",
       "coverage",
