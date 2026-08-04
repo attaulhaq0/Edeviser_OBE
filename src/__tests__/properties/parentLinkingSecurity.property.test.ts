@@ -74,7 +74,7 @@ describe("Parent linking security invariants", () => {
   it("keeps invitation tenant derivation on the server and preserves partial outcomes", () => {
     const hook = read("src/hooks/useInviteUsers.ts");
     const page = read("src/pages/admin/users/InviteUsersPage.tsx");
-    expect(hook).toContain('body: { invites: request.invites }');
+    expect(hook).toContain("body: { invites: request.invites }");
     expect(hook).not.toContain("institution_id: request.institution_id");
     expect(hook).toContain("InvitationResponse");
     expect(page).toContain("response.results[index]");
