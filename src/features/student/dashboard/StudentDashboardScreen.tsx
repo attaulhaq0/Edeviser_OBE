@@ -30,7 +30,6 @@ import {
   Check,
   ChevronRight,
   Megaphone,
-  Repeat2,
   ShieldQuestion,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -744,8 +743,11 @@ const StudentDashboardScreen = () => {
         {/* Daily Review (spaced repetition) */}
         <PCard className="p-4">
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-[9px] border border-slate-200/80 bg-white/80 text-sky-700 backdrop-blur-xs">
-              <Repeat2 className="h-4 w-4" aria-hidden="true" />
+            <span
+              className="flex h-7 w-7 items-center justify-center rounded-[9px] border border-slate-200/80 bg-white/80 text-sm backdrop-blur-xs"
+              aria-hidden="true"
+            >
+              🔁
             </span>
             <p className="text-[13px] font-black tracking-tight text-slate-900">
               {t("dashboard.review.title", "Daily Review")}
@@ -761,6 +763,24 @@ const StudentDashboardScreen = () => {
           </div>
           {reviews.isPending ? (
             <Shimmer className="h-16 rounded-lg" />
+          ) : reviews.isError ? (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+              <span>
+                {t(
+                  "dashboard.review.error",
+                  "Daily review is temporarily unavailable."
+                )}
+              </span>
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto shrink-0 p-0 font-bold text-red-700 underline underline-offset-2"
+                onClick={() => void reviews.refetch()}
+              >
+                {t("common.retry", "Retry")}
+              </Button>
+            </div>
           ) : pendingReviews.length > 0 ? (
             <>
               <p className="-mt-1 mb-2.5 text-xs text-gray-500">
@@ -778,11 +798,11 @@ const StudentDashboardScreen = () => {
                     className={cn(
                       "inline-block max-w-[12rem] truncate rounded-full border px-2 py-1 text-[10px] font-bold",
                       index % 3 === 0 &&
-                        "border-orange-100 bg-orange-50 text-orange-700",
+                        "border-red-100 bg-red-50 text-red-700",
                       index % 3 === 1 &&
                         "border-blue-100 bg-blue-50 text-blue-700",
                       index % 3 === 2 &&
-                        "border-teal-100 bg-teal-50 text-teal-700"
+                        "border-purple-100 bg-purple-50 text-purple-700"
                     )}
                   >
                     {chip.label} ×{chip.count}
