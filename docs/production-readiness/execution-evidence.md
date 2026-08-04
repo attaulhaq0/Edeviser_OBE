@@ -3,9 +3,41 @@
 This is a local evidence snapshot for the Edeviser execution brief. It is not
 a production-readiness sign-off.
 
+## Additional Git-associated staging attempt (2026-08-04)
+
+- The PR branch `agent/journal-calendar-daily-review-ui` was pushed at
+  `87cc4f77` before branch creation. It contains the reconciled 376-migration
+  set plus four bounded invitation/Parent/Auth migrations (380 SQL files total).
+- Supabase configuration inspection showed the existing project branch mapping
+  is `main`/protected production. The documented GitHub branching workflow
+  checks out the supplied Git ref before pull/migrate; therefore the CLI
+  creation used `--git-branch agent/journal-calendar-daily-review-ui` at
+  creation time rather than creating from the default branch and retargeting.
+- Approved Micro branch: ID `3c8433d8-a2c2-47c4-a94d-27c0a7346f71`, project ref
+  `ombjmsmlmkiizeibsmkh`, created `2026-08-04T11:35:29.563676Z`, Git ref
+  `agent/journal-calendar-daily-review-ui`, `with_data=false`. It reached
+  `FUNCTIONS_DEPLOYED`; its migration history included all four bounded
+  versions. The bounded schema probe returned 8 invitation columns, 9 parent
+  lifecycle columns, 8 bounded RPCs, zero anonymous execute grants for mutating
+  RPCs, and zero email-table policies (service-only tables).
+- Branch-only security/performance advisors reported existing project-wide
+  findings plus the expected service-only email-table informational notices;
+  no bounded mutation grant was exposed to `anon`.
+- Active staging functions included the Git-deployed preview/acceptance/webhook
+  handlers and manually deployed `parent-link` and `send-invitation-email`.
+  Deployment of the general-purpose `send-email-notification` handler was
+  blocked by the safety gate because an `EMAIL_MODE=disabled`/allowlist
+  configuration could not be proven; no workaround or production email was
+  attempted. Network-based HTTP probes were unavailable in the restricted
+  runner, while the database-level anonymous preview probe returned zero rows.
+- The branch was deleted successfully after evidence capture. Verification at
+  `2026-08-04T11:44:24Z` showed only the production `main` branch remained.
+  Using the confirmed `$0.01344/hour` rate and the short lifetime, estimated
+  accrued branch cost is under `$0.002`; no branch remains active.
+
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `64c47b18` (pushed; no merge performed; CI and audit runs are still in progress).
+- PR #237 branch head: `87cc4f77` (pushed; no merge performed; CI and audit runs are still in progress).
 - The original checked-in service-role JWT finding was removed from the current
   tree. The repaired historical migration contains no credential literal and
   the security scanner reports only masked findings.
