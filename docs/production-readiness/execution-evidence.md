@@ -23,6 +23,9 @@ a production-readiness sign-off.
   and webhook functions are not deployed.
 - Live `handle_new_user` still trusts role/institution metadata, references
   post-migration columns that do not exist, and catches all exceptions.
+- Deployed `chat-with-tutor` v12 and `generate-accreditation-report` v14 still
+  contain JWT metadata fallbacks; the profile-derived fail-closed versions are
+  local only and require an approved Edge Function deployment.
 - Supabase Edge Function inventory contains 54 active functions. The deployed
   invitation sender is v9 and the notification sender is v12; preview,
   acceptance, parent-link, and Resend webhook functions are not deployed.
