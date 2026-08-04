@@ -39,6 +39,14 @@ a production-readiness sign-off.
   live-only set includes eleven August 2, 2026 repair/hardening migrations
   covering communication participants, analytics RPCs, coordinator workspace,
   ACLs, and AI governance that are not checked into this tree.
+- Vercel project `prj_DJFo5rshhylIUSrtFT99dHmfJq8j` is active and its latest
+  branch deployment for commit `3cf75a9e` is still building. The latest ready
+  preview for `7be00654` is available, while the latest production deployment
+  on `main` is ready at deployment `dpl_3pAMKnYPZwxpDXguCpmkA9a62Zih`.
+- `https://app.edeviser.com`, `/student/dashboard`, and
+  `/accept-invite/test` each returned HTTP 200 from Vercel. The response shell
+  references the canonical Supabase API origin and production CSP headers;
+  authenticated page behavior remains unverified without a test account.
 
 ## IMPLEMENTED locally
 
@@ -95,7 +103,15 @@ a production-readiness sign-off.
   a configured preview run. These are not represented as green production
   checks.
 - Vercel project/environment inspection requires a connector with access to
-  team `team_Gvw1Dz7IlxIG5evqwlsNkZHb`.
+  team `team_Gvw1Dz7IlxIG5evqwlsNkZHb`; project/deployment metadata is now
+  readable, but environment-variable names and Auth URL settings were not
+  exposed by the connector.
+- Supabase Auth Site URL and redirect URL configuration could not be read or
+  changed through the available connectors. **REQUIRES MANUAL ACTION:** in
+  Supabase Dashboard → Authentication → URL Configuration, set Site URL to
+  `https://app.edeviser.com` and retain redirect patterns
+  `https://app.edeviser.com/**`, `https://e-deviser.vercel.app/**`, and
+  `http://localhost:5173/**` during the domain transition.
 - The repository contains a historical service-role JWT literal in
   `supabase/migrations/20260520063547_store_service_role_key_in_vault.sql`.
   It was not printed or modified because migrations are managed and the
