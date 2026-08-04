@@ -37,7 +37,47 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `c8ebb6f9` (pushed; no merge performed; CI and audit runs are still in progress).
+- PR #237 branch head: `5fba5ee0` (pushed; no merge performed). The latest GitHub
+  CI and Pre-Deployment runs reached terminal success for Build, Test,
+  Unit + Property, Bundle Size, E2E, Lighthouse, security/static/report audits,
+  RLS, migration lint, Type Check, Vercel, and lint.
+
+## Final Git-associated Micro staging attempt (2026-08-04)
+
+- Created exactly one final branch from Git ref
+  `agent/journal-calendar-daily-review-ui`: branch ID
+  `9b5510ac-bd41-4adb-9a07-08184c68664a`, project ref
+  `zxpqemzfycbsxngzoyrn`, created `2026-08-04T13:11:51.757712Z`,
+  `with_data=false`, Micro rate `$0.01344/hour`.
+- It reached the healthy terminal state `FUNCTIONS_DEPLOYED`. The branch
+  migration history contained exactly 380 versions, including all four bounded
+  invitation/Parent/Auth migrations. The branch had zero profiles, invitations,
+  parent links, delivery rows, or webhook-event rows (no production/Noor data).
+- Schema/RLS/ACL probes passed: invitation, Parent-link, email delivery and
+  event tables had RLS enabled; email tables had no public policies and were
+  service-role/postgres readable only; mutating bounded RPCs had no `anon` or
+  `authenticated` execute grants; preview RPCs were the only anonymous access.
+  Function search paths were locked. A rollback fixture proved hashed-only
+  invitation persistence (`token IS NULL`, `token_hash` present), preview,
+  idempotency, acceptance replay rejection, expiry/revocation rejection,
+  Parent-link duplicate prevention, verify/revoke lifecycle, and
+  cross-institution denial.
+- The five bounded function redeployments (invitation preview, acceptance,
+  Parent-link, Resend webhook, and invitation email) are active at version 2
+  with the intended JWT settings. The safety controller rejected deployment of
+  `send-email-notification` (and the batch containing the general sender) as
+  outside the permitted safe deployment scope; no workaround was attempted.
+  Its Git-deployed version 1 source was inspected and contains the disabled and
+  allowlist gates. No Resend secret or explicitly allowlisted sandbox recipient
+  was available, so no email was sent and no delivery success was asserted.
+- Branch security advisors returned only project-wide legacy warnings plus the
+  expected service-only email-table RLS notices (60 security lints; 808
+  performance lints). The bounded ACL/RLS probes above found no anonymous
+  mutating path.
+- The branch was deleted successfully at approximately
+  `2026-08-04T13:26:31Z`. A post-delete branch listing showed only production
+  `main` (still `MIGRATIONS_FAILED` and untouched). Estimated accrued cost is
+  approximately `$0.0034` for roughly 15 minutes; no branch compute remains.
 
 ## Post-staging hardening and local verification
 
