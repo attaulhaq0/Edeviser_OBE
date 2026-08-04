@@ -102,14 +102,27 @@ const handler = async (req: Request): Promise<Response> => {
     Deno.env.get("SUPABASE_URL")!,
     getManagedServerKey()
   );
+  const { data: matchedDelivery, error: matchedDeliveryError } = await service
+    .from("email_deliveries")
+    .select("id")
+    .eq("provider", "resend")
+    .eq("provider_message_id", providerMessageId)
+    .maybeSingle();
+  if (matchedDeliveryError)
+    return jsonResponse({ error: "Delivery could not be resolved" }, 500);
+
   const { data: insertedEvent, error: insertError } = await service
     .from("email_delivery_events")
     .insert({
+      delivery_id: matchedDelivery?.id ?? null,
       provider: "resend",
       provider_event_id: eventId,
       event_type: eventType,
-      status,
-      safe_metadata: {
+      // Keep webhook storage minimal: never persist the raw provider payload,
+      // which can contain recipient data. The schema intentionally exposes one
+      // JSONB payload field for this reduced audit record.
+      payload: {
+        status,
         provider_message_id: providerMessageId,
         reason:
           typeof payload.data?.reason === "string"
@@ -126,25 +139,20 @@ const handler = async (req: Request): Promise<Response> => {
 
   const now = new Date().toISOString();
   const timestamps: Record<string, string> = { updated_at: now, status };
-  if (status === "delivered") timestamps.delivered_at = now;
-  if (status === "delayed") timestamps.delayed_at = now;
-  if (status === "failed") timestamps.failed_at = now;
-  if (status === "bounced") timestamps.bounced_at = now;
-  if (status === "complained") timestamps.complained_at = now;
-  if (status === "suppressed") timestamps.suppressed_at = now;
-  const { data: delivery, error: deliveryError } = await service
-    .from("email_deliveries")
-    .update(timestamps)
-    .eq("provider", "resend")
-    .eq("provider_message_id", providerMessageId)
-    .select("id")
-    .maybeSingle();
+  if (["failed", "bounced", "complained", "suppressed"].includes(status))
+    timestamps.failed_at = now;
+  const { error: deliveryError } = matchedDelivery
+    ? await service
+        .from("email_deliveries")
+        .update(timestamps)
+        .eq("id", matchedDelivery.id)
+    : { error: null };
   if (deliveryError)
     return jsonResponse({ error: "Delivery could not be updated" }, 500);
   return jsonResponse({
     success: true,
     recorded: true,
-    matched: Boolean(delivery),
+    matched: Boolean(matchedDelivery),
   });
 };
 
