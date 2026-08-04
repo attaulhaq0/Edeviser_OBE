@@ -37,7 +37,7 @@ a production-readiness sign-off.
 
 ## CURRENT PR SNAPSHOT (2026-08-04)
 
-- PR #237 branch head: `1df843f0` (pushed; no merge performed; CI and audit runs are still in progress).
+- PR #237 branch head: `c8ebb6f9` (pushed; no merge performed; CI and audit runs are still in progress).
 
 ## Post-staging hardening and local verification
 
@@ -52,7 +52,7 @@ a production-readiness sign-off.
   645 files / 6,113 tests. The unconstrained run showed resource/network
   timeouts in this runner; targeted failures passed when isolated.
 - Security audit passed with 0 findings; static audit passed; report audit was
-  `Go` with 0 blockers, 0 critical, 0 major, and 633 minor findings.
+  `Go` with 0 blockers, 0 critical, 0 major, and 624 minor findings.
 - Bundle Size Check passed in GitHub Actions. i18n namespace parity and all
   three migration/schema checks passed locally (380 migrations; no new
   duplicate names; edge schema baseline clean).
@@ -71,14 +71,15 @@ a production-readiness sign-off.
   SDK from the production graph: 1,286.2 KB gzip, below the 1,306.4 KB cap
   (previous measurement 1,442.2 KB).
 - i18n audit: locale parity passed; technical route/chart prop false positives
-  were removed from the scanner. 633 genuine/legacy Minor literal findings
+  were removed from the scanner. 624 genuine/legacy Minor literal findings
   remain for a separate translation backlog and are not hidden.
-- `npm audit` could not reach the registry security endpoint in this sandbox;
-  no vulnerability count is claimed. `npm ls --depth=0` completed.
+- `npm audit` was queried with network approval: 35 total advisories (1
+  critical, 21 high, 7 moderate, 6 low); production-only reported 2 (1 high,
+  1 low). `npm ls --depth=0` completed. No forced remediation was run.
 - All repository Edge Functions and Vercel cron routes now resolve the managed
   server key helper; the legacy fallback is explicit and opt-in. Runtime
   deployment verification remains pending.
-- The first isolated Supabase branch (`a266169e-a7d2-45ff-9f4a-f8be72ea59b0`,
+- Earlier isolated Supabase branches (`a266169e-a7d2-45ff-9f4a-f8be72ea59b0`,
   created `2026-08-04T09:36:08Z`) reached `MIGRATIONS_FAILED` after
   `20260504032900` and was deleted without applying invitation/Parent DDL or
   functions. After the local clean replay gate passed, one replacement branch
@@ -88,7 +89,11 @@ a production-readiness sign-off.
   because the unmerged PR tree is not used by branch creation; no bounded
   migrations or functions were applied. It was deleted immediately and was
   absent from the branch list at `2026-08-04T11:09:29Z`; estimated accrued
-  cost for the replacement is approximately `$0.00095` at `$0.01344/hour`.
+  cost for that replacement was approximately `$0.00095` at `$0.01344/hour`.
+  A later approved Git-associated attempt (`3c8433d8-a2c2-47c4-a94d-27c0a7346f71`)
+  was created from `agent/journal-calendar-daily-review-ui`, reached
+  `FUNCTIONS_DEPLOYED`, included all four bounded migrations, and was deleted
+  after evidence capture; see the current staging section above.
 
 ## VERIFIED live evidence
 
@@ -129,8 +134,9 @@ a production-readiness sign-off.
   did not expose any email or webhook secret names. Secret values were not
   read.
 - Migration drift was reconciled from the approved Supabase migration-history
-  workflow: the repository now contains 376 migrations, matching the 376 live
-  versions. The eleven August 2, 2026 repair/hardening definitions were read
+  workflow: the repository contains the 376 approved live-history migrations,
+  plus four bounded invitation/Parent/Auth migrations (380 total). The eleven
+  August 2, 2026 repair/hardening definitions were read
   from `supabase_migrations.schema_migrations.statements`, imported without
   credential matches, and parity-checked. The coordinator ACL migration has a
   documented `to_regprocedure` guard because its live version predates the
@@ -174,14 +180,15 @@ a production-readiness sign-off.
 
 - `npm run lint` — passed with zero warnings.
 - `npx tsc --noEmit` — passed.
-- `npm test` / `npm run test:coverage` — 643 files, 6,104 tests passed;
-  coverage thresholds passed (33.39% statements, 29.03% branches,
-  27.35% functions, 34.65% lines).
+- `npm test` — 645 files, 6,113 tests passed with `--maxWorkers=2` in the
+  constrained local runner. The unconstrained run showed resource/network
+  timeouts; this is not treated as a CI result. Coverage was not rerun after
+  the final i18n commit.
 - Focused invitation/parent/security tests — passed.
-- `npm run db:check-replay` — 376 migrations clean.
+- `npm run db:check-replay` — 380 migrations clean.
 - `npm run db:check-dup-names` — no new collisions.
 - `npx supabase db reset --local --yes` — true clean replay passed after the
-  local Supabase stack was recreated; all 376 migrations applied.
+  local Supabase stack was recreated; all 380 migrations applied.
 - Edge schema-contract checker — clean with 46 explicitly documented
   pre-migration findings.
 - i18n parity — all namespaces passed.
@@ -205,11 +212,12 @@ a production-readiness sign-off.
 
 ## BLOCKED / REQUIRES MANUAL ACTION
 
-- The Supabase safety gate rejected the broad invitation/parent-link migration.
-  No alternate DDL path was used. Applying the reviewed migration requires
-  explicit production approval, a backup/rollback gate, and preferably a
-  development branch.
-- Edge Function deployment is blocked until the migration contract is live.
+- Production invitation/Parent DDL and functions remain intentionally blocked;
+  the bounded migrations were only initialized on the deleted staging branch.
+  The remaining staging E2E gate is the safe deployment of the general-purpose
+  `send-email-notification` function, which was rejected until its disabled /
+  allowlist guard was added locally. The guard is now pushed, but no second
+  Supabase branch attempt is authorized by the prior one-attempt approval.
 - `RESEND_WEBHOOK_SECRET` presence and provider delivery cannot be verified
   without reading secrets or sending an allowlisted sandbox email.
 - Full production sign-off remains blocked because the local environment lacks
@@ -236,10 +244,10 @@ a production-readiness sign-off.
 - The audit E2E stage is now an executable preview-only Playwright stage; its
   current local result is `skipped` with all five required preview settings
   reported missing, rather than the prior “stub” message.
-- The local clean replay gate is now satisfied. The replacement remote branch
-  still could not reach a healthy terminal state because branch creation uses
-  protected `main`, not the unmerged PR tree; the branch was deleted and no
-  remote staging environment remains active.
+- The local clean replay gate is satisfied. The corrected Git-associated remote
+  branch reached `FUNCTIONS_DEPLOYED` and was deleted; no remote staging
+  environment remains active. Full invitation/Parent E2E evidence is still
+  missing because the branch was deleted before the final email-sender fix.
 - The eleven live-only versions currently identified are
   `20260802010514`, `20260802012851`, `20260802013226`, `20260802013702`,
   `20260802020342`, `20260802021540`, `20260802024348`, `20260802030803`,
