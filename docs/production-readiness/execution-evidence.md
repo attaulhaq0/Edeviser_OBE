@@ -62,6 +62,9 @@ a production-readiness sign-off.
   `supabase/config.toml`.
 - Browser parent management now calls the server workflow only; it does not
   call `auth.admin`, write profiles, or insert parent links directly.
+- Admin invitation UI now sends only normalized recipients and roles; it does
+  not submit `institution_id`, and it renders the Edge Function's per-recipient
+  partial outcomes instead of claiming every row succeeded.
 - Self-registration UI exposes Student only; role and institution claims are
   not submitted by the auth provider.
 - Parent dashboards show explicit insufficient-evidence states instead of
@@ -97,6 +100,8 @@ a production-readiness sign-off.
 - Design-token audit stage — 0 findings.
 - Focused dashboard/auth tests after the latest UI work — 3 files, 34 tests
   passed.
+- Invitation contract/security property test — 7 tests passed after removing
+  the browser tenant claim and adding partial-result handling.
 
 ## BLOCKED / REQUIRES MANUAL ACTION
 
