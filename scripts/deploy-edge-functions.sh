@@ -126,6 +126,7 @@ done
 # supabase functions deploy send-onboarding-reminder
 # supabase functions deploy invitation-preview
 # supabase functions deploy accept-invitation
+# supabase functions deploy bootstrap-first-admin
 # supabase functions deploy parent-link
 # supabase functions deploy resend-webhook
 # supabase functions deploy streak-risk-cron
