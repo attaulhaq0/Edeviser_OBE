@@ -124,7 +124,7 @@ const TYPE_ICONS: Record<MaterialType, typeof FileText> = {
 const TYPE_COLORS: Record<MaterialType, string> = {
   file: "bg-blue-50 text-blue-600",
   link: "bg-green-50 text-green-600",
-  video: "bg-purple-50 text-purple-600",
+  video: "bg-blue-50 text-blue-600",
   text: "bg-gray-50 text-gray-600",
 };
 

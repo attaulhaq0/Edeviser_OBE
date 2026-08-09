@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -520,7 +521,7 @@ async function notifyPeersOfLevelUp(
 // service-role secret in `x-internal-auth`. Fire-and-forget.
 function triggerBadgeCheck(body: Record<string, unknown>): void {
   const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/check-badges`;
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const serviceRoleKey = getManagedServerKey();
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
   fetch(url, {
     method: "POST",
@@ -558,7 +559,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();
@@ -580,7 +581,7 @@ serve(async (req) => {
     // Reject with 403 Forbidden if neither condition is met
 
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceRoleKey = getManagedServerKey();
     // A caller is treated as service-role when either:
     //   a) the Authorization bearer IS the service-role key (legacy JWT key path), OR
     //   b) the request carries an `x-internal-auth` header equal to the

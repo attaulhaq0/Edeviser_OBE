@@ -104,7 +104,7 @@ DECLARE
   ];
 
   -- XP sources
-  v_xp_sources    text[] := ARRAY['login','submission','badge','perfect_day','first_attempt_bonus','perfect_rubric','streak_milestone','journal'];
+  v_xp_sources    text[] := ARRAY['login','submission','badge','perfect_day','first_attempt','perfect_rubric','streak','journal'];
 
   -- Activity event types
   v_event_types   text[] := ARRAY['login','page_view','submission','journal','assignment_view'];
@@ -131,22 +131,49 @@ BEGIN
   -- =========================================================================
   -- 1. INSTITUTION
   -- =========================================================================
-  v_inst_id := gen_random_uuid();
-  INSERT INTO institutions (id, name, settings)
-  VALUES (v_inst_id, 'Seed Demo University', '{}');
+  v_inst_id := '00000000-0000-4000-8000-000000000002';
+  INSERT INTO institutions (id, name, slug, settings, join_mode)
+  VALUES (
+    v_inst_id,
+    'Seed Demo University',
+    'seed-demo-university',
+    '{}',
+    'open'
+  );
 
   -- =========================================================================
   -- 2. STAFF PROFILES (admin, coordinator, teacher)
   -- =========================================================================
-  v_admin_id  := gen_random_uuid();
-  v_coord_id  := gen_random_uuid();
-  v_teacher_id := gen_random_uuid();
+  v_admin_id  := md5('edeviser-seed-admin')::uuid;
+  v_coord_id  := md5('edeviser-seed-coordinator')::uuid;
+  v_teacher_id := md5('edeviser-seed-teacher')::uuid;
 
-  INSERT INTO profiles (id, email, full_name, role, institution_id, is_active, onboarding_completed)
-  VALUES
-    (v_admin_id,   'seed.admin@demo.edu',   'Dr. Admin Seed',       'admin',       v_inst_id, true, true),
-    (v_coord_id,   'seed.coord@demo.edu',   'Dr. Coord Seed',       'coordinator', v_inst_id, true, true),
-    (v_teacher_id, 'seed.teacher@demo.edu', 'Prof. Teacher Seed',   'teacher',     v_inst_id, true, true);
+  -- Local fixture identities have no password and cannot authenticate. The
+  -- normal Auth trigger creates their profiles while this fixture tenant is
+  -- temporarily open; it is returned to invite-only below.
+  INSERT INTO auth.users (
+    id, aud, role, email, email_confirmed_at, raw_app_meta_data,
+    raw_user_meta_data, created_at, updated_at
+  ) VALUES
+    (v_admin_id, 'authenticated', 'authenticated', 'seed.admin@demo.edu', now(),
+      jsonb_build_object('provider', 'email', 'providers', ARRAY['email'], 'seed_owned', true),
+      jsonb_build_object('full_name', 'Dr. Admin Seed', 'institution_id', v_inst_id), now(), now()),
+    (v_coord_id, 'authenticated', 'authenticated', 'seed.coord@demo.edu', now(),
+      jsonb_build_object('provider', 'email', 'providers', ARRAY['email'], 'seed_owned', true),
+      jsonb_build_object('full_name', 'Dr. Coord Seed', 'institution_id', v_inst_id), now(), now()),
+    (v_teacher_id, 'authenticated', 'authenticated', 'seed.teacher@demo.edu', now(),
+      jsonb_build_object('provider', 'email', 'providers', ARRAY['email'], 'seed_owned', true),
+      jsonb_build_object('full_name', 'Prof. Teacher Seed', 'institution_id', v_inst_id), now(), now());
+
+  UPDATE profiles
+  SET role = CASE id
+      WHEN v_admin_id THEN 'admin'::user_role
+      WHEN v_coord_id THEN 'coordinator'::user_role
+      ELSE 'teacher'::user_role
+    END,
+    is_active = true,
+    onboarding_completed = true
+  WHERE id = ANY(ARRAY[v_admin_id, v_coord_id, v_teacher_id]);
 
   -- =========================================================================
   -- 3. PROGRAM
@@ -190,10 +217,10 @@ BEGIN
 
   -- PLO → ILO mappings
   INSERT INTO outcome_mappings (source_outcome_id, target_outcome_id, weight) VALUES
-    (v_plo_ids[1], v_ilo_ids[1], 0.6), (v_plo_ids[1], v_ilo_ids[2], 0.4),
-    (v_plo_ids[2], v_ilo_ids[2], 0.5), (v_plo_ids[2], v_ilo_ids[3], 0.5),
-    (v_plo_ids[3], v_ilo_ids[2], 0.7), (v_plo_ids[3], v_ilo_ids[1], 0.3),
-    (v_plo_ids[4], v_ilo_ids[2], 0.6), (v_plo_ids[4], v_ilo_ids[3], 0.4);
+    (v_plo_ids[1], v_ilo_ids[1], 0.6),  (v_plo_ids[1], v_ilo_ids[2], 0.25),
+    (v_plo_ids[2], v_ilo_ids[2], 0.25), (v_plo_ids[2], v_ilo_ids[3], 0.5),
+    (v_plo_ids[3], v_ilo_ids[2], 0.25), (v_plo_ids[3], v_ilo_ids[1], 0.4),
+    (v_plo_ids[4], v_ilo_ids[2], 0.25), (v_plo_ids[4], v_ilo_ids[3], 0.5);
 
   -- 12 CLOs (3 per course), each with a Bloom's level
   v_clo_ids := ARRAY[]::uuid[];
@@ -221,7 +248,7 @@ BEGIN
       );
       -- CLO → PLO mapping
       INSERT INTO outcome_mappings (source_outcome_id, target_outcome_id, weight)
-      VALUES (v_clo_id, v_plo_ids[i], round((1.0 / 3)::numeric, 2));
+      VALUES (v_clo_id, v_plo_ids[i], (1.0 / 3)::numeric);
     END LOOP;
   END LOOP;
 
@@ -272,7 +299,12 @@ BEGIN
         v_course_ids[i],
         v_ts,
         100,
-        jsonb_build_object(v_clo_ids[(i-1)*3 + ((j-1) % 3) + 1]::text, 100),
+        jsonb_build_array(
+          jsonb_build_object(
+            'clo_id', v_clo_ids[(i-1)*3 + ((j-1) % 3) + 1],
+            'weight', 1
+          )
+        ),
         true,
         24,
         v_teacher_id
@@ -285,19 +317,31 @@ BEGIN
   -- =========================================================================
   v_student_ids := ARRAY[]::uuid[];
   FOR i IN 1..50 LOOP
-    v_sid := gen_random_uuid();
+    v_sid := md5('edeviser-seed-student-' || i)::uuid;
     v_student_ids := v_student_ids || v_sid;
-    INSERT INTO profiles (id, email, full_name, role, institution_id, is_active, onboarding_completed)
-    VALUES (
+    INSERT INTO auth.users (
+      id, aud, role, email, email_confirmed_at, raw_app_meta_data,
+      raw_user_meta_data, created_at, updated_at
+    ) VALUES (
       v_sid,
+      'authenticated',
+      'authenticated',
       lower(v_first_names[i]) || '.' || lower(v_last_names[i]) || '@demo.edu',
-      v_first_names[i] || ' ' || v_last_names[i],
-      'student',
-      v_inst_id,
-      true,
-      true
+      now(),
+      jsonb_build_object('provider', 'email', 'providers', ARRAY['email'], 'seed_owned', true),
+      jsonb_build_object(
+        'full_name', v_first_names[i] || ' ' || v_last_names[i],
+        'institution_id', v_inst_id
+      ),
+      now(),
+      now()
     );
+    UPDATE profiles
+    SET is_active = true, onboarding_completed = true
+    WHERE id = v_sid;
   END LOOP;
+
+  UPDATE institutions SET join_mode = 'invite_only' WHERE id = v_inst_id;
 
 
   -- =========================================================================
@@ -391,7 +435,18 @@ BEGIN
         v_teacher_id,
         v_score,
         v_score_pct,
-        '[{"criterion_id":"seed","level_index":0,"points":' || (v_score / 2)::int || '},{"criterion_id":"seed","level_index":1,"points":' || (v_score / 2)::int || '}]'::jsonb,
+        jsonb_build_array(
+          jsonb_build_object(
+            'criterion_id', 'seed',
+            'level_index', 0,
+            'points', (v_score / 2)::int
+          ),
+          jsonb_build_object(
+            'criterion_id', 'seed',
+            'level_index', 1,
+            'points', (v_score / 2)::int
+          )
+        ),
         CASE
           WHEN v_score_pct >= 85 THEN 'Excellent work! Keep it up.'
           WHEN v_score_pct >= 70 THEN 'Good effort. Some areas to improve.'
@@ -401,28 +456,7 @@ BEGIN
         v_ts + interval '2 days'
       );
 
-      -- Determine CLO for this assignment (first key from clo_weights jsonb)
-      SELECT (k)::uuid INTO v_clo_id
-        FROM jsonb_object_keys((SELECT clo_weights::jsonb FROM assignments WHERE id = v_aid)) AS k
-        LIMIT 1;
-
-      -- Find mapped PLO and ILO for evidence
-      SELECT om.target_outcome_id INTO v_plo_id
-        FROM outcome_mappings om WHERE om.source_outcome_id = v_clo_id LIMIT 1;
-      SELECT om.target_outcome_id INTO v_ilo_id
-        FROM outcome_mappings om WHERE om.source_outcome_id = v_plo_id LIMIT 1;
-
-      -- Fallback if mappings not found
-      IF v_plo_id IS NULL THEN v_plo_id := v_plo_ids[1]; END IF;
-      IF v_ilo_id IS NULL THEN v_ilo_id := v_ilo_ids[1]; END IF;
-
-      -- Insert evidence record
-      INSERT INTO evidence (id, submission_id, grade_id, student_id, clo_id, plo_id, ilo_id, score_percent, attainment_level)
-      VALUES (
-        gen_random_uuid(), v_sub_id, v_grade_id, v_sid,
-        v_clo_id, v_plo_id, v_ilo_id,
-        v_score_pct, v_att_level::attainment_level
-      );
+      -- Evidence and CLO/PLO/ILO attainment are owned by the grade trigger.
     END LOOP;
 
 
@@ -496,9 +530,9 @@ BEGIN
           WHEN 'submission'          THEN 25
           WHEN 'badge'               THEN 15 + (random() * 35)::int
           WHEN 'perfect_day'         THEN 50
-          WHEN 'first_attempt_bonus' THEN 10
+          WHEN 'first_attempt'       THEN 10
           WHEN 'perfect_rubric'      THEN 30
-          WHEN 'streak_milestone'    THEN 50
+          WHEN 'streak'              THEN 50
           WHEN 'journal'             THEN 20
           ELSE 10
         END;
@@ -524,7 +558,7 @@ BEGIN
       v_level := v_level + 1;
     END LOOP;
 
-    INSERT INTO student_gamification (student_id, xp_total, level, streak_count, streak_longest, last_login_date, streak_freezes_available)
+    INSERT INTO student_gamification (student_id, xp_total, level, streak_current, streak_longest, last_login_date, streak_freezes_available)
     VALUES (
       v_sid,
       v_xp_total,
@@ -707,9 +741,9 @@ BEGIN
     UPDATE student_gamification
     SET
       habit_difficulty_level = CASE
-        WHEN i <= 10 THEN 1
-        WHEN i <= 25 THEN 3
-        ELSE 2
+        WHEN i <= 10 THEN 'starter'
+        WHEN i <= 25 THEN 'advanced'
+        ELSE 'intermediate'
       END,
       habit_level_streak = CASE
         WHEN i <= 10 THEN (random() * 2)::int
@@ -800,8 +834,8 @@ BEGIN
   BEGIN
     FOR i IN 0..3 LOOP
       v_week_start := date_trunc('week', now()::date + (i * 7))::date;
-      INSERT INTO badge_spotlight_schedule (institution_id, category, week_start, created_by)
-      VALUES (v_inst_id, v_spotlight_cats[i + 1], v_week_start, v_admin_id)
+      INSERT INTO badge_spotlight_schedule (institution_id, category, week_start, is_manual)
+      VALUES (v_inst_id, v_spotlight_cats[i + 1], v_week_start, true)
       ON CONFLICT DO NOTHING;
     END LOOP;
   END;

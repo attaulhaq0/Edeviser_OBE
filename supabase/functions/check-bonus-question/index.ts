@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // =============================================================================
 // Edge Function: check-bonus-question
 // Bonus question trigger and validation
@@ -36,7 +37,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();

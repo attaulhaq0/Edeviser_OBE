@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // =============================================================================
 // generate-reflection-digest — Monthly digest generation for students
 // with ≥3 reflections. Analyzes themes, growth, sentiment, focus areas.
@@ -198,7 +199,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     // Determine the month to process (previous month by default)

@@ -317,21 +317,22 @@ describe("LoginPage — register tab role affordance (Req 5)", () => {
     });
   };
 
-  it("offers role selection options for Admin, Coordinator, Teacher, Student, and Parent", async () => {
+  it("limits self-registration to a student account", async () => {
     await openRegisterTab();
 
-    // Verify all 5 role options are present
-    expect(screen.getByRole("button", { name: /admin/i })).toBeInTheDocument();
+    expect(screen.getByText("Student")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /coordinator/i })
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /admin/i })
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /teacher/i })
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /coordinator/i })
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /student/i })
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /parent/i })).toBeInTheDocument();
+      screen.queryByRole("button", { name: /teacher/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /parent/i })
+    ).not.toBeInTheDocument();
   });
 
   it("communicates that self-registration creates a student account", async () => {

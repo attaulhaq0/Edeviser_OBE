@@ -82,6 +82,27 @@ const StudentLayout = () => {
     );
   }
 
+  // Calendar owns the prototype-style right rail inside its content area.
+  // Keep the shared dashboard header/sidebar, but do not append the generic
+  // student fallback rail beside it.
+  if (location.pathname === "/student/calendar") {
+    return (
+      <RoleAppShell userRole="student">
+        <Outlet />
+      </RoleAppShell>
+    );
+  }
+
+  // Journal owns the prototype-style reflection body; keep the shared
+  // dashboard header/sidebar without appending a second contextual rail.
+  if (location.pathname === "/student/journal") {
+    return (
+      <RoleAppShell userRole="student">
+        <Outlet />
+      </RoleAppShell>
+    );
+  }
+
   // Select the contextual right rail for the current student route (if any) and
   // reserve its width so the feed sits in a true 3-column shell
   // (sidebar · feed · rail) instead of stretching under the rail.

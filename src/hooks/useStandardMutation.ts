@@ -1,7 +1,6 @@
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import { mapSupabaseError } from "@/lib/mapSupabaseError";
 import { toast } from "sonner";
-import * as Sentry from "@sentry/react";
 
 /**
  * Standard mutation options with error handling
@@ -9,7 +8,7 @@ import * as Sentry from "@sentry/react";
  * Extends TanStack Query's UseMutationOptions with automatic:
  * - Error mapping via mapSupabaseError
  * - Sonner toast notifications
- * - Sentry error logging
+ * - Console error logging
  */
 interface StandardMutationOptions<
   TData = unknown,
@@ -33,7 +32,7 @@ interface StandardMutationOptions<
  * Features:
  * - Automatically maps Supabase errors to user-friendly messages
  * - Emits Sonner toasts for success/error
- * - Logs errors to Sentry (if configured)
+ * - Logs errors to the console
  * - Backward-compatible with existing useMutation call sites
  *
  * Usage:
@@ -106,15 +105,7 @@ export const useStandardMutation = <
         toast.error(userMessage);
       }
 
-      // Log to Sentry if configured
-      try {
-        if (typeof Sentry !== "undefined" && Sentry.captureException) {
-          Sentry.captureException(error);
-        }
-      } catch {
-        // Fallback: log to console
-        console.error("Mutation error:", error);
-      }
+      console.error("Mutation error:", error);
 
       // Call custom onError handler
       if (customOnError) {

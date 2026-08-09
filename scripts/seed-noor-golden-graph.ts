@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
-
-dotenv.config({ path: ".env.local" });
-dotenv.config();
+throw new Error(
+  "The legacy Noor production seed is disabled. Use the pure noorSeedPlan dry-run and the explicit local SQL fixture."
+);
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

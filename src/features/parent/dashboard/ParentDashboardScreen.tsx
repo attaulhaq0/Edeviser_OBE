@@ -39,59 +39,40 @@ const ParentDashboardScreen = () => {
 
   const [childIdx, setChildIdx] = useState(0);
   const selected = children[childIdx];
+  const name = firstNameOf(selected?.student_name ?? "");
 
   const { data: courses } = useParentChildProgress(selected?.student_id);
 
   // Derive up to 3 subject growth rows based on real course attainment
   const subjectGrowthRows = useMemo(() => {
     if (!courses || courses.length === 0) {
-      return [
-        {
-          subject: "Databases",
-          desc: "Strong & improving — her best area",
-          icon: "💪",
-          iconBg: "bg-emerald-50",
-          trend: "↑",
-          trendColor: "text-emerald-600 font-black",
-        },
-        {
-          subject: "Writing",
-          desc: "Moved up a level this week",
-          icon: "✍️",
-          iconBg: "bg-blue-50",
-          trend: "↑",
-          trendColor: "text-emerald-600 font-black",
-        },
-        {
-          subject: "Math",
-          desc: "A growing edge — some encouragement helps",
-          icon: "🧮",
-          iconBg: "bg-amber-50",
-          trend: "→",
-          trendColor: "text-amber-500 font-black",
-        },
-      ];
+      return [];
     }
 
     return courses.slice(0, 3).map((c, idx) => {
       const icons = ["💪", "✍️", "🧮", "🧬", "💻"];
       const iconBgs = ["bg-emerald-50", "bg-blue-50", "bg-amber-50"];
       const pct = c.attainment_percent;
-      let desc = "Steady progress in this subject";
+      let desc = c.has_evidence
+        ? "Shared learning evidence is available"
+        : "No released outcome evidence yet";
       let trend = "→";
       let trendColor = "text-amber-500 font-black";
 
-      if (pct >= 85) {
-        desc = "Strong & improving — her best area";
-        trend = "↑";
+      if (!c.has_evidence) {
+        trend = "·";
+        trendColor = "text-slate-400 font-black";
+      } else if (pct >= 85) {
+        desc = "Strong attainment evidence released";
+        trend = "•";
         trendColor = "text-emerald-600 font-black";
       } else if (pct >= 70) {
-        desc = "Moved up a level this week";
-        trend = "↑";
-        trendColor = "text-emerald-600 font-black";
+        desc = "Attainment evidence released";
+        trend = "•";
+        trendColor = "text-sky-600 font-black";
       } else if (pct < 50) {
-        desc = "A growing edge — some encouragement helps";
-        trend = "→";
+        desc = "Released evidence suggests an area to discuss";
+        trend = "•";
         trendColor = "text-amber-500 font-black";
       }
 
@@ -105,6 +86,26 @@ const ParentDashboardScreen = () => {
       };
     });
   }, [courses]);
+
+  const hasCourseEvidence = (courses ?? []).some(
+    (course) => course.has_evidence
+  );
+  const storySubtext = hasCourseEvidence
+    ? `${courses?.filter((course) => course.has_evidence).length ?? 0} course${
+        (courses?.filter((course) => course.has_evidence).length ?? 0) === 1
+          ? ""
+          : "s"
+      } with shared learning evidence.`
+    : "There is not enough shared learning evidence to describe a weekly pattern yet.";
+  const plainWordsStory = hasCourseEvidence
+    ? `${name} has shared outcome evidence in ${courses
+        ?.filter((course) => course.has_evidence)
+        .map((course) => course.course_name)
+        .slice(0, 3)
+        .join(
+          ", "
+        )}. Review the released activity together for a grounded conversation.`
+    : "No released outcome evidence is available yet. This space will update when the student has shared academic activity.";
 
   // Handle persistence for Remind Me Tonight
   const handleRemindTonight = async () => {
@@ -194,10 +195,9 @@ const ParentDashboardScreen = () => {
     );
   }
 
-  const name = firstNameOf(selected.student_name);
-
   // Honest privacy / data availability state check for wellbeing metrics
-  const isWellbeingShared = selected.current_streak >= 0; // Linked child verification
+  const hasActivityEvidence =
+    selected.current_streak > 0 || selected.xp_total > 0 || hasCourseEvidence;
 
   return (
     <div className="w-full space-y-4 no-scrollbar">
@@ -230,7 +230,7 @@ const ParentDashboardScreen = () => {
         className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
         style={{ background: STORY_GRADIENT }}
       >
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 end-3">
           <WhyThisPopover
             title={t(
               "parentDashboard.story.whyTitle",
@@ -249,32 +249,41 @@ const ParentDashboardScreen = () => {
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-xl">
             🌱
           </div>
-          <div className="min-w-0 flex-1 pr-16">
+          <div className="min-w-0 flex-1 pe-16">
             <h1 className="text-lg font-bold tracking-tight text-white">
-              {t("parentDashboard.story.headline", {
-                defaultValue: "{{name}} had a strong week",
-                name,
-              })}
+              {hasActivityEvidence
+                ? t("parentDashboard.story.headline", {
+                    defaultValue: "{{name}}'s shared learning snapshot",
+                    name,
+                  })
+                : t("parentDashboard.story.insufficient", {
+                    defaultValue:
+                      "{{name}}'s shared learning snapshot is getting started",
+                    name,
+                  })}
             </h1>
             <p className="text-[12px] leading-snug text-white/80">
-              {t("parentDashboard.story.subtext", {
-                defaultValue:
-                  "Studied 4 of 5 days — up from 2 last week. Steady, curious, and in good spirits.",
-              })}
+              {storySubtext}
             </p>
           </div>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
-            🔥 Consistency ↑
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
-            ✍️ Writing improving
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
-            😊 Wellbeing: good
-          </span>
+          {selected.current_streak > 0 ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+              🔥 {selected.current_streak}-day shared activity streak
+            </span>
+          ) : null}
+          {hasCourseEvidence ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+              📚 Released course evidence
+            </span>
+          ) : null}
+          {!hasActivityEvidence ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+              ℹ️ Awaiting shared activity
+            </span>
+          ) : null}
         </div>
       </section>
 
@@ -288,8 +297,7 @@ const ParentDashboardScreen = () => {
         </div>
         <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           {t("parentDashboard.plainWords.story", {
-            defaultValue:
-              "{{name}} showed up 4 of 5 days and spent most of her energy on databases, where her understanding is clearly growing. Her writing outcomes moved up a level. She's been a little more hesitant with math this week — nothing worrying, just an area where a bit of encouragement would help. Overall: a consistent, positive week.",
+            defaultValue: plainWordsStory,
             name,
           })}
         </p>
@@ -338,6 +346,11 @@ const ParentDashboardScreen = () => {
                 </span>
               </div>
             ))}
+            {subjectGrowthRows.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-200 p-4 text-xs text-slate-500">
+                No released outcome evidence is available yet.
+              </p>
+            ) : null}
           </div>
         </section>
 
@@ -350,43 +363,14 @@ const ParentDashboardScreen = () => {
             </h2>
           </div>
 
-          {isWellbeingShared ? (
+          {hasActivityEvidence ? (
             <>
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/50">
-                  <p className="text-2xl font-black text-emerald-600">4/5</p>
-                  <p className="mt-0.5 text-[10px] font-bold text-slate-500">
-                    {t("parentDashboard.wellbeing.studyDays", "Study days")}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/50">
-                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
-                    Healthy
-                  </p>
-                  <p className="mt-0.5 text-[10px] font-bold text-slate-500">
-                    {t(
-                      "parentDashboard.wellbeing.focusBalance",
-                      "Focus balance"
-                    )}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/50">
-                  <p className="text-2xl font-black text-blue-600">Good</p>
-                  <p className="mt-0.5 text-[10px] font-bold text-slate-500">
-                    {t(
-                      "parentDashboard.wellbeing.moodCheckIns",
-                      "Mood check-ins"
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
-                🌙{" "}
-                {t(
-                  "parentDashboard.wellbeing.rhythmNote",
-                  "She's studying in the evenings but stopping before it gets late — a healthy rhythm."
-                )}
+              <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-3 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
+                {selected.current_streak > 0
+                  ? `Shared activity streak: ${selected.current_streak} day${
+                      selected.current_streak === 1 ? "" : "s"
+                    }.`
+                  : "Shared activity is available, but no wellbeing summary has been recorded."}
               </div>
             </>
           ) : (
@@ -394,7 +378,7 @@ const ParentDashboardScreen = () => {
               🔒{" "}
               {t(
                 "parentDashboard.wellbeing.notShared",
-                "Wellbeing check-ins are not shared with parents by student preference."
+                "No approved wellbeing summary is available yet. Private journals, reflections and tutor conversations remain hidden."
               )}
             </div>
           )}

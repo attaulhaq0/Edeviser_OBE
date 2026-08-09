@@ -450,42 +450,40 @@ jobs:
         with:
           name: security-findings
           path: audit/output/
-        continue-on-error: true
 
       - name: Download static findings
         uses: actions/download-artifact@v8
         with:
           name: static-findings
           path: audit/output/
-        continue-on-error: true
 
       - name: Download connectivity matrix
+        if: needs.connectivity.result != 'skipped'
         uses: actions/download-artifact@v8
         with:
           name: connectivity-matrix
           path: audit/output/
-        continue-on-error: true
 
       - name: Download RLS matrix
+        if: needs.rls.result != 'skipped'
         uses: actions/download-artifact@v8
         with:
           name: rls-matrix
           path: audit/output/
-        continue-on-error: true
 
       - name: Download cron health
+        if: needs.cron.result != 'skipped'
         uses: actions/download-artifact@v8
         with:
           name: cron-health
           path: audit/output/
-        continue-on-error: true
 
       - name: Download Nova Act logs
+        if: needs.nova-act.result != 'skipped'
         uses: actions/download-artifact@v8
         with:
           name: nova-act-session-logs
           path: audit/output/nova-act/
-        continue-on-error: true
 
       - name: Generate audit report and verdict
         id: verdict

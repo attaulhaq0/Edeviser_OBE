@@ -34,13 +34,13 @@ const HABIT_ICONS: Record<HabitType, LucideIcon> = {
 };
 
 const HABIT_COLORS: Record<HabitType, string> = {
-  meditation: "bg-purple-50 text-purple-600",
+  meditation: "bg-blue-50 text-blue-600",
   hydration: "bg-blue-50 text-blue-600",
   exercise: "bg-green-50 text-green-600",
   sleep: "bg-indigo-50 text-indigo-600",
   login: "bg-teal-50 text-teal-600",
   submit: "bg-amber-50 text-amber-600",
-  journal: "bg-rose-50 text-rose-600",
+  journal: "bg-teal-50 text-teal-600",
   read: "bg-cyan-50 text-cyan-600",
 };
 

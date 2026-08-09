@@ -359,7 +359,7 @@ const ParentAttendancePage = () => {
                             <span className="font-extrabold text-slate-900 dark:text-slate-100">
                               {c.name}
                             </span>
-                            <span className="ml-2 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-slate-800">
+                            <span className="ms-2 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-slate-800">
                               {c.code}
                             </span>
                           </td>

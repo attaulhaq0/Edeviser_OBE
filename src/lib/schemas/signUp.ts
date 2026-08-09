@@ -4,9 +4,7 @@ import { z } from "zod";
  * Self-registration schema for the public /signup flow.
  *
  * Scalability note (design.md ADR-12):
- *   • default role on self-signup is always 'student' (the schema still
- *     captures a requested role for display/analytics, but `handle_new_user()`
- *     forces role='student' for self-signup without an invitation token)
+ *   • self-signup is always a student account; privileged roles are invitation-only
  *   • non-student onboarding flows through `/accept-invite/:token` which uses
  *     a separate schema in `src/lib/schemas/invitation.ts`
  */
@@ -41,13 +39,7 @@ export const signUpSchema = z
         `Password must be at least ${PASSWORD_MIN} characters`
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
-    requestedRole: z.enum([
-      "student",
-      "teacher",
-      "coordinator",
-      "admin",
-      "parent",
-    ]),
+    requestedRole: z.literal("student"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

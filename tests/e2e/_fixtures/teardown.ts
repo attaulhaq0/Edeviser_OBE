@@ -8,15 +8,6 @@
 import type { FullConfig } from "@playwright/test";
 import { flushA11yFindings } from "../_helpers/axe.ts";
 
-const SUPABASE_URL =
-  process.env.VITE_SUPABASE_URL ?? "https://cdlgtbvxlxjpcddjazzx.supabase.co";
-
-const AUDIT_FIXTURES_URL = `${SUPABASE_URL}/functions/v1/audit-fixtures`;
-
-const ANON_KEY =
-  process.env.VITE_SUPABASE_ANON_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGd0YnZ4bHhqcGNkZGphenp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDIyMzAsImV4cCI6MjA4NzMxODIzMH0.WfTfhQssG748CNHlRCeBpPgs9defpgL-2WKEBIdht1s";
-
 export default async function globalTeardown(
   _config: FullConfig
 ): Promise<void> {
@@ -39,13 +30,29 @@ export default async function globalTeardown(
     return;
   }
 
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (
+    process.env.E2E_FIXTURES_ENABLED !== "true" ||
+    process.env.SUPABASE_DB_ENV !== "preview" ||
+    !supabaseUrl ||
+    !anonKey
+  ) {
+    console.warn(
+      "[globalTeardown] Preview E2E fixture guard is not satisfied — skipping teardown"
+    );
+    return;
+  }
+
+  const auditFixturesUrl = `${supabaseUrl}/functions/v1/audit-fixtures`;
+
   try {
-    const res = await fetch(`${AUDIT_FIXTURES_URL}/teardown`, {
+    const res = await fetch(`${auditFixturesUrl}/teardown`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${ANON_KEY}`,
-        apikey: ANON_KEY,
+        Authorization: `Bearer ${anonKey}`,
+        apikey: anonKey,
       },
       body: JSON.stringify({ runId }),
     });

@@ -37,7 +37,7 @@ export const LegalPage = ({ kind }: { kind: LegalPageKind }) => {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#eff6ff_0%,#f8fafc_40%,#f8fafc_100%)] text-slate-900">
-      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur">
+      <header className="border-b border-slate-200/80 bg-white">
         <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Button asChild variant="ghost" className="h-auto gap-2 px-1">
             <Link to="/login">

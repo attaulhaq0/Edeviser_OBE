@@ -454,39 +454,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   // -------------------------------------------------------------------
-  // signUp — public self-registration
+  // signUp — student self-registration compatibility surface.
   //
-  // Creates the auth.users row; the `handle_new_user()` trigger
-  // (migration 20260901000002 + 20260901000006) inserts the matching
-  // public.profiles row with role='student' and validates the optional
-  // institution_id against the institution's join_mode (ADR-13).
-  //
-  // For institutions with join_mode='open' the profile is created with
-  // status='pending_verification' until the email link is clicked (ADR-14);
-  // for domain_restricted / invite_only (student self-signup only) the
-  // profile is created with status='active' immediately.
+  // The browser never supplies role or institution claims. The authoritative
+  // trigger must apply the institution's approved registration policy; staff
+  // and parent accounts are created only through invitation acceptance. The
+  // current tenants are invite-only, so the invitation flow is the supported
+  // production path.
   // -------------------------------------------------------------------
   const signUp = useCallback(
     async (options: SignUpOptions): Promise<SignUpResult> => {
-      const {
-        email,
-        password,
-        fullName,
-        username,
-        institutionId,
-        requestedRole,
-      } = options;
+      const { email, password, fullName, username } = options;
 
       const metadata: Record<string, unknown> = {
         full_name: fullName,
       };
       if (username) metadata.username = username;
-      if (institutionId) metadata.institution_id = institutionId;
-      // Key MUST match the `raw_user_meta_data ->> 'role'` read in
-      // public.handle_new_user(). The trigger already forces role='student'
-      // for self-signup without an invitation_id, so sending this is purely
-      // informational for the server-side validator.
-      if (requestedRole) metadata.role = requestedRole;
+      // Self-registration never supplies a role or tenant claim. The server
+      // creates a student profile and derives any institution through its
+      // approved registration policy. Staff and parent accounts use the
+      // invitation acceptance workflow instead.
 
       const { data, error } = await supabase.auth.signUp({
         email,

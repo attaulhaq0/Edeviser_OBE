@@ -48,8 +48,8 @@ describe("CorrelationInsightCard", () => {
         insight={makeInsight({ habitType: "meditation" })}
       />
     );
-    // Icon container should have purple styling for meditation
-    const iconContainer = container.querySelector(".bg-purple-50");
+    // Meditation uses the shared blue insight token.
+    const iconContainer = container.querySelector(".bg-blue-50");
     expect(iconContainer).toBeInTheDocument();
   });
 

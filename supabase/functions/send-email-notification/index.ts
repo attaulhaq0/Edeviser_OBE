@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { canSendTo, readEmailMode } from "../_shared/invitation.ts";
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -373,7 +375,12 @@ serve(async (req) => {
   try {
     // ── Auth: require admin role or internal service call ────────────
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    let serviceRoleKey = "";
+    try {
+      serviceRoleKey = getManagedServerKey();
+    } catch {
+      serviceRoleKey = "";
+    }
     const isServiceRole =
       serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
@@ -398,18 +405,14 @@ serve(async (req) => {
       // mirroring the already-deployed ai-feedback-draft pattern.
       const adminClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+        getManagedServerKey()
       );
       const { data: callerProfile } = await adminClient
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .maybeSingle();
-      const role =
-        (callerProfile?.role as string) ??
-        user.app_metadata?.role ??
-        user.user_metadata?.role ??
-        "";
+      const role = (callerProfile?.role as string) ?? "";
       if (role !== "admin") {
         return new Response(
           JSON.stringify({ error: "Forbidden: admin role required" }),
@@ -435,7 +438,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();
@@ -449,6 +452,36 @@ serve(async (req) => {
     }
 
     const { to, template, data } = validation.data;
+    const emailMode = readEmailMode();
+
+    // Email is opt-in for every environment. The default is disabled, and
+    // sandbox delivery is limited to the explicitly configured allowlist.
+    if (emailMode === "disabled") {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          errorCode: "EMAIL_DISABLED",
+          message: "Email sending is disabled",
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    if (!canSendTo(to, emailMode)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          errorCode: "EMAIL_NOT_ALLOWLISTED",
+          message: "Recipient is not allowlisted for sandbox email",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // ── Check email preferences (opt-out) ─────────────────────────────
     if (OPT_OUT_TEMPLATES.includes(template)) {
@@ -482,10 +515,12 @@ serve(async (req) => {
 
     // ── Send email via Resend with retry ──────────────────────────────
     const fromAddress =
-      Deno.env.get("RESEND_FROM_ADDRESS") ?? "Edeviser <noreply@edeviser.com>";
+      Deno.env.get("EMAIL_FROM") ?? "Edeviser <team@edeviser.com>";
+    const replyTo = Deno.env.get("EMAIL_REPLY_TO")?.trim();
 
     const result = await sendWithRetry(resendApiKey, {
       from: fromAddress,
+      ...(replyTo ? { reply_to: replyTo } : {}),
       to,
       subject,
       html,

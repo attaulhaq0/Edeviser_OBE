@@ -1,9 +1,10 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // Task 55: GDPR Student Data Export Edge Function
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigin =
-  Deno.env.get("ALLOWED_ORIGIN") ?? "https://edeviser.vercel.app";
+  Deno.env.get("ALLOWED_ORIGIN") ?? "https://app.edeviser.com";
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers":
@@ -65,7 +66,7 @@ serve(async (req) => {
     const studentId = user.id;
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const { format: fmt = "json" } = await req

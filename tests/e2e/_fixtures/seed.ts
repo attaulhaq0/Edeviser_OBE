@@ -12,15 +12,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 
-const BASE_URL =
-  process.env.PLAYWRIGHT_BASE_URL ??
-  process.env.VITE_SUPABASE_URL?.replace("supabase.co", "supabase.co") ??
-  "http://localhost:5173";
-
-const SUPABASE_URL =
-  process.env.VITE_SUPABASE_URL ?? "https://cdlgtbvxlxjpcddjazzx.supabase.co";
-
-const AUDIT_FIXTURES_URL = `${SUPABASE_URL}/functions/v1/audit-fixtures`;
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 
 const STORAGE_STATES_DIR = resolve(
   "tests",
@@ -49,13 +41,35 @@ const SEED_CREDENTIALS: Record<string, { email: string; password: string }> = {
   },
 };
 
-const ANON_KEY =
-  process.env.VITE_SUPABASE_ANON_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGd0YnZ4bHhqcGNkZGphenp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDIyMzAsImV4cCI6MjA4NzMxODIzMH0.WfTfhQssG748CNHlRCeBpPgs9defpgL-2WKEBIdht1s";
+const writeEmptyStorageStates = (): void => {
+  mkdirSync(STORAGE_STATES_DIR, { recursive: true });
+  for (const role of Object.keys(SEED_CREDENTIALS)) {
+    writeFileSync(
+      resolve(STORAGE_STATES_DIR, `${role}.json`),
+      JSON.stringify({ cookies: [], origins: [] }),
+      "utf8"
+    );
+  }
+};
 
 export default async function globalSetup(_config: FullConfig): Promise<void> {
+  const isPreviewFixtureRun =
+    process.env.E2E_FIXTURES_ENABLED === "true" &&
+    process.env.SUPABASE_DB_ENV === "preview";
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!isPreviewFixtureRun || !supabaseUrl || !anonKey) {
+    console.warn(
+      "[globalSetup] E2E fixtures are disabled. Set E2E_FIXTURES_ENABLED=true, SUPABASE_DB_ENV=preview, VITE_SUPABASE_URL, and VITE_SUPABASE_ANON_KEY to run against a preview database."
+    );
+    writeEmptyStorageStates();
+    return;
+  }
+
   const runId = randomUUID();
   process.env.AUDIT_RUN_ID = runId;
+  const auditFixturesUrl = `${supabaseUrl}/functions/v1/audit-fixtures`;
 
   mkdirSync(STORAGE_STATES_DIR, { recursive: true });
 
@@ -63,12 +77,12 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   // This is best-effort — if the function is not deployed (local dev without
   // staging), we skip seeding and rely on pre-existing seed data.
   try {
-    const seedRes = await fetch(`${AUDIT_FIXTURES_URL}/seed`, {
+    const seedRes = await fetch(`${auditFixturesUrl}/seed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${ANON_KEY}`,
-        apikey: ANON_KEY,
+        Authorization: `Bearer ${anonKey}`,
+        apikey: anonKey,
       },
       body: JSON.stringify({
         runId,

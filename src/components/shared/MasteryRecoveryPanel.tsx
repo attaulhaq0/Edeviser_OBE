@@ -194,7 +194,7 @@ const MasteryRecoveryPanel = ({
         <h2 className="text-lg font-bold tracking-tight text-white">
           {t("recoveryPath.title", "Recovery Pathway")}
         </h2>
-        <Badge className="ms-auto border-0 bg-white/20 text-xs font-bold uppercase tracking-wide text-white">
+        <Badge className="ms-auto border-0 bg-slate-700/40 text-xs font-bold uppercase tracking-wide text-white">
           {retryUnlocked
             ? t("recoveryPath.ready", "Ready to Retry")
             : t("recoveryPath.inProgress", "In Progress")}

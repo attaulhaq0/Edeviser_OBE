@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -564,7 +565,7 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseServiceKey = getManagedServerKey();
     // Embeddings API key: prefer a dedicated EMBEDDINGS_API_KEY, fall back to
     // OPENAI_API_KEY (the default provider is OpenAI). When neither is set the
     // function returns a clear, structured 503 and the tutor continues to
