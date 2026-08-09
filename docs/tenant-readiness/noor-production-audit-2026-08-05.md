@@ -75,3 +75,9 @@ Exact insert/update counts remain intentionally unclaimed until the replacement 
 ## Production dry-run verdict
 
 **BLOCKED FOR EXECUTION, READY FOR LOCAL DESIGN.** Noor has broad connected coverage, but its relative-date surfaces are stale or sparse, seed ownership is incomplete, and the current scripts are production-coupled. No production rows were changed.
+
+### Local role verification blocker
+
+The clean local replay provisions five explicit Noor fixture users and all five password authentications succeed. Each authenticated profile/data query then fails with `permission denied for table profiles`: the current migration baseline grants `authenticated` no table-level `SELECT` on `profiles` (and the connected core tables). This proven migration/grant defect blocks role routing, `/student/courses`, Parent-linked reads, and invitation UI verification until a separately reviewed Supabase migration restores table grants while retaining the existing RLS policies. No broad local grant was added and production was not changed.
+
+The deterministic plan in `src/lib/noorSeedPlan.ts` remains dry-run-only. It proposes only missing date-sensitive calendar/review/reminder coverage, preserves meaningful existing records, and blocks operational invitation/token writes.
