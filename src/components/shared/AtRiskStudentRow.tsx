@@ -1,113 +1,93 @@
-// =============================================================================
-// AtRiskStudentRow — Displays a single AI at-risk prediction row
-// Validates: Requirements 47.3, 47.4
-// =============================================================================
+import { CheckCircle2, Clock3 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Send, Loader2 } from "lucide-react";
-import type { ContributingSignals } from "@/hooks/useAtRiskPredictions";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
+import type { ProactiveContributingEvidence } from "@/hooks/useAtRiskPredictions";
 
 interface AtRiskStudentRowProps {
   studentName: string;
   cloTitle: string;
-  probabilityScore: number;
-  contributingSignals: ContributingSignals;
-  onSendNudge: () => void;
-  isNudging: boolean;
+  contributingEvidence: ProactiveContributingEvidence[];
+  calculationVersion: string;
+  triggerVersion: string;
+  recommendedNextAction: string;
+  triggeredAt: string;
+  approvalAvailable: boolean;
+  onReviewDraft: () => void;
+  isApproving: boolean;
 }
 
-// ─── Signal Helpers ──────────────────────────────────────────────────────────
-
-const getSignalBadge = (label: string, value: string) => {
-  const colorMap: Record<string, string> = {
-    low: "bg-red-50 text-red-600 border-red-200",
-    medium: "bg-yellow-50 text-yellow-600 border-yellow-200",
-    high: "bg-green-50 text-green-600 border-green-200",
-    early: "bg-green-50 text-green-600 border-green-200",
-    on_time: "bg-blue-50 text-blue-600 border-blue-200",
-    late: "bg-yellow-50 text-yellow-600 border-yellow-200",
-    missed: "bg-red-50 text-red-600 border-red-200",
-    improving: "bg-green-50 text-green-600 border-green-200",
-    declining: "bg-red-50 text-red-600 border-red-200",
-    stagnant: "bg-yellow-50 text-yellow-600 border-yellow-200",
-  };
-
-  return (
-    <Badge
-      key={`${label}-${value}`}
-      variant="outline"
-      className={`text-[10px] ${
-        colorMap[value] ?? "bg-gray-50 text-gray-600 border-gray-200"
-      }`}
-    >
-      {label}: {value.replace("_", " ")}
-    </Badge>
-  );
-};
-
-const getProbabilityColor = (score: number): string => {
-  if (score >= 75) return "text-red-600 bg-red-50";
-  if (score >= 50) return "text-yellow-600 bg-yellow-50";
-  return "text-blue-600 bg-blue-50";
-};
-
-// ─── Component ───────────────────────────────────────────────────────────────
+const evidenceLabel = (evidence: ProactiveContributingEvidence): string =>
+  evidence.key
+    .split("_")
+    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
 
 const AtRiskStudentRow = ({
   studentName,
   cloTitle,
-  probabilityScore,
-  contributingSignals,
-  onSendNudge,
-  isNudging,
-}: AtRiskStudentRowProps) => {
-  const probColor = getProbabilityColor(probabilityScore);
-
-  return (
-    <div className="flex items-start justify-between gap-3 py-3 border-b border-slate-100 last:border-0">
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium truncate">{studentName}</p>
+  contributingEvidence,
+  calculationVersion,
+  triggerVersion,
+  recommendedNextAction,
+  triggeredAt,
+  approvalAvailable,
+  onReviewDraft,
+  isApproving,
+}: AtRiskStudentRowProps) => (
+  <div className="space-y-3 border-b border-slate-100 py-4 last:border-0">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold text-slate-900">{studentName}</p>
           <Badge
             variant="outline"
-            className={`text-xs font-bold border-0 shrink-0 ${probColor}`}
+            className="border-amber-200 bg-amber-50 text-amber-700"
           >
-            {Math.round(probabilityScore)}% risk
+            Needs Attention
           </Badge>
         </div>
-        <p className="text-xs text-gray-500 truncate" title={cloTitle}>
-          CLO: {cloTitle}
+        <p className="text-xs text-slate-600">CLO: {cloTitle}</p>
+        <p className="text-xs leading-5 text-slate-500">
+          Next: {recommendedNextAction}
         </p>
-        <div className="flex flex-wrap items-center gap-1">
-          {getSignalBadge("Login", contributingSignals.login_frequency)}
-          {getSignalBadge(
-            "Submissions",
-            contributingSignals.submission_pattern
-          )}
-          {getSignalBadge("Trend", contributingSignals.attainment_trend)}
-        </div>
       </div>
       <Button
         variant="outline"
         size="sm"
-        className="ms-2 shrink-0"
-        onClick={onSendNudge}
-        disabled={isNudging}
-        aria-label={`Send nudge to ${studentName}`}
+        className="shrink-0"
+        onClick={onReviewDraft}
+        disabled={isApproving || !approvalAvailable}
+        aria-label={`Review intervention draft for ${studentName}`}
       >
-        {isNudging ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Send className="h-4 w-4" />
-        )}
-        Nudge
+        <CheckCircle2 className="size-4" aria-hidden="true" />
+        {approvalAvailable ? "Review draft" : "Legacy evidence"}
       </Button>
     </div>
-  );
-};
+
+    <div className="flex flex-wrap gap-1.5">
+      {contributingEvidence.map((evidence) => (
+        <Badge
+          key={`${evidence.key}-${String(evidence.observedValue)}`}
+          variant="outline"
+          className="border-slate-200 bg-slate-50 text-[10px] text-slate-700"
+          title={`${evidence.source}; trigger: ${evidence.threshold}`}
+        >
+          {evidenceLabel(evidence)}: {String(evidence.observedValue)}
+        </Badge>
+      ))}
+    </div>
+
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
+      <span className="inline-flex items-center gap-1">
+        <Clock3 className="size-3" aria-hidden="true" />
+        {new Date(triggeredAt).toLocaleString()}
+      </span>
+      <span>Calculation: {calculationVersion}</span>
+      <span>Trigger: {triggerVersion}</span>
+    </div>
+  </div>
+);
 
 export default AtRiskStudentRow;
 export type { AtRiskStudentRowProps };

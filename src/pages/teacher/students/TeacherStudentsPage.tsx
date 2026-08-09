@@ -150,7 +150,7 @@ const TeacherStudentsPage = () => {
             <p className="max-w-2xl text-sm leading-6 text-slate-500">
               {t(
                 "dashboard.triage.helper",
-                "See the students most likely to benefit from a nudge, ordered by urgency and backed by the existing at-risk and AI prediction hooks."
+                "See students who may benefit from support, ordered by documented evidence and deterministic attention rules."
               )}
             </p>
           </div>
@@ -359,7 +359,7 @@ const TeacherStudentsPage = () => {
                                 </span>
                                 {prediction ? (
                                   <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-700">
-                                    AI: {prediction}
+                                    Evidence: {prediction}
                                   </span>
                                 ) : null}
                               </div>
