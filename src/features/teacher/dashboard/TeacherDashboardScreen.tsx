@@ -8,7 +8,7 @@
 //   - useTeacherDashboardAggregate → kpis (avg mastery / to-grade / graded /
 //                                    at-risk / students) + bloomsDistribution
 //   - useAtRiskStudents  + useSendNudge        → "Do first · Student triage"
-//   - useAtRiskPredictions + useSendAtRiskNudge → "At-risk · AI prediction"
+//   - useAtRiskPredictions → deterministic "Needs Attention" evidence
 //
 // Pixel parity vs the prototype is proven by the owner's `npm run test:visual`
 // gate (visual/screen-map.ts `teacher-dashboard`), then refined.
@@ -43,10 +43,8 @@ import {
   GraduationCap,
   PenLine,
   ShieldCheck,
-  TrendingDown,
   TrendingUp,
   Users,
-  XCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -66,7 +64,6 @@ import {
 } from "@/hooks/useTeacherDashboard";
 import {
   useAtRiskPredictions,
-  useSendAtRiskNudge,
   type AIAtRiskPrediction,
 } from "@/hooks/useAtRiskPredictions";
 import { attainmentValueClass } from "@/lib/attainmentTone";
@@ -93,9 +90,6 @@ const initials = (name: string): string =>
     .join("")
     .slice(0, 2)
     .toUpperCase() || "?";
-
-/** Normalize a 0–1 probability OR an already-0–100 value to a whole percent. */
-const asPercent = (n: number): number => Math.round(n <= 1 ? n * 100 : n) || 0;
 
 // ─── Triage severity (derived from REAL AtRiskStudent fields, not faked) ──────
 
@@ -133,7 +127,7 @@ const SEVERITY_STYLE: Record<
   },
 };
 
-// ─── AI-prediction contributing-signal chips (real ContributingSignals) ───────
+// ─── Versioned deterministic evidence chips ──────────────────────────────────
 
 interface SignalChip {
   icon: LucideIcon;
@@ -142,31 +136,15 @@ interface SignalChip {
 }
 
 const signalChips = (p: AIAtRiskPrediction): SignalChip[] => {
-  const s = p.suggestion_data?.contributing_signals;
-  if (!s) return [];
-  const chips: SignalChip[] = [];
-  const red = "text-red-700 bg-red-50 border-red-100";
-  const amber = "text-amber-700 bg-amber-50 border-amber-100";
-  const green = "text-green-700 bg-green-50 border-green-100";
-
-  if (s.attainment_trend === "declining")
-    chips.push({ icon: TrendingDown, label: "Declining", tone: red });
-  else if (s.attainment_trend === "improving")
-    chips.push({ icon: TrendingUp, label: "Improving", tone: green });
-  else if (s.attainment_trend === "stagnant")
-    chips.push({ icon: ArrowRight, label: "Stagnant", tone: amber });
-
-  if (s.login_frequency === "low")
-    chips.push({ icon: Clock, label: "Low logins", tone: amber });
-  else if (s.login_frequency === "high")
-    chips.push({ icon: Clock, label: "High logins", tone: green });
-
-  if (s.submission_pattern === "missed")
-    chips.push({ icon: XCircle, label: "Missed submission", tone: red });
-  else if (s.submission_pattern === "late")
-    chips.push({ icon: Clock, label: "Late submissions", tone: amber });
-
-  return chips;
+  return p.suggestion_data.contributing_evidence
+    .slice(0, 3)
+    .map((evidence) => ({
+      icon: evidence.key.includes("login") ? Clock : AlertTriangle,
+      label: `${evidence.key.replace(/_/g, " ")}: ${String(
+        evidence.observedValue
+      )}`,
+      tone: "text-amber-700 bg-amber-50 border-amber-100",
+    }));
 };
 
 // ─── Small nav-tile used in the action/quick-links row ────────────────────────
@@ -210,7 +188,6 @@ const TeacherDashboardScreen = () => {
   const atRisk = useAtRiskStudents();
   const predictions = useAtRiskPredictions();
   const sendNudge = useSendNudge();
-  const sendAtRiskNudge = useSendAtRiskNudge();
 
   const kpis = aggregate.data?.kpis;
   const blooms = aggregate.data?.bloomsDistribution ?? [];
@@ -250,31 +227,6 @@ const TeacherDashboardScreen = () => {
               defaultValue: "Nudge sent to {{name}}",
               name,
             })
-          ),
-      }
-    );
-  };
-
-  const predictionNudge = (studentId: string, name: string) => {
-    sendAtRiskNudge.mutate(
-      {
-        studentId,
-        message: t("dashboard.nudge.message", {
-          defaultValue:
-            "Your teacher noticed you might need support — let's get back on track.",
-        }),
-      },
-      {
-        onSuccess: () =>
-          toast.success(
-            t("dashboard.nudge.sent", {
-              defaultValue: "Nudge sent to {{name}}",
-              name,
-            })
-          ),
-        onError: (err: unknown) =>
-          toast.error(
-            err instanceof Error ? err.message : "Failed to send nudge"
           ),
       }
     );
@@ -578,18 +530,18 @@ const TeacherDashboardScreen = () => {
         )}
       </section>
 
-      {/* ── At-risk · AI prediction  +  Bloom's coverage ── */}
+      {/* ── Evidence-backed attention flags + Bloom's coverage ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* At-risk students · AI prediction (useAtRiskPredictions) */}
+        {/* Deterministic attention flags (useAtRiskPredictions) */}
         <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={AlertTriangle}
-            title={t("dashboard.prediction.title", "Student risk signals")}
+            title={t("dashboard.prediction.title", "Needs Attention")}
             action={
               predictions.data && predictions.data.length > 0 ? (
                 <span className="rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                   {t("dashboard.prediction.flagged", {
-                    defaultValue: "{{n}} AI model flagged",
+                    defaultValue: "{{n}} evidence-backed flags",
                     n: predictions.data.length,
                   })}
                 </span>
@@ -610,28 +562,11 @@ const TeacherDashboardScreen = () => {
             ) : predictions.data && predictions.data.length > 0 ? (
               <div className="divide-y divide-gray-50">
                 {predictions.data.slice(0, 5).map((p) => {
-                  const risk = asPercent(
-                    p.suggestion_data?.probability_score ?? 0
-                  );
-                  const current = p.suggestion_data?.current_attainment;
-                  const riskTone =
-                    risk >= 70
-                      ? "text-red-600"
-                      : risk >= 50
-                      ? "text-amber-600"
-                      : "text-slate-600";
                   const chips = signalChips(p);
                   return (
                     <div key={p.id} className="py-3">
                       <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black",
-                            risk >= 70
-                              ? "bg-red-50 text-red-600"
-                              : "bg-amber-50 text-amber-600"
-                          )}
-                        >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200/60 bg-white/80 text-xs font-black text-amber-700 backdrop-blur-xs">
                           {initials(p.student_name)}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -639,29 +574,11 @@ const TeacherDashboardScreen = () => {
                             {p.student_name}
                           </p>
                           <p className="truncate text-[11px] text-gray-500">
-                            {p.suggestion_data?.at_risk_clo_title ??
-                              t(
-                                "dashboard.prediction.outcome",
-                                "At-risk outcome"
-                              )}
-                            {current != null && (
-                              <>
-                                {" · "}
-                                {t("dashboard.prediction.now", {
-                                  defaultValue: "now {{p}}%",
-                                  p: asPercent(current),
-                                })}
-                              </>
-                            )}
+                            {p.suggestion_data.clo_title}
                           </p>
                         </div>
-                        <span
-                          className={cn(
-                            "shrink-0 text-sm font-black",
-                            riskTone
-                          )}
-                        >
-                          {risk}%
+                        <span className="shrink-0 text-xs font-black text-amber-700">
+                          Needs Attention
                         </span>
                       </div>
                       {chips.length > 0 && (
@@ -687,13 +604,10 @@ const TeacherDashboardScreen = () => {
                         <Button
                           variant="tactile"
                           className="h-8 px-3 text-xs"
-                          disabled={sendAtRiskNudge.isPending}
-                          onClick={() =>
-                            predictionNudge(p.student_id, p.student_name)
-                          }
+                          onClick={() => navigate("/teacher/students")}
                         >
                           <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-                          {t("dashboard.triage.nudge", "Send nudge")}
+                          {t("dashboard.triage.review", "Review draft")}
                         </Button>
                         <Button
                           variant="outline"
@@ -718,7 +632,7 @@ const TeacherDashboardScreen = () => {
                 <p className="mt-1 text-[11px] text-slate-500">
                   {t(
                     "dashboard.prediction.emptySubtitle",
-                    "AI predictive model: Not configured · Active signals are tracked via standard attendance & CLO rules."
+                    "Versioned deterministic rules evaluate authorized attendance, submission, activity and CLO evidence."
                   )}
                 </p>
               </div>
