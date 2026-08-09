@@ -567,10 +567,27 @@ export interface CourseFile {
 
 export interface ParentStudentLink {
   id: string;
-  parent_id: string;
+  parent_id: string | null;
   student_id: string;
+  institution_id?: string;
   relationship: string;
   verified: boolean;
+  status?:
+    | "pending_invitation"
+    | "pending_verification"
+    | "verified"
+    | "rejected"
+    | "revoked";
+  invited_email?: string | null;
+  invitation_id?: string | null;
+  verified_by?: string | null;
+  verified_at?: string | null;
+  rejected_by?: string | null;
+  rejected_at?: string | null;
+  revoked_by?: string | null;
+  revoked_at?: string | null;
+  rejection_reason?: string | null;
+  updated_at?: string;
 }
 
 export interface FeeStructure {

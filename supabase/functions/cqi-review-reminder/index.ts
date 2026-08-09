@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // cqi-review-reminder — pg_cron Edge Function (runs Mon 09:00 UTC)
 // Emits cqi_plan_review_due notifications to coordinators 7 days before next_review_date
 // Task 102 — UI Consistency Global Fixes
@@ -18,7 +19,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const sevenDaysFromNow = new Date();

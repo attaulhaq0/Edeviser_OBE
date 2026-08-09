@@ -283,6 +283,16 @@ const ARIA_PROPS = new Set([
   "id",
   "htmlFor",
   "href",
+  // Navigation and chart configuration are not user-facing copy. These are
+  // commonly passed through custom components, so treating them as labels
+  // creates false positives (for example to="/login" and dataKey="status").
+  "to",
+  "primaryActionHref",
+  "dataKey",
+  "stroke",
+  "fill",
+  "color",
+  "d",
   "src",
   "alt",
   "placeholder",

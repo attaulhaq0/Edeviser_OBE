@@ -1,32 +1,45 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 import {
+  AlarmClock,
   ArrowRight,
-  Calendar,
   CalendarClock,
+  CheckSquare,
   ChevronLeft,
   ChevronRight,
-  Clock3,
-  ListTodo,
-  Lock,
+  FileText,
   Plus,
+  FlaskConical,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useCalendarEvents, type CalendarEvent } from "@/hooks/useCalendar";
 import { useAuth } from "@/hooks/useAuth";
 import { useTimetableSlots } from "@/hooks/useTimetable";
 import { useWeeklyPlannerData } from "@/hooks/useWeeklyPlanner";
 import { dedupeCalendarEvents } from "@/lib/calendarDeadlines";
+import { getDeadlineUrgency } from "@/lib/plannerUtils";
 import { Shimmer } from "@/design-system";
 import ErrorState from "@/components/shared/ErrorState";
 import type { PlannerTask } from "@/types/planner";
 
-type ViewMode = "monthly" | "weekly";
+type CalendarMode = "month" | "agenda";
+
+const CHIP_COLORS: Record<string, string> = {
+  assignment: "#3b82f6",
+  quiz: "#8b5cf6",
+  class_session: "#14b8a6",
+  academic: "#f59e0b",
+};
+
+const LEGEND = [
+  ["assignment", "Assignment", "#3b82f6"],
+  ["quiz", "Quiz", "#8b5cf6"],
+  ["class", "Class", "#14b8a6"],
+  ["academic", "Academic", "#f59e0b"],
+  ["task", "My task", "#22c55e"],
+] as const;
 
 const getWeekStart = (date: Date): string => {
   const start = new Date(date);
@@ -35,12 +48,39 @@ const getWeekStart = (date: Date): string => {
   return start.toISOString().slice(0, 10);
 };
 
+const dateKey = (value: Date | string): string => {
+  if (typeof value === "string") return value.slice(0, 10);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const formatTime = (value: string): string => value.slice(0, 5);
 
+const formatDeadline = (value: string, now: Date, locale: string): string => {
+  const date = new Date(value);
+  if (dateKey(date) === dateKey(now)) {
+    return date.getHours() > 0
+      ? `Today ${new Intl.DateTimeFormat(locale, {
+          hour: "numeric",
+          minute: "2-digit",
+        }).format(date)}`
+      : "Today";
+  }
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+};
+
+const eventColor = (event: CalendarEvent): string =>
+  event.color ?? CHIP_COLORS[event.type ?? ""] ?? "#22c55e";
+
 const taskColor: Record<PlannerTask["priority"], string> = {
-  high: "bg-amber-500",
-  medium: "bg-blue-500",
-  low: "bg-slate-400",
+  high: "#ef4444",
+  medium: "#f59e0b",
+  low: "#94a3b8",
 };
 
 interface CalendarRailProps {
@@ -49,8 +89,33 @@ interface CalendarRailProps {
   planner: ReturnType<typeof useWeeklyPlannerData>;
   role: string | null | undefined;
   now: Date;
-  t: TFunction;
+  locale: string;
+  t: ReturnType<typeof useTranslation>["t"];
 }
+
+const RailHeader = ({
+  icon,
+  title,
+  right,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  right?: string;
+}) => (
+  <div className="mb-3 flex items-center gap-2">
+    <span className="grid size-6 place-items-center rounded-lg border border-sky-100 bg-sky-50 text-sky-700">
+      {icon}
+    </span>
+    <h2 className="min-w-0 flex-1 text-[12px] font-black text-slate-900">
+      {title}
+    </h2>
+    {right ? (
+      <span className="shrink-0 text-[10px] font-extrabold text-sky-700">
+        {right}
+      </span>
+    ) : null}
+  </div>
+);
 
 const CalendarRail = ({
   events,
@@ -58,6 +123,7 @@ const CalendarRail = ({
   planner,
   role,
   now,
+  locale,
   t,
 }: CalendarRailProps) => {
   const upcoming = events
@@ -68,111 +134,127 @@ const CalendarRail = ({
     )
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
-  const todaySlots = (slots ?? []).filter(
-    (slot) => slot.day_of_week === now.getDay()
-  );
+  const todaySlots = (slots ?? [])
+    .filter((slot) => slot.day_of_week === now.getDay())
+    .slice(0, 4);
   const tasks = planner.tasks.slice(0, 3);
+  const todayLabel = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(now);
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-6">
-      <Card className="gap-0 p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <CalendarClock className="size-4 text-teal-600" aria-hidden="true" />
-          <h2 className="text-sm font-black text-slate-900">
-            {t("calendar.todayClasses", "Today’s classes")}
-          </h2>
-        </div>
+    <aside className="min-w-0 space-y-4" aria-label="Calendar details">
+      <Card className="rounded-2xl border-slate-200 p-4 shadow-sm">
+        <RailHeader
+          icon={<CalendarClock className="size-3.5" aria-hidden="true" />}
+          title={`${t("calendar.today", "Today")} · ${todayLabel}`}
+        />
         {todaySlots.length === 0 ? (
           <p className="text-xs text-slate-500">
             {t("calendar.noClasses", "No classes scheduled today")}
           </p>
         ) : (
           <div className="space-y-2">
-            {todaySlots.slice(0, 4).map((slot) => (
-              <div
-                key={slot.id}
-                className="flex items-center gap-3 rounded-xl border-s-4 border-blue-500 bg-slate-50 p-2.5"
-              >
-                <div className="w-12 shrink-0 text-center">
-                  <p className="text-xs font-black text-slate-900">
-                    {formatTime(slot.start_time)}
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    {formatTime(slot.end_time)}
-                  </p>
+            {todaySlots.map((slot, index) => {
+              const border = ["#3b82f6", "#14b8a6", "#8b5cf6", "#f59e0b"][
+                index % 4
+              ];
+              return (
+                <div
+                  key={slot.id}
+                  className="flex items-center gap-3 rounded-xl border-s-4 bg-slate-50 p-2.5"
+                  style={{ borderInlineStartColor: border }}
+                >
+                  <div className="w-12 shrink-0 text-center">
+                    <p className="text-[11px] font-black text-slate-900">
+                      {formatTime(slot.start_time)}
+                    </p>
+                    <p className="text-[9px] text-slate-500">
+                      {formatTime(slot.end_time)}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-[12px] font-bold text-slate-900">
+                      {slot.course_name ||
+                        slot.section_code ||
+                        t("calendar.class", "Class")}
+                    </p>
+                    <p className="truncate text-[10px] text-slate-500">
+                      {slot.slot_type}
+                      {slot.room ? ` · ${slot.room}` : ""}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-slate-900">
-                    {slot.course_name ||
-                      slot.section_code ||
-                      t("calendar.class", "Class")}
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    {slot.slot_type}
-                    {slot.room ? ` · ${slot.room}` : ""}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
 
-      <Card className="gap-0 p-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Clock3 className="size-4 text-amber-600" aria-hidden="true" />
-          <h2 className="text-sm font-black text-slate-900">
-            {t("calendar.upcomingDeadlines", "Upcoming deadlines")}
-          </h2>
-        </div>
+      <Card className="rounded-2xl border-slate-200 p-4 shadow-sm">
+        <RailHeader
+          icon={<AlarmClock className="size-3.5" aria-hidden="true" />}
+          title={t("calendar.upcomingDeadlines", "Upcoming deadlines")}
+        />
         {upcoming.length === 0 ? (
           <p className="text-xs text-slate-500">
             {t("calendar.noDeadlines", "No upcoming deadlines")}
           </p>
         ) : (
           <div className="divide-y divide-slate-100">
-            {upcoming.map((event) => (
-              <div
-                key={`${event.type}-${event.id}`}
-                className="flex items-center gap-3 py-2"
-              >
-                <span className="text-base" aria-hidden="true">
-                  {event.type === "quiz" ? "🧪" : "📝"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {event.title}
-                  </p>
-                  <p className="truncate text-[11px] text-slate-500">
-                    {event.course_name ?? ""}
-                  </p>
-                </div>
-                <time
-                  className="shrink-0 text-[10px] font-bold text-slate-500"
-                  dateTime={event.date}
+            {upcoming.map((event) => {
+              const urgency = getDeadlineUrgency(event.date, now);
+              const urgencyClass =
+                urgency === "red"
+                  ? "border-red-200 bg-red-50 text-red-600"
+                  : urgency === "yellow"
+                  ? "border-amber-200 bg-amber-50 text-amber-600"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-600";
+              return (
+                <div
+                  key={`${event.type}-${event.id}`}
+                  className="flex items-center gap-2.5 py-2.5"
                 >
-                  {new Intl.DateTimeFormat(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  }).format(new Date(event.date))}
-                </time>
-              </div>
-            ))}
+                  {event.type === "quiz" ? (
+                    <FlaskConical
+                      className="size-4 shrink-0 text-violet-500"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <FileText
+                      className="size-4 shrink-0 text-slate-500"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[12px] font-bold text-slate-900">
+                      {event.title}
+                    </p>
+                    <p className="truncate text-[10px] text-slate-500">
+                      {event.course_name ?? ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${urgencyClass}`}
+                  >
+                    {formatDeadline(event.date, now, locale)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </Card>
 
-      {role === "student" && (
-        <Card className="gap-0 p-4">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <ListTodo className="size-4 text-teal-600" aria-hidden="true" />
-              <h2 className="text-sm font-black text-slate-900">
-                {t("calendar.myTasks", "My tasks")}
-              </h2>
-            </div>
-            <span className="text-[10px] font-bold text-slate-400">+10 XP</span>
-          </div>
+      {role === "student" ? (
+        <Card className="rounded-2xl border-slate-200 p-4 shadow-sm">
+          <RailHeader
+            icon={<CheckSquare className="size-3.5" aria-hidden="true" />}
+            title={t("calendar.myTasks", "My tasks")}
+            right={t("calendar.xpEach", "+10 XP each")}
+          />
           {planner.isError ? (
             <p className="text-xs text-red-600">
               {t("calendar.tasksError", "Tasks could not be loaded")}
@@ -184,43 +266,48 @@ const CalendarRail = ({
           ) : (
             <div className="space-y-2">
               {tasks.map((task) => (
-                <div
+                <label
                   key={task.id}
-                  className="flex items-center gap-2 text-sm text-slate-700"
+                  className="flex items-center gap-2 text-[12px] text-slate-700"
                 >
+                  <input
+                    type="checkbox"
+                    defaultChecked={task.status === "done"}
+                    disabled={task.status === "done"}
+                    className="size-3.5 accent-teal-600"
+                  />
                   <span
-                    className={`size-2 shrink-0 rounded-full ${
-                      taskColor[task.priority]
-                    }`}
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: taskColor[task.priority] }}
                     aria-hidden="true"
                   />
-                  <span className="min-w-0 flex-1 truncate">{task.title}</span>
-                </div>
+                  <span
+                    className={`min-w-0 flex-1 truncate ${
+                      task.status === "done"
+                        ? "text-slate-400 line-through"
+                        : ""
+                    }`}
+                  >
+                    {task.title}
+                  </span>
+                </label>
               ))}
             </div>
           )}
-          <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="mt-3 h-7 w-full rounded-lg text-[10px] font-bold"
+          >
             <Link to="/student/planner">
-              <Plus className="size-3.5" />
+              <Plus className="size-3" aria-hidden="true" />
               {t("calendar.addTask", "Add task")}
-              <ArrowRight className="ms-auto size-3.5" />
+              <ArrowRight className="ms-auto size-3" aria-hidden="true" />
             </Link>
           </Button>
         </Card>
-      )}
-
-      <div className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-        <Lock
-          className="mt-0.5 size-3.5 shrink-0 text-slate-400"
-          aria-hidden="true"
-        />
-        <p className="text-[11px] leading-relaxed text-slate-500">
-          {t(
-            "calendar.readOnlyNotice",
-            "This calendar is read-only. Use Planner and Today to edit tasks."
-          )}
-        </p>
-      </div>
+      ) : null}
     </aside>
   );
 };
@@ -231,12 +318,7 @@ const CalendarView = () => {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [viewMode, setViewMode] = useState<ViewMode>("monthly");
-  const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => {
-    const d = new Date(now);
-    d.setDate(d.getDate() - d.getDay());
-    return d;
-  });
+  const [viewMode, setViewMode] = useState<CalendarMode>("month");
 
   const {
     data: rawEvents = [],
@@ -249,298 +331,247 @@ const CalendarView = () => {
     role === "student" ? user?.id : undefined,
     getWeekStart(now)
   );
-
-  // R21.4: present a deadline consistently across surfaces — a single logical
-  // deadline must never be listed twice even if it arrives from more than one
-  // source. Dedup is pure and lives in `src/lib/calendarDeadlines.ts`.
   const events = useMemo(() => dedupeCalendarEvents(rawEvents), [rawEvents]);
-
-  const locale = i18n.language === "ar" ? "ar" : "en-US";
-  const dayShortLabels = useMemo(
-    () => [0, 1, 2, 3, 4, 5, 6].map((d) => t(`calendar.daysShort.${d}`)),
-    [t]
+  const displayEvents = useMemo<CalendarEvent[]>(
+    () => [
+      ...events,
+      ...planner.tasks
+        .filter((task) => task.dueDate)
+        .map((task) => ({
+          id: `task-${task.id}`,
+          title: task.title,
+          date: task.dueDate,
+          color: "#22c55e",
+          course_name: task.courseName,
+        })),
+    ],
+    [events, planner.tasks]
   );
 
-  const firstDay = new Date(year, month - 1, 1).getDay();
+  const locale = i18n.language === "ar" ? "ar-QA" : "en-US";
+  const dayShortLabels = useMemo(() => {
+    const defaults = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return [1, 2, 3, 4, 5, 6, 0].map((d) =>
+      t(`calendar.daysShort.${d}`, defaults[d] ?? "Sun")
+    );
+  }, [t]);
+  const firstDay = (new Date(year, month - 1, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month, 0).getDate();
-
-  const prev = () => {
-    if (viewMode === "monthly") {
-      if (month === 1) {
-        setMonth(12);
-        setYear(year - 1);
-      } else setMonth(month - 1);
-    } else {
-      const d = new Date(selectedWeekStart);
-      d.setDate(d.getDate() - 7);
-      setSelectedWeekStart(d);
-      // Sync month/year if week crosses month boundary
-      setMonth(d.getMonth() + 1);
-      setYear(d.getFullYear());
-    }
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  const headerLabel = new Date(year, month - 1, 1).toLocaleDateString(locale, {
+    month: "long",
+    year: "numeric",
+  });
+  const sortedEvents = [...displayEvents].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  const changeMonth = (delta: number) => {
+    const next = new Date(year, month - 1 + delta, 1);
+    setMonth(next.getMonth() + 1);
+    setYear(next.getFullYear());
   };
 
-  const next = () => {
-    if (viewMode === "monthly") {
-      if (month === 12) {
-        setMonth(1);
-        setYear(year + 1);
-      } else setMonth(month + 1);
-    } else {
-      const d = new Date(selectedWeekStart);
-      d.setDate(d.getDate() + 7);
-      setSelectedWeekStart(d);
-      setMonth(d.getMonth() + 1);
-      setYear(d.getFullYear());
-    }
+  const goToday = () => {
+    setMonth(now.getMonth() + 1);
+    setYear(now.getFullYear());
   };
-
-  const eventsForDay = (day: number): CalendarEvent[] => {
-    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(
-      day
-    ).padStart(2, "0")}`;
-    return events.filter((e) => e.date?.startsWith(dateStr));
-  };
-
-  const eventsForDate = (date: Date): CalendarEvent[] => {
-    const y = date.getFullYear();
-    const m = date.getMonth() + 1;
-    const d = date.getDate();
-    const dateStr = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(
-      2,
-      "0"
-    )}`;
-    return events.filter((e) => e.date?.startsWith(dateStr));
-  };
-
-  // Week days for weekly view
-  const weekDays = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(selectedWeekStart);
-      d.setDate(d.getDate() + i);
-      return d;
-    });
-  }, [selectedWeekStart]);
-
-  const headerLabel =
-    viewMode === "monthly"
-      ? new Date(year, month - 1, 1).toLocaleDateString(locale, {
-          month: "long",
-          year: "numeric",
-        })
-      : `${
-          weekDays[0]?.toLocaleDateString(locale, {
-            month: "short",
-            day: "numeric",
-          }) ?? ""
-        } – ${
-          weekDays[6]?.toLocaleDateString(locale, {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }) ?? ""
-        }`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("calendar.title")}
-          </h1>
-          <p className="text-sm text-gray-500">{t("calendar.subtitle")}</p>
-        </div>
-        <Tabs
-          value={viewMode}
-          onValueChange={(v) => setViewMode(v as ViewMode)}
-        >
-          <TabsList className="gap-2 rounded-xl">
-            <TabsTrigger value="monthly" className="rounded-xl text-xs">
-              {t("calendar.monthly")}
-            </TabsTrigger>
-            <TabsTrigger value="weekly" className="rounded-xl text-xs">
-              {t("calendar.weekly")}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_336px]">
-        <div className="min-w-0 space-y-6">
-          <Card className="overflow-hidden rounded-xl border-0 bg-white py-0 shadow-md">
-            <div
-              className="px-6 py-4 flex items-center justify-between"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
+    <div
+      className="mx-auto grid w-full max-w-[1620px] grid-cols-[minmax(0,1fr)_280px] gap-5 pt-1 pb-4 max-[1100px]:grid-cols-1"
+      dir={i18n.language === "ar" ? "rtl" : "ltr"}
+    >
+      <Card className="min-w-0 rounded-2xl border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-lg text-slate-500"
+              onClick={() => changeMonth(-1)}
+              aria-label={t("calendar.previous", "Previous month")}
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={prev}
-                className="text-white hover:bg-white/20"
-                aria-label={t("calendar.previous")}
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex items-center gap-2 text-white">
-                <Calendar className="h-5 w-5" />
-                <span className="text-lg font-bold tracking-tight">
-                  {headerLabel}
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={next}
-                className="text-white hover:bg-white/20"
-                aria-label={t("calendar.next")}
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
+              <ChevronLeft className="size-4" aria-hidden="true" />
+            </Button>
+            <h2 className="min-w-[130px] text-center text-[16px] font-black">
+              {headerLabel}
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-lg text-slate-500"
+              onClick={() => changeMonth(1)}
+              aria-label={t("calendar.next", "Next month")}
+            >
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ms-1 h-7 rounded-lg border-teal-200 px-2 text-[10px] font-bold text-teal-700 hover:bg-teal-50"
+              onClick={goToday}
+            >
+              {t("calendar.today", "Today")}
+            </Button>
+          </div>
 
-            <div className="p-4">
-              {isLoading ? (
-                <Shimmer className="h-64 rounded-lg" />
-              ) : isError ? (
-                <ErrorState
-                  message={t("errors.generic")}
-                  onRetry={() => void refetch()}
-                  retryLabel={t("buttons.retry")}
-                />
-              ) : viewMode === "monthly" ? (
-                <>
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {dayShortLabels.map((d, i) => (
-                      <div
-                        key={i}
-                        className="text-center text-xs font-bold text-slate-500 py-1"
-                      >
-                        {d}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {Array.from({ length: firstDay }).map((_, i) => (
-                      <div key={`empty-${i}`} className="h-20" />
-                    ))}
-                    {Array.from({ length: daysInMonth }).map((_, i) => {
-                      const day = i + 1;
-                      const dayEvents = eventsForDay(day);
-                      const isToday =
-                        day === now.getDate() &&
-                        month === now.getMonth() + 1 &&
-                        year === now.getFullYear();
-                      return (
-                        <div
-                          key={day}
-                          className={`h-20 rounded-lg border p-1 text-xs ${
-                            isToday
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-slate-100 hover:bg-slate-50"
-                          }`}
-                        >
-                          <span
-                            className={`font-semibold ${
-                              isToday ? "text-blue-600" : "text-slate-700"
-                            }`}
-                          >
-                            {day}
-                          </span>
-                          <div className="mt-0.5 space-y-0.5 overflow-hidden">
-                            {dayEvents.slice(0, 2).map((e) => (
-                              <Badge
-                                key={e.id}
-                                variant="outline"
-                                className="text-[9px] px-1 py-0 truncate block"
-                                style={{ borderColor: e.color, color: e.color }}
-                              >
-                                {e.title}
-                              </Badge>
-                            ))}
-                            {dayEvents.length > 2 && (
-                              <span className="text-[9px] text-slate-400">
-                                {t("calendar.moreEvents", {
-                                  n: dayEvents.length - 2,
-                                })}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                /* Weekly View */
-                <div className="space-y-2">
-                  <div className="grid grid-cols-7 gap-2">
-                    {weekDays.map((date, i) => {
-                      const dayEvents = eventsForDate(date);
-                      const isToday =
-                        date.toDateString() === now.toDateString();
-                      return (
-                        <div key={i} className="space-y-1">
-                          <div
-                            className={`text-center text-xs font-bold py-1 rounded-lg ${
-                              isToday
-                                ? "bg-blue-500 text-white"
-                                : "text-slate-500"
-                            }`}
-                          >
-                            <div>{dayShortLabels[date.getDay()]}</div>
-                            <div className="text-lg font-black">
-                              {date.getDate()}
-                            </div>
-                          </div>
-                          <div className="space-y-1 min-h-[120px]">
-                            {dayEvents.map((e) => (
-                              <div
-                                key={e.id}
-                                className="rounded-lg border p-1.5 text-xs"
-                                style={{
-                                  borderColor: e.color,
-                                  backgroundColor: `${e.color}10`,
-                                }}
-                              >
-                                <p
-                                  className="font-medium truncate"
-                                  style={{ color: e.color }}
-                                >
-                                  {e.title}
-                                </p>
-                                {e.course_name && (
-                                  <p className="text-[9px] text-slate-500 truncate">
-                                    {e.course_name}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                            {dayEvents.length === 0 && (
-                              <div className="text-[9px] text-slate-300 text-center pt-4">
-                                {t("calendar.noEvents")}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
+          <div className="flex items-center rounded-lg border border-slate-100 bg-slate-50 p-0.5 text-[11px] font-bold">
+            <button
+              type="button"
+              className={`rounded-md px-2 py-1 ${
+                viewMode === "month"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+              }`}
+              onClick={() => setViewMode("month")}
+              aria-pressed={viewMode === "month"}
+            >
+              ▦ {t("calendar.month", "Month")}
+            </button>
+            <button
+              type="button"
+              className={`rounded-md px-2 py-1 ${
+                viewMode === "agenda"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+              }`}
+              onClick={() => setViewMode("agenda")}
+              aria-pressed={viewMode === "agenda"}
+            >
+              ☰ {t("calendar.agenda", "Agenda")}
+            </button>
+          </div>
         </div>
-        <CalendarRail
-          events={events}
-          slots={timetableSlots}
-          planner={planner}
-          role={role}
-          now={now}
-          t={t}
-        />
-      </div>
+
+        {isLoading ? (
+          <Shimmer className="h-[520px] rounded-xl" />
+        ) : isError ? (
+          <ErrorState
+            message={t("errors.generic")}
+            onRetry={() => void refetch()}
+            retryLabel={t("buttons.retry")}
+          />
+        ) : viewMode === "month" ? (
+          <>
+            <div className="mb-1.5 grid grid-cols-7 gap-1.5">
+              {dayShortLabels.map((day) => (
+                <div
+                  key={day}
+                  className="py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.08em] text-slate-500"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+              {Array.from({ length: totalCells }, (_, index) => {
+                const day = index - firstDay + 1;
+                const cellDate = new Date(year, month - 1, day);
+                const outside = day < 1 || day > daysInMonth;
+                const dayEvents = outside
+                  ? []
+                  : displayEvents.filter(
+                      (event) => dateKey(event.date) === dateKey(cellDate)
+                    );
+                const todayCell =
+                  !outside && dateKey(cellDate) === dateKey(now);
+                return (
+                  <div
+                    key={`${year}-${month}-${index}`}
+                    className={`flex min-h-[80px] min-w-0 flex-col gap-1 overflow-hidden rounded-xl border p-1.5 ${
+                      outside
+                        ? "border-slate-100 bg-slate-50 opacity-60"
+                        : todayCell
+                        ? "border-teal-500 bg-white shadow-[0_0_0_2px_rgba(20,184,166,0.16)]"
+                        : "border-slate-100 bg-white"
+                    }`}
+                  >
+                    <span
+                      className={`text-[10px] font-extrabold ${
+                        todayCell ? "text-teal-700" : "text-slate-600"
+                      }`}
+                    >
+                      {cellDate.getDate()}
+                    </span>
+                    {!outside
+                      ? dayEvents.slice(0, 3).map((event) => (
+                          <span
+                            key={event.id}
+                            className="block truncate rounded px-1 py-0.5 text-[9px] font-bold leading-tight text-white"
+                            style={{ backgroundColor: eventColor(event) }}
+                            title={event.title}
+                          >
+                            {event.title}
+                          </span>
+                        ))
+                      : null}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-100 pt-3">
+              {LEGEND.map(([, label, color]) => (
+                <span
+                  key={label}
+                  className="flex items-center gap-1 text-[10px] font-semibold text-slate-600"
+                >
+                  <span
+                    className="size-2 rounded-sm"
+                    style={{ backgroundColor: color }}
+                    aria-hidden="true"
+                  />
+                  {t(
+                    `calendar.legend.${label.toLowerCase().replace(" ", "")}`,
+                    label
+                  )}
+                </span>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {sortedEvents.length === 0 ? (
+              <p className="py-12 text-center text-sm text-slate-500">
+                {t("calendar.noEvents", "No events")}
+              </p>
+            ) : (
+              sortedEvents.map((event) => (
+                <div key={event.id} className="flex items-center gap-3 py-3">
+                  <div className="w-12 shrink-0 text-center">
+                    <p className="text-lg font-black leading-none text-slate-900">
+                      {new Date(event.date).getDate()}
+                    </p>
+                    <p className="text-[9px] font-bold uppercase text-slate-500">
+                      {new Intl.DateTimeFormat(locale, {
+                        weekday: "short",
+                      }).format(new Date(event.date))}
+                    </p>
+                  </div>
+                  <span
+                    className="rounded px-2 py-1 text-[10px] font-bold text-white"
+                    style={{ backgroundColor: eventColor(event) }}
+                  >
+                    {event.title}
+                  </span>
+                  <span className="truncate text-[10px] text-slate-500">
+                    {event.course_name ?? ""}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </Card>
+
+      <CalendarRail
+        events={events}
+        slots={timetableSlots}
+        planner={planner}
+        role={role}
+        now={now}
+        locale={locale}
+        t={t}
+      />
     </div>
   );
 };

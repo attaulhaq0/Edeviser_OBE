@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2";
@@ -479,7 +480,7 @@ serve(async (req) => {
     }
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
     serviceClient = adminClient;
 
@@ -488,22 +489,15 @@ serve(async (req) => {
     // caller's id, mirroring the already-deployed ai-feedback-draft pattern.
     const { data: callerProfile } = await adminClient
       .from("profiles")
-      .select("role, institution_id")
+      .select("role, institution_id, is_active")
       .eq("id", user.id)
       .maybeSingle();
-    const callerRole =
-      (callerProfile?.role as string) ??
-      user.app_metadata?.role ??
-      user.user_metadata?.role ??
-      "";
-    const callerInstitutionId =
-      (callerProfile?.institution_id as string) ??
-      user.app_metadata?.institution_id ??
-      user.user_metadata?.institution_id ??
-      "";
+    const callerRole = (callerProfile?.role as string) ?? "";
+    const callerInstitutionId = (callerProfile?.institution_id as string) ?? "";
     if (
       !["admin", "coordinator"].includes(callerRole) ||
-      !callerInstitutionId
+      !callerInstitutionId ||
+      callerProfile?.is_active !== true
     ) {
       return new Response(
         JSON.stringify({

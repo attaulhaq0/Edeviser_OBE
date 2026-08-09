@@ -116,7 +116,7 @@ const StarterWeekHeroCard = ({
 
         <Button
           onClick={onViewPlan}
-          className="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-sm font-semibold active:scale-95 transition-transform duration-100"
+          className="bg-slate-700/40 hover:bg-slate-700/50 text-white border border-white/20 text-sm font-semibold active:scale-95 transition-transform duration-100"
         >
           View Plan
         </Button>

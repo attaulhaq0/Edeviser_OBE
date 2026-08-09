@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -654,16 +655,34 @@ serve(async (req) => {
   }
 
   const studentId = user.id;
-  const institutionId =
-    user.app_metadata?.institution_id ??
-    user.user_metadata?.institution_id ??
-    "";
 
   // Service-role client for server-side operations (bypasses RLS)
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    getManagedServerKey()
   );
+
+  // Tenant and account state are authoritative in profiles. JWT metadata is
+  // user-controlled at signup and must never determine AI tenant scope.
+  const { data: callerProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("institution_id, role, is_active")
+    .eq("id", studentId)
+    .maybeSingle();
+  if (
+    profileError ||
+    !callerProfile?.institution_id ||
+    callerProfile.is_active !== true
+  ) {
+    return new Response(
+      JSON.stringify({ error: "Forbidden: active profile required" }),
+      {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  const institutionId = callerProfile.institution_id as string;
 
   // Parse and validate request body
   let body: unknown;
@@ -1654,9 +1673,7 @@ serve(async (req) => {
             await fetch(awardXpUrl, {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${Deno.env.get(
-                  "SUPABASE_SERVICE_ROLE_KEY"
-                )}`,
+                Authorization: `Bearer ${getManagedServerKey()}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
@@ -1918,9 +1935,7 @@ serve(async (req) => {
                 const planResponse = await fetch(planUpdateUrl, {
                   method: "POST",
                   headers: {
-                    Authorization: `Bearer ${Deno.env.get(
-                      "SUPABASE_SERVICE_ROLE_KEY"
-                    )}`,
+                    Authorization: `Bearer ${getManagedServerKey()}`,
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({

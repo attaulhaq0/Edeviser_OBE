@@ -95,4 +95,13 @@ describe("scanUntranslatedLiterals (Task 11.2, Req 10.2)", () => {
     const findings = scanUntranslatedLiterals();
     expect(Array.isArray(findings)).toBe(true);
   });
+
+  it("ignores route and chart configuration props", () => {
+    mkdirSync(join(workspaceDir, "src", "pages"), { recursive: true });
+    writeFileSync(
+      join(workspaceDir, "src", "pages", "Chart.tsx"),
+      `<Link to="/login" />\n<Line dataKey="status" stroke="#0ea5e9" fill="none" />`
+    );
+    expect(scanUntranslatedLiterals()).toEqual([]);
+  });
 });

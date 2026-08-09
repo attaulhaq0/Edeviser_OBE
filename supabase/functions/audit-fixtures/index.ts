@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // supabase/functions/audit-fixtures/index.ts
 //
 // Pre-deployment E2E audit fixture endpoint. Four routes:
@@ -31,6 +32,7 @@ import {
   SeedRequestSchema,
   TeardownRequestSchema,
 } from "./schemas.ts";
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 
 // ─── CORS ──────────────────────────────────────────────────────────────────
 
@@ -97,10 +99,10 @@ const assertAuditStaging = (): Response | null => {
 
 const makeServiceClient = (): SupabaseClient => {
   const url = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const serviceRoleKey = getManagedServerKey();
   if (!url || !serviceRoleKey) {
     throw new Error(
-      "audit-fixtures: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing"
+      "audit-fixtures: SUPABASE_URL or managed server key missing"
     );
   }
   return createClient(url, serviceRoleKey, {

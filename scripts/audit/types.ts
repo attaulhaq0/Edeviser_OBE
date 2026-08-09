@@ -11,6 +11,7 @@ export type StageName =
   | "propertyTests"
   | "build"
   | "security"
+  | "static"
   | "connectivity"
   | "rls"
   | "cron"

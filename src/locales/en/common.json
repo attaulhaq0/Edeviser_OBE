@@ -307,6 +307,13 @@
   "calendar": {
     "title": "Calendar",
     "subtitle": "A read-only view of your upcoming deadlines.",
+    "prototypeSubtitle": "Classes, deadlines & your plan",
+    "back": "Back",
+    "search": "Search or jump to… (⌘K)",
+    "today": "Today",
+    "month": "Month",
+    "agenda": "Agenda",
+    "xpEach": "+10 XP each",
     "readOnlyNotice": "This calendar is read-only. To add or edit tasks and study sessions, use your Planner and Today views.",
     "monthly": "Monthly",
     "weekly": "Weekly",
@@ -323,6 +330,13 @@
     "tasksError": "Tasks could not be loaded",
     "noTasks": "No tasks this week",
     "addTask": "Add task",
+    "legend": {
+      "assignment": "Assignment",
+      "quiz": "Quiz",
+      "class": "Class",
+      "academic": "Academic",
+      "mytask": "My task"
+    },
     "daysShort": {
       "0": "Sun",
       "1": "Mon",

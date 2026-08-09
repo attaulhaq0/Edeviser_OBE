@@ -1,6 +1,15 @@
--- L2-1 Fix Step 1: Store service role key in Vault for trigger_attainment_rollup
-SELECT vault.create_secret(
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGd0YnZ4bHhqcGNkZGphenp4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTc0MjIzMCwiZXhwIjoyMDg3MzE4MjMwfQ.Fzmgu6F6MivwqXGGLHVZRJVv6L0xCxCPru4I1vGdapY',
-  'service_role_key',
-  'Service role key for trigger_attainment_rollup Edge Function calls'
-);;
+-- L2-1 Fix Step 1: Vault provisioning is an operational secret-management step.
+--
+-- This historical migration previously embedded a live service-role JWT. That
+-- credential is intentionally not represented in source or migration history.
+-- Provision the runtime key with scripts/provision-vault-secret.ts after the
+-- project has been configured, then verify the secret name/UUID out of band.
+--
+-- Fresh replays must remain safe when the operational secret is absent. The
+-- downstream attainment trigger fails closed and emits a safe warning until
+-- the secret is provisioned.
+DO $$
+BEGIN
+  RAISE NOTICE 'service_role_key Vault provisioning is operational; no credential is stored by this migration';
+END
+$$;

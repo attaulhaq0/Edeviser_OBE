@@ -34,11 +34,11 @@ const BadgeSpotlightCard = ({
   return (
     <Card
       data-testid="badge-spotlight-card"
-      className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 shadow-md rounded-xl p-4"
+      className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-md rounded-xl p-4"
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-purple-100">
-          <Sparkles className="h-5 w-5 text-purple-600" />
+        <div className="p-2 rounded-lg bg-blue-100">
+          <Sparkles className="h-5 w-5 text-blue-600" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -71,7 +71,7 @@ const BadgeSpotlightCard = ({
             </div>
             <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden mt-1">
               <div
-                className="h-full rounded-full bg-purple-500 transition-all duration-300"
+                className="h-full rounded-full bg-blue-500 transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>

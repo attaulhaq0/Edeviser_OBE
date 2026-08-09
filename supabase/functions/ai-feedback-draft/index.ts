@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -299,7 +300,7 @@ serve(async (req) => {
     }
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     // Role lives in the profiles table, NOT the JWT (app_metadata is empty on
@@ -309,11 +310,7 @@ serve(async (req) => {
       .select("role")
       .eq("id", caller.id)
       .maybeSingle();
-    const callerRole =
-      (callerProfile?.role as string) ??
-      caller.app_metadata?.role ??
-      caller.user_metadata?.role ??
-      "";
+    const callerRole = (callerProfile?.role as string) ?? "";
     if (!["teacher", "admin"].includes(callerRole)) {
       return new Response(
         JSON.stringify({ error: "Forbidden: teacher or admin role required" }),

@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // Task 108.2: Bulk data import Edge Function
 // Accepts CSV content with import_type parameter, validates rows, processes valid ones
 
@@ -44,7 +45,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     // ── Auth: verify caller JWT and admin role ──────────────────────────────

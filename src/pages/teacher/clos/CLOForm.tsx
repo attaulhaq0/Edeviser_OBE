@@ -50,7 +50,7 @@ const BLOOMS_LEVELS: Array<{
   label: string;
   color: string;
 }> = [
-  { value: "remembering", label: "Remembering", color: "bg-purple-500" },
+  { value: "remembering", label: "Remembering", color: "bg-blue-500" },
   { value: "understanding", label: "Understanding", color: "bg-blue-500" },
   { value: "applying", label: "Applying", color: "bg-green-500" },
   { value: "analyzing", label: "Analyzing", color: "bg-yellow-500" },

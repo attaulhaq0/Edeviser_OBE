@@ -47,8 +47,8 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
       data-testid="class-donation-progress"
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-pink-50">
-          <Heart className="h-5 w-5 text-pink-500" />
+        <div className="p-2 rounded-lg bg-blue-50">
+          <Heart className="h-5 w-5 text-blue-500" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold">Class Donation</h3>
@@ -63,7 +63,7 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
             </div>
             <div className="h-2 rounded-full bg-gray-100 overflow-hidden mt-1">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-blue-500 transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
                 data-testid="donation-progress-bar"
               />
@@ -77,7 +77,7 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
             <Button
               size="sm"
               variant="outline"
-              className="mt-2 text-pink-600 border-pink-200 hover:bg-pink-50"
+              className="mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
               disabled={contribute.isPending}
               onClick={handleContribute}
             >

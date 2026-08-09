@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -1665,7 +1666,7 @@ async function computeCategoryMetrics(
 async function awardXp(body: Record<string, unknown>): Promise<void> {
   try {
     const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/award-xp`;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const serviceRoleKey = getManagedServerKey();
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const resp = await fetch(url, {
       method: "POST",
@@ -1698,7 +1699,7 @@ serve(async (req) => {
   try {
     // ── Auth: require service role or the student themselves ─────────
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const serviceRoleKey = getManagedServerKey();
     // Service-role is recognized when the bearer IS the service-role key
     // (legacy JWT key path) OR when the request carries `x-internal-auth` equal
     // to the service-role key. The latter exists because the modern
@@ -1742,7 +1743,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();

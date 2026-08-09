@@ -1,14 +1,14 @@
-// Pre-deployment audit — stage function stubs.
+// Pre-deployment audit — stage registry.
 //
-// Per tasks.md §1.4: "Stub each stage function as `async () => ({ status:
-// 'skipped' })` for now." Real implementations land in tasks 8–16. Each
-// stage returns a StageResult so the orchestrator can append it to the
-// manifest without branching per stage.
+// Each stage returns a StageResult so the orchestrator can append it to the
+// manifest without branching per stage. Preview-only E2E is explicitly gated
+// in e2e-stage.ts rather than represented by a misleading stub.
 
 import { runA11yStage } from "./a11y-stage.ts";
 import { runConnectivityStage } from "./connectivity-matrix.ts";
 import { runCronStage } from "./cron-health.ts";
 import { runDesignTokensStage } from "./design-token-check.ts";
+import { runE2EStage } from "./e2e-stage.ts";
 import { runI18nStage } from "./i18n-check.ts";
 import { runPerfStage } from "./perf-budget.ts";
 import {
@@ -20,18 +20,10 @@ import {
 import { runReportStage } from "./report.ts";
 import { runRlsStage } from "./rls-matrix.ts";
 import { runSecurityStage } from "./security-scan.ts";
+import { runStaticStage } from "./static-stage.ts";
 import type { StageName, StageResult } from "./types.ts";
 
 type StageFn = () => Promise<StageResult>;
-
-const stub =
-  (name: StageName): StageFn =>
-  async () => ({
-    name,
-    status: "skipped",
-    durationMs: 0,
-    message: "Stub — implementation pending in a later task.",
-  });
 
 export const stages: Record<StageName, StageFn> = {
   lint: runLintStage,
@@ -39,10 +31,11 @@ export const stages: Record<StageName, StageFn> = {
   propertyTests: runPropertyTestsStage,
   build: runBuildStage,
   security: runSecurityStage,
+  static: runStaticStage,
   connectivity: runConnectivityStage,
   rls: runRlsStage,
   cron: runCronStage,
-  e2e: stub("e2e"),
+  e2e: runE2EStage,
   designTokens: runDesignTokensStage,
   i18n: runI18nStage,
   a11y: runA11yStage,

@@ -11,15 +11,31 @@ import type { UserRole } from "@/types/app";
  */
 export interface InvitationInput {
   email: string;
-  role: UserRole;
+  role: Exclude<UserRole, "admin">;
 }
 
 /**
  * Bulk invite request
  */
 interface BulkInviteRequest {
-  institution_id: string;
   invites: InvitationInput[];
+}
+
+export interface InvitationResult {
+  email: string;
+  success: boolean;
+  invitationId?: string;
+  deliveryStatus?: string;
+  errorCode?: string;
+  message?: string;
+}
+
+export interface InvitationResponse {
+  success: boolean;
+  requested: number;
+  sent: number;
+  failed: number;
+  results: InvitationResult[];
 }
 
 /**
@@ -27,7 +43,7 @@ interface BulkInviteRequest {
  */
 interface UseInviteUsersReturn {
   /** Send invitations */
-  inviteUsers: (request: BulkInviteRequest) => Promise<void>;
+  inviteUsers: (request: BulkInviteRequest) => Promise<InvitationResponse>;
   /** Whether the mutation is in progress */
   isPending: boolean;
   /** Error if the mutation failed */
@@ -51,7 +67,6 @@ interface UseInviteUsersReturn {
  * const handleInvite = async () => {
  *   try {
  *     await inviteUsers({
- *       institution_id: 'inst-123',
  *       invites: [
  *         { email: 'user1@example.com', role: 'teacher' },
  *         { email: 'user2@example.com', role: 'student' },
@@ -77,36 +92,49 @@ export const useInviteUsers = (): UseInviteUsersReturn => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (request: BulkInviteRequest) => {
+    mutationFn: async (
+      request: BulkInviteRequest
+    ): Promise<InvitationResponse> => {
       if (!user) {
         throw new Error("User not authenticated");
       }
 
       // Call the send-invitation-email Edge Function
-      const { error } = await supabase.functions.invoke(
-        "send-invitation-email",
-        {
-          body: {
-            institution_id: request.institution_id,
-            invites: request.invites,
-          },
-        }
-      );
+      const { data, error } =
+        await supabase.functions.invoke<InvitationResponse>(
+          "send-invitation-email",
+          {
+            body: { invites: request.invites },
+          }
+        );
 
       if (error) {
         throw error;
       }
+      if (!data || !Array.isArray(data.results)) {
+        throw new Error("Invitation service returned an invalid response");
+      }
+
+      return data;
     },
-    onSuccess: (_data, request) => {
+    onSuccess: (result) => {
       // Invalidate invitation queries
       queryClient.invalidateQueries({
         queryKey: queryKeys.institutions.lists(),
       });
 
-      const count = request.invites.length;
-      toast.success(
-        `${count} invitation${count !== 1 ? "s" : ""} sent successfully`
-      );
+      if (result.failed > 0) {
+        toast.warning(
+          `${result.sent} invitation${result.sent !== 1 ? "s" : ""} sent; ` +
+            `${result.failed} failed`
+        );
+      } else {
+        toast.success(
+          `${result.sent} invitation${
+            result.sent !== 1 ? "s" : ""
+          } sent successfully`
+        );
+      }
     },
     onError: (error: Error) => {
       console.error("Invite error:", error);
@@ -122,7 +150,9 @@ export const useInviteUsers = (): UseInviteUsersReturn => {
     },
   });
 
-  const inviteUsers = async (request: BulkInviteRequest) => {
+  const inviteUsers = async (
+    request: BulkInviteRequest
+  ): Promise<InvitationResponse> => {
     return mutation.mutateAsync(request);
   };
 

@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/design-system";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -19,13 +18,13 @@ import {
 import { Loader2, Mail, User, Building2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import AuthShell from "@/components/shared/AuthShell";
+import i18n from "@/lib/i18n";
 
 interface InvitationData {
-  id: string;
   email: string;
   role: string;
-  institution_id: string;
-  institution_name?: string;
+  institution_name: string;
+  expires_at?: string;
 }
 
 const acceptInviteSchema = z
@@ -53,7 +52,6 @@ const AcceptInvitePage = () => {
   const { t } = useTranslation("auth");
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { signUp } = useAuth();
 
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,40 +79,25 @@ const AcceptInvitePage = () => {
       }
 
       try {
-        const { data, error: rpcError } = await supabase.rpc(
-          "get_invitation_by_token",
-          {
-            p_token: token,
-          }
+        const { data, error: previewError } = await supabase.functions.invoke(
+          "invitation-preview",
+          { body: { token } }
         );
 
-        if (rpcError || !data) {
+        if (previewError || !data?.valid) {
           setError(t("acceptInvite.tokenExpiredOrInvalid"));
           setIsLoading(false);
           return;
         }
-
-        // The RPC returns an array; take the first element
-        const inviteRow = Array.isArray(data) ? data[0] : data;
-        if (!inviteRow) {
-          setError(t("acceptInvite.tokenExpiredOrInvalid"));
-          setIsLoading(false);
-          return;
-        }
-
-        // Fetch institution name for display
-        const { data: institution } = await supabase
-          .from("institutions")
-          .select("name")
-          .eq("id", String(inviteRow.institution_id))
-          .maybeSingle();
 
         setInvitation({
-          id: String(inviteRow.id),
-          email: String(inviteRow.email),
-          role: String(inviteRow.role),
-          institution_id: String(inviteRow.institution_id),
-          institution_name: institution?.name,
+          email: String(data.invitedEmail ?? "***"),
+          role: String(data.role ?? "parent"),
+          institution_name: String(
+            data.institutionName ?? "Edeviser institution"
+          ),
+          expires_at:
+            typeof data.expiresAt === "string" ? data.expiresAt : undefined,
         });
       } catch (err) {
         console.error("Error fetching invitation:", err);
@@ -137,43 +120,27 @@ const AcceptInvitePage = () => {
     setIsPending(true);
 
     try {
-      // Sign up with the invited role
-      const result = await signUp({
-        email: invitation.email,
-        password: formData.password,
-        fullName: formData.fullName,
-        institutionId: invitation.institution_id,
-        requestedRole: invitation.role as
-          | "admin"
-          | "coordinator"
-          | "teacher"
-          | "student"
-          | "parent",
-      });
+      const { data, error: acceptError } = await supabase.functions.invoke(
+        "accept-invitation",
+        {
+          body: {
+            token,
+            fullName: formData.fullName,
+            password: formData.password,
+            locale: i18n.language,
+          },
+        }
+      );
 
-      if (!result.success) {
-        setError(result.error ?? t("acceptInvite.signupError"));
+      if (acceptError || !data?.success) {
+        setError(
+          data?.error ?? acceptError?.message ?? t("acceptInvite.signupError")
+        );
         return;
-      }
-
-      // Mark invitation as used
-      try {
-        await supabase.rpc("consume_invitation", { p_token: token || "" });
-      } catch (err) {
-        console.error("Error consuming invitation:", err);
-        // Don't fail the flow if consumption fails
       }
 
       toast.success(t("acceptInvite.successMessage"));
-
-      if (result.requiresVerification) {
-        navigate("/login");
-        return;
-      }
-
-      if (result.redirectTo) {
-        navigate(result.redirectTo, { replace: true });
-      }
+      navigate("/login", { replace: true });
     } catch (err) {
       console.error("Accept invite error:", err);
       setError(t("acceptInvite.genericError"));

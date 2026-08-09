@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -21,7 +22,7 @@ serve(async (req) => {
     const cronSecret = req.headers.get("x-cron-secret");
     const expectedSecret = Deno.env.get("CRON_SECRET");
     const authHeader = req.headers.get("Authorization") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const serviceRoleKey = getManagedServerKey();
     const isServiceRole =
       serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
     const isCron = expectedSecret && cronSecret === expectedSecret;
@@ -40,7 +41,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     // Calculate the date range for the past week (Monday to Sunday)
@@ -83,10 +84,10 @@ serve(async (req) => {
 
     let sent = 0;
     const errors: Array<{ student_id: string; error: string }> = [];
-    const dashboardUrl = `${
-      Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".vercel.app") ??
-      "https://edeviser.vercel.app"
-    }/student/dashboard`;
+    const appUrl = (Deno.env.get("APP_URL") ?? "https://app.edeviser.com")
+      .trim()
+      .replace(/\/+$/, "");
+    const dashboardUrl = `${appUrl}/student/dashboard`;
 
     for (const student of students) {
       try {

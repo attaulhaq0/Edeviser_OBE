@@ -297,6 +297,8 @@ export interface ReviewSchedule {
   id: string;
   studentId: string;
   cloId: string;
+  /** Resolved CLO title for compact review surfaces (optional for legacy rows). */
+  cloTitle?: string;
   courseId: string | null;
   sourceSessionId: string | null;
   reviewDate: string; // YYYY-MM-DD

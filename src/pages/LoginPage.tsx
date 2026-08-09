@@ -598,50 +598,18 @@ const LoginPage = () => {
                 noValidate
                 className="space-y-3"
               >
-                {/* Role selection */}
+                {/* Self-registration is limited to students. Staff and parent
+                    accounts are provisioned only from a validated invitation. */}
                 <p className="mb-1.5 text-xs font-bold text-slate-700">
                   {t("signup.role", "Account Type")}
                 </p>
-                <div className="mb-3 grid grid-cols-5 gap-1.5">
-                  {[
-                    { id: "admin", label: "Admin", icon: Shield },
-                    { id: "coordinator", label: "Coordinator", icon: Users },
-                    { id: "teacher", label: "Teacher", icon: GraduationCap },
-                    { id: "student", label: "Student", icon: User },
-                    { id: "parent", label: "Parent", icon: Users },
-                  ].map((roleItem) => {
-                    const RoleIcon = roleItem.icon;
-                    const isSelected =
-                      (signUpForm.watch("requestedRole") ?? "student") ===
-                      roleItem.id;
-                    return (
-                      <button
-                        key={roleItem.id}
-                        type="button"
-                        onClick={() =>
-                          signUpForm.setValue(
-                            "requestedRole",
-                            roleItem.id as SignUpFormData["requestedRole"]
-                          )
-                        }
-                        className={`flex flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center transition-all ${
-                          isSelected
-                            ? "border-blue-500 bg-blue-50/80 font-extrabold text-blue-700 shadow-xs"
-                            : "border-slate-200 bg-slate-50/50 font-semibold text-slate-600 hover:border-blue-300 hover:bg-blue-50/30"
-                        }`}
-                      >
-                        <RoleIcon
-                          className={`h-4 w-4 ${
-                            isSelected ? "text-blue-600" : "text-slate-400"
-                          }`}
-                        />
-                        <span className="text-[10px] leading-none">
-                          {t(`roles.${roleItem.id}`, roleItem.label)}
-                        </span>
-                      </button>
-                    );
-                  })}
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2 text-sm font-extrabold text-blue-700">
+                  <User className="h-4 w-4 text-blue-600" />
+                  <span>{t("roles.student", "Student")}</span>
                 </div>
+                <p className="mb-3 text-[11px] font-medium text-slate-500">
+                  Staff accounts are provisioned by your institution.
+                </p>
 
                 {/* First Name & Last Name */}
                 <div className="grid grid-cols-2 gap-3">
@@ -867,7 +835,7 @@ const LoginPage = () => {
             <span>Secure. Private. Built for education.</span>
           </div>
 
-          <div className="fixed bottom-4 right-4 hidden sm:block">
+          <div className="fixed bottom-4 end-4 hidden sm:block">
             <img
               src={foxiSmiling}
               alt="Mascot Badge"

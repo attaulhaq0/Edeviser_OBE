@@ -56,7 +56,7 @@ const ExtraAttemptUsageTable = ({ quizId }: ExtraAttemptUsageTableProps) => {
                   <td className="py-2 pe-4">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{usage.studentName}</span>
-                      <Badge className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                      <Badge className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                         Token Used
                       </Badge>
                     </div>

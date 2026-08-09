@@ -113,27 +113,26 @@ const InviteUsersPage = () => {
     // Send invites
     const invites = rows.map((r) => ({
       email: r.email,
-      role: r.role as
-        | "admin"
-        | "coordinator"
-        | "teacher"
-        | "student"
-        | "parent",
+      role: r.role as "coordinator" | "teacher" | "student" | "parent",
     }));
 
     try {
-      await inviteUsers({
-        institution_id: institutionId,
-        invites,
-      });
+      const response = await inviteUsers({ invites });
 
-      // Update rows with success status
-      const updatedRows = rows.map((row) => ({
-        ...row,
-        status: "sent" as const,
-      }));
+      // The Edge Function preserves request order while returning masked
+      // recipient addresses, so map by index without exposing raw emails.
+      const updatedRows = rows.map((row, index) => {
+        const result = response.results[index];
+        return {
+          ...row,
+          status: result?.success ? ("sent" as const) : ("failed" as const),
+          ...(result?.message ? { error: result.message } : {}),
+        };
+      });
       setInviteRows(updatedRows);
-      toast.success(t("inviteUsers.invitesSent"));
+      if (response.failed === 0) {
+        toast.success(t("inviteUsers.invitesSent"));
+      }
     } catch (error) {
       const updatedRows = rows.map((row) => ({
         ...row,

@@ -1,3 +1,4 @@
+import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // update-challenge-progress Edge Function
 // Tasks 2.3–2.6: Accept event triggers, compute progress per challenge type,
 // detect completion and trigger rewards, ensure idempotency via recomputation.
@@ -489,7 +490,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      getManagedServerKey()
     );
 
     const body = await req.json();

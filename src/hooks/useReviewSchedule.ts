@@ -16,6 +16,7 @@ function mapReviewSchedule(row: Record<string, unknown>): ReviewSchedule {
     id: row.id as string,
     studentId: row.student_id as string,
     cloId: row.clo_id as string,
+    cloTitle: typeof row.clo_title === "string" ? row.clo_title : undefined,
     courseId: (row.course_id as string) ?? null,
     sourceSessionId: (row.source_session_id as string) ?? null,
     reviewDate: row.review_date as string,
@@ -67,7 +68,28 @@ export const useWeeklyReviews = (
 
       if (error) throw error;
 
-      return ((data as Record<string, unknown>[]) ?? []).map(mapReviewSchedule);
+      const rows = (data as Record<string, unknown>[]) ?? [];
+      const cloIds = [...new Set(rows.map((row) => row.clo_id as string))];
+      if (cloIds.length === 0) return [];
+
+      // Resolve titles here instead of relying on the optional CLO-progress
+      // query. The review card must remain useful when attainment is empty or
+      // still loading, while preserving the existing review_schedules schema.
+      const { data: cloRows, error: cloError } = await supabase
+        .from("learning_outcomes")
+        .select("id, title")
+        .in("id", cloIds);
+      if (cloError) throw cloError;
+
+      const titleById = new Map(
+        (cloRows ?? []).map((row) => [row.id, row.title] as const)
+      );
+      return rows.map((row) =>
+        mapReviewSchedule({
+          ...row,
+          clo_title: titleById.get(row.clo_id as string),
+        })
+      );
     },
   });
 };

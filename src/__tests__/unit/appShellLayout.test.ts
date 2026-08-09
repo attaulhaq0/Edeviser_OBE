@@ -69,7 +69,7 @@ describe("prototype application shell layout", () => {
     const header = source("../../components/shared/GlobalHeader.tsx");
     const styles = source("../../index.css");
 
-    expect(header).toContain("absolute left-1/2 -translate-x-1/2");
+    expect(header).toContain("absolute start-1/2 -translate-x-1/2");
     expect(header).toContain("hidden min-[1280px]:block");
     expect(styles).toContain("@media (min-width: 900px)");
   });
