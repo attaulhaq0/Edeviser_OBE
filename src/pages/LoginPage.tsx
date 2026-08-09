@@ -445,7 +445,7 @@ const LoginPage = () => {
   return (
     <div className="auth-landing" dir={landingCopy.dir} lang={landingCopy.lang}>
       <header className="auth-landing-header">
-        <BrandLogo />
+        <BrandLogo language={language} />
         <div className="auth-language-control">
           <LanguageSwitcher />
         </div>
