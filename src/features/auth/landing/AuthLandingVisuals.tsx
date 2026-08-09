@@ -7,12 +7,17 @@ interface LanguageAwareProps {
   language: AuthLandingLanguage;
 }
 
-export const BrandLogo = () => (
-  <a className="auth-brand-lockup" href="/" aria-label="Edeviser home">
+export const BrandLogo = ({ language }: LanguageAwareProps) => (
+  <a
+    className="auth-brand-lockup"
+    href="/"
+    aria-label={language === "ar" ? "الصفحة الرئيسية لإي ديفيسر" : "Edeviser home"}
+    data-language={language}
+  >
     <span className="auth-brand-mark" aria-hidden="true">
       <img src="/auth/edeviser-logo-mark.png" alt="" />
     </span>
-    <span>E DEVISER</span>
+    <span>{language === "ar" ? "إي ديفيسر" : "E DEVISER"}</span>
   </a>
 );
 
