@@ -98,6 +98,9 @@ fallbacks.
   or baked background tone.
 - `MascotScene` keeps the subtle English hoodie mark. The laptop is unbranded
   in both locales, and Arabic has no scene-logo overlay.
+- `FeedbackLoop` and `MascotScene` share one capped visual stage. Their sizes
+  and offsets are defined against that stage—not opposite viewport edges—so
+  browser zoom and viewport-height changes cannot separate their overlap.
 - Auth tabs, fields, checkbox and buttons use Shadcn primitives with semantic
   labels, visible focus, logical CSS properties and RTL-aware direction.
 - The primary CTA always uses `--primary-gradient`; secondary actions remain
@@ -107,9 +110,16 @@ fallbacks.
 
 ## Responsive order
 
-- Desktop: copy + feature timeline, loop/Foxi artwork, authentication card.
-- Tablet: copy and supporting artwork remain left; auth stays right.
+- English desktop: copy + feature timeline, loop/Foxi artwork,
+  authentication card.
+- Arabic desktop mirrors the complete reading flow: authentication card,
+  loop/Foxi artwork, copy + feature timeline when read left-to-right on the
+  physical canvas. The brand begins on the physical right and the language
+  control moves to the physical left.
+- Tablet keeps the authentication card opposite the localized copy/artwork;
+  Arabic mirrors the two-column placement.
 - Mobile: brand header, headline/copy, authentication card, supporting artwork.
 
 English uses `dir="ltr"`; Arabic uses `dir="rtl"`, mirrored control semantics,
-right-aligned copy and a left-facing action arrow.
+right-aligned copy and a left-facing action arrow. Do not mirror the pixels of
+the feedback-loop or Foxi assets; only mirror the page regions around them.
