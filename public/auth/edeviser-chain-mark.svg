@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 425" role="img" aria-label="Edeviser logo">
+  <!-- Compatibility alias for stale Vite module graphs. The application uses
+       edeviser-logo-mark.png directly; this path renders the same official asset. -->
+  <image href="/auth/edeviser-logo-mark.png" width="840" height="425" preserveAspectRatio="xMidYMid meet"/>
+</svg>

@@ -1,5 +1,8 @@
 # Edeviser Design System (Path A rebuild)
 
+Authentication-specific composition and rules are documented in
+[`AUTHENTICATION.md`](./AUTHENTICATION.md).
+
 The **single, shared** design system for the rebuilt UI. Extracted 1:1 from the
 approved prototype (`prototype/*.html`, `shared.css`) and re-implemented as real
 Tailwind v4 tokens + React/Shadcn primitives. The prototype HTML is the **visual
