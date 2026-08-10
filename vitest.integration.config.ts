@@ -1,6 +1,10 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
-import { assertNotProduction } from "./src/__tests__/integration-rls/guard";
+import {
+  assertNotProduction,
+  readRlsEnv,
+  rlsSkipReason,
+} from "./src/__tests__/integration-rls/guard";
 
 /**
  * Feature: qa-partner-review-remediation — Req 19 (RLS_Smoke_Test)
@@ -28,7 +32,16 @@ import { assertNotProduction } from "./src/__tests__/integration-rls/guard";
  * (`SUPABASE_DB_ENV === "preview"`) against the production project ref. When the
  * preview secrets are absent the guard is a no-op and the suite skips itself.
  */
-assertNotProduction();
+const rlsEnv = readRlsEnv();
+assertNotProduction(rlsEnv);
+if (process.env.RLS_SMOKE_REQUIRED === "true") {
+  const skipReason = rlsSkipReason(rlsEnv);
+  if (skipReason !== null) {
+    throw new Error(
+      `[rls-smoke] RLS_SMOKE_REQUIRED=true but the isolated preview suite is not configured: ${skipReason}`
+    );
+  }
+}
 
 export default defineConfig({
   resolve: {

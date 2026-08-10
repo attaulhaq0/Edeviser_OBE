@@ -3,8 +3,9 @@ name: Pre-Deployment Audit
 # Implements Tasks 18.1–18.6 / Req 17.1–17.6.
 #
 # Two modes:
-#   PR mode  (on: pull_request)  — static + contract + property layers only.
-#             Skips E2E and RTL screenshots to stay under 10 minutes.
+#   PR mode  (on: pull_request)  — static + contract + Supabase-backed audit
+#             layers, including Cron Health. Skips E2E and RTL screenshots to
+#             stay under 10 minutes.
 #             Triggered by the --pr flag in the audit runner.
 #   Pre-deploy mode (on: workflow_dispatch, on: push: tags: v*)
 #             Full pipeline including E2E, RTL, cron health, RLS matrix.
@@ -302,14 +303,16 @@ jobs:
           path: audit/output/rls-matrix.json
           retention-days: 30
 
-  # ─── Cron health (continue-on-error, needs Supabase) ─────────────────────
+  # ─── Cron health (required when Supabase is available) ────────────────────
+  # Requirements 15.1–15.4 require this probe in the PR audit as well as the
+  # deploy pipeline. CRON_SECRET must therefore be configured in GitHub
+  # Actions; an absent secret is a real gate failure, not a reason to weaken
+  # the audit.
   cron:
     name: Cron Health
     runs-on: ubuntu-latest
     needs: [build, preflight]
-    if: |
-      github.event_name != 'pull_request' &&
-      needs.preflight.outputs.supabase_available == 'true'
+    if: needs.preflight.outputs.supabase_available == 'true'
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7

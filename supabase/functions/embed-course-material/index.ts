@@ -1,4 +1,5 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { authenticateRequest } from "../_shared/auth.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -555,6 +556,97 @@ async function notifyTeacher(
   }
 }
 
+interface AuthorizedCourse {
+  institutionId: string;
+  teacherId: string;
+}
+
+/**
+ * Resolve the course tenant from courses → programs → institutions and require
+ * the authenticated teacher to own the course.  Request metadata is never an
+ * authority for either tenant or ownership.
+ */
+async function authorizeTeacherCourse(
+  supabase: ReturnType<typeof createClient>,
+  courseId: string,
+  callerId: string
+): Promise<
+  | { authorized: true; course: AuthorizedCourse }
+  | { authorized: false; status: 403 | 404; error: string }
+> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("id, teacher_id, programs!inner(institution_id)")
+    .eq("id", courseId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { authorized: false, status: 404, error: "Course not found" };
+  }
+
+  const row = data as {
+    teacher_id: string | null;
+    programs:
+      | { institution_id: string }
+      | { institution_id: string }[]
+      | null;
+  };
+  const program = Array.isArray(row.programs) ? row.programs[0] : row.programs;
+
+  if (!program?.institution_id || row.teacher_id !== callerId) {
+    return {
+      authorized: false,
+      status: 403,
+      error: "Forbidden: assigned teacher access required",
+    };
+  }
+
+  return {
+    authorized: true,
+    course: {
+      institutionId: program.institution_id,
+      teacherId: row.teacher_id,
+    },
+  };
+}
+
+/** Validate every requested CLO against the authoritative course scope. */
+async function validateCloScope(
+  supabase: ReturnType<typeof createClient>,
+  courseId: string,
+  institutionId: string,
+  cloIds: string[]
+): Promise<string | null> {
+  const uniqueCloIds = [...new Set(cloIds)];
+  if (uniqueCloIds.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from("learning_outcomes")
+    .select("id, type, course_id, institution_id")
+    .in("id", uniqueCloIds);
+
+  if (
+    error ||
+    !data ||
+    data.length !== uniqueCloIds.length ||
+    data.some(
+      (outcome: {
+        id: string;
+        type: string;
+        course_id: string | null;
+        institution_id: string;
+      }) =>
+        outcome.type !== "CLO" ||
+        outcome.course_id !== courseId ||
+        outcome.institution_id !== institutionId
+    )
+  ) {
+    return "Forbidden: every CLO must belong to the requested course";
+  }
+
+  return null;
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -566,29 +658,28 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = getManagedServerKey();
-    // Embeddings API key: prefer a dedicated EMBEDDINGS_API_KEY, fall back to
-    // OPENAI_API_KEY (the default provider is OpenAI). When neither is set the
-    // function returns a clear, structured 503 and the tutor continues to
-    // degrade gracefully (RAG block skipped) — embeddings simply do not populate
-    // until a provider key is provisioned.
-    const openaiApiKey =
-      Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
 
-    if (!openaiApiKey) {
+    // JWT → auth.getUser() → canonical profiles row.  A service-role client is
+    // created only after the caller is authenticated; all side effects below
+    // remain behind the role/course/CLO checks.
+    const auth = await authenticateRequest(req);
+    if (!auth.user) {
+      return new Response(JSON.stringify({ error: auth.error ?? "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (auth.user.role !== "teacher") {
       return new Response(
-        JSON.stringify({
-          error:
-            "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
-          indexing_status: "provider_unconfigured",
-        }),
+        JSON.stringify({ error: "Forbidden: teacher role required" }),
         {
-          status: 503,
+          status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    // Create service-role client (bypasses RLS for server-side operations)
+    // Service-role access is restricted to the authorized server-side path.
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // ── Parse and validate request ──────────────────────────────────────
@@ -613,25 +704,48 @@ serve(async (req) => {
 
       const autoReq = autoValidation.data;
 
-      // Resolve institution_id from course
-      let autoInstitutionId = autoReq.institution_id;
-      let autoTeacherId: string | null = null;
-
-      const { data: autoCourseData, error: autoCourseError } = await supabase
-        .from("courses")
-        .select("institution_id, teacher_id")
-        .eq("id", autoReq.course_id)
-        .maybeSingle();
-
-      if (autoCourseError || !autoCourseData) {
-        return new Response(JSON.stringify({ error: "Course not found" }), {
-          status: 404,
+      const authorizedCourse = await authorizeTeacherCourse(
+        supabase,
+        autoReq.course_id,
+        auth.user.id
+      );
+      if (!authorizedCourse.authorized) {
+        return new Response(JSON.stringify({ error: authorizedCourse.error }), {
+          status: authorizedCourse.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      autoInstitutionId = autoInstitutionId ?? autoCourseData.institution_id;
-      autoTeacherId = autoCourseData.teacher_id;
+      const autoInstitutionId = authorizedCourse.course.institutionId;
+      const autoTeacherId = authorizedCourse.course.teacherId;
+      const cloError = await validateCloScope(
+        supabase,
+        autoReq.course_id,
+        autoInstitutionId,
+        autoReq.clo_ids ?? []
+      );
+      if (cloError) {
+        return new Response(JSON.stringify({ error: cloError }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const openaiApiKey =
+        Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
+      if (!openaiApiKey) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
+            indexing_status: "provider_unconfigured",
+          }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
 
       // Delete old chunks for re-indexing (always re-index for auto-indexed content)
       if (autoReq.source_material_id) {
@@ -764,25 +878,48 @@ serve(async (req) => {
 
     const embedReq = validation.data;
 
-    // ── Resolve institution_id from course ──────────────────────────────
-    let institutionId = embedReq.institution_id;
-    let teacherId: string | null = null;
-
-    const { data: courseData, error: courseError } = await supabase
-      .from("courses")
-      .select("institution_id, teacher_id")
-      .eq("id", embedReq.course_id)
-      .maybeSingle();
-
-    if (courseError || !courseData) {
-      return new Response(JSON.stringify({ error: "Course not found" }), {
-        status: 404,
+    const authorizedCourse = await authorizeTeacherCourse(
+      supabase,
+      embedReq.course_id,
+      auth.user.id
+    );
+    if (!authorizedCourse.authorized) {
+      return new Response(JSON.stringify({ error: authorizedCourse.error }), {
+        status: authorizedCourse.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    institutionId = institutionId ?? courseData.institution_id;
-    teacherId = courseData.teacher_id;
+    const institutionId = authorizedCourse.course.institutionId;
+    const teacherId = authorizedCourse.course.teacherId;
+    const cloError = await validateCloScope(
+      supabase,
+      embedReq.course_id,
+      institutionId,
+      embedReq.clo_ids ?? []
+    );
+    if (cloError) {
+      return new Response(JSON.stringify({ error: cloError }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const openaiApiKey =
+      Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
+          indexing_status: "provider_unconfigured",
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // ── Delete old chunks for re-indexing ────────────────────────────────
     // (Task 3.2.7: Re-indexing — delete old chunks before inserting new ones)
