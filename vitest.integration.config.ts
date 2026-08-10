@@ -61,6 +61,12 @@ export default defineConfig({
     testTimeout: 30000,
     hookTimeout: 60000,
     pool: "forks",
+    // Preview Auth rate limits are shared across the real integration files.
+    // Keep the full suite enabled, but serialize its files in the required CI
+    // path so authorization cases do not stampede the isolated branch.
+    fileParallelism: process.env.RLS_SMOKE_REQUIRED !== "true",
+    maxWorkers: process.env.RLS_SMOKE_REQUIRED === "true" ? 1 : undefined,
+    minWorkers: process.env.RLS_SMOKE_REQUIRED === "true" ? 1 : undefined,
     css: false,
   },
 });
