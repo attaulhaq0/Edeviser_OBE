@@ -79,6 +79,10 @@ run("course material embedding authorization", () => {
         email,
         password: ctx.password,
         email_confirm: true,
+        user_metadata: {
+          full_name: `RAG ${role}`,
+          institution_id: ctx.institutionId,
+        },
       });
       if (created.error || !created.data.user) {
         throw new Error(created.error?.message ?? `create ${role} failed`);
