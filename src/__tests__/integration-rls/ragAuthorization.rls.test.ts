@@ -267,7 +267,7 @@ run("course material embedding authorization", () => {
       course_id: inactiveCourseId,
       student_id: ctx.studentId,
       section_id: inactiveSectionId,
-      status: "inactive",
+      status: "dropped",
     });
     if (inactiveEnrollment.error) {
       throw new Error(inactiveEnrollment.error.message);
