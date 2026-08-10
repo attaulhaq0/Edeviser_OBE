@@ -1,16 +1,12 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const migration = readFileSync(
-  import.meta.url.startsWith("file:")
-    ? fileURLToPath(
-        new URL(
-          "../../../supabase/migrations/20260825000001_rag_authorization_hardening.sql",
-          import.meta.url
-        )
-      )
-    : "supabase/migrations/20260825000001_rag_authorization_hardening.sql",
+  resolve(
+    process.cwd(),
+    "supabase/migrations/20260825000001_rag_authorization_hardening.sql"
+  ),
   "utf8"
 );
 const metadataMigration = readFileSync(
