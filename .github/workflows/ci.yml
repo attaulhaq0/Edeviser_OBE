@@ -464,11 +464,21 @@ jobs:
           echo "::add-mask::$service_role_key"
           {
             echo "SUPABASE_URL=https://$preview_ref.supabase.co"
+            echo "SUPABASE_PREVIEW_REF=$preview_ref"
             echo "SUPABASE_ANON_KEY=$anon_key"
             echo "SUPABASE_SERVICE_ROLE_KEY=$service_role_key"
             echo "SUPABASE_DB_ENV=preview"
             echo "RLS_SMOKE_REQUIRED=true"
           } >> "$GITHUB_ENV"
+
+      - name: Deploy reviewed RAG Edge Functions to isolated Preview
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          npx supabase@latest functions deploy \
+            embed-course-material chat-with-tutor \
+            --project-ref "$SUPABASE_PREVIEW_REF" \
+            --use-api --yes
 
       - uses: actions/setup-node@v7
         with:
