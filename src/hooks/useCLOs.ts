@@ -10,7 +10,6 @@ import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreateCLOFormData } from "@/lib/schemas/clo";
 import type { LearningOutcome } from "@/types/app";
-import type { Database } from "@/types/database";
 import type { PaginatedResult } from "@/types/pagination";
 import { getPaginationRange } from "@/types/pagination";
 
@@ -107,6 +106,7 @@ export const useCLO = (id?: string) => {
         .from("learning_outcomes")
         .select("*")
         .eq("id", id!)
+        .eq("type", "CLO")
         .maybeSingle();
 
       if (error) throw error;
@@ -182,13 +182,11 @@ export const useUpdateCLO = (id: string) => {
     ): Promise<LearningOutcome> => {
       const { plo_mappings, ...cloFields } = data;
 
-      // NOTE: tutor_autonomy_level column exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase as any)
+      const { data: result, error } = await supabase
         .from("learning_outcomes")
         .update(cloFields)
         .eq("id", id)
+        .eq("type", "CLO")
         .select()
         .single();
 
@@ -246,7 +244,16 @@ export const useDeleteCLO = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      // Check for dependent assignments via outcome_mappings where this CLO is a parent
+      const { error: cloError } = await supabase
+        .from("learning_outcomes")
+        .select("id")
+        .eq("id", id)
+        .eq("type", "CLO")
+        .single();
+
+      if (cloError) throw cloError;
+
+      // Validate the mapping lookup before removing this CLO's parent edges.
       const { error: depsError } = await supabase
         .from("outcome_mappings")
         .select("id")
@@ -266,7 +273,10 @@ export const useDeleteCLO = () => {
       const { error } = await supabase
         .from("learning_outcomes")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("type", "CLO")
+        .select("id")
+        .single();
 
       if (error) throw error;
 
@@ -297,22 +307,19 @@ export const useReorderCLOs = () => {
     mutationFn: async (data: {
       items: Array<{ id: string; sort_order: number }>;
     }): Promise<void> => {
-      const updates = data.items.map((item, index) => ({
-        id: item.id,
-        sort_order: index,
-      }));
+      await Promise.all(
+        data.items.map(async (item, index) => {
+          const { error } = await supabase
+            .from("learning_outcomes")
+            .update({ sort_order: index })
+            .eq("id", item.id)
+            .eq("type", "CLO")
+            .select("id")
+            .single();
 
-      // Partial upsert: ON CONFLICT (id) only updates sort_order.
-      // Cast needed because Supabase Insert type requires `type` and `title`,
-      // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
-      const { error } = await supabase
-        .from("learning_outcomes")
-        .upsert(
-          updates as Database["public"]["Tables"]["learning_outcomes"]["Insert"][],
-          { onConflict: "id" }
-        );
-
-      if (error) throw error;
+          if (error) throw error;
+        })
+      );
 
       // Req 13.5 — admin mutation must write an audit log row. Mirrors the
       // pattern in useILOs.useReorderILOs. Batch ID is 'batch' because the
@@ -349,7 +356,7 @@ export const useCLOMappings = (cloId?: string) => {
   });
 };
 
-// ─── useUpdateCLOMappings — replace outcome_mappings for a CLO→PLO ──────────
+// ─── useUpdateCLOMappings — replace parent PLO → child CLO mappings ─────────
 
 export const useUpdateCLOMappings = () => {
   const queryClient = useQueryClient();

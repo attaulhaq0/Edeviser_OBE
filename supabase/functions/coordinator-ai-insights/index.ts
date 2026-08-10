@@ -95,18 +95,12 @@ function computeInsight(
   };
 
   const byId = new Map<string, OutcomeRow>(outcomes.map((o) => [o.id, o]));
-  // Undirected adjacency: outcome_mappings are stored child→parent for some
-  // pairs (CLO→PLO) and parent→child for others, so resolve related CLOs by
-  // outcome TYPE rather than edge direction.
-  const relatedOf = new Map<string, Set<string>>();
-  const addEdge = (a: string, b: string) => {
-    const set = relatedOf.get(a) ?? new Set<string>();
-    set.add(b);
-    relatedOf.set(a, set);
-  };
+  // Canonical hierarchy edges are parent → child.
+  const childrenByParent = new Map<string, Set<string>>();
   for (const m of mappings) {
-    addEdge(m.source_outcome_id, m.target_outcome_id);
-    addEdge(m.target_outcome_id, m.source_outcome_id);
+    const children = childrenByParent.get(m.source_outcome_id) ?? new Set();
+    children.add(m.target_outcome_id);
+    childrenByParent.set(m.source_outcome_id, children);
   }
 
   const plos = outcomes.filter((o) => o.type === "PLO");
@@ -130,7 +124,7 @@ function computeInsight(
     null;
   let weakest: InsightPayload["weakest"] = null;
   if (focusPlo) {
-    const cloIds = Array.from(relatedOf.get(focusPlo.id) ?? []).filter(
+    const cloIds = Array.from(childrenByParent.get(focusPlo.id) ?? []).filter(
       (id) => byId.get(id)?.type === "CLO"
     );
     let weakClo: { title: string; attainment: number } | null = null;

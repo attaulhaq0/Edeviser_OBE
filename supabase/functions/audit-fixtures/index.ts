@@ -357,7 +357,7 @@ const handleSeed = async (req: Request): Promise<Response> => {
     await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_ILO_ID,
-        type: "ilo",
+        type: "ILO",
         title: "Audit ILO 1",
         institution_id: AUDIT_INSTITUTION_ID,
         description: "Audit ILO for pre-deployment testing",
@@ -368,7 +368,7 @@ const handleSeed = async (req: Request): Promise<Response> => {
     await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_PLO_ID,
-        type: "plo",
+        type: "PLO",
         title: "Audit PLO 1",
         program_id: AUDIT_PROGRAM_ID,
         institution_id: AUDIT_INSTITUTION_ID,
@@ -376,67 +376,60 @@ const handleSeed = async (req: Request): Promise<Response> => {
       },
       { onConflict: "id" }
     );
-    // PLO → ILO mapping (weight=100)
+    // Canonical parent ILO → child PLO mapping.
     await supabase.from("outcome_mappings").upsert(
       {
-        child_id: AUDIT_PLO_ID,
-        parent_id: AUDIT_ILO_ID,
-        weight: 100,
-        child_type: "plo",
-        parent_type: "ilo",
-        institution_id: AUDIT_INSTITUTION_ID,
+        source_outcome_id: AUDIT_ILO_ID,
+        target_outcome_id: AUDIT_PLO_ID,
+        weight: 1,
       },
-      { onConflict: "child_id,parent_id" }
+      { onConflict: "source_outcome_id,target_outcome_id" }
     );
     // CLO-0 (Remembering — prerequisite)
     await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_CLO_PREREQ_ID,
-        type: "clo",
+        type: "CLO",
         title: "Audit CLO 0 — Remembering",
+        program_id: AUDIT_PROGRAM_ID,
         course_id: AUDIT_COURSE_ID,
         institution_id: AUDIT_INSTITUTION_ID,
-        blooms_level: "Remembering",
+        blooms_level: "remembering",
         description: "Prerequisite CLO",
       },
       { onConflict: "id" }
     );
-    // CLO-0 → PLO mapping (weight=50)
+    // Canonical parent PLO → child CLO mapping.
     await supabase.from("outcome_mappings").upsert(
       {
-        child_id: AUDIT_CLO_PREREQ_ID,
-        parent_id: AUDIT_PLO_ID,
-        weight: 50,
-        child_type: "clo",
-        parent_type: "plo",
-        institution_id: AUDIT_INSTITUTION_ID,
+        source_outcome_id: AUDIT_PLO_ID,
+        target_outcome_id: AUDIT_CLO_PREREQ_ID,
+        weight: 1,
       },
-      { onConflict: "child_id,parent_id" }
+      { onConflict: "source_outcome_id,target_outcome_id" }
     );
     // CLO-1 (Applying — target)
     await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_CLO_TARGET_ID,
-        type: "clo",
+        type: "CLO",
         title: "Audit CLO 1 — Applying",
+        program_id: AUDIT_PROGRAM_ID,
         course_id: AUDIT_COURSE_ID,
         institution_id: AUDIT_INSTITUTION_ID,
-        blooms_level: "Applying",
+        blooms_level: "applying",
         description: "Target CLO",
       },
       { onConflict: "id" }
     );
-    // CLO-1 → PLO mapping (weight=50, total=100)
+    // Each child allocation is normalized independently, so this is 1.0.
     await supabase.from("outcome_mappings").upsert(
       {
-        child_id: AUDIT_CLO_TARGET_ID,
-        parent_id: AUDIT_PLO_ID,
-        weight: 50,
-        child_type: "clo",
-        parent_type: "plo",
-        institution_id: AUDIT_INSTITUTION_ID,
+        source_outcome_id: AUDIT_PLO_ID,
+        target_outcome_id: AUDIT_CLO_TARGET_ID,
+        weight: 1,
       },
-      { onConflict: "child_id,parent_id" }
+      { onConflict: "source_outcome_id,target_outcome_id" }
     );
   } catch (e) {
     errors.push(`obe-chain: ${e instanceof Error ? e.message : String(e)}`);
@@ -530,16 +523,14 @@ const handleTeardown = async (req: Request): Promise<Response> => {
   const errors: string[] = [];
 
   // FK-safe delete order: leaves first, then parents
-  // grades → submissions → rubric_scores → assignments → outcome_mappings
-  // → clo → plo → ilo → enrollments → courses → programs
+  // grades → submissions → assignments → outcome_mappings
+  // → learning_outcomes → enrollments → courses → programs
   const tables: Array<{ table: string; column: string }> = [
     { table: "grades", column: "id" },
     { table: "submissions", column: "id" },
     { table: "assignments", column: "id" },
-    { table: "outcome_mappings", column: "child_id" },
-    { table: "clos", column: "id" },
-    { table: "plos", column: "id" },
-    { table: "ilos", column: "id" },
+    { table: "outcome_mappings", column: "source_outcome_id" },
+    { table: "learning_outcomes", column: "id" },
     { table: "enrollments", column: "id" },
     { table: "courses", column: "id" },
     { table: "programs", column: "id" },
