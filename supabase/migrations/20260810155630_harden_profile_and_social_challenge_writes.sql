@@ -62,9 +62,19 @@ CREATE POLICY "admin_manage_challenges" ON public.social_challenges
   FOR ALL TO authenticated
   USING (
     (SELECT public.auth_user_role()) = 'admin'
-    AND institution_id = (SELECT public.auth_institution_id())
+    AND EXISTS (
+      SELECT 1
+      FROM public.courses AS c
+      WHERE c.id = social_challenges.course_id
+        AND c.institution_id = (SELECT public.auth_institution_id())
+    )
   )
   WITH CHECK (
     (SELECT public.auth_user_role()) = 'admin'
-    AND institution_id = (SELECT public.auth_institution_id())
+    AND EXISTS (
+      SELECT 1
+      FROM public.courses AS c
+      WHERE c.id = social_challenges.course_id
+        AND c.institution_id = (SELECT public.auth_institution_id())
+    )
   );
