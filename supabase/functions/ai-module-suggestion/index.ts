@@ -90,31 +90,31 @@ async function findPrerequisiteCLO(
   const weakLevel = BLOOMS_ORDER[weakBlooms];
   if (weakLevel === 0) return null; // lowest level, no prerequisite possible
 
-  // Find PLOs that the weak CLO maps to
+  // Canonical mappings are parent → child. Find parent PLOs of the weak CLO.
   const { data: weakCloMappings } = await supabase
     .from("outcome_mappings")
-    .select("target_outcome_id")
-    .eq("source_outcome_id", weakCloId);
+    .select("source_outcome_id")
+    .eq("target_outcome_id", weakCloId);
 
   if (!weakCloMappings || weakCloMappings.length === 0) return null;
 
   const sharedPloIds = weakCloMappings.map(
-    (m: { target_outcome_id: string }) => m.target_outcome_id
+    (m: { source_outcome_id: string }) => m.source_outcome_id
   );
 
   // Find other CLOs in the same course that also map to those PLOs
   const { data: siblingMappings } = await supabase
     .from("outcome_mappings")
-    .select("source_outcome_id")
-    .in("target_outcome_id", sharedPloIds)
-    .neq("source_outcome_id", weakCloId);
+    .select("target_outcome_id")
+    .in("source_outcome_id", sharedPloIds)
+    .neq("target_outcome_id", weakCloId);
 
   if (!siblingMappings || siblingMappings.length === 0) return null;
 
   const siblingCloIds = [
     ...new Set(
       siblingMappings.map(
-        (m: { source_outcome_id: string }) => m.source_outcome_id
+        (m: { target_outcome_id: string }) => m.target_outcome_id
       )
     ),
   ];
