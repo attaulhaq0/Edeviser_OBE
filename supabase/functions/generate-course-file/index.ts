@@ -541,7 +541,7 @@ serve(async (req) => {
     if (ploErr) throw ploErr;
     const plos = (ploData ?? []) as OutcomeRow[];
 
-    // ── Fetch CLO→PLO mappings ────────────────────────────────────────
+    // ── Fetch canonical PLO→CLO mappings ─────────────────────────────
     const cloIds = clos.map((o) => o.id);
     let cloPloPairs: Array<{
       clo_title: string;
@@ -552,16 +552,16 @@ serve(async (req) => {
       const { data: mappings, error: mappingErr } = await supabase
         .from("outcome_mappings")
         .select("source_outcome_id, target_outcome_id, weight")
-        .in("source_outcome_id", cloIds);
+        .in("target_outcome_id", cloIds);
       if (mappingErr) throw mappingErr;
       const maps = (mappings ?? []) as MappingRow[];
       const ploMap = new Map(plos.map((p) => [p.id, p.title]));
       const cloMap = new Map(clos.map((cl) => [cl.id, cl.title]));
       cloPloPairs = maps
-        .filter((m) => ploMap.has(m.target_outcome_id))
+        .filter((m) => ploMap.has(m.source_outcome_id))
         .map((m) => ({
-          clo_title: cloMap.get(m.source_outcome_id) ?? "Unknown CLO",
-          plo_title: ploMap.get(m.target_outcome_id) ?? "Unknown PLO",
+          clo_title: cloMap.get(m.target_outcome_id) ?? "Unknown CLO",
+          plo_title: ploMap.get(m.source_outcome_id) ?? "Unknown PLO",
           weight: m.weight,
         }));
     }

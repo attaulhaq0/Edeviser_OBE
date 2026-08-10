@@ -19,8 +19,8 @@
 //     2. FALLBACK — CLO roll-up:
 //        If NO course-scope PLO row exists for the PLO, the value is rolled up
 //        from the contributing CLOs.  Contributing CLOs are found via
-//        `outcome_mappings` where `target_outcome_id = PLO.id`
-//        (`source_outcome_id` is the CLO).  The headline value is the MEAN of the
+//        `outcome_mappings` where `source_outcome_id = PLO.id`
+//        (`target_outcome_id` is the CLO).  The headline value is the MEAN of the
 //        `scope = 'student_course'` `attainment_percent` rows for those CLOs (the
 //        scope at which CLO attainment is written), and `contributing_count` is
 //        the number of CLO rows averaged. (`derivation = "clo_rollup"`)
@@ -134,21 +134,22 @@ export const useAdminPLOHeatmap = (
         programByPlo.set(row.outcome_id, list);
       }
 
-      // 3. CLO → PLO mappings for ALL PLOs (one batched query). Used both for the
+      // 3. Parent PLO → child CLO mappings for ALL PLOs (one batched query).
+      //    Used both for the
       //    roll-up fallback and to build the drill-down contributor breakdown.
       const { data: mappings, error: mapError } = await supabase
         .from("outcome_mappings")
         .select("source_outcome_id, target_outcome_id")
-        .in("target_outcome_id", ploIds);
+        .in("source_outcome_id", ploIds);
       if (mapError) throw mapError;
 
       const cloIdsByPlo = new Map<string, string[]>();
       for (const m of mappings ?? []) {
-        const list = cloIdsByPlo.get(m.target_outcome_id) ?? [];
-        list.push(m.source_outcome_id);
-        cloIdsByPlo.set(m.target_outcome_id, list);
+        const list = cloIdsByPlo.get(m.source_outcome_id) ?? [];
+        list.push(m.target_outcome_id);
+        cloIdsByPlo.set(m.source_outcome_id, list);
       }
-      const allCloIds = uniq((mappings ?? []).map((m) => m.source_outcome_id));
+      const allCloIds = uniq((mappings ?? []).map((m) => m.target_outcome_id));
 
       // 4. CLO titles + their course (one batched query), 5. course-scope CLO
       //    attainment (one batched query). Skipped entirely if no mapped CLOs.
