@@ -65,8 +65,9 @@ CREATE POLICY "admin_manage_challenges" ON public.social_challenges
     AND EXISTS (
       SELECT 1
       FROM public.courses AS c
+      JOIN public.programs AS p ON p.id = c.program_id
       WHERE c.id = social_challenges.course_id
-        AND c.institution_id = (SELECT public.auth_institution_id())
+        AND p.institution_id = (SELECT public.auth_institution_id())
     )
   )
   WITH CHECK (
@@ -74,7 +75,8 @@ CREATE POLICY "admin_manage_challenges" ON public.social_challenges
     AND EXISTS (
       SELECT 1
       FROM public.courses AS c
+      JOIN public.programs AS p ON p.id = c.program_id
       WHERE c.id = social_challenges.course_id
-        AND c.institution_id = (SELECT public.auth_institution_id())
+        AND p.institution_id = (SELECT public.auth_institution_id())
     )
   );
