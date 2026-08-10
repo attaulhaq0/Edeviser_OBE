@@ -482,7 +482,9 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          # Supabase Realtime requires native WebSocket support for the real
+          # integration clients used by this isolated smoke suite.
+          node-version: 22
           cache: npm
 
       - run: npm ci
