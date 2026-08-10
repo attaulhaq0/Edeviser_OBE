@@ -313,7 +313,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, preflight]
     if: needs.preflight.outputs.supabase_available == 'true'
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -321,6 +320,26 @@ jobs:
           node-version-file: ${{ env.NODE_VERSION_FILE }}
           cache: npm
       - run: npm ci
+      - name: Resolve current Vercel Preview for pull request
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          preview_url="$(
+            gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --paginate \
+              --jq '.[] | select(.user.login == "vercel") | .body' \
+              | grep -Eo 'https://[^[:space:]()<>"'"']+\.vercel\.app' \
+              | tail -n 1 \
+              || true
+          )"
+          if [[ -z "$preview_url" ]]; then
+            echo "::error::No current Vercel Preview URL was found for this pull request"
+            exit 1
+          fi
+          echo "AUDIT_BASE_URL=$preview_url" >> "$GITHUB_ENV"
+          echo "Resolved current Vercel Preview deployment for cron health"
       - name: Run cron health probe
         run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=cron
         env:
