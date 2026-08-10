@@ -330,7 +330,7 @@ jobs:
           preview_url="$(
             gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --paginate \
               --jq '.[] | select(.user.login == "vercel") | .body' \
-              | grep -Eo 'https://[^[:space:]()<>"'"']+\.vercel\.app' \
+              | grep -Eo "https://[^[:space:]()<>]+\\.vercel\\.app" \
               | tail -n 1 \
               || true
           )"
