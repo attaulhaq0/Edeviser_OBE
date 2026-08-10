@@ -1,5 +1,6 @@
 import {
   AUTH_LANDING_COPY,
+  type FeatureCopy,
   type AuthLandingLanguage,
 } from "@/features/auth/landing/content";
 
@@ -51,7 +52,7 @@ export const FeatureTimeline = ({ language }: LanguageAwareProps) => {
       ? "/auth/feature-timeline-ar.png"
       : "/auth/feature-timeline-en.png";
   const description = copy.features
-    .map((feature) => `${feature.title}: ${feature.description}`)
+    .map((feature: FeatureCopy) => `${feature.title}: ${feature.description}`)
     .join(" ");
 
   return (
