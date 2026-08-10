@@ -124,19 +124,46 @@ interface ProbeResult {
   readonly error?: string;
 }
 
+export const isVercelPreviewUrl = (url: string): boolean => {
+  try {
+    return new URL(url).hostname.toLowerCase().endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+};
+
+export const buildProbeHeaders = (
+  cronSecret: string,
+  vercelAutomationBypassSecret: string | undefined,
+  isVercelPreview: boolean
+): Record<string, string> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${cronSecret}`,
+    "x-cron-secret": cronSecret,
+  };
+
+  if (isVercelPreview && vercelAutomationBypassSecret) {
+    headers["x-vercel-protection-bypass"] = vercelAutomationBypassSecret;
+  }
+
+  return headers;
+};
+
 const probeEndpoint = async (
   url: string,
-  cronSecret: string
+  cronSecret: string,
+  vercelAutomationBypassSecret: string | undefined
 ): Promise<ProbeResult> => {
   const startedAt = Date.now();
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${cronSecret}`,
-        "x-cron-secret": cronSecret,
-      },
+      headers: buildProbeHeaders(
+        cronSecret,
+        vercelAutomationBypassSecret,
+        isVercelPreviewUrl(url)
+      ),
       body: JSON.stringify({}),
       signal: AbortSignal.timeout(30_000),
     });
@@ -201,6 +228,34 @@ export const runCronStage = async (): Promise<StageResult> => {
     ? `https://${process.env.VERCEL_URL}`
     : process.env.AUDIT_BASE_URL ?? "http://localhost:3000";
 
+  const isVercelPreview = isVercelPreviewUrl(baseUrl);
+  const vercelAutomationBypassSecret =
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  if (isVercelPreview && !vercelAutomationBypassSecret) {
+    const artifactBody: FindingsArtifact = {
+      stage: "cron",
+      generatedAt: new Date().toISOString(),
+      requirementIds: ["15.1", "15.2", "15.3", "15.4"],
+      findings: [
+        {
+          severity: "Critical",
+          requirementId: "15.1",
+          message:
+            "VERCEL_AUTOMATION_BYPASS_SECRET is not set for the Vercel Preview cron probe",
+        },
+      ],
+    };
+    const artifactPath = writeFindingsArtifact(ARTIFACT_NAME, artifactBody);
+    return {
+      name: "cron",
+      status: "failed",
+      durationMs: Date.now() - startedAt,
+      artifact: artifactPath,
+      message:
+        "Vercel Preview automation bypass secret not set — refusing to probe",
+    };
+  }
+
   const endpoints = enumerateCronEndpoints();
 
   if (endpoints.length === 0) {
@@ -219,7 +274,11 @@ export const runCronStage = async (): Promise<StageResult> => {
     const url = `${baseUrl}/api/cron/${endpoint}`;
 
     // Task 12.2: First invocation
-    const first = await probeEndpoint(url, cronSecret);
+    const first = await probeEndpoint(
+      url,
+      cronSecret,
+      vercelAutomationBypassSecret
+    );
 
     if (!first.ok) {
       findings.push({
@@ -233,7 +292,11 @@ export const runCronStage = async (): Promise<StageResult> => {
     }
 
     // Task 12.3: Second invocation (idempotency check)
-    const second = await probeEndpoint(url, cronSecret);
+    const second = await probeEndpoint(
+      url,
+      cronSecret,
+      vercelAutomationBypassSecret
+    );
 
     if (!second.ok) {
       findings.push({
