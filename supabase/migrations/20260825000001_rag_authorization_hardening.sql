@@ -62,7 +62,13 @@ CREATE POLICY "embeddings_admin_read"
 ON public.course_material_embeddings FOR SELECT TO authenticated
 USING (
   (SELECT public.auth_user_role()) = 'admin'
-  AND institution_id = (SELECT public.auth_institution_id())
+  AND EXISTS (
+    SELECT 1
+    FROM public.courses AS c
+    JOIN public.programs AS p ON p.id = c.program_id
+    WHERE c.id = course_material_embeddings.course_id
+      AND p.institution_id = (SELECT public.auth_institution_id())
+  )
 );
 
 -- Embeddings are written by the server-side embedding function. Public table
