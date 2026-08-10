@@ -307,7 +307,9 @@ jobs:
     name: Cron Health
     runs-on: ubuntu-latest
     needs: [build, preflight]
-    if: needs.preflight.outputs.supabase_available == 'true'
+    if: |
+      github.event_name != 'pull_request' &&
+      needs.preflight.outputs.supabase_available == 'true'
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
