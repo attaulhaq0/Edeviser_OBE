@@ -236,7 +236,7 @@ serve(async (req) => {
       // Continue with rollup even if evidence insert fails (idempotency)
     }
 
-    // ── Step 3: Calculate CLO attainment (with Sub-CLO weighted rollup) ──
+    // ── Step 3: Calculate CLO attainment from immutable evidence ─────────
 
     const affectedCloIds = cloWeights.map((cw) => cw.clo_id);
     const affectedPloIds = new Set<string>();
@@ -244,65 +244,30 @@ serve(async (req) => {
 
     for (const cloId of affectedCloIds) {
       try {
-        // Check if this CLO has Sub-CLOs (Task 109.4)
-        const { data: subCLOs } = await supabase
-          .from("learning_outcomes")
-          .select("id, weight")
-          .eq("type", "SUB_CLO")
-          .eq("parent_outcome_id", cloId);
+        // Sub-CLOs are metadata rows in public.sub_clos, not independently
+        // attainable learning_outcomes. CLO attainment therefore comes from
+        // graded evidence until an explicit Sub-CLO evidence model is added.
+        const { data: evidenceList, error: evListErr } = await supabase
+          .from("evidence")
+          .select("score_percent")
+          .eq("student_id", studentId)
+          .eq("clo_id", cloId);
 
-        let avgPercent: number;
-        let sampleCount: number;
-
-        if (subCLOs && subCLOs.length > 0) {
-          // Sub-CLO weighted rollup: parent CLO = sum(sub_clo_attainment × weight)
-          let weightedSum = 0;
-          let totalWeight = 0;
-          let totalSamples = 0;
-
-          for (const subCLO of subCLOs) {
-            const { data: subAtt } = await supabase
-              .from("outcome_attainment")
-              .select("attainment_percent, sample_count")
-              .eq("outcome_id", subCLO.id)
-              .eq("student_id", studentId)
-              .eq("scope", "student_course")
-              .maybeSingle();
-
-            if (subAtt && subAtt.attainment_percent != null) {
-              const w = subCLO.weight ?? 1;
-              weightedSum += subAtt.attainment_percent * w;
-              totalWeight += w;
-              totalSamples += subAtt.sample_count ?? 0;
-            }
-          }
-
-          avgPercent = totalWeight > 0 ? weightedSum / totalWeight : 0;
-          sampleCount = totalSamples;
-        } else {
-          // No Sub-CLOs: direct evidence calculation (existing behavior)
-          const { data: evidenceList, error: evListErr } = await supabase
-            .from("evidence")
-            .select("score_percent")
-            .eq("student_id", studentId)
-            .eq("clo_id", cloId);
-
-          if (evListErr || !evidenceList || evidenceList.length === 0) {
-            console.error(
-              `No evidence found for CLO ${cloId}:`,
-              evListErr?.message
-            );
-            continue;
-          }
-
-          avgPercent =
-            evidenceList.reduce(
-              (sum: number, e: { score_percent: number }) =>
-                sum + e.score_percent,
-              0
-            ) / evidenceList.length;
-          sampleCount = evidenceList.length;
+        if (evListErr || !evidenceList || evidenceList.length === 0) {
+          console.error(
+            `No evidence found for CLO ${cloId}:`,
+            evListErr?.message
+          );
+          continue;
         }
+
+        const avgPercent =
+          evidenceList.reduce(
+            (sum: number, e: { score_percent: number }) =>
+              sum + e.score_percent,
+            0
+          ) / evidenceList.length;
+        const sampleCount = evidenceList.length;
 
         // UPSERT CLO attainment
         const { error: upsertErr } = await supabase
@@ -328,15 +293,15 @@ serve(async (req) => {
           continue;
         }
 
-        // Collect PLO mappings for this CLO
+        // Canonical mappings are parent → child. Collect parent PLOs.
         const { data: ploMappings } = await supabase
           .from("outcome_mappings")
-          .select("target_outcome_id, weight")
-          .eq("source_outcome_id", cloId);
+          .select("source_outcome_id, weight")
+          .eq("target_outcome_id", cloId);
 
         if (ploMappings) {
           for (const m of ploMappings) {
-            affectedPloIds.add(m.target_outcome_id);
+            affectedPloIds.add(m.source_outcome_id);
           }
         }
       } catch (err) {
@@ -348,11 +313,11 @@ serve(async (req) => {
 
     for (const ploId of affectedPloIds) {
       try {
-        // Fetch all CLO→PLO mappings for this PLO
+        // Fetch all canonical PLO→CLO mappings for this PLO.
         const { data: cloMappings } = await supabase
           .from("outcome_mappings")
-          .select("source_outcome_id, weight")
-          .eq("target_outcome_id", ploId);
+          .select("target_outcome_id, weight")
+          .eq("source_outcome_id", ploId);
 
         if (!cloMappings || cloMappings.length === 0) continue;
 
@@ -365,7 +330,7 @@ serve(async (req) => {
           const { data: cloAtt } = await supabase
             .from("outcome_attainment")
             .select("attainment_percent, sample_count")
-            .eq("outcome_id", mapping.source_outcome_id)
+            .eq("outcome_id", mapping.target_outcome_id)
             .eq("student_id", studentId)
             .eq("scope", "student_course")
             .maybeSingle();
@@ -405,15 +370,15 @@ serve(async (req) => {
           continue;
         }
 
-        // Collect ILO mappings for this PLO
+        // Collect parent ILOs of this PLO.
         const { data: iloMappings } = await supabase
           .from("outcome_mappings")
-          .select("target_outcome_id")
-          .eq("source_outcome_id", ploId);
+          .select("source_outcome_id")
+          .eq("target_outcome_id", ploId);
 
         if (iloMappings) {
           for (const m of iloMappings) {
-            affectedIloIds.add(m.target_outcome_id);
+            affectedIloIds.add(m.source_outcome_id);
           }
         }
       } catch (err) {
@@ -425,11 +390,11 @@ serve(async (req) => {
 
     for (const iloId of affectedIloIds) {
       try {
-        // Fetch all PLO→ILO mappings for this ILO
+        // Fetch all canonical ILO→PLO mappings for this ILO.
         const { data: ploMappings } = await supabase
           .from("outcome_mappings")
-          .select("source_outcome_id, weight")
-          .eq("target_outcome_id", iloId);
+          .select("target_outcome_id, weight")
+          .eq("source_outcome_id", iloId);
 
         if (!ploMappings || ploMappings.length === 0) continue;
 
@@ -442,7 +407,7 @@ serve(async (req) => {
           const { data: ploAtt } = await supabase
             .from("outcome_attainment")
             .select("attainment_percent, sample_count")
-            .eq("outcome_id", mapping.source_outcome_id)
+            .eq("outcome_id", mapping.target_outcome_id)
             .eq("student_id", studentId)
             .eq("scope", "course")
             .maybeSingle();

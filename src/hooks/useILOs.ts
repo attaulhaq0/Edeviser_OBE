@@ -14,7 +14,6 @@ import type {
   ReorderFormData,
 } from "@/lib/schemas/ilo";
 import type { LearningOutcome } from "@/types/app";
-import type { Database } from "@/types/database";
 import type { PaginatedResult } from "@/types/pagination";
 import { getPaginationRange } from "@/types/pagination";
 
@@ -58,6 +57,7 @@ export const useILO = (id: string | undefined) => {
         .from("learning_outcomes")
         .select("*")
         .eq("id", id!)
+        .eq("type", "ILO")
         .maybeSingle();
 
       if (error) throw error;
@@ -113,6 +113,7 @@ export const useUpdateILO = (id: string) => {
         .from("learning_outcomes")
         .update(data)
         .eq("id", id)
+        .eq("type", "ILO")
         .select()
         .single();
 
@@ -171,7 +172,10 @@ export const useDeleteILO = () => {
       const { error } = await supabase
         .from("learning_outcomes")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("type", "ILO")
+        .select("id")
+        .single();
 
       if (error) throw error;
 
@@ -197,22 +201,19 @@ export const useReorderILOs = () => {
 
   return useMutation({
     mutationFn: async (data: ReorderFormData): Promise<void> => {
-      const updates = data.items.map((item, index) => ({
-        id: item.id,
-        sort_order: index,
-      }));
+      await Promise.all(
+        data.items.map(async (item, index) => {
+          const { error } = await supabase
+            .from("learning_outcomes")
+            .update({ sort_order: index })
+            .eq("id", item.id)
+            .eq("type", "ILO")
+            .select("id")
+            .single();
 
-      // Partial upsert: ON CONFLICT (id) only updates sort_order.
-      // Cast needed because Supabase Insert type requires `type` and `title`,
-      // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
-      const { error } = await supabase
-        .from("learning_outcomes")
-        .upsert(
-          updates as Database["public"]["Tables"]["learning_outcomes"]["Insert"][],
-          { onConflict: "id" }
-        );
-
-      if (error) throw error;
+          if (error) throw error;
+        })
+      );
 
       await logAuditEvent({
         action: "reorder",

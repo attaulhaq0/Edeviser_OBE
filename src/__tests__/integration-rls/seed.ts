@@ -93,6 +93,16 @@ export interface SeededCtx {
 /** Typed service-role admin client (bypasses RLS — service-role key only). */
 export type AdminClient = SupabaseClient<Database>;
 
+// The generated type predates migration 20260804111925, which made the live
+// institution_id column mandatory. Keep the test payload honest without
+// editing the generated schema artifact by extending its current insert shape.
+type ParentStudentLinkInsertWithInstitution =
+  Database["public"]["Tables"]["parent_student_links"]["Insert"] & {
+    institution_id: string;
+  };
+type GeneratedParentStudentLinkInsert =
+  Database["public"]["Tables"]["parent_student_links"]["Insert"];
+
 /** Renders an unknown Supabase/Postgres error into a readable string. */
 const describeError = (error: unknown): string => {
   if (error === null || error === undefined) return "unknown error";
@@ -268,6 +278,7 @@ export const seedRlsFixtures = async (
         name: `RLS Smoke Program ${runId}`,
         code: `RLS-P-${runId.slice(0, 8)}`,
         institution_id: institutionId,
+        coordinator_id: ids.coordinator,
       })
       .select("id")
       .single(),
@@ -341,15 +352,17 @@ export const seedRlsFixtures = async (
   );
 
   // 8. Verified parent → student link.
+  const parentLink: ParentStudentLinkInsertWithInstitution = {
+    parent_id: ids.parent,
+    student_id: ids.student,
+    institution_id: institutionId,
+    relationship: "parent",
+    verified: true,
+  };
   must(
     await admin
       .from("parent_student_links")
-      .insert({
-        parent_id: ids.parent,
-        student_id: ids.student,
-        relationship: "parent",
-        verified: true,
-      })
+      .insert(parentLink as unknown as GeneratedParentStudentLinkInsert)
       .select("id")
       .single(),
     "parent_student_links insert"
