@@ -74,7 +74,7 @@ const callRpc = (
   fn: string,
   args: Record<string, unknown>
 ): Promise<ActionResult> => {
-  const rpc = client.rpc as unknown as UntypedRpc;
+  const rpc = client.rpc.bind(client) as unknown as UntypedRpc;
   return rpc(fn, args);
 };
 
