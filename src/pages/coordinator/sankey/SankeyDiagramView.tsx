@@ -121,7 +121,7 @@ const SankeyFlow = ({ nodes, links }: SankeyFlowProps) => {
   return (
     <div className="space-y-4">
       <div className="flex gap-8 justify-center text-xs text-slate-500">
-        <span>CLOs → PLOs → ILOs</span>
+        <span>ILOs → PLOs → CLOs</span>
       </div>
       <ResponsiveContainer width="100%" height={360}>
         <Sankey
@@ -156,7 +156,7 @@ const OutcomeMappingColumns = ({
 }: OutcomeMappingColumnsProps) => (
   <div className="space-y-4">
     <div className="flex gap-8 justify-center text-xs text-slate-500">
-      <span>CLOs → PLOs → ILOs</span>
+      <span>ILOs → PLOs → CLOs</span>
     </div>
     {/* Outcome mapping — nodes grouped by type */}
     <div className="grid grid-cols-3 gap-4 min-h-[300px]">
