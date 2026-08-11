@@ -1,6 +1,6 @@
 export type AuthLandingLanguage = "en" | "ar";
 
-interface FeatureCopy {
+export interface FeatureCopy {
   title: string;
   description: string;
 }

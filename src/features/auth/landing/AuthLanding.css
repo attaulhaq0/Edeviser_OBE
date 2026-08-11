@@ -197,6 +197,12 @@
   height: auto;
 }
 
+.auth-feature-timeline[data-language="ar"] img {
+  width: 105%;
+  max-width: none;
+  margin-inline-start: -2.5%;
+}
+
 .auth-visual-column {
   position: relative;
   isolation: isolate;
