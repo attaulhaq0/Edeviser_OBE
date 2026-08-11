@@ -467,9 +467,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     async (options: SignUpOptions): Promise<SignUpResult> => {
       const { email, password, fullName, username, institutionId } = options;
 
-      if (!institutionId ||
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(institutionId)) {
-        return { success: false, error: "Select a valid institution before creating your account." };
+      if (
+        !institutionId ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          institutionId
+        )
+      ) {
+        return {
+          success: false,
+          error: "Select a valid institution before creating your account.",
+        };
       }
 
       const metadata: Record<string, unknown> = {

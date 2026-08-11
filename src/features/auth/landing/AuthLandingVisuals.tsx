@@ -1,5 +1,6 @@
 import {
   AUTH_LANDING_COPY,
+  type FeatureCopy,
   type AuthLandingLanguage,
 } from "@/features/auth/landing/content";
 
@@ -11,7 +12,9 @@ export const BrandLogo = ({ language }: LanguageAwareProps) => (
   <a
     className="auth-brand-lockup"
     href="/"
-    aria-label={language === "ar" ? "الصفحة الرئيسية لإي ديفيسر" : "Edeviser home"}
+    aria-label={
+      language === "ar" ? "الصفحة الرئيسية لإي ديفيسر" : "Edeviser home"
+    }
     data-language={language}
   >
     <span className="auth-brand-mark" aria-hidden="true">
@@ -56,11 +59,15 @@ export const FeatureTimeline = ({ language }: LanguageAwareProps) => {
       ? "/auth/feature-timeline-ar.png"
       : "/auth/feature-timeline-en.png";
   const description = copy.features
-    .map((feature) => `${feature.title}: ${feature.description}`)
+    .map((feature: FeatureCopy) => `${feature.title}: ${feature.description}`)
     .join(" ");
 
   return (
-    <section className="auth-feature-timeline" aria-label={description}>
+    <section
+      className="auth-feature-timeline"
+      data-language={language}
+      aria-label={description}
+    >
       <img src={source} alt="" aria-hidden="true" loading="eager" />
     </section>
   );
