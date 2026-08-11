@@ -82,7 +82,6 @@
 }
 
 .auth-brand-lockup[data-language="ar"] {
-  flex-direction: row-reverse;
   direction: rtl;
   letter-spacing: 0;
 }
