@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Coordinator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Coordinator dashboard — additive, [data-role]-scoped enhancements from
+     Review P1: action-hub chips, decision-context alerts, CQI + program
+     timelines, evidence checklist. Blue/green/amber(warning)/red(critical) only. */
+  body[data-role="coordinator"] .act-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:#fff;padding:5px 11px;border-radius:999px;cursor:pointer;transition:background .15s,transform .06s}
+  body[data-role="coordinator"] .act-chip:hover{background:rgba(255,255,255,.26)}
+  body[data-role="coordinator"] .act-chip:active{transform:translateY(1px)}
+  body[data-role="coordinator"] .act-chip .arw{opacity:.75;font-weight:900}
+  /* Hero carousel slide padding + figure styles (reuses shared .hero-carousel) */
+  body[data-role="coordinator"] .hs-pad{padding:16px 18px;min-height:122px}
+  body[data-role="coordinator"] .hero-kfig{font-size:26px;font-weight:900;line-height:1;color:#fff;flex:0 0 auto}
+  /* KPI-as-filter affordance */
+  body[data-role="coordinator"] a.kpi-filter{display:block}
+  body[data-role="coordinator"] a.kpi-filter .flt{font-size:10px;font-weight:800;color:#0382bd;margin-top:4px;display:flex;align-items:center;gap:3px}
+  /* decision-context meta line on alerts */
+  body[data-role="coordinator"] .meta-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  body[data-role="coordinator"] .meta{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;padding:3px 8px;border-radius:8px}
+  body[data-role="coordinator"] .meta b{color:#0f172a}
+  body[data-role="coordinator"] .rootcause{font-size:11.5px;color:#334155;background:#f8fafc;border:1px solid #eef2f6;border-left:3px solid #0382bd;border-radius:8px;padding:7px 10px;margin-top:8px}
+  /* vertical timeline (CQI + program milestones) */
+  body[data-role="coordinator"] .tl{position:relative;padding-left:26px}
+  body[data-role="coordinator"] .tl::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:#e2e8f0}
+  body[data-role="coordinator"] .tl-item{position:relative;padding-bottom:15px}
+  body[data-role="coordinator"] .tl-item:last-child{padding-bottom:0}
+  body[data-role="coordinator"] .tl-dot{position:absolute;left:-26px;top:1px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;box-shadow:0 0 0 3px #fff}
+  body[data-role="coordinator"] .tl-dot.done{background:#16a34a}
+  body[data-role="coordinator"] .tl-dot.prog{background:#0382bd}
+  body[data-role="coordinator"] .tl-dot.plan{background:#64748b}
+  body[data-role="coordinator"] .tl-dot.pend{background:#e2e8f0;color:#64748b}
+  body[data-role="coordinator"] .tl-t{font-size:13px;font-weight:700;color:#0f172a;margin:0;line-height:1.3}
+  body[data-role="coordinator"] .tl-s{font-size:11px;color:#64748b;margin:1px 0 0}
+  body[data-role="coordinator"] .tl-when{font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:.02em}
+  /* accreditation evidence checklist (reuses rail-check look, adds "missing" state) */
+  body[data-role="coordinator"] .rail-check .rc-box.mi{background:#fef3c7;color:#d97706}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator" data-dashboard="true">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="coordinator-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">K</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="feed-wide rounded-2xl text-white shadow-lg p-5" style="background:var(--hero-gradient)">
+    <div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black tracking-widest uppercase text-white/60">Program priority</p><h1 class="text-xl font-black mt-1">PLO2 — Apply Engineering Principles</h1><p class="text-sm text-white/80 mt-1">67% · Target 75% · ↓6 pts this term</p></div><button type="button" class="act-chip shrink-0" onclick="whyPop('PLO2 is below target across CS205 and CS301. The evidence is sufficient across 3 sections, so this is presented as a program pattern—not a causal conclusion.')">Why this?</button></div>
+    <p class="text-[12px] text-white/75 mt-3">The decline appears across CS205 and CS301. CLO5 — REST APIs is the strongest repeated contributing signal.</p>
+    <div class="flex flex-wrap gap-2 mt-3 text-[11px] font-bold"><span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/20">3 courses contribute</span><span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/20">Evidence confidence: High</span><span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/20">CQI draft available</span></div>
+    <div class="mt-4 flex flex-wrap gap-2"><a href="#pattern" class="act-chip">Review pattern →</a><a href="coordinator-cqi.html" class="act-chip">Open CQI draft →</a></div>
+  </div>
+
+  <!-- KPI cards double as filters — each drills straight into the outcomes,
+       matrix or accreditation view scoped to what the number represents. -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <a href="coordinator-profile.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Programs</p><p class="text-2xl font-black text-gray-900 mt-0.5">3</p><span class="flt">Manage <span>→</span></span></a>
+    <a href="coordinator-outcomes.html?filter=below" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Outcomes need attention</p><p class="text-2xl font-black text-amber-600 mt-0.5">2</p><span class="flt">Program-level <span>→</span></span></a>
+    <a href="coordinator-curriculum.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Curriculum gaps</p><p class="text-2xl font-black text-red-600 mt-0.5">2</p><span class="flt">Need coverage decision <span>→</span></span></a>
+    <a href="coordinator-cqi.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">CQI actions open</p><p class="text-2xl font-black text-blue-600 mt-0.5">3</p><span class="flt">1 awaiting approval <span>→</span></span></a>
+  </div>
+
+  <!-- Attainment alerts — each now carries decision context (trend vs last
+       term, affected courses/sections, suspected root cause, priority) so the
+       "why" is clear before the coordinator acts. -->
+  <div class="feed-wide" id="pattern">
+    <div class="sec-h"><span class="chip">📉</span><p class="t">Program pattern</p><a href="coordinator-outcomes.html" class="more">Open evidence →</a></div>
+    <div class="space-y-3">
+      <div class="pcard p-4" data-ai-card>
+        <div class="flex items-start gap-3">
+          <div class="lead sev-high">📉</div>
+          <div class="flex-1"><div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">PLO2 — Apply engineering principles</p><span class="pill pill-red">67% / 75% target</span><span class="pill pill-red">↓6 this term</span></div>
+          <div class="meta-row">
+            <span class="meta">📉 Trend <b>73% → 67%</b></span>
+            <span class="meta">↔ vs last term <b>−6 pts</b></span>
+            <span class="meta">🏫 Affected <b>CS205 §1–2 · CS301 §1</b></span>
+          </div>
+          <div class="rootcause">🔍 <b>Contributing pattern:</b> application-level evidence is weaker than concept recall across 3 courses. CLO5 (REST APIs, 48%) is the strongest repeated signal.</div>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <a href="coordinator-cqi.html" class="btn3d sm">📝 Review CQI draft</a>
+            <a href="coordinator-outcomes.html" class="btn3d sm b-soft">Drill down</a>
+            <button onclick="aiApprove(this,'PLO2 added to your follow-up list')" class="btn3d sm b-ghost">🔖 Follow up</button>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4">
+  <!-- Curriculum gap -->
+  <a href="coordinator-curriculum.html" class="block pcard pcard-tap p-4">
+    <div class="sec-h"><span class="chip">🗂️</span><p class="t">Curriculum gap detected</p><span class="ml-auto pill pill-red">HIGH IMPACT</span></div>
+    <div><p class="text-sm font-bold text-gray-900">"Concurrency" has no mapped assessment</p><p class="text-xs text-gray-500 mt-0.5">PLO4 depends on it, but no course currently assesses it — a coverage hole for accreditation.</p>
+      <div class="flex items-center gap-2 mt-2.5"><span class="text-[10px] font-black tracking-widest uppercase text-gray-400">Accreditation impact</span><span class="pill pill-red">High</span></div>
+      <span class="inline-block mt-3 text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:#0382bd">Open matrix →</span></div>
+  </a>
+
+  <!-- Home keeps readiness brief; the full evidence workflow lives in Accreditation. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📋</span><p class="t">Readiness</p><a href="coordinator-accreditation.html" class="more">Review blocker →</a></div>
+    <div class="flex items-center gap-3 mb-2"><div class="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-blue-500" style="width:82%"></div></div><span class="text-sm font-black text-blue-600">82%</span></div>
+    <p class="text-sm font-bold text-gray-900">1 blocker · Concurrency evidence</p><p class="text-xs text-gray-600 mt-1">Resolve the PLO4 assessment gap before generating an evidence-pack preview.</p>
+  </div>
+
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4">
+
+  <!-- CQI — now a continuous-improvement timeline (completed → in progress →
+       planned → pending) so the loop reads as a cycle, not a flat list. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔄</span><p class="t">Close the loop (CQI)</p></div>
+    <div class="tl">
+      <div class="tl-item"><span class="tl-dot done">✓</span><p class="tl-t">Added worked examples to 3NF <span class="tl-when">· last term</span></p><p class="tl-s">Attainment +8% — verified in re-assessment.</p></div>
+      <div class="tl-item"><span class="tl-dot prog">◐</span><p class="tl-t">REST APIs remediation <span class="tl-when">· this term</span></p><p class="tl-s">Micro-lesson + retrieval check running in CS205.</p></div>
+      <div class="tl-item"><span class="tl-dot plan">◇</span><p class="tl-t">Add Concurrency assessment <span class="tl-when">· next term</span></p><p class="tl-s">AI-suggested to close the PLO4 coverage gap.</p></div>
+      <div class="tl-item"><span class="tl-dot pend">…</span><p class="tl-t">Re-measure PLO2 <span class="tl-when">· pending</span></p><p class="tl-s">Confirm the drop recovers after remediation lands.</p></div>
+    </div>
+  </div>
+
+  <!-- Program Timeline — lightweight card surfacing the next institutional
+       deadlines so the coordinator always knows what's coming. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🗓️</span><p class="t">Program timeline</p></div>
+    <div class="tl">
+      <div class="tl-item"><span class="tl-dot prog">◐</span><p class="tl-t">Mid-term attainment analysis <span class="tl-when">· week 8 · now</span></p><p class="tl-s">Review PLO/CLO roll-ups across all courses.</p></div>
+      <div class="tl-item"><span class="tl-dot plan">◇</span><p class="tl-t">CQI committee meeting <span class="tl-when">· Nov 14</span></p><p class="tl-s">Present the PLO2 action plan for sign-off.</p></div>
+      <div class="tl-item"><span class="tl-dot plan">◇</span><p class="tl-t">Accreditation evidence submission <span class="tl-when">· Dec 2</span></p><p class="tl-s">CQI documentation must be complete first.</p></div>
+      <div class="tl-item"><span class="tl-dot pend">…</span><p class="tl-t">End-of-term reporting <span class="tl-when">· Dec 20</span></p><p class="tl-s">Final attainment + closing-the-loop summary.</p></div>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

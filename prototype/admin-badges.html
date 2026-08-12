@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Badge Definitions</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Badge Definitions — maps to: badge_definitions (name, description, emoji,
+     badge_key, category, tier_conditions: {bronze:{},silver:{},gold:{}},
+     is_archived) + badge_spotlight_schedule (week_start, category, is_manual).
+     Hooks: useTieredBadges, useBadgeSpotlight, useBadgeSpotlightSchedule,
+     useUpdateBadgeSpotlightSchedule. */
+  .bg-def{border:1px solid #eef2f6;border-radius:14px;padding:14px}
+  .bg-def.archived{opacity:.5}
+  .bg-tiers{font-size:11px;color:#64748b;line-height:1.5;margin-top:6px}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="feed-wide flex items-center justify-between gap-3">
+    <div><h1 class="text-xl font-black tracking-tight text-gray-900">Badge Definitions</h1><p class="text-xs text-gray-500 mt-0.5">Institution-level badge templates with tiered progression.</p></div>
+    <button class="btn3d sm" onclick="toast('New badge dialog opened','➕')" style="background:var(--brand-gradient)">＋ New badge</button>
+  </div>
+
+  <!-- Badge grid -->
+  <div class="feed-wide grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="bg-def">
+      <div class="flex items-center gap-3"><span class="text-2xl">🔥</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Streak Keeper</p><span class="pill pill-amber">Consistency</span></div><button class="text-xs font-bold text-blue-600" onclick="toast('Edit badge…','✏️')">Edit</button></div>
+      <p class="bg-tiers">🥉 Bronze: 7-day streak &nbsp;·&nbsp; 🥈 Silver: 14-day &nbsp;·&nbsp; 🥇 Gold: 30-day</p>
+    </div>
+    <div class="bg-def">
+      <div class="flex items-center gap-3"><span class="text-2xl">🎯</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Sharpshooter</p><span class="pill pill-blue">Mastery</span></div><button class="text-xs font-bold text-blue-600" onclick="toast('Edit badge…','✏️')">Edit</button></div>
+      <p class="bg-tiers">🥉 Bronze: 90%+ on 1 quiz &nbsp;·&nbsp; 🥈 Silver: on 5 quizzes &nbsp;·&nbsp; 🥇 Gold: on 15 quizzes</p>
+    </div>
+    <div class="bg-def">
+      <div class="flex items-center gap-3"><span class="text-2xl">📚</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Bookworm</p><span class="pill pill-blue">Mastery</span></div><button class="text-xs font-bold text-blue-600" onclick="toast('Edit badge…','✏️')">Edit</button></div>
+      <p class="bg-tiers">🥉 Bronze: 5 lessons &nbsp;·&nbsp; 🥈 Silver: 20 lessons &nbsp;·&nbsp; 🥇 Gold: 50 lessons</p>
+    </div>
+    <div class="bg-def">
+      <div class="flex items-center gap-3"><span class="text-2xl">🤝</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Team Player</p><span class="pill" style="background:#dbeafe;color:#1d4ed8">Social</span></div><button class="text-xs font-bold text-blue-600" onclick="toast('Edit badge…','✏️')">Edit</button></div>
+      <p class="bg-tiers">🥉 Bronze: 1 teaching moment &nbsp;·&nbsp; 🥈 Silver: 5 &nbsp;·&nbsp; 🥇 Gold: 15</p>
+    </div>
+    <div class="bg-def">
+      <div class="flex items-center gap-3"><span class="text-2xl">🌟</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Perfect Day</p><span class="pill pill-amber">Consistency</span></div><button class="text-xs font-bold text-blue-600" onclick="toast('Edit badge…','✏️')">Edit</button></div>
+      <p class="bg-tiers">🥉 Bronze: 1 perfect day &nbsp;·&nbsp; 🥈 Silver: 7 &nbsp;·&nbsp; 🥇 Gold: 30</p>
+    </div>
+    <div class="bg-def">
+      <div class="flex items-center gap-3"><span class="text-2xl">🌙</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Night Owl</p><span class="pill" style="background:#f5f3ff;color:#6d28d9">Mystery</span></div><button class="text-xs font-bold text-blue-600" onclick="toast('Edit badge…','✏️')">Edit</button></div>
+      <p class="bg-tiers">Hidden condition · single-tier</p>
+    </div>
+    <div class="bg-def archived">
+      <div class="flex items-center gap-3"><span class="text-2xl">🎃</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Halloween 2025</p><span class="pill pill-slate">Seasonal</span></div><span class="pill pill-red">Archived</span></div>
+      <p class="bg-tiers">Single-tier · limited-time event badge (expired)</p>
+    </div>
+  </div>
+
+  <!-- Spotlight schedule -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🌟</span><p class="t">Weekly Spotlight Schedule</p></div>
+    <div class="rounded-xl bg-purple-50 border border-purple-100 p-3 mb-3 flex items-center justify-between flex-wrap gap-2">
+      <div><p class="text-xs font-black text-purple-700 uppercase tracking-wide">This week</p><p class="text-sm font-bold text-gray-900 mt-0.5">🔥 Consistency badges</p></div>
+      <span class="pill pill-blue">Auto-rotated</span>
+    </div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:520px">
+      <thead><tr><th>Week of</th><th>Category</th><th>Source</th><th></th></tr></thead>
+      <tbody id="spot-rows"></tbody>
+    </table></div>
+    <div class="flex items-center gap-2 mt-3 flex-wrap">
+      <select id="spot-week" class="text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>Week of Jul 20</option><option>Week of Jul 27</option><option>Week of Aug 3</option></select>
+      <select id="spot-cat" class="text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>Consistency</option><option>Mastery</option><option>Social</option><option>Mystery</option></select>
+      <button class="btn3d sm" onclick="saveSpotlight()" style="background:#0382bd">Save override</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const SPOT=[
+  ['Jul 13','🔥 Consistency','Auto-rotated'],
+  ['Jul 20','🎯 Mastery','Auto-rotated'],
+  ['Jul 27','🤝 Social','Manual override'],
+  ['Aug 3','💎 Mystery','Auto-rotated'],
+];
+function drawSpot(){
+  document.getElementById('spot-rows').innerHTML=SPOT.map(r=>`<tr><td>${r[0]}</td><td><b style="color:#0f172a">${r[1]}</b></td><td>${r[2]==='Manual override'?'<span class="pill pill-amber">Manual override</span>':'<span class="pill pill-slate">Auto-rotated</span>'}</td><td><button class="text-xs font-bold text-blue-600" onclick="toast('Editing spotlight for week of ${r[0]}','✏️')">Edit</button></td></tr>`).join('');
+}
+drawSpot();
+function saveSpotlight(){
+  const week=document.getElementById('spot-week').value.replace('Week of ','');
+  const cat=document.getElementById('spot-cat').value;
+  const icons={Consistency:'🔥',Mastery:'🎯',Social:'🤝',Mystery:'💎'};
+  const existing=SPOT.find(r=>r[0]===week);
+  if(existing){ existing[1]=icons[cat]+' '+cat; existing[2]='Manual override'; }
+  else SPOT.push([week,icons[cat]+' '+cat,'Manual override']);
+  drawSpot();
+  toast('Spotlight schedule updated','🌟');
+}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

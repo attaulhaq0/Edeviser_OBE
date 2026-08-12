@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Marketplace Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Admin marketplace management — maps to: useMarketplaceAdmin (marketplace_items),
+     useSaleEvents (sale_events/sale_event_items), useBonusEvents (xp_events),
+     useKnowledgeQuestAdmin (knowledge_quests), useMarketplaceAnalytics,
+     useXPEconomist/useDynamicPricing (XP earned vs spent sink health). */
+  body[data-role="admin"] .adm-tab{font-size:12.5px;font-weight:800;color:#64748b;padding:8px 14px;border-radius:11px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
+  body[data-role="admin"] .adm-tab.on{background:#0382bd;color:#fff;border-color:transparent}
+  body[data-role="admin"] table{width:100%;border-collapse:collapse}
+  body[data-role="admin"] th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;text-align:left;padding:8px 10px;border-bottom:1px solid #eef2f6}
+  body[data-role="admin"] td{font-size:13px;color:#334155;padding:10px;border-bottom:1px solid #f5f7fa}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <button class="btn3d sm" onclick="toast('New marketplace item…','➕')" style="background:#0382bd">➕ New item</button>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+  <div class="feed-wide">
+    <h1 class="text-xl font-black tracking-tight text-gray-900">Marketplace & XP economy</h1>
+    <p class="text-xs text-gray-500 mt-0.5">Manage the shop, sales, bonus XP events and quests — and keep the XP economy healthy.</p>
+  </div>
+
+  <!-- KPI row (useMarketplaceAnalytics + useXPEconomist) -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">XP in circulation</p><p class="text-2xl font-black text-gray-900 mt-1">1.84M</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Items sold · 7d</p><p class="text-2xl font-black text-gray-900 mt-1">312</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">XP sink rate</p><p class="text-2xl font-black text-teal-600 mt-1">63%</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Top item</p><p class="text-lg font-black text-gray-900 mt-1">2× XP Boost</p></div>
+  </div>
+
+  <!-- Section tabs -->
+  <div class="feed-wide flex gap-2 overflow-x-auto no-scrollbar">
+    <button class="adm-tab on" onclick="admTab('items',this)">🛍️ Items</button>
+    <button class="adm-tab" onclick="admTab('sales',this)">🏷️ Sale events</button>
+    <button class="adm-tab" onclick="admTab('bonus',this)">⚡ Bonus XP</button>
+    <button class="adm-tab" onclick="admTab('quests',this)">⚔️ Quests</button>
+    <button class="adm-tab" onclick="admTab('economy',this)">📊 Economy health</button>
+  </div>
+
+  <!-- ITEMS (marketplace_items) -->
+  <div class="feed-wide" data-adm="items">
+    <div class="pcard p-4">
+      <div class="overflow-x-auto"><table>
+        <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Level</th><th>Stock</th><th>Sold</th><th>Active</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="font-bold">⚡ 2× XP Boost</td><td>power_up · xp_boost</td><td>💎 300</td><td>0</td><td>Unlimited</td><td>128</td><td><label class="edv-toggle"><input type="checkbox" checked><span class="etk"></span></label></td><td><button class="text-blue-600 font-bold" onclick="toast('Edit item…','✏️')">Edit</button></td></tr>
+          <tr><td class="font-bold">❄️ Streak Shield</td><td>power_up · streak_shield</td><td>💎 200</td><td>0</td><td>Max 3</td><td>96</td><td><label class="edv-toggle"><input type="checkbox" checked><span class="etk"></span></label></td><td><button class="text-blue-600 font-bold" onclick="toast('Edit item…','✏️')">Edit</button></td></tr>
+          <tr><td class="font-bold">⏰ Deadline Extension</td><td>educational_perk · deadline_extension</td><td>💎 250</td><td>0</td><td>Unlimited</td><td>54</td><td><label class="edv-toggle"><input type="checkbox" checked><span class="etk"></span></label></td><td><button class="text-blue-600 font-bold" onclick="toast('Edit item…','✏️')">Edit</button></td></tr>
+          <tr><td class="font-bold">🌌 Galaxy Theme</td><td>cosmetic · profile_theme</td><td>💎 500</td><td>10</td><td>Unlimited</td><td>22</td><td><label class="edv-toggle"><input type="checkbox" checked><span class="etk"></span></label></td><td><button class="text-blue-600 font-bold" onclick="toast('Edit item…','✏️')">Edit</button></td></tr>
+          <tr><td class="font-bold">👑 "Legend" Title</td><td>cosmetic · display_title</td><td>💎 1,200</td><td>0</td><td>5 left</td><td>3</td><td><label class="edv-toggle"><input type="checkbox"><span class="etk"></span></label></td><td><button class="text-blue-600 font-bold" onclick="toast('Edit item…','✏️')">Edit</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- SALE EVENTS (sale_events) -->
+  <div class="feed-wide" data-adm="sales" hidden>
+    <div class="pcard p-4">
+      <div class="sec-h"><span class="chip">🏷️</span><p class="t">Sale events</p><button class="more" onclick="toast('New sale event…','➕')">➕ New sale</button></div>
+      <div class="divide-y divide-gray-50">
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Back-to-School Sale · −20%</p><p class="text-xs text-gray-500">Power-ups · Jul 6 – Jul 12</p></div><span class="pill pill-green">Active</span><button class="text-red-600 text-xs font-bold" onclick="toast('Sale cancelled','🏷️')">Cancel</button></div>
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Weekend Cosmetics · −30%</p><p class="text-xs text-gray-500">Cosmetics · Jul 19 – Jul 21</p></div><span class="pill pill-blue">Scheduled</span><button class="text-gray-400 text-xs font-bold">Edit</button></div>
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-semibold text-gray-500">Exam Boost Sale · −15%</p><p class="text-xs text-gray-400">Power-ups · Jun 1 – Jun 7</p></div><span class="pill" style="background:#f1f5f9;color:#94a3b8">Ended</span><span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BONUS XP EVENTS (xp_events) -->
+  <div class="feed-wide" data-adm="bonus" hidden>
+    <div class="pcard p-4">
+      <div class="sec-h"><span class="chip">⚡</span><p class="t">Bonus XP events</p><button class="more" onclick="toast('New bonus event…','➕')">➕ New event</button></div>
+      <div class="divide-y divide-gray-50">
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Double XP Weekend</p><p class="text-xs text-gray-500">×2 all XP · Sat–Sun</p></div><span class="pill pill-green">Active</span></div>
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Midterm Grind ×1.5</p><p class="text-xs text-gray-500">×1.5 submissions · Jul 13–20</p></div><span class="pill pill-blue">Scheduled</span></div>
+      </div>
+      <p class="text-[11px] text-gray-400 mt-3">Multipliers apply to base XP before it lands in students' wallets.</p>
+    </div>
+  </div>
+
+  <!-- QUESTS (knowledge_quests) -->
+  <div class="feed-wide" data-adm="quests" hidden>
+    <div class="pcard p-4">
+      <div class="sec-h"><span class="chip">⚔️</span><p class="t">Knowledge quests</p><button class="more" onclick="toast('New quest…','➕')">➕ New quest</button></div>
+      <div class="divide-y divide-gray-50">
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Explain a concept (video)</p><p class="text-xs text-gray-500">content_creation · reward 💎 200 · 42 submissions</p></div><span class="pill pill-green">Active</span></div>
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Author 3 quiz questions</p><p class="text-xs text-gray-500">content_creation · reward Gold Frame · 18 submissions</p></div><span class="pill pill-green">Active</span></div>
+        <div class="flex items-center gap-3 py-3"><div class="flex-1"><p class="text-sm font-bold text-gray-900">Peer-review 5 explanations</p><p class="text-xs text-gray-500">peer_review · reward 💎 150 · 7 submissions</p></div><span class="pill pill-blue">Scheduled</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ECONOMY HEALTH (useXPEconomist / useDynamicPricing) -->
+  <div class="feed-wide" data-adm="economy" hidden>
+    <div class="lg-row lg-row-2 space-y-4 items-start">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📊</span><p class="t">Earned vs. spent · 8 weeks</p></div>
+        <div class="flex items-end gap-2 h-28 border-b border-gray-100">
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-green-400" style="height:80%"></div><span class="text-[9px] text-gray-400">W1</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-green-400" style="height:88%"></div><span class="text-[9px] text-gray-400">W3</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-green-400" style="height:92%"></div><span class="text-[9px] text-gray-400">W5</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-green-400" style="height:96%"></div><span class="text-[9px] text-gray-400">W7</span></div>
+        </div>
+        <div class="flex items-center gap-4 mt-2 text-[11px]"><span class="inline-flex items-center gap-1.5"><i class="h-2.5 w-2.5 rounded-sm bg-green-400 inline-block"></i>Earned</span><span class="text-gray-400">Sink ratio 63% — healthy (target 55–75%)</span></div>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🩺</span><p class="t">Economy signals</p></div>
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Inflation risk</span><span class="pill pill-green">Low</span></div>
+          <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Avg wallet balance</span><span class="text-sm font-bold text-gray-900">640 XP</span></div>
+          <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Dynamic pricing</span><label class="edv-toggle"><input type="checkbox" checked><span class="etk"></span></label></div>
+          <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Unspent XP (hoarding)</span><span class="pill pill-amber">Watch</span></div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-3">If sink ratio drops, introduce a sale or bonus sink (e.g., class donations) to rebalance.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="admin-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="admin-analytics.html" class="tab-btn" data-tab="analytics"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg><span>Analytics</span></a>
+  <a href="admin-marketplace.html" class="tab-btn active" data-tab="market"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/></svg><span>Market</span></a>
+  <a href="admin-governance.html" class="tab-btn" data-tab="gov"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg><span>Governance</span></a>
+  <a href="admin-users.html" class="tab-btn" data-tab="people"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg><span>People</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function admTab(t,btn){ document.querySelectorAll('.adm-tab').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); document.querySelectorAll('[data-adm]').forEach(g=>g.hidden=(g.dataset.adm!==t)); }
+</script>
+</body>
+</html>

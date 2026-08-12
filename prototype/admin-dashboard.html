@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Admin dashboard hero — switchable briefing carousel (status → executive
+     watch-item → AI governance). Reuses the shared .hero-carousel system;
+     scoped to the admin shell so it stays additive. */
+  body[data-role="admin"] .hs-pad{padding:16px 18px;min-height:118px}
+  body[data-role="admin"] button.ai-chip{cursor:pointer;transition:background .15s,transform .06s}
+  body[data-role="admin"] button.ai-chip:hover{background:rgba(255,255,255,.26)}
+  body[data-role="admin"] button.ai-chip:active{transform:translateY(1px)}
+  body[data-role="admin"] .hero-kfig{font-size:20px;font-weight:900;line-height:1;color:#fff}
+  body[data-role="admin"] .hero-klbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.62);margin-top:3px}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin" data-dashboard="true">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useAdminDashboardAggregate | tables: profiles, courses, programs, outcome_attainment -->
+
+  <!-- Institution hero — switchable carousel (status → executive watch-item →
+       AI governance). Dots + auto-advance + swipe. -->
+  <div id="hero-car" class="hero-carousel rounded-2xl text-white shadow-lg" style="background:var(--hero-gradient)">
+    <div class="hero-slides">
+
+      <!-- Slide 1: greeting + institution status chips -->
+      <div class="hero-slide">
+        <div class="hs-pad relative">
+          <span class="why" onclick="whyPop('This executive summary aggregates de-identified, institution-wide signals: engagement, mastery trends, and retention risk. It never exposes individual student data to the institution view. AI produced the narrative; all figures link to source dashboards.')">🛡️ why am I seeing this</span>
+          <div class="flex items-center gap-3 pr-24">
+            <div class="h-11 w-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-xl shrink-0">🏛️</div>
+            <div class="min-w-0"><h1 class="text-lg font-bold tracking-tight">Gulf Academy — this week</h1><p class="text-[12px] text-white/75">Engagement is healthy; retention risk is concentrated in one cohort.</p></div>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button class="ai-chip" onclick="location.href='admin-users.html'">👥 1,240 learners</button>
+            <button class="ai-chip" onclick="location.href='admin-analytics.html'">🟢 92% weekly active</button>
+            <button class="ai-chip" onclick="document.getElementById('exec-sec').scrollIntoView({behavior:'smooth',block:'start'})">⚠️ 38 retention risk</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: executive watch-item -->
+      <div class="hero-slide">
+        <div class="hs-pad">
+          <p class="text-[10px] font-black tracking-widest uppercase text-white/60">💡 Executive watch-item</p>
+          <p class="text-[13px] text-white/90 mt-2 leading-relaxed"><b>Business Foundations</b> trails at 63% mastery and holds 22 of the 38 at-risk learners — the same pattern as last year's cohort before intervention.</p>
+          <button type="button" class="ai-chip mt-3" onclick="document.getElementById('exec-sec').scrollIntoView({behavior:'smooth',block:'start'})">Draft an outreach plan →</button>
+        </div>
+      </div>
+
+      <!-- Slide 3: AI governance snapshot -->
+      <div class="hero-slide">
+        <div class="hs-pad">
+          <p class="text-[10px] font-black tracking-widest uppercase text-white/60">🛡️ AI governance</p>
+          <div class="grid grid-cols-3 gap-3 mt-3">
+            <div><p class="hero-kfig">A2</p><p class="hero-klbl">Autonomy ceiling</p></div>
+            <div><p class="hero-kfig">214</p><p class="hero-klbl">Suggestions / wk</p></div>
+            <div><p class="hero-kfig text-teal-300">0</p><p class="hero-klbl">Unapproved actions</p></div>
+          </div>
+          <button class="ai-chip mt-3" onclick="location.href='admin-governance.html'">Manage governance →</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="hero-dots pb-2.5"></div>
+  </div>
+
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Learners</p><p class="text-2xl font-black text-gray-900 mt-0.5">1,240</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Weekly active</p><p class="text-2xl font-black text-green-600 mt-0.5">92%</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Avg mastery</p><p class="text-2xl font-black text-blue-600 mt-0.5">72%</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Retention risk</p><p class="text-2xl font-black text-amber-600 mt-0.5">38</p></div>
+  </div>
+
+  <!-- Executive insight -->
+  <div class="feed-wide pcard p-5" id="exec-sec">
+    <div class="sec-h"><span class="chip">💡</span><p class="t">Executive insight</p><span class="pill pill-blue">AI-generated</span></div>
+    <p class="text-sm text-gray-700 leading-relaxed">Engagement is strong and steady. The main watch-item is <b>Business Foundations</b>, where outcome attainment (63%) trails other departments and 22 of the 38 at-risk learners are concentrated. The pattern resembles last year's cohort before intervention — an early, targeted outreach now is likely to recover most of them.</p>
+    <div class="flex gap-2 mt-3">
+      <button onclick="aiApprove(this,'Outreach plan drafted for Business cohort')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">📋 Draft outreach plan</button>
+      <a href="admin-analytics.html" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl">See analytics</a>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4">
+  <!-- Departments -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🏫</span><p class="t">Departments by mastery</p></div>
+    <div class="space-y-2.5">
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">🥇 Computer Science</span><b class="text-blue-600 text-sm">81%</b></div><div class="h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:81%"></div></div></div>
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">Engineering</span><b class="text-blue-600 text-sm">74%</b></div><div class="h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:74%"></div></div></div>
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">Business Foundations</span><b class="text-blue-600 text-sm">63%</b></div><div class="h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:63%"></div></div></div>
+    </div>
+  </div>
+
+  <!-- AI governance summary -->
+  <a href="admin-governance.html" class="block pcard pcard-tap p-4">
+    <div class="sec-h"><span class="chip">🛡️</span><p class="t">AI Governance</p><span class="more">View →</span></div>
+    <div class="grid grid-cols-3 gap-3 text-center">
+      <div><p class="text-lg font-black text-gray-900">A2</p><p class="text-[10px] text-gray-500">Autonomy ceiling</p></div>
+      <div><p class="text-lg font-black text-gray-900">214</p><p class="text-[10px] text-gray-500">AI suggestions / wk</p></div>
+      <div><p class="text-lg font-black text-green-600">0</p><p class="text-[10px] text-gray-500">Unapproved actions</p></div>
+    </div>
+  </a>
+  </div>
+
+</div>
+<script src="shared.js"></script>
+<script>initHeroCarousel('hero-car');</script>
+</body>
+</html>

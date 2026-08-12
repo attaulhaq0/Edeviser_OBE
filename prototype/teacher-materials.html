@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Course Materials</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="teacher-refinement.css"/>
+<style>
+  /* Teacher Course Materials — maps to: course_materials (uploaded files) +
+     course_material_embeddings (chunk_text, material_type: lecture_notes|
+     slides|assignment_description|rubric_criteria|other, clo_ids, bloom_level,
+     indexing_status: pending|indexed|indexing_failed) via embed-course-material
+     edge fn. This is the RAG vector store that powers the AI Tutor's answers. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .mt-grid{display:block}
+  html.mode-laptop .mt-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  html.mode-laptop .mt-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .mt-drop{border:2px dashed #cbd5e1;border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+  .mt-drop:hover{border-color:#14b8a6;background:#f0fdfa}
+  .mt-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f5f7fa}
+  .mt-row:last-child{border-bottom:none}
+  .mt-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;background:#eff6ff}
+</style>
+</head>
+<body class="bg-slate-50" data-role="teacher" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="teacher-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Course Materials</h1><p class="text-xs text-gray-500">CS301 · Database Design</p></div>
+  </div>
+</header>
+
+<div class="page-content no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useCourseMaterials, useCourseModules, useStudentContent | tables: course_materials, course_modules, course_material_embeddings -->
+  <div class="mt-grid">
+    <div class="space-y-4">
+
+      <!-- Upload zone -->
+      <div class="mt-drop" onclick="mockUpload()">
+        <div class="text-3xl mb-2">📤</div>
+        <p class="text-sm font-bold text-gray-900">Drop files here or click to upload</p>
+        <p class="text-xs text-gray-500 mt-1">PDF, PPTX, DOCX up to 25MB · lecture notes, slides, assignment briefs</p>
+      </div>
+
+      <!-- Uploaded materials -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📚</span><p class="t">Uploaded materials</p><span class="pill pill-blue">6 files</span></div>
+        <div class="divide-y divide-gray-50" id="mt-list">
+          <div class="mt-row">
+            <div class="mt-ic">📄</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate">Normalization_Lecture_Notes.pdf</p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="pill" style="background:#dbeafe;color:#1d4ed8">Lecture notes</span><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">2.1 MB · uploaded 3 days ago</span></div>
+            </div>
+            <span class="pill pill-green shrink-0">✓ Indexed</span>
+          </div>
+          <div class="mt-row">
+            <div class="mt-ic">📊</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate">Week6_Indexing_Slides.pptx</p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="pill" style="background:#f5f3ff;color:#6d28d9">Slides</span><span class="pill pill-blue">CLO4</span><span class="text-[11px] text-gray-400">4.8 MB · uploaded 5 days ago</span></div>
+            </div>
+            <span class="pill pill-green shrink-0">✓ Indexed</span>
+          </div>
+          <div class="mt-row">
+            <div class="mt-ic">📝</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate">Assignment3_Brief.docx</p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="pill" style="background:#fef3c7;color:#b45309">Assignment brief</span><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">340 KB · uploaded 1 week ago</span></div>
+            </div>
+            <span class="pill pill-amber shrink-0">⏳ Pending</span>
+          </div>
+          <div class="mt-row">
+            <div class="mt-ic">📄</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate">REST_APIs_Lecture_Notes.pdf</p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="pill" style="background:#dbeafe;color:#1d4ed8">Lecture notes</span><span class="pill pill-blue">CLO5</span><span class="text-[11px] text-gray-400">1.6 MB · uploaded 2 weeks ago</span></div>
+            </div>
+            <span class="pill pill-green shrink-0">✓ Indexed</span>
+          </div>
+          <div class="mt-row">
+            <div class="mt-ic">📋</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate">Schema_Design_Rubric.pdf</p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="pill" style="background:#fce7f3;color:#be185d">Rubric criteria</span><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">180 KB · uploaded 3 weeks ago</span></div>
+            </div>
+            <span class="pill pill-green shrink-0">✓ Indexed</span>
+          </div>
+          <div class="mt-row">
+            <div class="mt-ic">📄</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate">Old_Syllabus_v1.pdf</p>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="pill pill-slate">Other</span><span class="text-[11px] text-gray-400">220 KB · uploaded 1 month ago</span></div>
+            </div>
+            <span class="pill pill-red shrink-0">⚠ Failed</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="mt-rail">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🤖</span><p class="t">AI Tutor knowledge base</p></div>
+        <p class="text-[11px] text-gray-500 leading-relaxed mb-2">Indexed materials become searchable chunks the AI Tutor cites when answering your students — this is what keeps its answers grounded in your course content instead of generic knowledge.</p>
+        <div class="rail-row"><span style="flex:1">Indexed chunks</span><b>1,240</b></div>
+        <div class="rail-row"><span style="flex:1">Pending</span><b class="text-amber-600">1</b></div>
+        <div class="rail-row"><span style="flex:1">Failed</span><b class="text-red-600">1</b></div>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">⚠️</span><p class="t">Needs attention</p></div>
+        <p class="text-[11px] text-gray-600 leading-relaxed mb-2">"Old_Syllabus_v1.pdf" failed to index — likely a scanned/image-only PDF with no extractable text.</p>
+        <button class="btn3d sm b-ghost w-full" onclick="toast('Re-processing file…','🔄')">🔄 Retry indexing</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="teacher-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="teacher-students.html" class="tab-btn" data-tab="students"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z"/></svg><span>Students</span></a>
+  <a href="teacher-materials.html" class="tab-btn active" data-tab="materials"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg><span>Materials</span></a>
+  <a href="teacher-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Curriculum</span></a>
+  <a href="teacher-grading.html" class="tab-btn" data-tab="grading"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg><span>Grading</span></a>
+</nav>
+<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+<script>
+  function mockUpload(){
+    toast('Uploading file…','📤');
+    setTimeout(()=>toast('Chunking & embedding for the AI Tutor…','🧩'),900);
+    setTimeout(()=>toast('Material indexed and ready','✅'),1900);
+  }
+  window.addEventListener('load',()=>equalizeColumns('.mt-grid > div:first-child','.mt-rail'));
+</script>
+</body>
+</html>

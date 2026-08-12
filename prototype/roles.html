@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E Deviser — Prototype Dashboard</title>
+  <link rel="stylesheet" href="roles-launcher.css">
+</head>
+<body>
+  <main class="launcher-shell">
+    <header class="launcher-header">
+      <a class="launcher-brand" href="roles.html" aria-label="E Deviser prototype dashboard">
+        <img src="brand/edeviser-logo.png" alt="E Deviser">
+      </a>
+      <span class="prototype-badge">Prototype only · Local data</span>
+    </header>
+
+    <section class="launcher-intro" aria-labelledby="launcher-title">
+      <p class="eyebrow">One platform · five perspectives</p>
+      <h1 id="launcher-title">Choose a profile to explore</h1>
+      <p>Select the preview device once, then open any profile. Presenter controls stay here and will not cover individual role screens.</p>
+    </section>
+
+    <section class="profile-grid" aria-label="Available prototype profiles">
+      <a class="profile-card student" href="dashboard.html" data-role-link="dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🎓</span>
+        <span class="profile-type">Learner</span>
+        <h2>Student</h2>
+        <p>A mission-first learning headquarters connecting outcomes, evidence, goals, deadlines and habits.</p>
+        <span class="profile-features"><i>Daily Mission</i><i>Learning Intelligence</i><i>AI Tutor</i></span>
+        <strong>Open Student <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card teacher" href="teacher-dashboard.html" data-role-link="teacher-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🧑‍🏫</span>
+        <span class="profile-type">Educator</span>
+        <h2>Teacher</h2>
+        <p>Prepared student triage, teacher-controlled AI feedback and outcome-linked curriculum tools.</p>
+        <span class="profile-features"><i>Student Triage</i><i>Feedback Drafts</i><i>Curriculum AI</i></span>
+        <strong>Open Teacher <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card parent" href="parent-dashboard.html" data-role-link="parent-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">👨‍👩‍👧</span>
+        <span class="profile-type">Family</span>
+        <h2>Parent</h2>
+        <p>A supportive weekly story focused on growth, wellbeing and useful conversations.</p>
+        <span class="profile-features"><i>Growth</i><i>Wellbeing</i><i>Support</i></span>
+        <strong>Open Parent <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card coordinator" href="coordinator-dashboard.html" data-role-link="coordinator-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🧭</span>
+        <span class="profile-type">Program leadership</span>
+        <h2>Coordinator</h2>
+        <p>Program attainment, curriculum-gap detection, CQI planning and accreditation evidence.</p>
+        <span class="profile-features"><i>Attainment</i><i>Curriculum</i><i>Accreditation</i></span>
+        <strong>Open Coordinator <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card admin" href="admin-dashboard.html" data-role-link="admin-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🏛️</span>
+        <span class="profile-type">Institution</span>
+        <h2>Admin</h2>
+        <p>Institution-wide trends, people, retention signals and transparent AI governance.</p>
+        <span class="profile-features"><i>Analytics</i><i>Operations</i><i>Governance</i></span>
+        <strong>Open Admin <span aria-hidden="true">→</span></strong>
+      </a>
+    </section>
+
+    <section class="loop-note" aria-label="Shared product architecture">
+      <span aria-hidden="true">↻</span>
+      <div><strong>One learning loop, five perspectives.</strong><p>Outcome → next action → evidence → feedback → improvement.</p></div>
+    </section>
+  </main>
+
+  <div class="launcher-dock" aria-label="Prototype launcher controls">
+    <span class="launcher-label">Preview</span>
+    <div class="device-seg" aria-label="Device preview">
+      <button class="device-btn" type="button" data-launch-mode="mobile" aria-pressed="false">📱 Mobile</button>
+      <button class="device-btn" type="button" data-launch-mode="laptop" aria-pressed="false">💻 Laptop</button>
+    </div>
+    <label class="visually-hidden" for="role-launch">Choose profile</label>
+    <select class="role-launch" id="role-launch" aria-label="Choose profile">
+      <option value="dashboard.html">🎓 Student</option>
+      <option value="teacher-dashboard.html">🧑‍🏫 Teacher</option>
+      <option value="parent-dashboard.html">👨‍👩‍👧 Parent</option>
+      <option value="coordinator-dashboard.html">🧭 Coordinator</option>
+      <option value="admin-dashboard.html">🏛️ Admin / Institution</option>
+    </select>
+    <button class="open-role" id="open-role" type="button">Open profile <span aria-hidden="true">→</span></button>
+  </div>
+
+  <script>
+  (function(){
+    var savedMode='laptop';
+    try{savedMode=localStorage.getItem('edv-mode')||'laptop';}catch(e){}
+    function paint(mode){
+      savedMode=mode;
+      try{localStorage.setItem('edv-mode',mode);}catch(e){}
+      document.querySelectorAll('[data-launch-mode]').forEach(function(button){
+        var active=button.dataset.launchMode===mode;
+        button.classList.toggle('on',active);
+        button.setAttribute('aria-pressed',String(active));
+      });
+    }
+    document.querySelectorAll('[data-launch-mode]').forEach(function(button){
+      button.addEventListener('click',function(){paint(button.dataset.launchMode);});
+    });
+    function openPreview(url){
+      if(savedMode==='mobile' && window.innerWidth>700){
+        var preview=window.open(url,'edeviser-mobile-preview','popup,width=430,height=900,resizable=yes,scrollbars=yes');
+        if(preview){preview.focus();return;}
+      }
+      window.location.href=url;
+    }
+    document.querySelectorAll('[data-role-link]').forEach(function(link){
+      link.addEventListener('click',function(event){
+        event.preventDefault();
+        document.getElementById('role-launch').value=link.dataset.roleLink;
+        openPreview(link.dataset.roleLink);
+      });
+    });
+    document.getElementById('open-role').addEventListener('click',function(){
+      openPreview(document.getElementById('role-launch').value);
+    });
+    paint(savedMode);
+  })();
+  </script>
+</body>
+</html>

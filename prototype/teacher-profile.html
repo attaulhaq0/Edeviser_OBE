@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Teacher Profile</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="teacher-refinement.css"/>
+<style>
+  /* Teacher "Me" — professional profile & class config. Scoped, additive
+     styles mirroring the coordinator-profile pattern. */
+  body[data-role="teacher"] .contact{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  body[data-role="teacher"] .contact .ct{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#475569;background:#f8fafc;border:1px solid #eef2f6;border-radius:9px;padding:6px 10px}
+  body[data-role="teacher"] .set-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  body[data-role="teacher"] .set-row:last-child{border-bottom:none}
+  body[data-role="teacher"] .set-row .sr-t{flex:1;min-width:0;font-size:13px;font-weight:600;color:#334155}
+  body[data-role="teacher"] .set-row .sr-s{font-size:11px;color:#94a3b8;font-weight:500}
+  body[data-role="teacher"] .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+  body[data-role="teacher"] .info-grid .ig-k{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:0}
+  body[data-role="teacher"] .info-grid .ig-v{font-size:13px;font-weight:700;color:#0f172a;margin:2px 0 0}
+  body[data-role="teacher"] .prog-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  body[data-role="teacher"] .prog-item:last-child{border-bottom:none}
+  body[data-role="teacher"] .prog-ic{width:38px;height:38px;border-radius:11px;background:#eff6ff;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex:0 0 auto}
+</style>
+</head>
+<body class="bg-slate-50" data-role="teacher">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="teacher-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">A</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- 1 · Profile header — identity + scope + contact
+       Unified .phdr layout (reused across all 5 roles). Data mirrors
+       useTeachingImpact / useProfileCompleteness / useCLOs (courses, learning_outcomes). UI refactor only. -->
+  <div class="feed-wide pcard p-5">
+    <div class="phdr">
+      <div class="phdr-left">
+        <div class="phdr-idrow">
+          <button class="ava-edit shrink-0" onclick="editTeacherProfile()" aria-label="Change photo">
+            <span class="phdr-av">A</span>
+            <span class="ava-cam">📷</span>
+          </button>
+          <div class="min-w-0">
+            <h1 class="phdr-name">Prof. Ahmed</h1>
+            <p class="phdr-role">Assistant Professor <span class="sub">· Computer Science / Gulf Academy</span></p>
+          </div>
+        </div>
+        <div class="phdr-stats">
+          <div class="phdr-stat"><span class="phdr-stat-ic st-blue">📅</span><span class="phdr-stat-tx"><span class="phdr-stat-v">4</span><span class="phdr-stat-l">Classes</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-green">👥</span><span class="phdr-stat-tx"><span class="phdr-stat-v">118</span><span class="phdr-stat-l">Students</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-teal">🎓</span><span class="phdr-stat-tx"><span class="phdr-stat-v">3</span><span class="phdr-stat-l">Courses</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-violet">🎯</span><span class="phdr-stat-tx"><span class="phdr-stat-v">27</span><span class="phdr-stat-l">CLOs</span></span></div>
+        </div>
+      </div>
+      <div class="phdr-right">
+        <div class="phdr-actions">
+          <button onclick="editTeacherProfile()" class="phdr-btn">✏️ Edit profile</button>
+          <button onclick="toast('Opening public profile…','👤')" class="phdr-btn primary">👁️ View public profile</button>
+        </div>
+        <div class="phdr-contact">
+          <div class="phdr-c"><span class="phdr-c-ic">✉️</span><a href="mailto:a.alrashid@gulf-academy.edu.qa">a.alrashid@gulf-academy.edu.qa</a></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📞</span><span>+974 4000 2233</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📍</span><span>Building A · Room 210</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">🕐</span><span>Office hours · Mon–Wed 1–3</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile intentionally owns identity and settings, not dashboard metrics. -->
+  <div class="feed-wide pcard p-4 hidden">
+    <div class="sec-h"><span class="chip">📈</span><p class="t">Teaching impact</p></div>
+    <div class="grid grid-cols-3 gap-3">
+      <div class="text-center"><p class="text-2xl font-black text-slate-900">4</p><p class="text-[10px] text-gray-500">Active classes</p></div>
+      <div class="text-center"><p class="text-2xl font-black text-gray-900">A2</p><p class="text-[10px] text-gray-500">Draft assistance</p></div>
+      <div class="text-center"><p class="text-2xl font-black text-blue-600">12</p><p class="text-[10px] text-gray-500">Feedback drafts ready</p></div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 3 · AI autonomy control (preserved) -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🛡️</span><p class="t">E Deviser assistance · A2</p><button onclick="whyPop('E Deviser may prepare attention, evidence, feedback, intervention, question and curriculum drafts. Messaging, publishing, grades, feedback release and attendance always require your approval.')" class="more">what's this?</button></div>
+    <div class="tier-seg" id="tier">
+      <button onclick="setTier(this,'A0','Observe only — AI shows insights, never acts.')">A0</button>
+      <button onclick="setTier(this,'A1','Suggest — AI proposes actions you open manually.')">A1</button>
+      <button class="on" onclick="setTier(this,'A2','Act with approval — one-click, you confirm each action.')">A2</button>
+      <button disabled title="Protected actions always require Teacher approval">A2 · Active</button>
+    </div>
+    <p id="tierMsg" class="text-xs text-gray-500 mt-2">Drafts are prepared with Evidence and Policy checks; every protected action needs your approval.</p>
+  </div>
+
+  <!-- 4 · Preferences (accessible toggles) -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">⚙️</span><p class="t">Preferences</p></div>
+    <div class="set-row"><span class="sr-t">Daily AI briefing<span class="sr-s block">Morning summary of your classes</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Briefing on':'Briefing off',this.checked?'✅':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Auto-draft feedback<span class="sr-s block">AI drafts, you approve</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Auto-draft on':'Auto-draft off',this.checked?'✅':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Default language</span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Arabic':'English',this.checked?'🌐':'🌐')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Reduced motion</span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Reduced motion on':'Reduced motion off',this.checked?'✨':'⚪')"><span class="etk"></span></label></div>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 5 · Notification preferences -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔔</span><p class="t">Notification preferences</p></div>
+    <div class="set-row"><span class="sr-t">Student attention alerts</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">New submissions to grade</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Tutor handoff requests</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Weekly class summary</span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Quiet hours<span class="sr-s block">Pause non-urgent alerts overnight</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toggleQuietHours(this)"><span class="etk"></span></label></div>
+    <div id="qh-times" class="set-row" style="gap:8px"><span class="sr-t" style="flex:0 0 auto">From</span><input type="time" value="22:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"><span class="sr-t" style="flex:0 0 auto">to</span><input type="time" value="07:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"></div>
+    <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;border-bottom:none">
+      <span class="sr-t">Mute specific courses<span class="sr-s block">No alerts from a muted class</span></span>
+      <div class="flex flex-wrap gap-2"><button class="mute-chip" onclick="toggleMute(this)">CS101</button><button class="mute-chip muted" onclick="toggleMute(this)">CS204</button><button class="mute-chip" onclick="toggleMute(this)">CS310</button></div>
+    </div>
+  </div>
+
+  <!-- 6 · Security & access -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔒</span><p class="t">Security &amp; access</p></div>
+    <div class="set-row"><span class="sr-t">Change password<span class="sr-s block">Last changed 5 weeks ago</span></span><button onclick="toast('Opening password change…','🔒')" class="btn3d sm b-ghost">Change</button></div>
+    <div class="set-row"><span class="sr-t">Two-factor authentication</span><span class="pill pill-green">Enabled</span></div>
+    <div class="set-row"><span class="sr-t">Active sessions<span class="sr-s block">2 devices signed in</span></span><button onclick="toast('Opening sessions…','💻')" class="btn3d sm b-ghost">Review</button></div>
+    <div class="set-row"><span class="sr-t">Export my data<span class="sr-s block">Download your account data as CSV</span></span><button onclick="toast('Preparing data export…','📦');setTimeout(()=>toast('Export ready to download','📄'),1000)" class="btn3d sm b-ghost">Export</button></div>
+    <div class="set-row"><span class="sr-t" style="color:#dc2626">Delete my account<span class="sr-s block">Anonymize your profile &amp; PII (cannot be undone)</span></span><button onclick="if(confirm('Delete your account? This anonymizes your profile and personal data and cannot be undone.'))toast('Account deletion requested','🗑️')" class="btn3d sm b-danger">Delete</button></div>
+  </div>
+  </div>
+
+  <!-- 6b · Connected integrations — parity with coordinator profile (useConnectedIntegrations) -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🔌</span><p class="t">Connected integrations</p></div>
+    <div class="set-row"><span class="text-lg">📅</span><span class="sr-t">Google Calendar<span class="sr-s block">Sync class times &amp; deadlines</span></span><span class="pill pill-green">Connected</span></div>
+    <div class="set-row"><span class="text-lg">📧</span><span class="sr-t">Microsoft Outlook</span><button onclick="toast('Connecting Outlook…','🔌')" class="btn3d sm b-soft">Connect</button></div>
+    <div class="set-row"><span class="text-lg">💬</span><span class="sr-t">Alert channel<span class="sr-s block">Student attention and grading alerts</span></span><button onclick="toast('Preference saved','🔔')" class="btn3d sm b-soft">Manage</button></div>
+    <button onclick="toast('Opening integrations…','🔌')" class="btn3d sm b-ghost full mt-3">Manage integrations</button>
+  </div>
+
+  <!-- 7 · My classes -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🎓</span><p class="t">My classes</p></div>
+    <a href="teacher-students.html" class="prog-item"><span class="prog-ic">CS1</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS101 · Intro to Programming</p><p class="text-xs text-gray-500">2 sections · 46 students</p></div><span class="text-gray-300">→</span></a>
+    <a href="teacher-students.html" class="prog-item"><span class="prog-ic">CS2</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS204 · Data Structures</p><p class="text-xs text-gray-500">1 section · 38 students</p></div><span class="text-gray-300">→</span></a>
+    <a href="teacher-students.html" class="prog-item"><span class="prog-ic">CS3</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS310 · Databases</p><p class="text-xs text-gray-500">1 section · 34 students</p></div><span class="text-gray-300">→</span></a>
+  </div>
+
+  <!-- 8 · Academic information -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🎓</span><p class="t">Academic information</p></div>
+    <div class="info-grid">
+      <div><p class="ig-k">Department</p><p class="ig-v">Computer Science</p></div>
+      <div><p class="ig-k">Designation</p><p class="ig-v">Assistant Professor</p></div>
+      <div><p class="ig-k">Highest qualification</p><p class="ig-v">PhD, Software Engineering</p></div>
+      <div><p class="ig-k">Years of experience</p><p class="ig-v">9 years</p></div>
+      <div><p class="ig-k">Faculty ID</p><p class="ig-v">CS-1187</p></div>
+      <div><p class="ig-k">Joined</p><p class="ig-v">Sep 2021</p></div>
+    </div>
+  </div>
+
+  <a href="roles.html" class="feed-wide block text-center py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200">Switch role →</a>
+
+</div>
+<script>
+function setTier(el,t,msg){document.querySelectorAll('#tier button').forEach(b=>b.classList.remove('on'));el.classList.add('on');document.getElementById('tierMsg').innerHTML=msg;toast('AI autonomy set to '+t,'🛡️');}
+function editTeacherProfile(){
+  openEditModal({
+    title:'Edit profile', initial:'A', successMsg:'Profile updated',
+    fields:[
+{label:'Title', value:'Prof. Ahmed'},
+      {label:'Designation', value:'Assistant Professor'},
+      {type:'row2', items:[{label:'Email', type:'email', value:'a.alrashid@gulf-academy.edu.qa'},{label:'Phone', type:'tel', value:'+974 4000 2233'}]},
+      {label:'Office', value:'Building A · Room 210'},
+      {label:'Office hours', value:'Mon–Wed 1–3'},
+    ]
+  });
+}
+</script>
+<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+</body>
+</html>

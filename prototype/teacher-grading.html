@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Grading</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="teacher-refinement.css"/>
+</head>
+<body class="bg-slate-50" data-role="teacher">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="teacher-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">A</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useGradingStats, useGrades, useAIFeedbackDraft | tables: submissions, grades, evidence, ai_feedback -->
+
+  <div class="feed-wide flex items-center justify-between gap-3">
+    <div><h1 class="text-xl font-black tracking-tight text-gray-900">Grading queue</h1><p class="text-xs text-gray-500 mt-0.5">CS301 · Assignment 3 · AI drafts feedback tied to outcomes — you review &amp; release.</p></div>
+    <span class="pill pill-amber" style="font-size:12px;padding:6px 12px">12 to grade</span>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Queue -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📥</span><p class="t">Submissions</p></div>
+    <div id="queue" class="space-y-1.5"></div>
+  </div>
+
+  <!-- Editor -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">✍️</span><p class="t">AI-drafted feedback</p><button onclick="whyPop('The draft is generated from the rubric + the student\\'s submission + their outcome history, in your feedback voice. It is a starting point — edit freely. Nothing is released until you click Approve.')" class="more">why?</button></div>
+    <div id="editor">
+      <p class="text-sm text-gray-400 py-6 text-center">Select a submission to see its AI-drafted feedback.</p>
+    </div>
+  </div>
+  </div>
+
+</div>
+<script>
+const SUBS=[
+  {id:1,n:"Aisha K.",score:92,band:"green",fb:"Strong, complete 3NF decomposition — your table for loans cleanly separates member and book entities. To push toward excellence, add a one-line justification for why each table avoids transitive dependencies; that makes your reasoning visible, not just your result.",clo:"CLO3 Normalization → Excellent"},
+  {id:2,n:"Yousef M.",score:64,band:"amber",fb:"You've clearly grasped 1NF and 2NF — atomic values and the composite-key split are correct. The gap is 3NF: 'publisher_country' is transitively dependent on 'publisher'. Revisit the 3NF micro-lesson and try the worked example; you're one step away.",clo:"CLO3 Normalization → Developing"},
+  {id:3,n:"Sarah Ahmed",score:81,band:"amber",fb:"Your schema shows strong concept understanding. For independent application, point out the transitive dependency before you decompose it, then explain why the new relation removes it. Bring that explanation to our short check-in before Friday.",clo:"Assignment score 81% · CLO3 Normalization → Developing (62% mastery)"},
+  {id:4,n:"Hassan R.",score:81,band:"green",fb:"Solid 3NF design with sensible keys. Consider whether denormalizing the 'category' lookup would help read performance for your use case — a great instinct to develop.",clo:"CLO3 Normalization → Satisfactory"},
+];
+const pill=b=>`<span class="pill pill-${b}">${b==='green'?'Excellent':b==='amber'?'Developing':'Not Yet'}</span>`;
+function drawQueue(){
+  document.getElementById('queue').innerHTML=SUBS.map(s=>`
+    <button onclick="load(${s.id})" class="w-full text-left rounded-lg border border-gray-100 hover:bg-slate-50 px-3 py-2.5 flex items-center gap-3" data-q="${s.id}">
+      <div class="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black text-white" style="background:var(--brand-gradient)">${s.n[0]}</div>
+      <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">${s.n}</p><p class="text-[11px] text-gray-400">Assignment 3 · draft ready</p></div>
+      <b style="color:${s.band==='green'?'#16a34a':s.band==='amber'?'#b45309':'#b91c1c'}">${s.score}%</b>
+    </button>`).join('');
+}
+function load(id){
+  const s=SUBS.find(x=>x.id===id);
+  document.querySelectorAll('[data-q]').forEach(b=>b.style.background=b.dataset.q==id?'#eff6ff':'');
+  document.getElementById('editor').innerHTML=`
+    <div class="flex items-center gap-2 mb-2 flex-wrap"><b class="text-sm text-gray-900">${s.n}</b> ${pill(s.band)} <span class="text-[11px] text-gray-400">${s.clo}</span></div>
+    <div class="flex items-center gap-2 mb-2">
+      <label class="text-xs font-semibold text-gray-500">Score</label>
+      <input type="number" value="${s.score}" class="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm font-bold"/>
+      <span class="text-[11px] text-gray-400">Draft suggested from rubric · Teacher must approve any change</span>
+    </div>
+    <textarea class="w-full border border-gray-200 rounded-xl p-3 text-sm text-gray-700 leading-relaxed" rows="6">${s.fb}</textarea>
+    <div class="flex gap-2 mt-3 flex-wrap">
+      <button onclick="toast('Teacher-approved feedback released to ${s.n}','✅')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">✅ Approve &amp; release</button>
+      <button onclick="toast('Regenerating draft…','🔄')" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">🔄 Regenerate</button>
+      <button onclick="toast('Saved as draft','💾')" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">💾 Save draft</button>
+    </div>`;
+}
+drawQueue();
+</script>
+<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+</body>
+</html>

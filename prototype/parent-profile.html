@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Parent Profile</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="parent-refinement.css"/>
+<style>
+  /* Professional profile header — mirrors the coordinator "Me" top section. */
+  body[data-role="parent"] .contact{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  body[data-role="parent"] .contact .ct{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#475569;background:#f8fafc;border:1px solid #eef2f6;border-radius:9px;padding:6px 10px}
+</style>
+</head>
+<body class="bg-slate-50" data-role="parent">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="parent-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">N</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- 1 · Profile header — identity + linked scope + contact
+       Unified .phdr layout (reused across all 5 roles). Data mirrors
+       useParentDashboardAggregate (children[]). Office/hours rows omitted
+       (not applicable to a guardian). UI refactor only. -->
+  <div class="feed-wide pcard p-5">
+    <div class="phdr">
+      <div class="phdr-left">
+        <div class="phdr-idrow">
+          <button class="ava-edit shrink-0" onclick="editParentProfile()" aria-label="Change photo">
+            <span class="phdr-av">N</span>
+            <span class="ava-cam">📷</span>
+          </button>
+          <div class="min-w-0">
+            <h1 class="phdr-name">Nadia Hassan</h1>
+            <p class="phdr-role">Parent / Guardian <span class="sub">· Verified guardian of Sarah Ahmed</span></p>
+          </div>
+        </div>
+        <div class="phdr-stats">
+          <div class="phdr-stat"><span class="phdr-stat-ic st-teal">👨‍👩‍👧</span><span class="phdr-stat-tx"><span class="phdr-stat-v">1</span><span class="phdr-stat-l">Verified child</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-blue">✓</span><span class="phdr-stat-tx"><span class="phdr-stat-v">Active</span><span class="phdr-stat-l">Parent access</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-green">✦</span><span class="phdr-stat-tx"><span class="phdr-stat-v">On</span><span class="phdr-stat-l">Suggestions</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-amber">🔒</span><span class="phdr-stat-tx"><span class="phdr-stat-v">Required</span><span class="phdr-stat-l">Approval</span></span></div>
+        </div>
+      </div>
+      <div class="phdr-right">
+        <div class="phdr-actions">
+          <button onclick="editParentProfile()" class="phdr-btn">✏️ Edit profile</button>
+          <button onclick="toast('Opening school contact…','✉️')" class="phdr-btn primary">✉️ Contact school</button>
+        </div>
+        <div class="phdr-contact">
+          <div class="phdr-c"><span class="phdr-c-ic">✉️</span><a href="mailto:nadia.hassan@email.com">nadia.hassan@email.com</a></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📞</span><span>+974 5000 4321</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">🔗</span><span>Linked since Sep 2024</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Linked child -->
+  <!-- Linked learners (parent_student_links is many; useParentDashboardAggregate returns children[]) -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">👨‍👩‍👧</span><p class="t">Linked student</p><span class="pill pill-blue" style="margin-inline-start:auto">Verified</span></div>
+    <div class="divide-y divide-gray-50">
+      <div class="flex items-center gap-3 py-2.5">
+        <div class="h-11 w-11 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-black shrink-0">SA</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Sarah Ahmed</p><p class="text-xs text-gray-500">Level 4 · verified Parent link ✓</p></div>
+        <span class="pill pill-green">Active</span>
+      </div>
+    </div>
+    <button onclick="toast('Enter your child\'s link code…','🔗')" class="btn3d sm b-ghost full mt-3">＋ Link another child</button>
+  </div>
+
+  <!-- Quick links -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+    <a href="fees.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">💳</span><span class="text-sm font-medium text-gray-800">Fees &amp; Payments</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="announcements.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">📣</span><span class="text-sm font-medium text-gray-800">Announcements</span></div><span class="text-xs text-gray-400">→</span></a>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Privacy / consent -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔒</span><p class="t">Privacy &amp; what you can see</p><button type="button" data-open-parent-drawer="profile" class="more">details</button></div>
+    <div class="permission-grid">
+      <section class="permission-panel"><h3>Parent access</h3><ul><li>Learning summaries</li><li>Upcoming deadlines</li><li>Approved wellbeing context</li><li>Teacher communication</li></ul></section>
+      <section class="permission-panel private"><h3>Private by default</h3><ul><li>Tutor conversations</li><li>Journal entries</li><li>Teacher-only notes</li></ul></section>
+      <section class="permission-panel"><h3>AI assistance</h3><ul><li>Suggestions: On</li><li>Drafts: On</li><li>Communication: Approval required</li></ul></section>
+    </div>
+  </div>
+
+  <!-- Preferences -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔔</span><p class="t">Notifications</p></div>
+    <div class="space-y-1">
+      <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-700">Weekly growth story</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+      <div class="flex items-center justify-between py-2 border-t border-gray-50"><span class="text-sm text-gray-700">Wellbeing alerts only</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+      <div class="flex items-center justify-between py-2 border-t border-gray-50"><span class="text-sm text-gray-700">Celebrate improvements</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+      <div class="flex items-center justify-between py-2 border-t border-gray-50"><span class="text-sm text-gray-700">Quiet hours<span class="block text-xs text-gray-400">Pause non-urgent alerts overnight</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toggleQuietHours(this)"><span class="etk"></span></label></div>
+      <div id="qh-times" class="flex items-center gap-2 py-2 border-t border-gray-50"><span class="text-sm text-gray-500">From</span><input type="time" value="21:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"><span class="text-sm text-gray-500">to</span><input type="time" value="07:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"></div>
+      <div class="py-2 border-t border-gray-50">
+        <p class="text-sm text-gray-700">Mute course alerts <span class="block text-xs text-gray-400">Stop notifications for a specific course</span></p>
+        <div class="flex flex-wrap gap-2 mt-2"><button class="mute-chip" onclick="toggleMute(this)">Database Design</button><button class="mute-chip" onclick="toggleMute(this)">Web Development</button><button class="mute-chip" onclick="toggleMute(this)">AI Fundamentals</button></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Security & access — parity with the staff profiles (parents have accounts too) -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🔒</span><p class="t">Security &amp; access</p></div>
+    <div class="flex items-center justify-between py-2"><div><p class="text-sm font-medium text-gray-900">Change password</p><p class="text-xs text-gray-400">Last changed 2 months ago</p></div><button onclick="toast('Opening password change…','🔒')" class="btn3d sm b-ghost">Change</button></div>
+    <div class="flex items-center justify-between py-2 border-t border-gray-50"><span class="text-sm text-gray-700">Two-factor authentication</span><span class="pill pill-green">Enabled</span></div>
+    <div class="flex items-center justify-between py-2 border-t border-gray-50"><div><p class="text-sm text-gray-700">Active sessions</p><p class="text-xs text-gray-400">1 device signed in</p></div><button onclick="toast('Opening sessions…','💻')" class="btn3d sm b-ghost">Review</button></div>
+    <div class="flex items-center justify-between py-2 border-t border-gray-50"><div><p class="text-sm text-gray-700">Export my data</p><p class="text-xs text-gray-400">Download your account data as CSV</p></div><button onclick="toast('Preparing data export…','📦');setTimeout(()=>toast('Export ready to download','📄'),1000)" class="btn3d sm b-ghost">Export</button></div>
+    <div class="flex items-center justify-between py-2 border-t border-gray-50"><div><p class="text-sm font-medium text-red-600">Delete my account</p><p class="text-xs text-gray-400">Anonymize your profile &amp; PII (cannot be undone)</p></div><button onclick="if(confirm('Delete your account? This anonymizes your profile and personal data and cannot be undone.'))toast('Account deletion requested','🗑️')" class="btn3d sm b-danger">Delete</button></div>
+  </div>
+
+  <a href="roles.html" class="feed-wide block text-center py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200">Switch role →</a>
+
+</div>
+
+<div id="parent-drawer-backdrop" class="parent-drawer-backdrop" hidden></div>
+<aside id="parent-drawer" class="parent-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="parent-drawer-title" hidden><div class="drawer-top"><div><p id="parent-drawer-eyebrow" class="parent-eyebrow"></p><h2 id="parent-drawer-title"></h2></div><button class="drawer-close" type="button" data-parent-close aria-label="Close">×</button></div><div id="parent-drawer-content"></div></aside>
+
+<script src="shared.js"></script>
+<script src="parent-data.js"></script>
+<script src="parent-refinement.js"></script>
+<script>
+function editParentProfile(){
+  openEditModal({
+    title:'Edit profile', initial:'N', successMsg:'Profile updated',
+    fields:[
+      {type:'row2', items:[{label:'First name', value:'Nadia'},{label:'Last name', value:'Hassan'}]},
+      {type:'row2', items:[{label:'Email', type:'email', value:'nadia.hassan@email.com'},{label:'Phone', type:'tel', value:'+974 5000 4321'}]},
+      {label:'Relationship to student', type:'select', value:'Parent', options:['Parent','Guardian','Other']},
+    ]
+  });
+}
+</script>
+</body>
+</html>

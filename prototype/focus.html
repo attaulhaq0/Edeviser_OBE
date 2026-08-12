@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Focus</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="student-refinement.css"/>
+<style>
+  /* Focus / Study sessions — maps to: study_sessions (timer_mode pomodoro,
+     planned_duration), session_intents (what you'll focus on), session_reflections
+     (post-session), useFocusTimer, useStudyTimeAnalytics. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .fc-grid{display:block}
+  html.mode-laptop .fc-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  html.mode-laptop .fc-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .ring{transform:rotate(-90deg)}
+  .ring circle{transition:stroke-dashoffset 1s linear}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Focus</h1><p class="text-xs text-gray-500">Deep-work study sessions</p></div>
+  </div>
+  <span class="text-xs font-black text-teal-700 bg-teal-50 border border-teal-100 px-2.5 py-1.5 rounded-full">⏱️ 1h 40m today</span>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="fc-grid">
+    <div class="space-y-4">
+
+      <!-- Timer -->
+      <div class="pcard p-6 text-center">
+        <!-- Intent (session_intents) -->
+        <div id="intent-box">
+          <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Set your intent</p>
+          <input id="intent" class="w-full text-center text-lg font-bold text-gray-900 border-b-2 border-gray-100 focus:border-teal-400 outline-none py-2 mt-1" placeholder="What will you focus on?" value="Finish normalization exercises"/>
+          <select id="intent-clo" class="mt-3 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white"><option>CLO3 · Normalization</option><option>CLO4 · Indexing</option><option>CLO5 · REST APIs</option><option>No specific CLO</option></select>
+        </div>
+
+        <div class="relative mx-auto mt-5" style="width:220px;height:220px">
+          <svg class="ring" width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="100" fill="none" stroke="#eef2f6" stroke-width="14"/>
+            <circle id="ring-fg" cx="110" cy="110" r="100" fill="none" stroke="url(#g)" stroke-width="14" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="0"/>
+            <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14b8a6"/><stop offset="1" stop-color="#0382bd"/></linearGradient></defs>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <p id="clock" class="text-5xl font-black text-gray-900 tabular-nums">25:00</p>
+            <p id="phase" class="text-xs font-bold text-teal-600 uppercase tracking-widest mt-1">Focus</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 mt-5">
+          <button id="startBtn" class="btn3d" onclick="toggleTimer()" style="background:var(--brand-gradient)">▶ Start</button>
+          <button class="btn3d b-ghost" onclick="resetTimer()">Reset</button>
+          <button class="btn3d b-ghost" onclick="finishSession()">Finish</button>
+        </div>
+        <div class="flex items-center justify-center gap-2 mt-3">
+          <button class="text-xs font-bold text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5" onclick="setLen(25)">25 min</button>
+          <button class="text-xs font-bold text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5" onclick="setLen(50)">50 min</button>
+          <button class="text-xs font-bold text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5" onclick="setLen(5)">5 min break</button>
+        </div>
+      </div>
+
+      <!-- Reflection (session_reflections) — appears after finish -->
+      <div id="reflection" class="pcard p-4" hidden>
+        <div class="sec-h"><span class="chip">📔</span><p class="t">Session reflection</p></div>
+        <p class="text-xs text-gray-500 mb-2">What did you learn? How confident do you feel now? (+10 XP)</p>
+        <textarea class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" rows="2" placeholder="I worked through 2NF→3NF and…"></textarea>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">Confidence:</span>
+          <div class="flex gap-1">😕 🙂 😃</div>
+          <button class="btn3d sm ms-auto" onclick="toast('Reflection saved · +10 XP','📔');document.getElementById('reflection').hidden=true" style="background:var(--brand-gradient)">Save</button>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="fc-rail">
+      <!-- Today (study_sessions) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📊</span><p class="t">Focus this week</p></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="stat-tile"><p class="st-k">Total time</p><p class="st-v">7h 20m</p></div>
+          <div class="stat-tile"><p class="st-k">Sessions</p><p class="st-v">14</p></div>
+          <div class="stat-tile"><p class="st-k">Avg / day</p><p class="st-v">1h 03m</p></div>
+          <div class="stat-tile"><p class="st-k">Best streak</p><p class="st-v">5 days</p></div>
+        </div>
+        <p class="text-[10px] font-black tracking-widest uppercase text-gray-400 mt-3 mb-1.5">By day</p>
+        <div class="flex items-end gap-1.5 h-16">
+          <div class="flex-1 rounded-t bg-slate-200" style="height:50%"></div>
+          <div class="flex-1 rounded-t bg-slate-200" style="height:80%"></div>
+          <div class="flex-1 rounded-t bg-slate-200" style="height:40%"></div>
+          <div class="flex-1 rounded-t bg-slate-200" style="height:95%"></div>
+          <div class="flex-1 rounded-t bg-slate-200" style="height:65%"></div>
+          <div class="flex-1 rounded-t" style="height:70%;background:var(--brand-gradient)"></div>
+          <div class="flex-1 rounded-t bg-slate-100" style="height:20%"></div>
+        </div>
+      </div>
+
+      <!-- Review-scheduled sessions (from review_schedules → study_sessions) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🔁</span><p class="t">Scheduled reviews</p></div>
+        <div class="divide-y divide-gray-50">
+          <div class="flex items-center gap-3 py-2"><span class="text-base">🧠</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Review: Normalization</p><p class="text-[11px] text-gray-500">25 min · due today</p></div><a href="review.html" class="btn3d sm b-ghost">Open</a></div>
+          <div class="flex items-center gap-3 py-2"><span class="text-base">🧠</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Review: REST APIs</p><p class="text-[11px] text-gray-500">25 min · tomorrow</p></div><a href="review.html" class="btn3d sm b-ghost">Open</a></div>
+        </div>
+      </div>
+
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">🧘 Focus tip</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Silence notifications and commit to one CLO per session. A clear intent doubles completion.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script src="demo-data.js"></script><script src="student-refinement.js"></script>
+<script>
+  let total=25*60, left=total, running=false, timer=null;
+  const C=628; // 2πr, r=100
+  const $=id=>document.getElementById(id);
+  function fmt(s){const m=Math.floor(s/60),ss=s%60;return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
+  function draw(){ $('clock').textContent=fmt(left); $('ring-fg').setAttribute('stroke-dashoffset', C*(1-left/total)); }
+  function tick(){ if(left<=0){ clearInterval(timer); running=false; $('startBtn').textContent='▶ Start'; toast('Session complete!','🎉'); if(window.confetti)confetti(); finishSession(); return; } left--; draw(); }
+  function toggleTimer(){ if(running){ clearInterval(timer); running=false; $('startBtn').textContent='▶ Resume'; } else { running=true; $('startBtn').textContent='⏸ Pause'; timer=setInterval(tick,1000); toast('Focus started · '+($('intent').value||'study'),'⏱️'); } }
+  function resetTimer(){ clearInterval(timer); running=false; left=total; $('startBtn').textContent='▶ Start'; draw(); }
+  function setLen(m){ total=m*60; left=total; if(running){clearInterval(timer);running=false;$('startBtn').textContent='▶ Start';} $('phase').textContent=m===5?'Break':'Focus'; draw(); }
+  function finishSession(){ clearInterval(timer); running=false; $('startBtn').textContent='▶ Start'; $('reflection').hidden=false; equalizeColumns('.fc-grid > div:first-child','.fc-rail'); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }
+  draw();
+  window.addEventListener('load',()=>equalizeColumns('.fc-grid > div:first-child','.fc-rail'));
+</script>
+</body>
+</html>

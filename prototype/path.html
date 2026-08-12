@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Learning Path</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="student-refinement.css"/>
+<style>
+  .bloom-label{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8;margin-bottom:16px}
+  /* View switcher (Journey ↔ Knowledge Tree) */
+  .view-toggle{display:inline-flex;background:#fff;border:1px solid #e8edf3;border-radius:14px;padding:4px;gap:4px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .view-toggle button{border:none;background:none;font-size:13px;font-weight:800;color:#64748b;padding:8px 15px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .15s}
+  .view-toggle button.on{background:var(--brand-gradient);color:#fff;box-shadow:0 4px 10px rgba(20,184,166,.28)}
+  .view-toggle button:not(.on):hover{background:#f1f5f9;color:#334155}
+  [hidden]{display:none!important}
+  /* Bloom timeline */
+  .blvl{display:flex;gap:16px}
+  .blvl .rail{display:flex;flex-direction:column;align-items:center;flex:0 0 auto}
+  .blvl .num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;z-index:1}
+  .blvl .line{flex:1;width:3px;background:#e2e8f0;margin:2px 0;min-height:22px}
+  .blvl.done .num{background:#dcfce7;color:#16a34a}
+  .blvl.done .line{background:#86efac}
+  .blvl.current .num{background:var(--brand-gradient);color:#fff;box-shadow:0 0 0 5px rgba(20,184,166,.16)}
+  .blvl.current .line{background:#e2e8f0}
+  .blvl.locked .num{background:#f1f5f9;color:#94a3b8}
+  /* Each Bloom level is a "camp"; the body is a tinted environment zone that
+     grows cooler/deeper as you ascend toward the summit (blue/green/navy only). */
+  .blvl .body{flex:1;min-width:0;padding:10px 13px;border-radius:14px;margin-bottom:12px}
+  .blvl.lv1 .body{background:#f0fdf4}
+  .blvl.lv2 .body{background:#f0fdfa}
+  .blvl.lv3 .body{background:#ecfeff}
+  .blvl.lv4 .body{background:#eff6ff}
+  .blvl.lv5 .body{background:#e0f2fe}
+  .blvl.lv6 .body{background:#dbeafe}
+  .blvl .b-title{font-size:14px;font-weight:900;letter-spacing:.02em}
+  .blvl .b-sub{font-size:12px;color:#94a3b8;margin-top:1px}
+  .blvl .camp{font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#0f766e;margin-bottom:2px}
+  .t-done{color:#16a34a}.t-current{color:#0f172a}.t-analyze{color:#1d4ed8}.t-evaluate{color:#1e40af}.t-create{color:#1e3a8a}
+  .youhere{font-size:10px;font-weight:800;color:#0f766e;background:#ccfbf1;border:1px solid #99f6e4;padding:3px 9px;border-radius:999px}
+  .milestone{display:inline-block;font-size:10px;font-weight:800;color:#0f766e;background:#ccfbf1;border:1px solid #99f6e4;padding:3px 10px;border-radius:999px;margin:2px 0 10px 60px}
+  .badge-ok{width:26px;height:26px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto}
+  /* Assignment sub-card inside the current level */
+  .assign-card{display:flex;align-items:center;gap:12px;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-top:12px;background:#fff;transition:box-shadow .15s}
+  .assign-card:hover{box-shadow:0 6px 18px rgba(16,24,40,.08)}
+  /* Right detail panel — 2-col on laptop, stacked on mobile.
+     Fill the full content width: the norail max-width:1280px cap was leaving a
+     large empty void on the right on wide screens. Match its specificity
+     (body[data-norail]) so this override actually wins, then the detail panel
+     sits with comfortable right padding instead of a void. */
+  @media(min-width:640px){
+    html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+    html.mode-laptop .path-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:28px;align-items:start}
+    html.mode-laptop .detail-panel{position:sticky;top:78px}
+  }
+  .concept-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9}
+  .concept-row:last-child{border-bottom:none}
+  .c-ic{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
+  .c-done{background:#22c55e;color:#fff}
+  .c-prog{background:#ccfbf1;color:#0f766e;border:2px solid #14b8a6}
+  .c-lock{background:#f1f5f9;color:#94a3b8}
+
+  /* ═══ KNOWLEDGE TREE VIEW ═══ */
+  .ktree{position:relative;min-height:540px;border-radius:20px;overflow:hidden;background:radial-gradient(120% 85% at 50% 100%,#dcfce7 0%,#ecfdf5 38%,#f0fdfa 66%,#ffffff 90%)}
+  .ktree .branches{position:absolute;inset:0;width:100%;height:100%}
+  .ktree .foliage{position:absolute;border-radius:50%;filter:blur(6px);opacity:.55;pointer-events:none}
+  .knode{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;z-index:2;text-align:center}
+  .knode .bub{width:var(--s,84px);height:var(--s,84px);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;border:3px solid #fff;box-shadow:0 12px 26px rgba(16,24,40,.18),inset 0 2px 7px rgba(255,255,255,.45);position:relative}
+  .knode .bub .pct{font-size:17px;font-weight:900;line-height:1}
+  .knode .cap{font-size:11px;font-weight:900;color:#334155;margin-top:7px;letter-spacing:.01em}
+  .knode.locked .bub{opacity:.92}
+  .knode .lock{position:absolute;top:-3px;right:-3px;width:22px;height:22px;border-radius:50%;background:#fff;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .band-strong{background:linear-gradient(135deg,#4ade80,#16a34a)}
+  .band-good{background:linear-gradient(135deg,#2dd4bf,#0d9488)}
+  .band-developing{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+  .band-focus{background:linear-gradient(135deg,#fb923c,#ea580c)}
+  .band-locked{background:linear-gradient(135deg,#cbd5e1,#94a3b8)}
+  .legend-row{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:#475569;padding:5px 0}
+  .legend-dot{width:12px;height:12px;border-radius:4px;flex:0 0 auto}
+  .tree-picker{font-size:12px;font-weight:800;color:#334155;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none}
+  /* Course dropdown menu — mirrors student_courses; selecting one re-renders
+     both the Bloom Journey and Knowledge Tree from that course's data. */
+  .course-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:240px;background:#fff;border:1px solid #e8edf3;border-radius:14px;box-shadow:0 12px 30px rgba(16,24,40,.14);padding:6px;z-index:20}
+  .course-menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;border-radius:10px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:700;color:#334155}
+  .course-menu button:hover{background:#f1f5f9}
+  .course-menu button.on{background:#f0fdfa;color:#0f766e}
+  .course-menu .cm-ring{width:26px;height:26px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;background:var(--brand-gradient)}
+  .course-menu .cm-sub{font-size:10.5px;color:#94a3b8;font-weight:600}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Learning Path</h1><p class="text-xs text-gray-500" id="hdr-course-name">Database Design</p></div>
+  </div>
+</header>
+
+<div class="page-content no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useLearningPath, useBloomsProgression | tables: learning_path_nodes, blooms_progression, learning_outcomes -->
+
+  <!-- View switcher + real course dropdown (fills the top row on laptop).
+       Selecting a course swaps BOTH the Bloom Journey and Knowledge Tree data
+       via renderCourse(id) below — mirrors student_courses × learning_path_nodes
+       so this is mechanical to wire to the real backend later. -->
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div class="view-toggle">
+      <button data-view-btn="journey">🗺️ Journey</button>
+      <button data-view-btn="tree">🌳 Knowledge Tree</button>
+    </div>
+    <div class="relative" style="margin-bottom:18px">
+      <button id="course-picker-btn" class="tree-picker" onclick="toggleCoursePicker()">📚 <span id="course-picker-label">Database Design</span> <svg class="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg></button>
+      <div id="course-picker-menu" class="course-menu" hidden></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ VIEW 1: BLOOM JOURNEY ══════════════════ -->
+  <div id="view-journey">
+  <div class="path-grid">
+
+    <!-- ═══ LEFT: Bloom journey ═══ -->
+    <div>
+      <p class="bloom-label">🏔️ Bloom levels · your journey</p>
+      <div class="pcard p-5" id="journey-ladder"><!-- rendered by renderCourse() --></div>
+
+      <!-- Unlock progress -->
+      <div class="pcard p-4 mt-4 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-lg shrink-0">🔒</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold text-gray-700" id="unlock-copy">Reach <b>70% on APPLY</b> to unlock the next Bloom level</p>
+          <div class="mt-1.5 h-2 rounded-full bg-gray-100 overflow-hidden"><div id="unlock-bar" class="h-full rounded-full" style="width:65%;background:var(--brand-gradient)"></div></div>
+        </div>
+        <span class="text-sm font-black text-gray-500 shrink-0" id="unlock-pct">65%</span>
+      </div>
+
+      <!-- Recent activity on this path — fills the left column so it balances
+           the taller detail panel on laptop (no empty gap). -->
+      <div class="pcard p-4 mt-4">
+        <div class="sec-h"><span class="chip">🕒</span><p class="t">Recent activity on this path</p></div>
+        <div class="divide-y divide-gray-50" id="recent-activity"><!-- rendered by renderCourse() --></div>
+      </div>
+    </div>
+
+    <!-- ═══ RIGHT: Level detail panel ═══ -->
+    <aside class="detail-panel">
+      <div class="pcard p-5" id="level-detail"><!-- rendered by renderCourse() --></div>
+    </aside>
+
+  </div>
+  </div>
+
+  <!-- ══════════════════ VIEW 2: KNOWLEDGE TREE ══════════════════ -->
+  <div id="view-tree" hidden>
+
+    <div class="mb-4">
+      <h2 class="text-xl font-black tracking-tight text-gray-900">Your Knowledge Growth</h2>
+      <p class="text-xs text-gray-500 mt-0.5">See how your understanding is growing</p>
+    </div>
+
+    <div class="path-grid">
+      <!-- ═══ LEFT: the tree ═══ -->
+      <div class="pcard" style="padding:8px">
+        <div class="ktree">
+          <!-- soft foliage blobs -->
+          <div class="foliage" style="width:150px;height:120px;left:30%;top:6%;background:#bbf7d0"></div>
+          <div class="foliage" style="width:150px;height:120px;left:66%;top:16%;background:#a7f3d0"></div>
+          <div class="foliage" style="width:130px;height:110px;left:50%;top:34%;background:#bbf7d0"></div>
+
+          <!-- branches -->
+          <svg class="branches" viewBox="0 0 400 540" preserveAspectRatio="none" fill="none">
+            <path d="M200 512 L200 60" stroke="#86efac" stroke-width="15" stroke-linecap="round"/>
+            <path d="M200 512 L200 60" stroke="#4ade80" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+            <path d="M200 250 C 245 220, 285 195, 306 165" stroke="#86efac" stroke-width="11" stroke-linecap="round"/>
+            <path d="M200 260 C 155 228, 118 200, 94 176" stroke="#86efac" stroke-width="11" stroke-linecap="round"/>
+          </svg>
+
+          <!-- nodes (rendered by renderCourse()) -->
+          <div id="tree-nodes"></div>
+        </div>
+      </div>
+
+      <!-- ═══ RIGHT: Overall Mastery panel ═══ -->
+      <aside class="detail-panel">
+        <div class="pcard p-5">
+          <p class="text-[11px] font-black tracking-widest uppercase text-gray-400">Overall Mastery</p>
+          <div class="flex items-end gap-2 mt-1">
+            <span class="text-4xl font-black text-green-600" id="tree-overall-pct">68%</span>
+          </div>
+          <p class="text-xs font-bold text-teal-600 mt-1">🌱 Keep growing!</p>
+
+          <div class="mt-4 pt-3" style="border-top:1px solid #f1f5f9">
+            <div class="legend-row"><span class="legend-dot" style="background:#16a34a"></span> Strong <span class="ml-auto text-gray-400 font-semibold">70–100%</span></div>
+            <div class="legend-row"><span class="legend-dot" style="background:#0d9488"></span> Good <span class="ml-auto text-gray-400 font-semibold">40–69%</span></div>
+            <div class="legend-row"><span class="legend-dot" style="background:#f59e0b"></span> Developing <span class="ml-auto text-gray-400 font-semibold">20–39%</span></div>
+            <div class="legend-row"><span class="legend-dot" style="background:#ea580c"></span> Needs Focus <span class="ml-auto text-gray-400 font-semibold">&lt; 20%</span></div>
+            <div class="legend-row"><span class="legend-dot" style="background:#94a3b8"></span> Locked <span class="ml-auto text-gray-400 font-semibold">—</span></div>
+          </div>
+
+          <!-- AI coach tip -->
+          <div class="rounded-2xl p-3.5 mt-4 flex items-start gap-2.5" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+            <img src="characters/foxi/foxi-signal-beacon-3.png" alt="AI coach" class="chr chr-sm shrink-0" draggable="false"/>
+            <div>
+              <p class="text-xs font-black text-teal-700">AI Coach Tip</p>
+              <p class="text-xs text-gray-600 mt-0.5 leading-snug" id="tree-tip">Push <b>Apply</b> past <b>70%</b> to unlock <b>Analyze</b> — your branches grow as you master each level.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- strength note -->
+    <div class="pcard p-3.5 mt-4 flex items-center gap-2.5" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0">
+      <span class="text-lg shrink-0">🌿</span>
+      <p class="text-xs font-semibold text-green-700 leading-snug" id="tree-strength">Your strength in <b>Remembering</b> and <b>Understanding</b> is helping you tackle the <b>Applying</b> level.</p>
+    </div>
+
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn active" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script src="demo-data.js"></script><script src="student-refinement.js"></script>
+<script>
+  // View switcher (Journey ↔ Knowledge Tree) — remembers last choice.
+  (function(){
+    const btns=[...document.querySelectorAll('[data-view-btn]')];
+    const views={journey:document.getElementById('view-journey'),tree:document.getElementById('view-tree')};
+    function show(v){
+      if(!views[v]) v='journey';
+      Object.keys(views).forEach(k=>{if(views[k])views[k].hidden=(k!==v);});
+      btns.forEach(b=>b.classList.toggle('on',b.dataset.viewBtn===v));
+      try{localStorage.setItem('edv-path-view',v);}catch(e){}
+    }
+    btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.viewBtn)));
+    show(localStorage.getItem('edv-path-view')||'journey');
+  })();
+
+  // ═══════════════════════════════════════════════════════════════════
+  // COURSE DATA MODEL — mirrors student_courses (id, code, name) joined to
+  // per-CLO Bloom progression (blooms_progression) and learning_path_nodes.
+  // Each course has 6 Bloom levels; each level has a status, concepts, and
+  // (for the current level) an active assignment. Selecting a course in the
+  // dropdown re-renders both the Journey ladder and the Knowledge Tree from
+  // this same object — nothing else needs to change when wiring real data.
+  // ═══════════════════════════════════════════════════════════════════
+  const COURSES = {
+    cs301: {
+      code:'CS301', name:'Database Design', ring:'#3b82f6',
+      levels:[
+        {key:'remember',camp:'🏕️ Base camp',title:'REMEMBER',sub:'Recall the basic ideas',status:'done'},
+        {key:'understand',camp:'⛺ Camp I',title:'UNDERSTAND',sub:'Explain the concepts',status:'done'},
+        {key:'apply',camp:'⛰️ Camp II · climbing now',title:'APPLY',sub:'Use in real situations',status:'current',
+          clo:'CLO3',mastery:65,time:'3 – 5 hrs',
+          concepts:[['done','Apply Normal Forms'],['done','Normalize a Schema'],['prog','Decompose Table'],['lock','Handle Transitive Dependencies'],['lock','Resolve Update Anomalies']],
+          assignment:{title:'Assignment 3',sub:'Normalize a Schema',xp:25},
+          tip:'You\'re doing great! Focus on completing "Decompose Table" to strengthen your Apply level.',
+          concepts_done:2, improve:'+18%'},
+        {key:'analyze',camp:'🧗 Camp III',title:'ANALYZE',sub:'Break down and compare',status:'locked',color:'#1d4ed8'},
+        {key:'evaluate',camp:'🏔️ High camp',title:'EVALUATE',sub:'Make judgments',status:'locked',color:'#1e40af'},
+        {key:'create',camp:'🏁 Summit',title:'CREATE',sub:'Build something new',status:'locked',color:'#1e3a8a'},
+      ],
+      tree:[90,80,45,35,20,0],
+      overall:68, unlockPct:65,
+      activity:[
+        ['✅','#f0fdf4','Completed "Normalize a Schema"','Apply · 2h ago','+25 XP','#16a34a'],
+        ['📝','#eff6ff','Started "Decompose Table"','Apply · Yesterday'],
+        ['🏅','#f0fdfa','Mastered the "Understand" level','2 days ago','Level up','#0f766e'],
+      ],
+      strength:'Your strength in <b>Remembering</b> and <b>Understanding</b> is helping you tackle the <b>Applying</b> level.',
+    },
+    cs205: {
+      code:'CS205', name:'Web Development', ring:'#14b8a6',
+      levels:[
+        {key:'remember',camp:'🏕️ Base camp',title:'REMEMBER',sub:'Recall the basic ideas',status:'done'},
+        {key:'understand',camp:'⛺ Camp I',title:'UNDERSTAND',sub:'Explain the concepts',status:'current',
+          clo:'CLO2',mastery:45,time:'2 – 4 hrs',
+          concepts:[['done','Identify HTTP verbs'],['prog','Explain REST principles'],['lock','Describe status codes'],['lock','Compare PUT vs PATCH']],
+          assignment:{title:'Web Dev Quiz',sub:'REST fundamentals',xp:15},
+          tip:'Focus on "Explain REST principles" — you\'re close to Applying it.',
+          concepts_done:1, improve:'+9%'},
+        {key:'apply',camp:'⛰️ Camp II',title:'APPLY',sub:'Use in real situations',status:'locked',color:'#0d9488'},
+        {key:'analyze',camp:'🧗 Camp III',title:'ANALYZE',sub:'Break down and compare',status:'locked',color:'#1d4ed8'},
+        {key:'evaluate',camp:'🏔️ High camp',title:'EVALUATE',sub:'Make judgments',status:'locked',color:'#1e40af'},
+        {key:'create',camp:'🏁 Summit',title:'CREATE',sub:'Build something new',status:'locked',color:'#1e3a8a'},
+      ],
+      tree:[78,45,15,0,0,0],
+      overall:39, unlockPct:45,
+      activity:[
+        ['🧪','#f0fdfa','Started Web Dev Quiz','Web Development · 1h ago'],
+        ['✅','#f0fdf4','Completed "Identify HTTP verbs"','Understand · Yesterday','+10 XP','#16a34a'],
+      ],
+      strength:'Your strength in <b>Remembering</b> is helping you build toward <b>Understanding</b> REST.',
+    },
+    ai101: {
+      code:'AI101', name:'AI Fundamentals', ring:'#8b5cf6',
+      levels:[
+        {key:'remember',camp:'🏕️ Base camp',title:'REMEMBER',sub:'Recall the basic ideas',status:'done'},
+        {key:'understand',camp:'⛺ Camp I',title:'UNDERSTAND',sub:'Explain the concepts',status:'done'},
+        {key:'apply',camp:'⛰️ Camp II',title:'APPLY',sub:'Use in real situations',status:'done'},
+        {key:'analyze',camp:'🧗 Camp III · climbing now',title:'ANALYZE',sub:'Break down and compare',status:'current',
+          clo:'CLO6',mastery:88,time:'2 – 3 hrs',
+          concepts:[['done','Compare model architectures'],['done','Break down a training pipeline'],['prog','Diagnose overfitting'],['lock','Evaluate bias sources']],
+          assignment:{title:'AI Research Essay',sub:'Model comparison',xp:30},
+          tip:'Almost there! One more pass on "Diagnose overfitting" gets you to Evaluate.',
+          concepts_done:2, improve:'+22%'},
+        {key:'evaluate',camp:'🏔️ High camp',title:'EVALUATE',sub:'Make judgments',status:'locked',color:'#1e40af'},
+        {key:'create',camp:'🏁 Summit',title:'CREATE',sub:'Build something new',status:'locked',color:'#1e3a8a'},
+      ],
+      tree:[95,92,88,60,25,0],
+      overall:77, unlockPct:88,
+      activity:[
+        ['✅','#f0fdf4','Completed "Break down a training pipeline"','Analyze · 3h ago','+25 XP','#16a34a'],
+        ['🏅','#f0fdfa','Mastered the "Apply" level','3 days ago','Level up','#0f766e'],
+      ],
+      strength:'Your strength in <b>Applying</b> model concepts is carrying you fast through <b>Analyze</b>.',
+    },
+  };
+  let currentCourseId='cs301';
+
+  function toggleCoursePicker(){
+    const menu=document.getElementById('course-picker-menu');
+    if(!menu.hidden){ menu.hidden=true; return; }
+    menu.innerHTML=Object.entries(COURSES).map(([id,c])=>`
+      <button class="${id===currentCourseId?'on':''}" onclick="selectCourse('${id}')">
+        <span class="cm-ring" style="background:${c.ring}">${c.code.slice(0,2)}</span>
+        <span style="flex:1;min-width:0"><span style="display:block">${c.name}</span><span class="cm-sub">${c.code} · ${c.overall}% overall</span></span>
+      </button>`).join('');
+    menu.hidden=false;
+    document.addEventListener('click',closePickerOnce,{capture:true});
+  }
+  function closePickerOnce(e){
+    const menu=document.getElementById('course-picker-menu');
+    const btn=document.getElementById('course-picker-btn');
+    if(menu && !menu.contains(e.target) && e.target!==btn && !btn.contains(e.target)){ menu.hidden=true; document.removeEventListener('click',closePickerOnce,{capture:true}); }
+  }
+  function selectCourse(id){
+    currentCourseId=id;
+    document.getElementById('course-picker-menu').hidden=true;
+    renderCourse(id);
+    toast('Switched to '+COURSES[id].name,'📚');
+    setTimeout(()=>equalizeColumns('.path-grid > div:first-child','.detail-panel'),30);
+  }
+
+  function renderCourse(id){
+    const c=COURSES[id];
+    document.getElementById('course-picker-label').textContent=c.name;
+    document.getElementById('hdr-course-name').textContent=c.name;
+
+    // ── Journey ladder ──
+    const dowClasses={remember:'lv1',understand:'lv2',apply:'lv3',analyze:'lv4',evaluate:'lv5',create:'lv6'};
+    const tClass={remember:'t-done',understand:'t-done',apply:'t-current',analyze:'t-analyze',evaluate:'t-evaluate',create:'t-create'};
+    let ladder='', milestoneInserted=false;
+    c.levels.forEach((lv,idx)=>{
+      const lvClass=dowClasses[lv.key]; const num=idx+1;
+      const statusClass=lv.status==='done'?'done':lv.status==='current'?'current':'locked';
+      const numHtml=lv.status==='done'?'✓':num;
+      const right=lv.status==='done' ? '<div class="badge-ok">✓</div>' : lv.status==='current' ? '<span class="youhere">You are here</span>' : '<span class="text-gray-300 text-lg">🔒</span>';
+      const campStyle=lv.color?` style="color:${lv.color}"`:'';
+      let assignHtml='';
+      if(lv.status==='current' && lv.assignment){
+        assignHtml=`<a href="assignment.html" class="assign-card"><div class="h-10 w-10 rounded-xl flex items-center justify-center text-white shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">📝</span></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">${lv.assignment.title}</p><p class="text-xs text-gray-500">${lv.assignment.sub} · <span class="text-amber-600 font-bold">+${lv.assignment.xp} XP</span></p></div><svg class="h-4 w-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></a>`;
+      }
+      if(lv.status==='current' && !milestoneInserted){ /* milestone goes AFTER this block */ }
+      ladder+=`<div class="blvl ${statusClass} ${lvClass}">
+        <div class="rail"><div class="num">${numHtml}</div>${idx<c.levels.length-1?'<div class="line"></div>':''}</div>
+        <div class="body">
+          <div class="flex items-center justify-between gap-2">
+            <div><p class="camp"${campStyle}>${lv.camp}</p><p class="b-title ${tClass[lv.key]}">${lv.title}</p><p class="b-sub">${lv.sub}</p></div>
+            ${right}
+          </div>
+          ${assignHtml}
+        </div>
+      </div>`;
+      if(lv.status==='current'){ ladder+='<div class="milestone">🚩 Next Milestone</div>'; milestoneInserted=true; }
+    });
+    document.getElementById('journey-ladder').innerHTML=ladder;
+
+    // ── Unlock progress ──
+    const cur=c.levels.find(l=>l.status==='current');
+    document.getElementById('unlock-copy').innerHTML=`Reach <b>70% on ${cur.title}</b> to unlock the next Bloom level`;
+    document.getElementById('unlock-bar').style.width=c.unlockPct+'%';
+    document.getElementById('unlock-pct').textContent=c.unlockPct+'%';
+
+    // ── Recent activity ──
+    document.getElementById('recent-activity').innerHTML=c.activity.map(a=>{
+      const [icon,bg,title,meta,tag,tagColor]=a;
+      return `<div class="flex items-center gap-3 py-2.5"><div class="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style="background:${bg}">${icon}</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900 truncate">${title}</p><p class="text-[11px] text-gray-500">${meta}${tag?` · <span class="font-semibold" style="color:${tagColor}">${tag}</span>`:''}</p></div></div>`;
+    }).join('');
+
+    // ── Level detail panel ──
+    document.getElementById('level-detail').innerHTML=`
+      <div class="flex items-start justify-between">
+        <div><p class="text-[11px] font-black tracking-widest uppercase text-teal-600">Level ${c.levels.indexOf(cur)+1}</p><h2 class="text-2xl font-black tracking-tight text-gray-900">${cur.title}</h2></div>
+        <div class="h-14 w-14 rounded-2xl flex items-center justify-center text-3xl" style="background:linear-gradient(135deg,#ccfbf1,#dbeafe)">🏔️</div>
+      </div>
+      <p class="text-sm text-gray-500 mt-2 leading-relaxed">${cur.sub}.</p>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <div class="stat-tile"><p class="st-k">⏱️ Estimated time</p><p class="st-v">${cur.time}</p></div>
+        <div class="stat-tile"><p class="st-k">📈 Mastered by you</p><p class="st-v text-teal-600">${cur.mastery}%</p></div>
+      </div>
+      <p class="text-[11px] font-black tracking-widest uppercase text-gray-400 mt-5 mb-1">Concepts in this level</p>
+      <div>${cur.concepts.map(([state,label])=>{
+        const icMap={done:'<span class="c-ic c-done">✓</span>',prog:'<span class="c-ic c-prog"></span>',lock:'<span class="c-ic c-lock">🔒</span>'};
+        const txtClass=state==='lock'?'text-gray-400':state==='prog'?'text-gray-900':'text-gray-700';
+        const tag=state==='prog'?'<span class="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">In progress</span>':state==='done'?'<svg class="h-4 w-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>':'';
+        return `<div class="concept-row">${icMap[state]}<span class="flex-1 text-sm font-medium ${txtClass}">${label}</span>${tag}</div>`;
+      }).join('')}</div>
+      <div class="rounded-2xl p-3.5 mt-4 flex items-start gap-2.5" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <img src="characters/foxi/foxi-signal-beacon-3.png" alt="AI coach" class="chr chr-sm shrink-0" draggable="false"/>
+        <div><p class="text-xs font-black text-teal-700">AI Coach Tip</p><p class="text-xs text-gray-600 mt-0.5 leading-snug">${cur.tip}</p></div>
+      </div>
+      <p class="text-[11px] font-black tracking-widest uppercase text-gray-400 mt-5 mb-2">Your progress in Level ${c.levels.indexOf(cur)+1}</p>
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="stat-tile text-center"><p class="st-v">${cur.concepts_done}/${cur.concepts.length}</p><p class="st-k mt-1" style="letter-spacing:.04em">🎯 Concepts</p></div>
+        <div class="stat-tile text-center"><p class="st-v">${cur.mastery}%</p><p class="st-k mt-1" style="letter-spacing:.04em">⭐ Mastery</p></div>
+        <div class="stat-tile text-center"><p class="st-v text-green-600">${cur.improve}</p><p class="st-k mt-1" style="letter-spacing:.04em">📈 Improve</p></div>
+      </div>`;
+
+    // ── Knowledge Tree ──
+    const labels=['Remember','Understand','Apply','Analyze','Evaluate','Create'];
+    const positions=[
+      {left:'50%',top:'88%',s:104},{left:'50%',top:'65%',s:94},{left:'50%',top:'45%',s:90},
+      {left:'76.5%',top:'30.5%',s:76},{left:'23.5%',top:'32.5%',s:76},{left:'50%',top:'11%',s:72},
+    ];
+    function band(pct){ return pct>=70?'band-strong':pct>=40?'band-good':pct>=20?'band-developing':pct>0?'band-focus':'band-locked'; }
+    document.getElementById('tree-nodes').innerHTML=c.tree.map((pct,i)=>{
+      const pos=positions[i]; const locked=pct<20 && i>2;
+      return `<div class="knode${locked?' locked':''}" style="left:${pos.left};top:${pos.top}"><div class="bub ${band(pct)}" style="--s:${pos.s}px"><span class="pct">${pct}%</span></div>${locked?'<span class="lock">🔒</span>':''}<span class="cap">${labels[i]}</span></div>`;
+    }).join('');
+    document.getElementById('tree-overall-pct').textContent=c.overall+'%';
+    document.getElementById('tree-tip').innerHTML=`Push <b>${cur.title}</b> past <b>70%</b> to unlock the next branch — your tree grows as you master each level.`;
+    document.getElementById('tree-strength').innerHTML=c.strength;
+  }
+
+  renderCourse(currentCourseId);
+  window.addEventListener('load',()=>equalizeColumns('.path-grid > div:first-child','.detail-panel'));
+</script>
+</body>
+</html>

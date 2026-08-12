@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Fees Management</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Fees Management (admin) — maps to: fee_structures (program_id, semester_id,
+     fee_type, amount, currency, due_date), fee_payments (student_id,
+     amount_paid, status, payment_method), useFeeStructures, useCreateFeeStructure,
+     useRecordPayment. This is institution-wide creation + collection tracking —
+     contrast with the student/parent-facing prototype/fees.html (paying). */
+  .fm-form{display:none}
+  .fm-form.open{display:block}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="feed-wide flex items-center justify-between gap-3">
+    <div><h1 class="text-xl font-black tracking-tight text-gray-900">Fees Management</h1><p class="text-xs text-gray-500 mt-0.5">Fee structures &amp; collection status, institution-wide.</p></div>
+    <button class="btn3d sm" onclick="toggleForm()" style="background:var(--brand-gradient)">＋ New fee structure</button>
+  </div>
+
+  <!-- KPI row -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Expected · Spring 2026</p><p class="text-2xl font-black text-gray-900 mt-0.5">QAR 5.58M</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Collected</p><p class="text-2xl font-black text-green-600 mt-0.5">QAR 4.72M</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Collection rate</p><p class="text-2xl font-black text-teal-600 mt-0.5">85%</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Overdue accounts</p><p class="text-2xl font-black text-red-600 mt-0.5">38</p></div>
+  </div>
+
+  <!-- New fee structure form (mock) -->
+  <div class="feed-wide pcard p-4 fm-form" id="fm-form">
+    <div class="sec-h"><span class="chip">📋</span><p class="t">New fee structure</p></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div><label class="text-[11px] font-bold text-gray-500">Fee type</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>Tuition</option><option>Lab fee</option><option>Library &amp; materials</option><option>Activity fee</option></select></div>
+      <div><label class="text-[11px] font-bold text-gray-500">Program</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>B.Sc. Computer Science</option><option>B.Eng. Software Engineering</option><option>B.A. Business Administration</option></select></div>
+      <div><label class="text-[11px] font-bold text-gray-500">Semester</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>Spring 2026</option><option>Summer 2026</option></select></div>
+      <div><label class="text-[11px] font-bold text-gray-500">Amount (QAR)</label><input type="number" class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2" placeholder="4000"/></div>
+      <div><label class="text-[11px] font-bold text-gray-500">Due date</label><input type="date" class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2"/></div>
+    </div>
+    <div class="flex gap-2 justify-end mt-3">
+      <button class="btn3d sm b-ghost" onclick="toggleForm()">Cancel</button>
+      <button class="btn3d sm" onclick="createStructure()" style="background:var(--brand-gradient)">Create fee structure</button>
+    </div>
+  </div>
+
+  <!-- Fee structures table -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">📊</span><p class="t">Fee structures</p></div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:720px">
+      <thead><tr><th>Program</th><th>Semester</th><th>Fee type</th><th>Amount</th><th>Due</th><th>Paid / Total</th><th>Collection</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:#0f172a">B.Sc. Computer Science</b></td><td>Spring 2026</td><td>Tuition</td><td>QAR 4,000</td><td>Jul 20</td><td>289 / 340</td><td><div style="display:flex;align-items:center;gap:6px"><div class="emeter good" style="width:60px"><span style="width:85%"></span></div><b style="font-size:12px;color:#0d9488">85%</b></div></td></tr>
+        <tr><td><b style="color:#0f172a">B.Sc. Computer Science</b></td><td>Spring 2026</td><td>Lab fee</td><td>QAR 300</td><td>Jul 20</td><td>310 / 340</td><td><div style="display:flex;align-items:center;gap:6px"><div class="emeter strong" style="width:60px"><span style="width:91%"></span></div><b style="font-size:12px;color:#16a34a">91%</b></div></td></tr>
+        <tr><td><b style="color:#0f172a">B.Eng. Software Engineering</b></td><td>Spring 2026</td><td>Tuition</td><td>QAR 4,200</td><td>Jul 20</td><td>201 / 280</td><td><div style="display:flex;align-items:center;gap:6px"><div class="emeter attention" style="width:60px"><span style="width:72%"></span></div><b style="font-size:12px;color:#b45309">72%</b></div></td></tr>
+        <tr><td><b style="color:#0f172a">B.A. Business Administration</b></td><td>Spring 2026</td><td>Tuition</td><td>QAR 3,800</td><td>Jul 20</td><td>320 / 410</td><td><div style="display:flex;align-items:center;gap:6px"><div class="emeter good" style="width:60px"><span style="width:78%"></span></div><b style="font-size:12px;color:#0d9488">78%</b></div></td></tr>
+        <tr><td><b style="color:#0f172a">B.A. Business Administration</b></td><td>Spring 2026</td><td>Activity fee</td><td>QAR 150</td><td>Jul 20</td><td>180 / 410</td><td><div style="display:flex;align-items:center;gap:6px"><div class="emeter critical" style="width:60px"><span style="width:44%"></span></div><b style="font-size:12px;color:#dc2626">44%</b></div></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- Overdue accounts -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">⚠️</span><p class="t">Overdue accounts</p><span class="pill pill-red">38 accounts</span></div>
+    <div class="divide-y divide-gray-50">
+      <div class="flex items-center gap-3 py-2.5"><div class="h-9 w-9 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-sm shrink-0">O</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Omar Haddad</p><p class="text-[11px] text-gray-500">B.Sc. Computer Science · QAR 4,300 overdue since Jun 15</p></div><button class="btn3d sm b-ghost shrink-0" onclick="toast('Reminder sent to Omar Haddad','📨')">Send reminder</button></div>
+      <div class="flex items-center gap-3 py-2.5"><div class="h-9 w-9 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-sm shrink-0">S</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Sara Al-Mansoori</p><p class="text-[11px] text-gray-500">B.A. Business Administration · QAR 3,950 overdue since Jun 20</p></div><button class="btn3d sm b-ghost shrink-0" onclick="toast('Reminder sent to Sara Al-Mansoori','📨')">Send reminder</button></div>
+      <div class="flex items-center gap-3 py-2.5"><div class="h-9 w-9 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-sm shrink-0">Y</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Yusuf Karam</p><p class="text-[11px] text-gray-500">B.Eng. Software Engineering · QAR 4,500 overdue since Jul 1</p></div><button class="btn3d sm b-ghost shrink-0" onclick="toast('Reminder sent to Yusuf Karam','📨')">Send reminder</button></div>
+    </div>
+    <button class="text-xs font-bold text-blue-600 mt-3" onclick="toast('Sending reminders to all 38 overdue accounts','📨')">Send reminders to all →</button>
+  </div>
+
+</div>
+<script>
+  function toggleForm(){ document.getElementById('fm-form').classList.toggle('open'); }
+  function createStructure(){ toggleForm(); toast('Fee structure created','✅'); }
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

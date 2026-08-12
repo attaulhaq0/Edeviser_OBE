@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Wellness & Habits</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Wellness & Habits — maps to: habit_tracking, habit_logs, wellness_habit_logs,
+     student_habit_levels, student_wellness_preferences, flow_check_ins,
+     useWellnessGoals, useHabitAnalytics, useHabitCorrelations, useFlowCheckIns.
+     4 daily habits (Login/Submit/Journal/Read) → Perfect Day (+50 XP). */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .wl-grid{display:block}
+  html.mode-laptop .wl-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  html.mode-laptop .wl-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .habit{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #eef2f6;border-radius:14px;cursor:pointer;transition:border-color .15s,background .15s}
+  .habit.done{background:#f0fdf4;border-color:#bbf7d0}
+  .habit .hx{width:28px;height:28px;border-radius:8px;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex:0 0 auto}
+  .habit.done .hx{background:#22c55e;border-color:#22c55e}
+  .hm{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
+  .hm i{aspect-ratio:1;border-radius:3px;display:block}
+  .mood{width:40px;height:40px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;font-size:20px;cursor:pointer;transition:transform .08s}
+  .mood:hover{transform:scale(1.08)} .mood.on{border-color:#14b8a6;background:#f0fdfa;box-shadow:0 0 0 2px rgba(20,184,166,.2)}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Wellness & Habits</h1><p class="text-xs text-gray-500">Small daily habits, big momentum</p></div>
+  </div>
+  <span class="text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1.5 rounded-full">🔥 12-day streak</span>
+</header>
+
+<div class="page-content no-scrollbar">
+
+  <!-- Perfect Day hero (4 habits) -->
+  <div class="rounded-2xl p-5 text-white shadow-lg mb-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%)">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div><h2 class="text-xl font-black">Perfect Day · 3 of 4</h2><p class="text-sm text-white/70 mt-0.5">Complete all 4 habits before midnight for <b>+50 XP</b></p></div>
+      <div class="flex gap-2 text-2xl"><span title="Login">✅</span><span title="Submit">✅</span><span title="Journal">✅</span><span class="opacity-40" title="Read">📖</span></div>
+    </div>
+    <div class="mt-3 h-2 rounded-full bg-white/15 overflow-hidden"><div class="h-full rounded-full" style="width:75%;background:linear-gradient(90deg,#2dd4bf,#38bdf8)"></div></div>
+  </div>
+
+  <div class="wl-grid">
+    <div class="space-y-4">
+
+      <!-- Today's habits (habit_tracking + habit_logs) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🌱</span><p class="t">Today's habits</p><span class="more">+XP each</span></div>
+        <div class="space-y-2.5">
+          <div class="habit done" onclick="toggleHabit(this)"><span class="hx">✓</span><span class="text-xl">🔓</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Daily login</p><p class="text-[11px] text-gray-500">Show up · +10 XP</p></div><span class="pill pill-green">Done</span></div>
+          <div class="habit done" onclick="toggleHabit(this)"><span class="hx">✓</span><span class="text-xl">📝</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Submit something</p><p class="text-[11px] text-gray-500">Assignment or quiz · +25 XP</p></div><span class="pill pill-green">Done</span></div>
+          <div class="habit done" onclick="toggleHabit(this)"><span class="hx">✓</span><span class="text-xl">📖</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Journal entry</p><p class="text-[11px] text-gray-500">≥50 words · +20 XP</p></div><span class="pill pill-green">Done</span></div>
+          <div class="habit" onclick="toggleHabit(this)"><span class="hx"></span><span class="text-xl">📚</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Read 20 minutes</p><p class="text-[11px] text-gray-500">Course material · +15 XP</p></div><span class="text-xs font-bold text-gray-400">Tap to log</span></div>
+        </div>
+      </div>
+
+      <!-- Habit consistency heatmap (habit_logs, last 14 days) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📅</span><p class="t">Consistency · last 14 days</p></div>
+        <div class="hm" id="heatmap"></div>
+        <p class="text-[11px] text-gray-400 mt-2">Each square = habits completed that day. Longer chains build your habit level.</p>
+      </div>
+
+      <!-- Habit correlations (compute-habit-correlations) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🔗</span><p class="t">What's working for you</p></div>
+        <div class="space-y-2">
+          <div class="flex items-start gap-3 rounded-xl bg-green-50 border border-green-100 p-3"><span class="text-lg">📈</span><p class="text-xs text-gray-700">On days you <b>journal</b>, your quiz scores are <b class="text-green-700">+12%</b> higher on average.</p></div>
+          <div class="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-100 p-3"><span class="text-lg">🔥</span><p class="text-xs text-gray-700">Your <b>reading</b> habit is your weakest link — completing it lifts your Perfect-Day rate to <b class="text-blue-700">86%</b>.</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="wl-rail">
+      <!-- Habit level (student_habit_levels) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🌟</span><p class="t">Habit level</p></div>
+        <div class="text-center py-1"><p class="text-3xl font-black text-teal-600">Lvl 3</p><p class="text-xs text-gray-500">"Consistent"</p></div>
+        <div class="flex items-center justify-between text-[10px] font-bold text-gray-500 mt-1 mb-1"><span>to Lvl 4</span><span>18 / 25 days</span></div>
+        <div class="emeter good"><span style="width:72%"></span></div>
+      </div>
+
+      <!-- Flow check-in (flow_check_ins) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🧘</span><p class="t">How are you feeling?</p></div>
+        <p class="text-[11px] text-gray-500 mb-2">Quick daily check-in — tracks your energy over time.</p>
+        <div class="flex justify-between" id="moods">
+          <button class="mood" onclick="mood(this)">😖</button>
+          <button class="mood" onclick="mood(this)">😕</button>
+          <button class="mood" onclick="mood(this)">😐</button>
+          <button class="mood on" onclick="mood(this)">🙂</button>
+          <button class="mood" onclick="mood(this)">😄</button>
+        </div>
+      </div>
+
+      <!-- Wellness goals (useWellnessGoals) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🎯</span><p class="t">Wellness goals</p></div>
+        <div class="space-y-3">
+          <div><div class="flex items-center justify-between text-xs font-bold mb-1"><span class="text-gray-700">Study 5 days / week</span><span class="text-teal-600">4/5</span></div><div class="emeter good"><span style="width:80%"></span></div></div>
+          <div><div class="flex items-center justify-between text-xs font-bold mb-1"><span class="text-gray-700">Journal 3× / week</span><span class="text-teal-600">3/3</span></div><div class="emeter strong"><span style="width:100%"></span></div></div>
+          <div><div class="flex items-center justify-between text-xs font-bold mb-1"><span class="text-gray-700">Screen breaks daily</span><span class="text-amber-600">2/7</span></div><div class="emeter attention"><span style="width:28%"></span></div></div>
+        </div>
+      </div>
+
+      <!-- Wellness tip (useWellnessTips) -->
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">💡 Today's tip</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Take a 5-minute break every 25 minutes of study — it improves focus and retention.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  (function(){ const vals=[3,4,2,0,3,4,4,2,3,1,4,3,4,3]; const cols=['#eef2f6','#bbf7d0','#86efac','#34d399','#16a34a'];
+    document.getElementById('heatmap').innerHTML=vals.map(v=>`<i style="background:${cols[v]}"></i>`).join(''); })();
+  function toggleHabit(el){ const done=el.classList.toggle('done'); const hx=el.querySelector('.hx'); hx.textContent=done?'✓':''; const tag=el.querySelector('span:last-child'); if(done){toast('Habit logged · +15 XP','🌱');} }
+  function mood(el){ document.querySelectorAll('#moods .mood').forEach(m=>m.classList.remove('on')); el.classList.add('on'); toast('Check-in saved','🧘'); }
+  window.addEventListener('load',()=>equalizeColumns('.wl-grid > div:first-child','.wl-rail'));
+</script>
+</body>
+</html>

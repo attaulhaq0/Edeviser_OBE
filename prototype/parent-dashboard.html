@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Parent Home</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="parent-refinement.css"/>
+</head>
+<body class="bg-slate-50" data-role="parent" data-dashboard="true">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="parent-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">N</a></div>
+</header>
+
+<main class="page-content no-scrollbar">
+  <section class="parent-hero" aria-labelledby="week-title">
+    <button class="ai-why-trigger" type="button" data-open-parent-drawer="home">✦ Why am I seeing this?</button>
+    <p class="parent-eyebrow" style="color:#a7f3d0">Sarah this week</p>
+    <h1 id="week-title">Sarah is building good momentum</h1>
+    <p class="parent-hero-copy">E Deviser found one clear learning priority for this week and translated it into a Parent-safe story and one practical way Nadia can help.</p>
+    <div class="parent-chip-row" aria-label="Weekly highlights">
+      <span class="parent-context-chip">📖 Weekly story ready</span>
+      <span class="parent-context-chip">🎯 One clear priority</span>
+      <span class="parent-context-chip">💬 One support action</span>
+    </div>
+  </section>
+
+  <section class="feed-wide pcard parent-section" aria-labelledby="plain-title">
+    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">📖</span><div><p class="parent-eyebrow">What changed</p><h2 id="plain-title">This week, in plain words</h2></div></div>
+    <p class="parent-story">Sarah's recent work shows a useful shift: she is moving from understanding Normalization to applying it on her own. The next assignment gives her a clear chance to demonstrate that learning. Her steady routine means this week is about focused practice — not adding more work.</p>
+    <p class="parent-safety-note">We describe observable learning patterns — not diagnoses or causes.</p>
+  </section>
+
+  <div class="home-story-grid">
+    <div class="home-story-column">
+      <section class="pcard parent-section home-growth" aria-labelledby="growing-title">
+        <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">🌱</span><div><p class="parent-eyebrow">Learning progress</p><h2 id="growing-title">Where she's growing</h2></div></div>
+        <div class="growth-list">
+          <div class="growth-row"><span class="growth-icon">📚</span><div><strong>Database Design</strong><small>72% course progress · Module 5 of 8</small></div><span class="parent-label">Progressing</span></div>
+          <div class="growth-row"><span class="growth-icon">🎯</span><div><strong>Normalization · CLO 3</strong><small>Developing · 62% mastery</small></div><span class="parent-label focus">Current focus</span></div>
+          <div class="growth-row"><span class="growth-icon">🔥</span><div><strong>Learning routine</strong><small>12-day streak</small></div><span class="parent-label">Consistent</span></div>
+        </div>
+        <a href="parent-progress.html" class="parent-text-button" style="display:inline-flex;margin-top:9px">See learning progress →</a>
+      </section>
+
+      <section class="pcard parent-section support-callout home-support" aria-labelledby="help-title">
+        <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">💬</span><div><p class="parent-eyebrow">One small way to help this week</p><h2 id="help-title">Ask Sarah to teach the idea back</h2></div></div>
+        <p class="support-quote">“Sarah, can you explain to me what a transitive dependency is and why normalization helps?”</p>
+        <p class="support-reason">Teaching the idea back in her own words reinforces the same concept she is currently applying.</p>
+        <div class="parent-chip-row"><span class="ai-context-chip">Teach-back prompt</span><span class="ai-context-chip">~5 min</span></div>
+        <div class="parent-actions">
+          <button class="btn3d sm" type="button" data-support-save>Save for tonight</button>
+          <a class="btn3d sm b-ghost" href="parent-support.html">More ideas</a>
+          <button class="parent-text-button" type="button" data-open-parent-drawer="support">Why this?</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="home-story-column">
+      <section class="pcard parent-section home-evidence" aria-labelledby="evidence-title">
+        <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">📝</span><div><p class="parent-eyebrow">What Sarah is working toward</p><h2 id="evidence-title">What the next evidence will show</h2></div></div>
+        <div class="next-evidence" style="min-width:0"><span>Next learning evidence</span><strong>Normalize a Schema</strong><small>What E Deviser will look for in Sarah's work</small></div>
+        <div class="growth-list" style="margin-top:8px">
+          <div class="growth-row"><span class="growth-icon">🔎</span><div><strong>Identify the dependency</strong><small>Recognize where a transitive dependency appears.</small></div><span class="parent-label focus">Notice</span></div>
+          <div class="growth-row"><span class="growth-icon">💡</span><div><strong>Explain the choice</strong><small>Describe why the schema change improves the design.</small></div><span class="parent-label">Explain</span></div>
+          <div class="growth-row"><span class="growth-icon">🎯</span><div><strong>Apply it independently</strong><small>Use the idea in her own schema solution.</small></div><span class="parent-label focus">Next</span></div>
+        </div>
+        <p class="parent-safety-note">This explains the learning goal without exposing Sarah's private work or turning it into a grade check.</p>
+      </section>
+
+      <aside class="ai-intelligence-summary home-intelligence" aria-labelledby="intelligence-title">
+        <div class="ai-intelligence-head"><strong id="intelligence-title">✦ E Deviser Intelligence</strong><span class="ai-autonomy-badge">A1 · Suggest</span></div>
+        <p>Mastery, habit, planning, and Parent context were evidence checked and privacy filtered.</p>
+        <div class="ai-status-grid" aria-label="E Deviser preparation status">
+          <span>✓ Context understood</span><span>✓ Evidence checked</span><span>✓ Privacy filtered</span><span>• Suggestion prepared</span>
+        </div>
+        <div class="parent-actions" style="margin-top:8px"><span class="ai-action-status">Prepared by Parent Agent</span></div>
+      </aside>
+    </div>
+  </div>
+
+  <section class="mobile-parent-context pcard parent-section" aria-labelledby="mobile-context-title">
+    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">📅</span><div><p class="parent-eyebrow">Upcoming context</p><h2 id="mobile-context-title">What matters now</h2></div></div>
+    <div class="growth-list">
+      <div class="growth-row"><span class="growth-icon">🔁</span><div><strong>Daily Review</strong><small>Today · 5 cards</small></div><span class="parent-label focus">Today</span></div>
+      <div class="growth-row"><span class="growth-icon">📝</span><div><strong>Assignment 3</strong><small>Friday · due in 2 days</small></div><span class="parent-label">Friday</span></div>
+      <div class="growth-row"><span class="growth-icon">📅</span><div><strong>Web Dev Quiz</strong><small>Saturday · due in 3 days</small></div><span class="parent-label focus">Saturday</span></div>
+    </div>
+    <div class="ai-policy-check"><h3>Parent access</h3><p>Verified linked student · Parent-safe summaries · deadlines · approved learning context. Protected actions require Nadia's approval.</p></div>
+  </section>
+
+  <div class="feedback-loop" aria-label="Learning feedback loop, Support is active"><span>LEARN</span><b>→</b><span>PRACTICE</span><b>→</b><span class="active">SUPPORT</span><b>→</b><span>REFLECT</span><b>→</b><span>IMPROVE</span></div>
+</main>
+
+<div id="parent-drawer-backdrop" class="parent-drawer-backdrop" hidden></div>
+<aside id="parent-drawer" class="parent-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="parent-drawer-title" hidden>
+  <div class="drawer-top"><div><p id="parent-drawer-eyebrow" class="parent-eyebrow"></p><h2 id="parent-drawer-title"></h2></div><button class="drawer-close" type="button" data-parent-close aria-label="Close">×</button></div>
+  <div id="parent-drawer-content"></div>
+</aside>
+
+<script src="shared.js"></script>
+<script src="parent-data.js"></script>
+<script src="parent-refinement.js"></script>
+</body>
+</html>

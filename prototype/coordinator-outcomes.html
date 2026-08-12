@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Outcome Attainment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Outcome attainment — make the PLO->CLO drill-down feel interactive:
+     rotate the chevron, lift the open row, tint the revealed CLO panel. Scoped. */
+  body[data-role="coordinator"] .plo-row{border:1px solid #eef2f6;border-radius:12px;overflow:hidden;transition:box-shadow .15s,border-color .15s}
+  body[data-role="coordinator"] .plo-row.open{border-color:#bfdbfe;box-shadow:0 6px 18px rgba(3,130,189,.08)}
+  body[data-role="coordinator"] .plo-chev{transition:transform .2s;color:#94a3b8}
+  body[data-role="coordinator"] .plo-row.open .plo-chev{transform:rotate(180deg);color:#0382bd}
+  body[data-role="coordinator"] .plo-clos{background:#f8fafc;border-top:1px solid #eef2f6}
+  body[data-role="coordinator"] .clo-lbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0 0 6px}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="coordinator-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">K</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useCoordinatorOutcomeAttainment, useCoordinatorAttainmentTrends | tables: outcome_attainment, outcome_attainment_snapshots, learning_outcomes -->
+
+  <div class="feed-wide flex items-end justify-between gap-3"><div><h1 class="text-xl font-black tracking-tight text-gray-900">Outcome attainment</h1><p class="text-xs text-gray-500 mt-0.5">Trace program outcomes to the course evidence that supports them.</p></div><select class="text-xs font-bold border border-slate-200 rounded-lg p-2 bg-white"><option>Computer Science Program</option></select></div>
+
+  <div class="feed-wide pcard p-4" style="background:#f8fbff"><p class="text-[10px] font-black uppercase tracking-widest text-blue-600">Program alignment</p><div class="flex flex-wrap items-center gap-2 mt-2 text-xs"><span class="font-bold text-slate-800">ILO2 · Technical Mastery</span><span class="text-slate-300">↓</span><span class="font-bold text-slate-800">PLO2 · Apply Engineering Principles</span><span class="pill pill-red">67% / 75%</span><span class="text-slate-300">↓</span><span class="text-slate-600">CLO5 REST APIs · 48%</span></div><p class="text-[11px] text-slate-500 mt-2">Evidence confidence: <b class="text-slate-700">High</b> · 8 assessments · 3 courses · 142 student evidence records</p></div>
+
+  <!-- ILO summary -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🏛️</span><p class="t">Institution Learning Outcomes (ILO)</p></div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div class="rounded-xl border border-gray-100 p-3"><p class="text-xs font-bold text-gray-900">ILO1 · Critical thinking</p><div class="flex items-center gap-2 mt-1"><div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:79%"></div></div><b class="text-blue-600 text-sm">79%</b></div></div>
+      <div class="rounded-xl border border-gray-100 p-3"><p class="text-xs font-bold text-gray-900">ILO2 · Technical mastery</p><div class="flex items-center gap-2 mt-1"><div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:73%"></div></div><b class="text-blue-600 text-sm">73%</b></div></div>
+      <div class="rounded-xl border border-gray-100 p-3"><p class="text-xs font-bold text-gray-900">ILO3 · Communication</p><div class="flex items-center gap-2 mt-1"><div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:68%"></div></div><b class="text-blue-600 text-sm">68%</b></div></div>
+    </div>
+  </div>
+
+  <!-- PLOs -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🎯</span><p class="t">Program Learning Outcomes (PLO)</p></div>
+    <div id="plos" class="space-y-2.5"></div>
+  </div>
+
+</div>
+<script>
+const PLOS=[
+  {id:"PLO1",t:"Analyze computational problems",att:78,tr:"+2",clos:[["CLO1 Problem decomposition",82],["CLO2 Algorithm analysis",74]]},
+  {id:"PLO2",t:"Apply engineering principles",att:67,tr:"-6",clos:[["CLO3 Normalization",71],["CLO5 REST APIs",48],["CLO7 Testing",76]]},
+  {id:"PLO3",t:"Design software systems",att:75,tr:"+1",clos:[["CLO4 3NF design",73],["CLO6 Architecture",77]]},
+  {id:"PLO4",t:"Build reliable systems",att:70,tr:"0",clos:[["CLO8 Concurrency",null],["CLO9 Error handling",70]]},
+];
+const c=v=>'#3b82f6'; // single blue shade for all attainment bars (per design direction)
+document.getElementById('plos').innerHTML=PLOS.map(p=>`
+  <div class="plo-row">
+    <button onclick="togglePlo(this)" class="w-full text-left p-3 flex items-center gap-3">
+      <div class="flex-1"><p class="text-sm font-bold text-gray-900">${p.id} · ${p.t}</p>
+      <div class="flex items-center gap-2 mt-1"><div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full" style="width:${p.att}%;background:${c(p.att)}"></div></div><b style="color:${c(p.att)};font-size:13px">${p.att}%</b><span style="font-size:11px;font-weight:800;color:${p.tr[0]==='-'?'#ef4444':p.tr[0]==='+'?'#16a34a':'#94a3b8'}">${p.tr!=='0'?p.tr:'—'}</span></div></div>
+      <span class="plo-chev">▾</span>
+    </button>
+    <div class="plo-clos hidden px-3 py-3">
+      <p class="clo-lbl">Contributing CLOs · ${p.clos.length} · evidence confidence: High</p>
+      <div class="space-y-1.5">
+      ${p.clos.map(([n,v])=>v===null?`<div class="flex items-center gap-2 text-xs"><span class="pill pill-red">GAP</span><span class="text-gray-700 flex-1">${n}</span><span class="text-gray-400">no assessment mapped</span></div>`:`<div class="flex items-center gap-2 text-xs"><span class="text-gray-700 flex-1">${n}</span><div style="width:90px" class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full" style="width:${v}%;background:${c(v)}"></div></div><b style="color:${c(v)};width:34px;text-align:right">${v}%</b></div>`).join('')}
+      </div>
+    </div>
+  </div>`).join('');
+function togglePlo(btn){
+  const row=btn.closest('.plo-row');
+  btn.nextElementSibling.classList.toggle('hidden');
+  row.classList.toggle('open');
+}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

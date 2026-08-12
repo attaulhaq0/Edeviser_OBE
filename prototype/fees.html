@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Fees &amp; Payments</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Fees & Payments — cross-cutting (student pays, parent views/pays on behalf).
+     Maps to: fee_structures (program_id, semester_id, fee_type, amount, currency,
+     due_date), fee_payments (status pending/paid/overdue, payment_method,
+     receipt_number), useFeeStructures/useStudentFees/useRecordPayment,
+     useGenerateFeeReceipt (generate-fee-receipt edge fn). Role detected like
+     announcements.html: student sees "Pay now", parent sees "Pay for Sarah". */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .fe-grid{display:block}
+  html.mode-laptop .fe-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  html.mode-laptop .fe-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .fe-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f7fa}
+  .fe-row:last-child{border-bottom:none}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a id="backlink" href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Fees &amp; Payments</h1><p id="fe-sub" class="text-xs text-gray-500">Tuition, labs &amp; academic fees</p></div>
+  </div>
+</header>
+
+<div class="page-content no-scrollbar">
+
+  <!-- Balance summary -->
+  <div class="rounded-2xl p-5 text-white shadow-lg mb-4" style="background:var(--hero-gradient)">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div><p class="text-[10px] font-black tracking-widest uppercase text-white/60">Outstanding balance</p><p class="text-3xl font-black mt-1">QAR 4,500</p><p class="text-xs text-white/70 mt-1">Spring 2026 tuition · due Jul 20</p></div>
+      <button class="btn3d" onclick="toast('Redirecting to payment gateway…','💳')" style="background:linear-gradient(90deg,#2dd4bf,#38bdf8)">💳 Pay now</button>
+    </div>
+  </div>
+
+  <div class="fe-grid">
+    <div class="space-y-4">
+
+      <!-- Upcoming / current fee structure -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📋</span><p class="t">Current charges</p></div>
+        <div class="divide-y divide-gray-50">
+          <div class="fe-row"><div class="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">🎓</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Tuition · Spring 2026</p><p class="text-[11px] text-gray-500">Due Jul 20, 2026</p></div><span class="text-sm font-black text-gray-900">QAR 4,000</span></div>
+          <div class="fe-row"><div class="h-9 w-9 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">🧪</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Lab fee · CS301</p><p class="text-[11px] text-gray-500">Due Jul 20, 2026</p></div><span class="text-sm font-black text-gray-900">QAR 300</span></div>
+          <div class="fe-row"><div class="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">📚</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Library &amp; materials</p><p class="text-[11px] text-gray-500">Due Jul 20, 2026</p></div><span class="text-sm font-black text-gray-900">QAR 200</span></div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2.5">Total due: <b class="text-gray-700">QAR 4,500</b></p>
+      </div>
+
+      <!-- Payment history (fee_payments, status) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🧾</span><p class="t">Payment history</p></div>
+        <div class="divide-y divide-gray-50">
+          <div class="fe-row"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Fall 2025 tuition</p><p class="text-[11px] text-gray-500">Paid via credit card · Sep 2, 2025</p></div><span class="pill pill-green">Paid · QAR 4,000</span></div>
+          <div class="fe-row"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Fall 2025 lab fee</p><p class="text-[11px] text-gray-500">Paid via bank transfer · Sep 5, 2025</p></div><span class="pill pill-green">Paid · QAR 300</span></div>
+          <div class="fe-row"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Spring 2025 tuition</p><p class="text-[11px] text-gray-500">Paid via credit card · Jan 12, 2025</p></div><span class="pill pill-green">Paid · QAR 4,000</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="fe-rail">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">💳</span><p class="t">Payment methods</p></div>
+        <div class="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-100 p-2.5 mb-2"><span class="text-lg">💳</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Visa •••• 4471</p><p class="text-[11px] text-gray-500">Default</p></div></div>
+        <button class="btn3d sm b-ghost w-full" onclick="toast('Add payment method…','➕')">＋ Add method</button>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📄</span><p class="t">Receipts</p></div>
+        <button class="btn3d sm full" onclick="downloadReceipt()">⬇️ Download latest receipt</button>
+        <p class="text-[11px] text-gray-400 mt-2">Receipts are generated on demand as a PDF.</p>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">💬 Need a payment plan?</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Contact the finance office to split tuition into installments.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar" id="navbar"></nav>
+<script>
+  (function(){
+    const r=document.referrer||''; let role='student';
+    if(/parent-/.test(r)) role='parent';
+    document.body.dataset.role=role;
+    const back={student:'profile.html',parent:'parent-profile.html'};
+    document.getElementById('backlink').href=back[role];
+    if(role==='parent'){
+      document.getElementById('fe-sub').textContent="Sarah's tuition, labs & academic fees";
+      document.querySelectorAll('button').forEach(b=>{ if(b.textContent.includes('Pay now')) b.textContent='💳 Pay for Sarah'; });
+    }
+    const TABS={
+      student:[['dashboard.html','🏠','Home','home'],['learn.html','📚','Learn','learn'],['tutor.html','🤖','Tutor','tutor'],['progress.html','📈','Progress','progress'],['profile.html','👤','Me','me']],
+      parent:[['parent-dashboard.html','🏠','Home','home'],['parent-progress.html','🌱','Growth','growth'],['fees.html','💳','Fees','fees'],['parent-support.html','💬','Support','support'],['parent-profile.html','👤','Me','me']],
+    };
+    document.getElementById('navbar').innerHTML=(TABS[role]||TABS.student).map(t=>`<a href="${t[0]}" class="tab-btn ${t[3]==='fees'?'active':''}" data-tab="${t[3]}"><span class="tab-ic" style="font-size:20px">${t[1]}</span><span>${t[2]}</span></a>`).join('');
+  })();
+  function downloadReceipt(){ toast('Generating receipt…','⏳'); setTimeout(()=>toast('receipt_fall2025_tuition.pdf ready','📄'),1000); }
+</script>
+<script src="shared.js"></script>
+<script>window.addEventListener('load',()=>equalizeColumns('.fe-grid > div:first-child','.fe-rail'));</script>
+</body>
+</html>

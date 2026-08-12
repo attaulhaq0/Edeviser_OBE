@@ -1,0 +1,1016 @@
+/* ═══════════════════════════════════════════════════════════════════
+   EDEVISER PROTOTYPE — Shared Design System
+   ═══════════════════════════════════════════════════════════════════ */
+*{font-family:'Noto Sans',sans-serif;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{max-width:100%;overflow-x:clip}
+body{margin:0;background:#f8fafc;overflow-x:hidden;min-height:100dvh}
+:root{
+  --teal:#14b8a6;--blue:#0382bd;
+  --brand-gradient:linear-gradient(93.65deg,#14B8A6 5.37%,#0382BD 78.89%);
+  --hero-gradient:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%);
+  --onboarding-bg:linear-gradient(160deg,#f0fdfa 0%,#eff6ff 50%,#eef2ff 100%);
+  /* Canonical prototype shell dimensions. These preserve the existing chrome
+     while allowing the center canvas to consume the remaining inline space. */
+  --app-sidebar-width:264px;
+  --app-right-rail-width:328px;
+  --app-page-gutter:40px;
+  --app-section-gap:20px;
+}
+a{text-decoration:none;color:inherit}
+
+/* ─── Animations ─────────────────────────────────────────── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes xpFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-36px) scale(1.3)}}
+@keyframes badgePop{0%{transform:scale(0) rotate(-8deg)}60%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes streakFlame{0%,100%{transform:scaleY(1) rotate(-2deg)}50%{transform:scaleY(1.12) rotate(2deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.fade-in-up{animation:fadeInUp .35s ease-out both}
+.xp-float{animation:xpFloat .85s ease-out forwards}
+.badge-pop{animation:badgePop .45s cubic-bezier(.34,1.56,.64,1) forwards}
+.streak-flame{animation:streakFlame 1.4s ease-in-out infinite}
+.animate-pulse{animation:pulse 2s infinite}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.card-select{transition:all .15s ease;border:2px solid #e2e8f0;cursor:pointer}
+.card-select:active{transform:scale(.96)}
+.card-select.selected{border-color:#3b82f6;background:#eff6ff;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+
+/* ─── Bottom Tab Bar ─────────────────────────────────────── */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;z-index:50;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 0 max(8px,env(safe-area-inset-bottom))}
+.sidebar-brand{display:none}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 8px;border-radius:8px;transition:color .15s;cursor:pointer;border:none;background:none;min-width:48px;text-decoration:none}
+.tab-btn svg{width:22px;height:22px}
+.tab-btn span{font-size:10px;font-weight:500}
+.tab-btn.active svg{color:#2563eb}
+.tab-btn.active span{color:#2563eb;font-weight:700}
+.tab-btn:not(.active) svg{color:#9ca3af}
+.tab-btn:not(.active) span{color:#9ca3af}
+.tutor-fab{width:44px;height:44px;margin-top:-20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--brand-gradient);box-shadow:0 4px 12px rgba(20,184,166,.3);border:3px solid #fff}
+
+/* ─── App Header ─────────────────────────────────────────── */
+.app-header{background:#fff;border-bottom:1px solid #f1f5f9;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+
+/* ─── Onboarding Progress ────────────────────────────────── */
+.progress-track{position:fixed;top:0;left:0;right:0;height:4px;background:#e2e8f0;z-index:100}
+.progress-fill{height:100%;background:var(--brand-gradient);transition:width .4s ease-out;border-radius:0 2px 2px 0}
+
+/* ─── Scrollbar hide ─────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+
+/* ─── Chat ───────────────────────────────────────────────── */
+.bubble-ai{background:#f0f9ff;border:1px solid #bae6fd;border-radius:16px 16px 16px 4px;padding:12px 16px}
+.bubble-user{background:var(--brand-gradient);color:#fff;border-radius:16px 16px 4px 16px;padding:12px 16px}
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#94a3b8;margin:0 2px;animation:blink 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+
+/* ─── Confetti ───────────────────────────────────────────── */
+.confetti-piece{position:fixed;top:-12px;pointer-events:none;animation:confetti 2.2s linear forwards;z-index:200}
+
+/* ─── Utilities ──────────────────────────────────────────── */
+.page-content{padding:20px 16px 88px 16px;overflow-y:auto;flex:1}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DEVICE PRESENTATION — mobile phone frame OR laptop layout
+   Toggle by setting html class: .mode-mobile (default) or .mode-laptop
+   Under 640px real phones ignore the frame entirely.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ---- MOBILE PHONE FRAME (desktop preview of the mobile app) ---- */
+@media (min-width:640px){
+  html.mode-mobile{min-height:100vh;background:radial-gradient(circle at 50% 0%,#1e293b 0%,#0f172a 60%)}
+  html.mode-mobile body{
+    position:relative;width:390px;height:min(844px,calc(100vh - 48px));
+    margin:24px auto;display:flex;flex-direction:column;
+    border:12px solid #0b1220;border-radius:44px;overflow:hidden;
+    box-shadow:0 40px 90px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.04);
+  }
+  html.mode-mobile .app-header{position:static}
+  html.mode-mobile .page-content{flex:1;overflow-y:auto;padding-bottom:16px}
+  html.mode-mobile .bottom-bar{position:static;padding-bottom:10px}
+  html.mode-mobile #screens{flex:1;display:flex;flex-direction:column;overflow-y:auto}
+  html.mode-mobile #screens>div{min-height:100%!important}
+  html.mode-mobile .progress-track{position:absolute}
+  html.mode-mobile body.h-dvh{height:min(844px,calc(100vh - 48px))!important}
+  html.mode-mobile body::before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:70px;height:5px;background:rgba(0,0,0,.15);border-radius:3px;z-index:60}
+}
+
+/* ---- LAPTOP LAYOUT: full-bleed (left nav + 2-col feed + right rail) ---- */
+.right-rail{display:none}
+@media (min-width:640px){
+  html.mode-laptop{background:#eef2f6}
+  html.mode-laptop body{width:auto;min-height:100vh;margin:0;border:none;border-radius:0;box-shadow:none;display:block;background:#eef2f6}
+
+  /* left sidebar hugs the left edge of the screen */
+  html.mode-laptop .bottom-bar{top:0;bottom:0;left:0;right:auto;width:var(--app-sidebar-width);height:100vh;flex-direction:column;justify-content:flex-start;align-items:stretch;border-top:none;border-right:1px solid #e2e8f0;padding:74px 14px 20px;gap:4px;background:#fff}
+  html.mode-laptop .sidebar-brand{display:flex;position:absolute;top:14px;left:14px;align-items:center;height:42px;padding:0 8px;border-radius:10px;font-weight:900;font-size:18px;letter-spacing:-.01em;color:#0f172a;transition:background .15s,color .15s}
+  html.mode-laptop .sidebar-brand:hover{background:#f1f5f9;color:#0369a1}
+  html.mode-laptop .sidebar-brand:focus-visible{outline:3px solid rgba(14,165,233,.3);outline-offset:2px}
+  html.mode-laptop .tab-btn{flex-direction:row;justify-content:flex-start;gap:14px;padding:12px 18px;border-radius:12px;min-width:0}
+  html.mode-laptop .tab-btn:hover{background:#f1f5f9}
+  html.mode-laptop .tab-btn.active{background:#eff6ff}
+  html.mode-laptop .tab-btn svg{width:22px;height:22px}
+  html.mode-laptop .tab-btn span{font-size:14px;font-weight:600}
+  html.mode-laptop .tutor-fab{margin-top:0;width:34px;height:34px;border:none;box-shadow:none}
+
+  /* top header full width: search sits after the sidebar, the right cluster
+     (streak · gems · bell · avatar) floats to the true right corner — above the rail */
+  html.mode-laptop .app-header{position:fixed;top:0;left:0;right:0;z-index:45;padding-top:0;padding-bottom:0;padding-left:calc(var(--app-sidebar-width) + 28px);padding-right:24px;height:57px}
+  html.mode-laptop .hdr-brand{display:none} /* avoid duplicate wordmark (sidebar has it) */
+  html.mode-laptop .hdr-right{gap:12px!important}
+
+  /* feed fills the middle as a clean, predictable vertical flow. Multi-column
+     rows are EXPLICIT grids (.lg-row / Tailwind grid) so cards never land in a
+     ragged height-balanced masonry that leaves empty gaps. */
+  html.mode-laptop .page-content{width:auto;min-width:0;max-width:none;margin-left:var(--app-sidebar-width);margin-right:var(--app-right-rail-width);margin-top:62px;padding:28px var(--app-page-gutter) 64px;display:flex;flex-direction:column;gap:var(--app-section-gap)}
+  html.mode-laptop .page-content > *{max-width:100%;margin:0!important;min-width:0}
+  html.mode-laptop .page-content :is(.grid,.lg-row) > *{min-width:0}
+  /* .feed-wide is now a no-op (everything is full-width in the single flow) but
+     kept so existing markup keeps working. */
+  html.mode-laptop .progress-track{position:fixed}
+
+  /* Explicit desktop grid rows — stack on mobile, N columns on laptop. Use for
+     KPI strips and any "row of cards" the references show side-by-side. */
+  html.mode-laptop .lg-row{display:grid;gap:16px;align-items:stretch}
+  html.mode-laptop .lg-row-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.mode-laptop .lg-row-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  html.mode-laptop .lg-row-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  /* split: main + narrower aside (e.g. 2fr / 1fr) */
+  html.mode-laptop .lg-split{grid-template-columns:1.65fr 1fr}
+  html.mode-laptop .lg-row > *{margin:0!important}
+  /* pages that render their own right-hand column (data-norail) reclaim the
+     full width the injected rail would have used */
+  html.mode-laptop body[data-norail] .page-content{margin-right:0;padding-right:var(--app-page-gutter);max-width:none}
+
+  /* right rail hugs the right edge */
+  html.mode-laptop .right-rail{display:block;position:fixed;top:57px;right:0;width:var(--app-right-rail-width);bottom:0;overflow-y:auto;padding:16px 22px 40px;border-left:1px solid #e2e8f0;background:#fff}
+
+  /* onboarding: no chrome, full screen */
+  html.mode-laptop.onboarding .bottom-bar,html.mode-laptop.onboarding .bottom-bar::before{display:none}
+  html.mode-laptop.onboarding .app-header{padding-left:16px;padding-right:16px}
+  html.mode-laptop.onboarding .page-content{margin-left:0;margin-right:0;column-count:1}
+}
+/* Medium widths (no room for rail): drop rail, feed uses the full middle */
+@media (min-width:640px) and (max-width:1099px){
+  html.mode-laptop .right-rail{display:none}
+  html.mode-laptop .page-content{margin-right:0;padding-right:var(--app-page-gutter)}
+  html.mode-laptop .app-header{padding-right:32px}
+  /* keep 4-up strips readable when the rail is gone */
+  html.mode-laptop .lg-row-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1100px) and (max-width:1399px){
+  html.mode-laptop .lg-row-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* Compact laptop/tablet previews do not have enough center width for explicit
+   multi-card rows once the invariant sidebar and page gutters are reserved. */
+@media (min-width:640px) and (max-width:899px){
+  html.mode-laptop .lg-row-2,
+  html.mode-laptop .lg-row-3{grid-template-columns:minmax(0,1fr)}
+}
+/* Verified page-owned split layouts use a fixed contextual column. Stack that
+   column until the remaining center canvas is wide enough for both tracks. */
+@media (max-width:899px){
+  html.mode-laptop body .page-content :is(.an-grid,.bd-grid,.cal-grid,.cp-grid,.ds-grid,.fe-grid,.fc-grid,.lb-grid,.mkt-grid,.nf-grid,.path-grid,.pf-grid,.qs-grid,.rv-grid,.at-grid,.mt-grid,.qb-grid,.rb-grid,.tm-grid,.wl-grid){
+    grid-template-columns:minmax(0,1fr);
+  }
+  html.mode-laptop body .page-content :is(.an-rail,.bd-rail,.cal-rail,.cp-rail,.ds-rail,.fe-rail,.fc-rail,.lb-rail,.mkt-rail,.nf-rail,.detail-panel,.pf-rail,.qs-rail,.rv-rail,.at-rail,.mt-rail,.qb-rail,.rb-rail,.tm-rail,.wl-rail){
+    position:static;
+  }
+}
+/* Browser zoom-out behaves like a wider CSS viewport. Keep every standard
+   role workspace fluid; page composition (grids, tables and cards) owns the
+   extra room while readable prose retains its own local measures. */
+@media (min-width:2000px){
+  html.mode-laptop body:not([data-immersive]) .page-content{
+    --app-page-gutter:clamp(40px,2.3vw,72px);
+  }
+  html.mode-laptop .page-content .lg-row{
+    gap:clamp(16px,1vw,28px);
+  }
+}
+
+/* ---- Sidebar extras (laptop only): grouped links + pinned profile ---- */
+.sidebar-extra{display:none}
+@media (min-width:640px){
+  html.mode-laptop .bottom-bar{overflow-y:auto}
+  html.mode-laptop .sidebar-extra{display:flex;flex-direction:column;flex:1;min-height:0;gap:2px;margin-top:6px}
+  html.mode-laptop .side-sep{height:1px;background:#eef2f6;margin:8px 8px 4px}
+  html.mode-laptop .side-label{font-size:10px;font-weight:800;letter-spacing:.1em;color:#94a3b8;padding:2px 18px;margin:0}
+  html.mode-laptop .side-link{display:flex;align-items:center;gap:12px;padding:9px 18px;border-radius:12px;font-size:14px;font-weight:600;color:#64748b}
+  html.mode-laptop .side-link:hover{background:#f1f5f9;color:#334155}
+  html.mode-laptop .side-link.active{background:#eff6ff;color:#0382bd}
+  html.mode-laptop .side-profile{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:#f8fafc;border:1px solid #eef2f6}
+  html.mode-laptop .side-profile:hover{background:#f1f5f9}
+  html.mode-laptop .side-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;background:var(--brand-gradient);flex:0 0 auto}
+  html.mode-laptop .side-name{font-size:13px;font-weight:700;color:#0f172a;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html.mode-laptop .side-lvlbar{height:5px;border-radius:3px;background:#e2e8f0;overflow:hidden;margin:4px 0 2px}
+  html.mode-laptop .side-lvlbar>div{height:100%;background:var(--brand-gradient)}
+  html.mode-laptop .side-lvltxt{font-size:10px;color:#94a3b8;margin:0}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NOTIFICATIONS PANEL
+   ═══════════════════════════════════════════════════════════════════ */
+.notif-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.25);z-index:70;display:none}
+.notif-backdrop.open{display:block}
+.notif-panel{position:absolute;top:52px;right:8px;width:300px;max-width:calc(100vw - 24px);background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.2);z-index:71;overflow:hidden}
+html.mode-laptop .notif-panel{right:24px;top:60px}
+.notif-item{padding:12px 14px;display:flex;gap:10px;border-bottom:1px solid #f1f5f9;transition:background .15s;cursor:pointer}
+.notif-item:hover{background:#f8fafc}
+.notif-item.unread{background:#eff6ff}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:5px;shrink:0}
+.notif-bell{position:relative;padding:6px;border-radius:8px;border:none;background:none;cursor:pointer}
+.notif-bell:hover{background:#f1f5f9}
+.notif-badge{position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 3px;border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DEMO CONTROL DOCK (device toggle + variation + screens)
+   ═══════════════════════════════════════════════════════════════════ */
+.demo-dock{position:fixed;z-index:9999;display:flex;gap:6px;align-items:center}
+@media (max-width:639px){.demo-dock{top:6px;right:6px}}
+@media (min-width:640px){.demo-dock{bottom:16px;left:50%;transform:translateX(-50%)}}
+.demo-btn{background:#0f172a;color:#fff;font-size:11px;font-weight:700;padding:7px 11px;border:none;border-radius:9px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;opacity:.92;display:flex;align-items:center;gap:5px}
+.demo-btn:hover{opacity:1}
+.demo-seg{display:flex;background:#0f172a;border-radius:9px;padding:3px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.demo-seg button{background:none;border:none;color:#94a3b8;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer}
+.demo-seg button.on{background:#334155;color:#fff}
+.demo-menu{position:absolute;bottom:44px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.2);overflow:hidden;min-width:180px;display:none;max-height:60vh;overflow-y:auto}
+@media (max-width:639px){.demo-menu{bottom:auto;top:40px;left:auto;right:0;transform:none}}
+.demo-menu.open{display:block}
+.demo-menu a{display:block;padding:10px 14px;font-size:12.5px;color:#334155;border-bottom:1px solid #f1f5f9}
+.demo-menu a:hover{background:#f8fafc}
+
+/* ---- Tutor page (custom full-height chat) in laptop mode ---- */
+@media (min-width:640px){
+  html.mode-laptop body.h-dvh{padding-left:var(--app-sidebar-width)}
+  html.mode-laptop body.h-dvh .app-header{position:static;padding-left:16px;padding-right:16px}
+  /* the tutor chat + input already sit inside the padded body, clearing the sidebar */
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL TOP BAR: search (⌘K), stat pills (laptop). Hidden on mobile.
+   ═══════════════════════════════════════════════════════════════════ */
+.top-search{display:none}
+.top-stats{display:none}
+@media (min-width:640px){
+  html.mode-laptop .top-search{display:flex;align-items:center;gap:8px;flex:0 0 auto;width:min(340px,30vw);margin:0;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:9px 12px;color:#94a3b8;font-size:13px;cursor:text}
+  /* single-column pages (e.g. the learning path) opt out of the 2-col feed */
+  html.mode-laptop .page-content.single-col{column-count:1;max-width:640px}
+  html.mode-laptop .top-search:hover{background:#eef2f6;border-color:#cbd5e1}
+  html.mode-laptop .top-search .kbd{margin-left:auto;font-size:10px;font-weight:800;background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 6px;color:#64748b}
+  html.mode-laptop .top-stats{display:flex;align-items:center;gap:8px}
+  html.mode-laptop .stat-chip{display:flex;align-items:center;gap:5px;background:#f8fafc;border:1px solid #eef2f6;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:800}
+}
+/* command palette (works in both modes when opened) */
+.cmdk-back{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:80;display:none;align-items:flex-start;justify-content:center}
+.cmdk-back.open{display:flex}
+.cmdk{margin-top:12vh;width:min(560px,92vw);background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden}
+.cmdk input{width:100%;border:none;outline:none;padding:16px 18px;font-size:15px;border-bottom:1px solid #f1f5f9;box-sizing:border-box}
+.cmdk-list{max-height:340px;overflow-y:auto;padding:6px}
+.cmdk-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:#334155;text-decoration:none}
+.cmdk-item:hover{background:#eff6ff;color:#1d4ed8}
+.cmdk-sec{font-size:10px;font-weight:800;letter-spacing:.1em;color:#94a3b8;padding:8px 12px 4px}
+
+/* Hide the search field only on tight widths; ⌘K still works via keyboard */
+@media (min-width:640px) and (max-width:999px){
+  html.mode-laptop .top-search{display:none}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PREMIUM CARDS (Variation A) — soft depth, hover-lift, gradient accents
+   ═══════════════════════════════════════════════════════════════════ */
+.pcard{background:#fff;border:1px solid #eef2f6;border-radius:20px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.05);transition:transform .18s ease,box-shadow .18s ease}
+.pcard:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(16,24,40,.11)}
+.pcard-tap:active{transform:translateY(0) scale(.99)}
+/* section label with a small gradient icon chip */
+.sec-h{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sec-h .chip{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;background:var(--brand-gradient);box-shadow:0 3px 8px rgba(20,184,166,.25)}
+.sec-h h2,.sec-h p.t{font-size:13px;font-weight:800;letter-spacing:.02em;color:#0f172a;margin:0}
+.sec-h .more{margin-left:auto;font-size:12px;font-weight:700;color:#0382bd}
+/* ── DEPRECATED left status spine — neutralised (no bar). Severity now
+   lives on the leading icon (.lead.sev-*) + a status badge, the industry
+   pattern (severity icon, not a coloured edge). Kept as no-op so any
+   remaining markup renders as a clean card. */
+.accent-l::before{display:none!important}
+
+/* ── Leading severity icon: tinted tile/avatar with a soft halo ring ──
+   Replaces the left bar. Professional enough for teacher/admin, warm
+   enough for students. Pair with a status badge (never colour alone). */
+.lead{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex:0 0 auto;background:#f1f5f9;color:#475569}
+.lead.round{border-radius:50%}
+.lead.sev-high{background:#fef2f2;color:#dc2626;box-shadow:0 0 0 3px #fee2e2}
+.lead.sev-med{background:#fffbeb;color:#d97706;box-shadow:0 0 0 3px #fef3c7}
+.lead.sev-low{background:#f0fdf4;color:#16a34a;box-shadow:0 0 0 3px #dcfce7}
+.lead.sev-brand{background:#ecfeff;color:#0f766e;box-shadow:0 0 0 3px #cffafe}
+.lead.sev-info{background:#eff6ff;color:#2563eb;box-shadow:0 0 0 3px #dbeafe}
+.lead.sev-violet{background:#f5f3ff;color:#7c3aed;box-shadow:0 0 0 3px #ede9fe}
+
+/* ── Tactile pressable buttons (Duolingo affordance, dialled subtle) ──
+   Depth via a solid bottom edge; press collapses it. Primary deepest,
+   secondary flatter (hierarchy). Reads premium, not childish. */
+.btn3d{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:12px;font-weight:800;font-size:13px;line-height:1;cursor:pointer;padding:10px 14px;color:#fff;background:var(--brand-gradient);box-shadow:0 3px 0 #0b6a93;transition:transform .06s ease,box-shadow .06s ease;transform:translateY(0)}
+.btn3d:hover{filter:brightness(1.04)}
+.btn3d:active{transform:translateY(3px);box-shadow:0 0 0 #0b6a93}
+.btn3d.b-soft{background:#eff6ff;color:#1d4ed8;box-shadow:0 3px 0 #bfdbfe}
+.btn3d.b-soft:active{box-shadow:0 0 0 #bfdbfe}
+.btn3d.b-ghost{background:#f8fafc;color:#334155;box-shadow:0 3px 0 #e2e8f0}
+.btn3d.b-ghost:active{box-shadow:0 0 0 #e2e8f0}
+.btn3d.b-danger{background:#fef2f2;color:#dc2626;box-shadow:0 3px 0 #fecaca}
+.btn3d.b-danger:active{box-shadow:0 0 0 #fecaca}
+.btn3d.sm{padding:8px 12px;font-size:12px;border-radius:10px;box-shadow:0 3px 0 var(--e,#0b6a93)}
+.btn3d.full{width:100%}
+/* subtle decorative blob for hero */
+.hero-blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;pointer-events:none}
+/* mastery ring mini */
+.ring-mini{transform:rotate(-90deg)}
+.ring-mini circle{fill:none;stroke-width:3.5}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ROLE-AWARE SHELL — injected nav emoji icons, right-rail cards, toast
+   ═══════════════════════════════════════════════════════════════════ */
+/* Emoji icons for injected (non-student) primary nav */
+.tab-btn .tab-ic{font-size:22px;line-height:1;display:inline-block}
+html.mode-laptop .tab-btn .tab-ic{font-size:20px}
+
+/* Right-rail card system (role-specific widgets) */
+.rail-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:14px}
+.rail-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8}
+.rail-h .rail-r{font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:0;text-transform:none}
+.rail-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:13px;color:#334155}
+.rail-row b{font-size:12px;font-weight:800;color:#0f172a}
+.rail-row .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.rail-btn{display:block;width:100%;text-align:center;padding:9px;border-radius:10px;background:var(--brand-gradient);color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.mini-bar{height:5px;border-radius:3px;background:#f1f5f9;overflow:hidden;margin-top:3px}
+.mini-bar>div{height:100%}
+
+/* Toast */
+.edv-toast{position:fixed;left:50%;bottom:76px;transform:translate(-50%,20px);background:#0f172a;color:#fff;font-size:13px;font-weight:600;padding:10px 16px;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.28);display:flex;align-items:center;gap:8px;z-index:9998;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px)}
+.edv-toast.show{opacity:1;transform:translate(-50%,0)}
+html.mode-laptop .edv-toast{bottom:24px;left:calc(50% + 132px)}
+
+/* Generic "AI prepared" hero banner (used across role dashboards) */
+.ai-banner{border-radius:18px;padding:16px 18px;color:#fff;position:relative;overflow:hidden;background:var(--hero-gradient)}
+.ai-banner .why{position:absolute;top:12px;right:14px;font-size:10px;font-weight:700;color:rgba(255,255,255,.75);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:3px 8px;border-radius:999px;cursor:pointer}
+.ai-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:4px 9px;border-radius:999px}
+
+/* Explainability popover ("why am I seeing this") */
+.why-pop{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:120;display:none;align-items:center;justify-content:center;padding:20px}
+.why-pop.open{display:flex}
+.why-pop .card{background:#fff;border-radius:16px;max-width:420px;width:100%;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+
+/* Autonomy tier segmented control */
+.tier-seg{display:inline-flex;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:3px;gap:2px}
+.tier-seg button{border:none;background:none;font-size:12px;font-weight:700;color:#64748b;padding:6px 12px;border-radius:8px;cursor:pointer}
+.tier-seg button.on{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* Simple data table (teacher/coordinator/admin) */
+.dtable{width:100%;border-collapse:collapse;font-size:13px}
+.dtable th{text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;padding:8px 10px;border-bottom:1px solid #eef2f6}
+.dtable td{padding:10px;border-bottom:1px solid #f5f7fa;color:#334155}
+.dtable tr:hover td{background:#f8fafc}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px}
+.pill-red{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca}
+.pill-amber{color:#b45309;background:#fffbeb;border:1px solid #fde68a}
+.pill-green{color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0}
+.pill-blue{color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe}
+.pill-slate{color:#475569;background:#f1f5f9;border:1px solid #e2e8f0}
+
+/* ── KPI cards: label + big value + trend + icon tile (dashboard strips) ── */
+.kpi{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.kpi-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto}
+.kpi-ic.i-blue{background:#eff6ff;color:#2563eb}
+.kpi-ic.i-green{background:#f0fdf4;color:#16a34a}
+.kpi-ic.i-amber{background:#fffbeb;color:#d97706}
+.kpi-ic.i-red{background:#fef2f2;color:#dc2626}
+.kpi-ic.i-violet{background:#f5f3ff;color:#7c3aed}
+.kpi-ic.i-teal{background:#ecfeff;color:#0f766e}
+.trend{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:800}
+.trend-up{color:#16a34a}
+.trend-down{color:#dc2626}
+.trend-flat{color:#64748b}
+/* tiny inline sparkline bars */
+.spark{display:inline-flex;align-items:flex-end;gap:2px;height:18px}
+.spark i{width:3px;border-radius:1px;background:#86efac;display:block}
+
+/* ── Triage priority filter tabs (Critical / Attention / Monitor) ── */
+.tri-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tri-tab{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:6px 12px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .15s}
+.tri-tab .cnt{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
+.tri-tab:hover{border-color:#cbd5e1}
+.tri-tab.on{color:#fff}
+.tri-tab.on .cnt{background:rgba(255,255,255,.25);color:#fff}
+.tri-tab.on.crit{background:#dc2626;border-color:#dc2626}
+.tri-tab.on.att{background:#d97706;border-color:#d97706}
+.tri-tab.on.mon{background:#0f766e;border-color:#0f766e}
+.tri-tab.crit .cnt{background:#fef2f2;color:#dc2626}
+.tri-tab.att .cnt{background:#fffbeb;color:#d97706}
+.tri-tab.mon .cnt{background:#f0fdfa;color:#0f766e}
+
+/* ── Estimated-workload / time-saved chip (teaching copilot value cues) ── */
+.time-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:6px 11px;border-radius:10px;background:#ecfeff;color:#0f766e;border:1px solid #cffafe}
+
+/* ── Right-rail checklist rows (AI prepared your day) ── */
+.rail-check{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;color:#334155}
+.rail-check .rc-box{width:18px;height:18px;border-radius:6px;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex:0 0 auto}
+.rail-check .rc-t{flex:1;min-width:0}
+.rail-check .rc-time{font-size:11px;font-weight:800;color:#94a3b8}
+
+/* ── Generic small stat tile (progress panels) ── */
+.stat-tile{background:#f8fafc;border:1px solid #eef2f6;border-radius:14px;padding:11px 13px}
+.stat-tile .st-k{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:0}
+.stat-tile .st-v{font-size:15px;font-weight:900;color:#0f172a;margin:3px 0 0}
+
+/* ═══════════════════════════════════════════════════════════════════
+   IMMERSIVE LESSON (Duolingo-style focus flow) — data-immersive="1"
+   ═══════════════════════════════════════════════════════════════════ */
+.lz-top{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid #eef2f6;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.lz-x{width:30px;height:30px;border-radius:8px;border:none;background:#f1f5f9;color:#64748b;font-size:16px;cursor:pointer;flex:0 0 auto}
+.lz-prog{flex:1;height:12px;border-radius:999px;background:#eef2f6;overflow:hidden}
+.lz-prog>div{height:100%;border-radius:999px;background:linear-gradient(90deg,#14b8a6,#0382bd);transition:width .4s ease}
+.lz-step{font-size:12px;font-weight:800;color:#94a3b8;flex:0 0 auto}
+[data-immersive] .page-content{max-width:600px;margin:0 auto}
+html.mode-laptop [data-immersive] .page-content{margin:0 auto!important;column-count:1!important;max-width:600px;padding:28px 20px 120px}
+.opt{width:100%;text-align:left;border:2px solid #e2e8f0;background:#fff;border-radius:14px;padding:14px 16px;font-size:14px;font-weight:600;color:#334155;cursor:pointer;transition:all .12s;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.opt:hover{border-color:#cbd5e1;background:#f8fafc}
+.opt.correct{border-color:#22c55e;background:#f0fdf4;color:#15803d}
+.opt.wrong{border-color:#ef4444;background:#fef2f2;color:#b91c1c}
+.opt.dim{opacity:.5}
+.lz-cta{position:sticky;bottom:0;background:linear-gradient(to top,#f8fafc 70%,transparent);padding:16px 0 20px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   STAT / KPI NUMBERS — kill the harsh pure-black. Use a refined, lively
+   brand ink (deep brand blue, WCAG-legible on white) at a slightly
+   lighter weight with tight numerals. Scoped to <p>/<span> so page-title
+   <h1>/<h2> headings stay ink-dark, and semantic-coloured numbers
+   (green / amber / red / blue) are left untouched.
+   ═══════════════════════════════════════════════════════════════════ */
+p.font-black.text-gray-900,
+span.font-black.text-gray-900{
+  color:#0369a1;
+  font-weight:800;
+  letter-spacing:-.01em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHARACTER SYSTEM — living mascots (Foxi · Pengu · Owlie)
+   Purpose-driven emotional companions. Every appearance maps to a real
+   product state (greeting, streak, weak CLO, celebration, reflection).
+   Assets: /characters/{foxi|penguin|owl}/*.png
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Sizing ── */
+.chr{display:inline-block;object-fit:contain;user-select:none;-webkit-user-drag:none;flex:0 0 auto;filter:drop-shadow(0 6px 12px rgba(15,23,42,.16))}
+.chr-xs{width:46px;height:46px}
+.chr-sm{width:64px;height:64px}
+.chr-md{width:104px;height:104px}
+.chr-lg{width:150px;height:150px}
+.chr-xl{width:200px;height:200px}
+
+/* ── Character animations (idle + entrance + reactions) ── */
+@keyframes chrFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes chrBobIn{0%{opacity:0;transform:translateY(10px) scale(.9)}60%{opacity:1;transform:translateY(-2px) scale(1.03)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes chrWave{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+@keyframes chrPop{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.14) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes chrNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+.chr-float{animation:chrFloat 3.2s ease-in-out infinite}
+.chr-in{animation:chrBobIn .4s cubic-bezier(.34,1.56,.64,1) both}
+.chr-wave{animation:chrWave .5s ease-in-out 2}
+.chr-pop{animation:chrPop .45s cubic-bezier(.34,1.56,.64,1) both}
+.chr-nudge{animation:chrNudge 1.4s ease-in-out infinite}
+
+/* ── Speech bubble ── */
+.chr-bubble{position:relative;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:10px 14px;box-shadow:0 4px 14px rgba(16,24,40,.08);max-width:260px}
+.chr-bubble .ttl{font-size:12px;font-weight:800;color:#0f172a;margin:0 0 2px}
+.chr-bubble .msg{font-size:12.5px;line-height:1.45;color:#475569;margin:0}
+/* tail: pointing left (character on the left) */
+.chr-bubble.tail-l::before{content:"";position:absolute;top:16px;left:-7px;width:12px;height:12px;background:#fff;border-left:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)}
+/* tail: pointing down (character below) */
+.chr-bubble.tail-b::before{content:"";position:absolute;bottom:-7px;left:50%;margin-left:-6px;width:12px;height:12px;background:#fff;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;transform:rotate(45deg)}
+/* tinted variants keep tail colour in sync */
+.chr-bubble.b-teal{background:#f0fdfa;border-color:#99f6e4}
+.chr-bubble.b-teal.tail-l::before{background:#f0fdfa;border-color:#99f6e4}
+.chr-bubble.b-amber{background:#fffbeb;border-color:#fde68a}
+.chr-bubble.b-amber.tail-l::before{background:#fffbeb;border-color:#fde68a}
+.chr-bubble.b-blue{background:#eff6ff;border-color:#bfdbfe}
+.chr-bubble.b-blue.tail-l::before{background:#eff6ff;border-color:#bfdbfe}
+
+/* ── Companion row: character + bubble side by side ── */
+.chr-row{display:flex;align-items:flex-start;gap:10px}
+.chr-row.center{align-items:center}
+
+/* ── On dark surfaces (hero), bubble flips to translucent light ── */
+.chr-onhero .chr-bubble{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);box-shadow:none}
+.chr-onhero .chr-bubble .ttl{color:#fff}
+.chr-onhero .chr-bubble .msg{color:rgba(255,255,255,.82)}
+.chr-onhero .chr-bubble.tail-l::before{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22)}
+
+/* ── Reduced motion: disable all character motion ── */
+@media (prefers-reduced-motion:reduce){
+  .chr-float,.chr-in,.chr-wave,.chr-pop,.chr-nudge{animation:none!important}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MICRO-INTERACTIONS — premium, subtle, 200–350ms, spring easing.
+   Opt-in utility classes so any element can feel alive without JS.
+   ═══════════════════════════════════════════════════════════════════ */
+/* Button bounce on press (pairs with any button/link) */
+.tap-bounce{transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
+.tap-bounce:active{transform:scale(.94)}
+/* Gentle hover-lift for cards that aren't .pcard */
+.hover-lift{transition:transform .18s ease,box-shadow .18s ease}
+.hover-lift:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(16,24,40,.10)}
+/* Springy progress-bar fill — set width to animate */
+.bar-fill{transition:width .55s cubic-bezier(.34,1.56,.64,1)}
+/* Badge pop entrance (reuses badgePop keyframes) */
+.pop-in{animation:badgePop .45s cubic-bezier(.34,1.56,.64,1) both}
+/* Soft attention pulse for "new"/unlocked chips */
+@keyframes softGlow{0%,100%{box-shadow:0 0 0 0 rgba(20,184,166,.0)}50%{box-shadow:0 0 0 6px rgba(20,184,166,.14)}}
+.glow-pulse{animation:softGlow 2.4s ease-in-out infinite}
+
+/* ═══════════════════════════════════════════════════════════════════
+   REDUCED MOTION — honor the user's OS preference across the whole
+   prototype. Disables decorative motion (idle floats, pulses, confetti,
+   entrances) while keeping instantaneous state changes intact.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important}
+  .fade-in-up,.xp-float,.badge-pop,.pop-in,.streak-flame,.animate-pulse,
+  .confetti-piece,.chr-float,.chr-in,.chr-wave,.chr-pop,.chr-nudge,.glow-pulse{
+    animation:none!important
+  }
+  .node-current,.camp.current .marker,.tree-stage.current .st-ic{animation:none!important}
+  .tap-bounce:active{transform:none}
+  .bar-fill{transition:none}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   INSTITUTION (teacher · coordinator · admin) + PARENT — FLAT BRAND BUTTONS
+   Chosen design direction: flat solid brand blue (#0382bd), no tactile
+   bottom-edge press. Keeps these "adult/staff/guardian" surfaces calm and
+   consistent. The STUDENT side intentionally keeps the tactile btn3d press.
+   Scoped by [data-role] so it is fully reversible.
+   ═══════════════════════════════════════════════════════════════════ */
+body[data-role="teacher"] .btn3d,
+body[data-role="coordinator"] .btn3d,
+body[data-role="admin"] .btn3d,
+body[data-role="parent"] .btn3d{
+  background:#0382bd;
+  box-shadow:0 1px 2px rgba(16,24,40,.14);
+  transform:none;
+}
+body[data-role="teacher"] .btn3d:hover,
+body[data-role="coordinator"] .btn3d:hover,
+body[data-role="admin"] .btn3d:hover,
+body[data-role="parent"] .btn3d:hover{ filter:brightness(1.06); }
+body[data-role="teacher"] .btn3d:active,
+body[data-role="coordinator"] .btn3d:active,
+body[data-role="admin"] .btn3d:active,
+body[data-role="parent"] .btn3d:active{ transform:none; box-shadow:0 1px 2px rgba(16,24,40,.14); }
+
+/* soft / ghost / danger keep their tint but go flat (no bottom edge) */
+body[data-role="teacher"] .btn3d.b-soft,
+body[data-role="coordinator"] .btn3d.b-soft,
+body[data-role="admin"] .btn3d.b-soft,
+body[data-role="parent"] .btn3d.b-soft{ background:#eff6ff; color:#1d4ed8; box-shadow:0 1px 2px rgba(16,24,40,.06); }
+body[data-role="teacher"] .btn3d.b-soft:active,
+body[data-role="coordinator"] .btn3d.b-soft:active,
+body[data-role="admin"] .btn3d.b-soft:active,
+body[data-role="parent"] .btn3d.b-soft:active{ box-shadow:0 1px 2px rgba(16,24,40,.06); }
+
+body[data-role="teacher"] .btn3d.b-ghost,
+body[data-role="coordinator"] .btn3d.b-ghost,
+body[data-role="admin"] .btn3d.b-ghost,
+body[data-role="parent"] .btn3d.b-ghost{ background:#f8fafc; color:#334155; border:1px solid #e2e8f0; box-shadow:none; }
+
+body[data-role="teacher"] .btn3d.b-danger,
+body[data-role="coordinator"] .btn3d.b-danger,
+body[data-role="admin"] .btn3d.b-danger,
+body[data-role="parent"] .btn3d.b-danger{ background:#fef2f2; color:#dc2626; box-shadow:none; }
+
+/* right-rail CTA + inline var(--brand-gradient) primary buttons → flat brand */
+body[data-role="teacher"] .rail-btn,
+body[data-role="coordinator"] .rail-btn,
+body[data-role="admin"] .rail-btn,
+body[data-role="parent"] .rail-btn{ background:#0382bd; }
+body[data-role="teacher"] button[style*="--brand-gradient"],
+body[data-role="coordinator"] button[style*="--brand-gradient"],
+body[data-role="admin"] button[style*="--brand-gradient"],
+body[data-role="parent"] button[style*="--brand-gradient"]{ background:#0382bd !important; }
+
+
+/* ── Consistent welcome banners: teacher/coordinator/admin all match Admin (default hero).
+   Parent keeps its green "positive vibe" banner. Overrides coordinator's inline purple. ── */
+body[data-role="teacher"] .ai-banner,
+body[data-role="coordinator"] .ai-banner,
+body[data-role="admin"] .ai-banner{ background:var(--hero-gradient) !important; }
+
+/* ── Kill leftover off-brand colours on the institution side ──
+   Coordinator's purple header → brand gradient (matches other card headers);
+   purple promo button span → flat brand. */
+body[data-role="coordinator"] div[style*="7c3aed"]{ background:var(--brand-gradient) !important; }
+body[data-role="coordinator"] span[style*="7c3aed"]{ background:#0382bd !important; }
+
+/* Flatten teal→blue literal-gradient promo BUTTON spans to flat brand (card header <div>s stay gradient) */
+body[data-role="teacher"] span[style*="linear-gradient(135deg,#0f766e,#0382bd)"],
+body[data-role="coordinator"] span[style*="linear-gradient(135deg,#0f766e,#0382bd)"],
+body[data-role="admin"] span[style*="linear-gradient(135deg,#0f766e,#0382bd)"],
+body[data-role="parent"] span[style*="linear-gradient(135deg,#0f766e,#0382bd)"]{ background:#0382bd !important; }
+
+/* Phosphor line-icons inside buttons */
+.btn3d .ph{ font-size:15px; line-height:1; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   UI REFRESH (prototype) — SEPARATED chrome (white sidebar/header/right-rail
+   on a tinted canvas, divided by hairline borders + soft shadows), centered
+   search, depth "raised-key" section icons, top-right profile chip, brand
+   sidebar upgrade card. Student chrome = gamified; staff = professional.
+   All laptop rules use html.mode-laptop so mobile keeps its phone frame.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Icons: soft "raised-key" depth (neumorphic soft-extrude), NOT a saturated
+   color chip; stays legible at nav size. Staff = neutral; student = brand-tinted
+   glassy. Refs: cssauthor/flat-icons 3D depth, medium neumorphism-2025. ── */
+.sec-h .chip{
+  width:30px;height:30px;border-radius:10px;font-size:18px;line-height:1;
+  display:flex;align-items:center;justify-content:center;color:inherit;
+  background:linear-gradient(145deg,#ffffff,#eaeff5);
+  border:1px solid #e5eaf0;
+  box-shadow:0 2px 5px rgba(15,23,42,.10),inset 0 1px 0 rgba(255,255,255,.9);
+}
+body[data-role="student"] .sec-h .chip{
+  background:linear-gradient(145deg,#ffffff,#e7fbff);
+  border-color:#cbeef9;
+  box-shadow:0 3px 7px rgba(3,130,189,.16),inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+@media (min-width:640px){
+  /* ── Chrome separation (research: visual dividers + elevation + surface
+     contrast on dense dashboards — tubik/paulwallas). Canvas is tinted;
+     sidebar, header and right rail are SOLID WHITE surfaces divided by
+     hairline borders + soft shadows, NOT merged edge-to-edge. ── */
+  html.mode-laptop{background:#eef2f6}
+  html.mode-laptop body{background:#eef2f6}
+  html.mode-laptop .app-header{background:#fff;border-bottom:1px solid #e6ebf1;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+  html.mode-laptop .bottom-bar{background:#fff;border-right:1px solid #e6ebf1;box-shadow:1px 0 3px rgba(15,23,42,.04)}
+  html.mode-laptop .right-rail{background:#fff;border-left:1px solid #e6ebf1;box-shadow:-1px 0 3px rgba(15,23,42,.04)}
+  /* Student = gamified sidebar (subtle brand wash + brand active/hover);
+     staff roles keep professional plain white. */
+  html.mode-laptop body[data-role="student"] .bottom-bar{background:linear-gradient(180deg,#ffffff 0%,#f5fdff 100%)}
+  html.mode-laptop body[data-role="student"] .tab-btn.active{background:#e6f7ff}
+  html.mode-laptop body[data-role="student"] .side-link:hover{background:#eef9ff;color:#075985}
+
+  /* ── Task 3: center the global search in the middle of the layout ── */
+  html.mode-laptop .top-search{
+    position:absolute;left:50%;transform:translateX(-50%);
+    margin:0;width:min(360px,32vw);
+  }
+
+  /* ── Task 7: top-right profile chip (name · level · XP + avatar) ── */
+  html.mode-laptop .hdr-profile .hp-txt{display:block}
+  /* ── Task 6: sidebar "Upgrade to Premium" card ── */
+  html.mode-laptop .side-upgrade{
+    display:block;margin-top:auto;text-decoration:none;text-align:center;
+    background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #bfe6f5;
+    border-radius:16px;padding:14px 14px 15px;margin-bottom:4px;
+  }
+  html.mode-laptop .side-upgrade .su-ic{
+    width:36px;height:36px;border-radius:11px;margin:0 auto 8px;
+    background:var(--brand-gradient);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    box-shadow:0 4px 12px rgba(3,130,189,.3);
+  }
+  html.mode-laptop .side-upgrade .su-t{font-size:13px;font-weight:900;color:#075985;margin:0}
+  html.mode-laptop .side-upgrade .su-sub{font-size:11px;font-weight:500;color:#0e7490;opacity:.9;margin:5px 0 11px;line-height:1.4}
+  html.mode-laptop .side-upgrade .su-btn{
+    display:block;background:var(--brand-gradient);color:#fff;
+    font-size:12px;font-weight:800;padding:9px;border-radius:11px;
+    box-shadow:0 4px 12px rgba(3,130,189,.28);
+  }
+  html.mode-laptop .side-upgrade:hover .su-btn{filter:brightness(1.05)}
+}
+
+/* Profile chip — avatar always; name/level text only on laptop (set above) */
+.hdr-profile{display:flex;align-items:center;gap:9px;text-decoration:none;padding:3px 3px 3px 10px;border-radius:999px;transition:background .15s}
+.hdr-profile:hover{background:rgba(15,23,42,.05)}
+.hdr-profile .hp-txt{display:none;text-align:right;line-height:1.2}
+.hdr-profile .hp-name{font-size:13px;font-weight:800;color:#0f172a;margin:0;white-space:nowrap}
+.hdr-profile .hp-sub{font-size:11px;font-weight:600;color:#64748b;margin:0;white-space:nowrap}
+.hdr-profile .hp-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;background:var(--brand-gradient);flex:0 0 auto;box-shadow:0 2px 8px rgba(3,130,189,.25)}
+.side-upgrade{display:none}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   Reusable accessible on/off toggle (global; works mobile + laptop).
+   ON  = brand gradient + knob RIGHT + white ✓  (colourful/brand)
+   OFF = neutral gray  + knob LEFT
+   Never color-only: knob position + ✓ are non-color state cues
+   (WCAG 1.4.1; Apple HIG toggles-and-switches). Applies immediately.
+   Usage: <label class="edv-toggle"><input type="checkbox" checked><span class="etk"></span></label>
+   ═══════════════════════════════════════════════════════════════════ */
+.edv-toggle{position:relative;display:inline-flex;align-items:center;width:44px;height:26px;flex:0 0 auto;cursor:pointer;vertical-align:middle}
+.edv-toggle input{position:absolute;opacity:0;width:0;height:0;margin:0}
+.edv-toggle .etk{position:absolute;inset:0;border-radius:999px;background:#cbd5e1;transition:background .18s ease}
+.edv-toggle .etk::before{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.28);transition:transform .18s ease}
+.edv-toggle .etk::after{content:"";position:absolute;top:8px;left:9px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);opacity:0;transition:opacity .15s ease}
+.edv-toggle input:checked + .etk{background:var(--brand-gradient)}
+.edv-toggle input:checked + .etk::before{transform:translateX(18px)}
+.edv-toggle input:checked + .etk::after{opacity:1}
+.edv-toggle input:focus-visible + .etk{box-shadow:0 0 0 3px rgba(3,130,189,.30)}
+.edv-toggle input:disabled + .etk{opacity:.5;cursor:not-allowed}
+/* Toggle variants (per role / per page):
+   • .no-tick — gradient track, no checkmark → student "Me" page (profile.html)
+   Teacher, coordinator, admin and parent all use the default gradient + tick
+   (the admin toggle style). */
+.edv-toggle.no-tick input:checked + .etk::after{opacity:0}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   Semantic threshold meter (like the HTML <meter> element): the FILL
+   COLOR encodes status against thresholds, not just quantity.
+     .emeter            track
+     .emeter > span     fill (set width inline)
+     modifiers: .strong .good .attention .critical
+   Student/default = brand-forward. Institution = add .pro for a flat,
+   restrained, non-gradient professional look (see _institution-variations).
+   ═══════════════════════════════════════════════════════════════════ */
+.emeter{height:8px;border-radius:999px;background:#eef2f6;overflow:hidden}
+.emeter > span{display:block;height:100%;border-radius:inherit;background:var(--brand-gradient)}
+.emeter.strong   > span{background:#16a34a}
+.emeter.good     > span{background:#0d9488}
+.emeter.attention> span{background:#f59e0b}
+.emeter.critical > span{background:#ef4444}
+/* Professional institution variant — flat, muted, slightly inset; no gradient. */
+.emeter.pro{height:10px;box-shadow:inset 0 1px 2px rgba(15,23,42,.06)}
+.emeter.pro > span{background:#334155}
+.emeter.pro.strong   > span{background:#15803d}
+.emeter.pro.good     > span{background:#0f766e}
+.emeter.pro.attention> span{background:#b45309}
+.emeter.pro.critical > span{background:#b91c1c}
+
+/* ── Reusable chart/data EMPTY state (icon + headline + copy + CTA). Use when a
+   panel genuinely has no data — NOT for the illustrative sample charts, which
+   render filled with a "sample data" caption. Refs: Supabase / PatternFly /
+   pencil&paper empty-state guidance (explain why + offer a next action, never a
+   bare frame). ── */
+.chart-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:8px;padding:28px 20px;min-height:140px;
+}
+.chart-empty .ce-ic{
+  width:44px;height:44px;border-radius:12px;font-size:22px;line-height:1;
+  display:flex;align-items:center;justify-content:center;color:#0382bd;
+  background:linear-gradient(145deg,#ffffff,#eaeff5);
+  border:1px solid #e5eaf0;
+  box-shadow:0 2px 5px rgba(15,23,42,.10),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.chart-empty .ce-h{font-size:13px;font-weight:800;letter-spacing:.02em;color:#0f172a;margin:0}
+.chart-empty .ce-p{font-size:12px;color:#64748b;margin:0;max-width:36ch;line-height:1.5}
+.chart-empty .ce-cta{
+  margin-top:4px;display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;
+  color:#fff;background:var(--brand-gradient);text-decoration:none;
+  box-shadow:0 4px 12px rgba(3,130,189,.25);
+}
+
+/* ── Mobile card-section refinements (phone frame < 640px): consistent
+   radius + comfortable KPI gaps so card sections read cleanly across all
+   roles on mobile (matches the student Progress page reference). ── */
+@media (max-width:639px){
+  .page-content .pcard{border-radius:16px}
+  .page-content > .grid.grid-cols-2{gap:10px}
+  .page-content .grid.grid-cols-2 > *{min-width:0}
+  .sec-h .more{white-space:nowrap}
+}
+
+
+/* ── Student "My Courses" strip ─────────────────────────────────────
+   On laptop the course cards fill the full content width edge-to-edge with
+   equal gaps and adapt to the course count: 3 courses → wide cards, 7 →
+   narrower cards, always aligned to both dashboard edges (no dead space in
+   between or on the sides). Mobile keeps the swipeable horizontal scroll. */
+@media (min-width:640px){
+  html.mode-laptop .mycourses{overflow:visible;flex-wrap:nowrap}
+  html.mode-laptop .mycourses > a{flex:1 1 0;min-width:0}
+}
+@media (min-width:640px) and (max-width:899px){
+  html.mode-laptop .mycourses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.mode-laptop .mycourses > a{width:100%;min-width:0}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   EDIT-PROFILE MODAL (shared across all 5 role profiles) — real form UI
+   instead of a toast no-op. openEditModal(title, fieldsHtml) in shared.js
+   builds this; Save persists nowhere (prototype) but gives real feedback.
+   ═══════════════════════════════════════════════════════════════════ */
+.edv-modal-back{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .15s ease}
+.edv-modal-back.open{opacity:1;pointer-events:auto}
+.edv-modal{background:#fff;border-radius:20px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(15,23,42,.28);transform:translateY(12px) scale(.98);transition:transform .18s cubic-bezier(.2,.7,.2,1)}
+.edv-modal-back.open .edv-modal{transform:translateY(0) scale(1)}
+.edv-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #f1f5f9}
+.edv-modal-head h3{font-size:16px;font-weight:900;color:#0f172a;margin:0}
+.edv-modal-x{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#94a3b8;background:#f8fafc;border:none;cursor:pointer;font-size:14px}
+.edv-modal-x:hover{background:#f1f5f9;color:#475569}
+.edv-modal-body{padding:20px}
+.edv-modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid #f1f5f9}
+.ef-field{margin-bottom:14px}
+.ef-field label{display:block;font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px}
+.ef-field input,.ef-field textarea,.ef-field select{width:100%;font-size:13.5px;font-weight:500;color:#0f172a;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;outline:none;transition:border-color .15s;background:#fff;font-family:inherit}
+.ef-field input:focus,.ef-field textarea:focus,.ef-field select:focus{border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.12)}
+.ef-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ef-avatar-pick{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.ef-avatar-pick .cur{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;background:var(--brand-gradient);flex:0 0 auto}
+
+/* ── Editable avatar badge on profile headers (opens edit → change photo) ── */
+.ava-edit{position:relative;display:inline-flex;border:none;background:none;padding:0;cursor:pointer}
+.ava-edit .ava-cam{position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px rgba(15,23,42,.2)}
+.ava-edit:hover .ava-cam{background:#f1f5f9}
+
+/* ── Unified profile header (.phdr) — reusable across all 5 roles ──────────
+   Mobile: single column (avatar → name/role → stats → contact → buttons LAST).
+   Laptop (html.mode-laptop ≥640): two columns — left (identity + stats) grows,
+   right (buttons on top, contact below) hugs the right edge. Mirrors the
+   reference design. Presentation only — all onclick handlers preserved. */
+.phdr{display:flex;flex-direction:column;gap:18px}
+.phdr-left{display:flex;flex-direction:column;gap:16px;min-width:0;flex:1}
+.phdr-idrow{display:flex;align-items:center;gap:16px;min-width:0}
+.phdr-av{width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;background:var(--brand-gradient);background-size:cover;background-position:center;flex:0 0 auto;box-shadow:0 6px 18px rgba(15,23,42,.14)}
+.phdr-name{font-size:20px;font-weight:900;letter-spacing:-.01em;color:#0f172a;margin:0;line-height:1.15}
+.phdr-role{font-size:13px;font-weight:600;color:#64748b;margin:3px 0 0}
+.phdr-role .sub{color:#94a3b8;font-weight:500}
+.phdr-stats{display:flex;flex-wrap:wrap;gap:18px 22px}
+.phdr-stat{display:flex;align-items:center;gap:9px}
+.phdr-stat-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;background:#f1f5f9;color:#475569}
+.phdr-stat-ic.st-teal{background:#ccfbf1;color:#0f766e}
+.phdr-stat-ic.st-amber{background:#fef3c7;color:#b45309}
+.phdr-stat-ic.st-red{background:#fee2e2;color:#b91c1c}
+.phdr-stat-ic.st-blue{background:#dbeafe;color:#1d4ed8}
+.phdr-stat-ic.st-green{background:#dcfce7;color:#15803d}
+.phdr-stat-ic.st-violet{background:#ede9fe;color:#6d28d9}
+.phdr-stat-tx{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.phdr-stat-v{font-size:17px;font-weight:900;color:#0f172a}
+.phdr-stat-l{font-size:11px;font-weight:600;color:#94a3b8;margin-top:1px;white-space:nowrap}
+.phdr-right{display:flex;flex-direction:column;gap:16px}
+.phdr-actions{display:flex;gap:10px;flex-wrap:wrap;order:2}
+.phdr-actions .phdr-btn{flex:1 1 auto;justify-content:center}
+.phdr-contact{display:flex;flex-direction:column;gap:9px;order:1}
+.phdr-btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:10px 16px;min-height:42px;border-radius:11px;border:1px solid #e2e8f0;background:#fff;color:#334155;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,box-shadow .15s}
+.phdr-btn:hover{background:#f8fafc;border-color:#cbd5e1}
+.phdr-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.35)}
+.phdr-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
+.phdr-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+/* Green CTA variants — swap the class on any .phdr-btn to recolor it. Used to
+   make the parent profile feel warmer / more positive. Live preview + the
+   exact class to copy: green-button-variations.html */
+.phdr-btn.g-emerald{background:#059669;border-color:#059669;color:#fff}
+.phdr-btn.g-emerald:hover{background:#047857;border-color:#047857}
+.phdr-btn.g-teal-grad{background:linear-gradient(93.65deg,#10b981 5%,#0d9488 90%);border-color:transparent;color:#fff}
+.phdr-btn.g-teal-grad:hover{filter:brightness(1.06)}
+.phdr-btn.g-green-lime{background:linear-gradient(93.65deg,#16a34a 5%,#65a30d 90%);border-color:transparent;color:#fff}
+.phdr-btn.g-green-lime:hover{filter:brightness(1.06)}
+.phdr-btn.g-forest{background:#15803d;border-color:#15803d;color:#fff}
+.phdr-btn.g-forest:hover{background:#166534;border-color:#166534}
+.phdr-btn.g-mint{background:#dcfce7;border-color:#bbf7d0;color:#15803d}
+.phdr-btn.g-mint:hover{background:#bbf7d0;border-color:#86efac}
+.phdr-btn.g-brand-green{background:linear-gradient(93.65deg,#14b8a6 5%,#22c55e 90%);border-color:transparent;color:#fff}
+.phdr-btn.g-brand-green:hover{filter:brightness(1.06)}
+.phdr-btn.g-emerald:focus-visible,.phdr-btn.g-teal-grad:focus-visible,.phdr-btn.g-green-lime:focus-visible,.phdr-btn.g-forest:focus-visible,.phdr-btn.g-mint:focus-visible,.phdr-btn.g-brand-green:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(16,185,129,.40)}
+
+/* ── Dashboard · "This Week's Activity" strip (student home) ──────────────
+   Fixed-height day tiles that never balloon on wide laptop columns (the old
+   aspect-ratio:1 squares did). Filled days show their activity count; upcoming
+   days are clearly styled (not near-white); today gets a ring. */
+.wk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:2px}
+.wk-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.wk-lbl{font-size:10px;font-weight:800;color:#94a3b8}
+.wk-tile{width:100%;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff}
+.wk-tile.l1{background:#a7f3d0;color:#047857}
+.wk-tile.l2{background:#34d399}
+.wk-tile.l3{background:#10b981}
+.wk-tile.l4{background:#047857}
+.wk-tile.wk-empty{background:#f1f5f9;color:#cbd5e1;border:1.5px dashed #e2e8f0;font-size:12px}
+.wk-tile.wk-today{box-shadow:0 0 0 2px #fff,0 0 0 4px #14b8a6}
+.wk-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}
+.wk-legend{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#94a3b8}
+.wk-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+/* Alternate heatmap palettes (swap the scheme class on .wk-grid). Preview: student-variations.html */
+.wk-grid.hm-blue .wk-tile.l1{background:#bfdbfe;color:#1e40af}
+.wk-grid.hm-blue .wk-tile.l2{background:#60a5fa}
+.wk-grid.hm-blue .wk-tile.l3{background:#3b82f6}
+.wk-grid.hm-blue .wk-tile.l4{background:#1d4ed8}
+.wk-grid.hm-teal .wk-tile.l1{background:#99f6e4;color:#0f766e}
+.wk-grid.hm-teal .wk-tile.l2{background:#2dd4bf}
+.wk-grid.hm-teal .wk-tile.l3{background:#14b8a6}
+.wk-grid.hm-teal .wk-tile.l4{background:#0f766e}
+.wk-grid.hm-violet .wk-tile.l1{background:#ddd6fe;color:#5b21b6}
+.wk-grid.hm-violet .wk-tile.l2{background:#a78bfa}
+.wk-grid.hm-violet .wk-tile.l3{background:#8b5cf6}
+.wk-grid.hm-violet .wk-tile.l4{background:#6d28d9}
+.wk-grid.hm-sunset .wk-tile.l1{background:#fed7aa;color:#c2410c}
+.wk-grid.hm-sunset .wk-tile.l2{background:#fb923c}
+.wk-grid.hm-sunset .wk-tile.l3{background:#f97316}
+.wk-grid.hm-sunset .wk-tile.l4{background:#ea580c}
+
+/* ── Student accent / CTA gradient options — swap onto the primary CTA (e.g.
+   the "Start Review" button). Live preview + copy: student-variations.html ── */
+.cta-brand,.cta-indigo,.cta-sky,.cta-violet,.cta-emerald,.cta-sunset,.cta-aurora{color:#fff;border-color:transparent}
+.cta-brand{background:linear-gradient(93.65deg,#14b8a6 5%,#0382bd 90%)}
+.cta-indigo{background:linear-gradient(93.65deg,#6366f1 5%,#2563eb 90%)}
+.cta-sky{background:linear-gradient(93.65deg,#0ea5e9 5%,#2563eb 90%)}
+.cta-violet{background:linear-gradient(93.65deg,#8b5cf6 5%,#6366f1 90%)}
+.cta-emerald{background:linear-gradient(93.65deg,#10b981 5%,#0d9488 90%)}
+.cta-sunset{background:linear-gradient(93.65deg,#fb923c 5%,#f97316 90%)}
+.cta-aurora{background:linear-gradient(93.65deg,#8b5cf6 0%,#3b82f6 50%,#14b8a6 100%)}
+.phdr-c{display:flex;align-items:center;gap:9px;font-size:13px;color:#475569;min-width:0}
+.phdr-c-ic{width:16px;text-align:center;flex:0 0 auto;color:#94a3b8;font-size:13px}
+.phdr-c span,.phdr-c a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phdr-c a{color:#2563eb;text-decoration:none}
+.phdr-c a:hover{text-decoration:underline}
+@media (min-width:640px){
+  html.mode-laptop .phdr{flex-direction:row;align-items:flex-start;gap:28px;flex-wrap:wrap}
+  html.mode-laptop .phdr-av{width:88px;height:88px;border-radius:22px;font-size:34px}
+  html.mode-laptop .phdr-name{font-size:22px}
+  html.mode-laptop .phdr-right{align-items:flex-end;min-width:220px;flex:0 1 auto}
+  html.mode-laptop .phdr-actions{order:0;flex-wrap:nowrap}
+  html.mode-laptop .phdr-actions .phdr-btn{flex:0 0 auto}
+  html.mode-laptop .phdr-contact{order:1;align-items:flex-start}
+}
+
+/* ── Student "Me" header refinement (.phdr-me) — profile.html only ─────────
+   Grounded on "summary-first" KPI-hero scanning + business-card contact
+   hierarchy: stats become horizontal mini-cards on the LEFT; contact sits in
+   a soft vertical PANEL on the RIGHT. The full (long) student email wraps
+   instead of truncating. Presentation only. */
+.phdr-me .phdr-stats{gap:10px}
+.phdr-me .phdr-stat{background:#f8fafc;border:1px solid #eef2f6;border-radius:14px;padding:10px 12px;flex:1 1 auto;min-width:110px;transition:border-color .15s,box-shadow .15s}
+.phdr-me .phdr-stat:hover{border-color:#dbe3ec;box-shadow:0 4px 12px rgba(15,23,42,.05)}
+.phdr-me .phdr-stat-v{font-size:18px}
+.phdr-me .phdr-contact{background:#f8fafc;border:1px solid #eef2f6;border-radius:16px;padding:14px 16px;gap:13px;width:100%}
+.phdr-me .phdr-c{align-items:flex-start;gap:11px;font-size:12.5px}
+.phdr-me .phdr-c-ic{width:28px;height:28px;border-radius:9px;background:#eef2f6;color:#475569;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:-3px}
+.phdr-me .phdr-c span,.phdr-me .phdr-c a{white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word;line-height:1.35}
+@media (min-width:640px){
+  html.mode-laptop .phdr-me .phdr-right{min-width:272px;align-items:stretch}
+  html.mode-laptop .phdr-me .phdr-actions{order:0;justify-content:flex-end}
+  html.mode-laptop .phdr-me .phdr-stats{flex-wrap:nowrap}
+}
+
+/* ── Notification quiet-hours + mute-course controls (profiles + settings) ── */
+.qh-time{font-size:13px;font-weight:700;color:#0f172a;border:1px solid #e2e8f0;border-radius:9px;padding:6px 9px;background:#fff;font-family:inherit}
+.qh-time:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.12)}
+.mute-chip{font-size:12px;font-weight:700;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;padding:5px 11px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.mute-chip:hover{border-color:#cbd5e1}
+.mute-chip.muted{background:#fef2f2;border-color:#fecaca;color:#b91c1c;text-decoration:line-through}
+
+/* ── Dashboard welcome-hero CAROUSEL (multi-slide, dots + arrows) ────── */
+.hero-carousel{position:relative;overflow:hidden}
+.hero-slides{display:flex;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.hero-slide{flex:0 0 100%;min-width:0}
+.hero-dots{display:flex;gap:5px;justify-content:center;margin-top:8px}
+.hero-dots button{width:16px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);border:none;cursor:pointer;padding:0;transition:background .15s,width .15s}
+.hero-dots button.on{background:#fff;width:22px}
+.hero-arrow{position:absolute;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;z-index:5}
+.hero-arrow:hover{background:rgba(255,255,255,.24)}
+.hero-arrow.prev{left:6px}.hero-arrow.next{right:6px}
+
+/* ── Leaderboard "Rank Zones" (unique, non-podium concept) ──────────── */
+.rz-track{position:relative;border-radius:18px;overflow:hidden;background:#f8fafc;border:1px solid #eef2f6}
+.rz-zone{padding:12px 16px;position:relative}
+.rz-zone.promo{background:linear-gradient(180deg,#ecfdf5,#f0fdf4);border-bottom:2px dashed #86efac}
+.rz-zone.safe{background:#fff}
+.rz-zone.demo{background:linear-gradient(180deg,#fef2f2,#fff5f5);border-top:2px dashed #fca5a5}
+.rz-zone-label{font-size:9.5px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.rz-row{display:flex;align-items:center;gap:11px;padding:7px 4px;border-radius:10px;transition:background .12s}
+.rz-row:hover{background:rgba(15,23,42,.03)}
+.rz-row.me{background:#eff6ff;border:1px solid #bfdbfe}
+.rz-rank{width:24px;text-align:center;font-weight:900;font-size:13px;color:#94a3b8;flex:0 0 auto}
+.rz-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;flex:0 0 auto}
+.rz-delta{font-size:10px;font-weight:800;padding:2px 6px;border-radius:999px;flex:0 0 auto}
+.rz-delta.up{background:#dcfce7;color:#166534}
+.rz-delta.down{background:#fee2e2;color:#b91c1c}
+.rz-delta.flat{background:#f1f5f9;color:#94a3b8}
+
+/* ── Marketplace purchase-reveal animation (gacha-style card flip) ──── */
+.reveal-back{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.reveal-back.open{opacity:1;pointer-events:auto}
+.reveal-card{width:220px;height:280px;perspective:1200px}
+.reveal-inner{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.34,1.1,.4,1);transform-style:preserve-3d}
+.reveal-back.flip .reveal-inner{transform:rotateY(180deg)}
+.reveal-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.reveal-face.front{background:linear-gradient(135deg,#1e293b,#334155);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.reveal-face.back{transform:rotateY(180deg);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.reveal-face.front .q{font-size:64px;opacity:.5;animation:revealPulse 1.1s ease-in-out infinite}
+@keyframes revealPulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.7;transform:scale(1.08)}}
+.reveal-rays{position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent,rgba(255,255,255,.25),transparent 30%);opacity:0;border-radius:50%}
+.reveal-back.flip .reveal-rays{opacity:1;animation:revealSpin 3s linear infinite}
+@keyframes revealSpin{to{transform:rotate(360deg)}}
+.reveal-icon{font-size:56px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35));z-index:2}
+.reveal-name{font-size:15px;font-weight:900;margin-top:10px;z-index:2;text-align:center;padding:0 12px}
+.reveal-rarity{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;padding:3px 10px;border-radius:999px;z-index:2}
+.reveal-close{margin-top:22px;position:relative;z-index:2}
+@media (prefers-reduced-motion:reduce){ .reveal-face.front .q{animation:none} .reveal-back.flip .reveal-rays{animation:none} }

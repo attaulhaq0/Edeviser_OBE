@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/", "destination": "/roles.html", "statusCode": 302 }
+  ]
+}

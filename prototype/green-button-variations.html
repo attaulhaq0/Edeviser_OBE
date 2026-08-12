@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Edeviser — Parent CTA · Green Button Options</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  body{font-family:'Noto Sans',sans-serif}
+  .gv-wrap{max-width:960px;margin:0 auto;padding:28px 20px 64px}
+  .gv-grid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:680px){.gv-grid{grid-template-columns:1fr 1fr}}
+  .gv-card{background:#fff;border:1px solid #eef2f6;border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.05);padding:18px}
+  .gv-name{font-size:14px;font-weight:900;color:#0f172a;letter-spacing:-.01em}
+  .gv-desc{font-size:12.5px;color:#64748b;margin:2px 0 14px}
+  .gv-demo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+  .gv-code{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #eef2f6;border-radius:10px;padding:8px 10px;font-size:12px;color:#334155;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto}
+  .gv-code code{white-space:nowrap}
+  .gv-copy{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:800;color:#0d9488;background:#ccfbf1;border:none;border-radius:8px;padding:5px 10px;cursor:pointer}
+  .gv-copy:hover{background:#99f6e4}
+  .gv-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#15803d;background:#dcfce7;border:1px solid #bbf7d0;border-radius:999px;padding:3px 9px;margin-inline-start:8px;vertical-align:middle}
+  .gv-swatch{width:22px;height:22px;border-radius:7px;flex:0 0 auto;border:1px solid rgba(15,23,42,.08)}
+</style>
+</head>
+<body class="bg-slate-50">
+<div class="gv-wrap">
+
+  <a href="parent-profile.html" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-800">← Back to parent profile</a>
+
+  <h1 class="mt-3" style="font-size:24px;font-weight:900;letter-spacing:-.02em;color:#0f172a">Parent CTA — green options 🌿</h1>
+  <p style="font-size:14px;color:#64748b;margin-top:6px;max-width:640px">
+    Six positive greens for the parent profile's primary button. Each is a drop-in class on
+    <code style="font-family:ui-monospace,monospace;font-size:12.5px;background:#f1f5f9;padding:1px 6px;border-radius:6px">.phdr-btn</code>.
+    Swap the class to change the color — the currently applied one is marked <b>In use</b>.
+  </p>
+
+  <div class="gv-grid mt-6" id="gvGrid"></div>
+
+  <div class="gv-card mt-5">
+    <p class="gv-name">How to apply</p>
+    <p class="gv-desc">In <b>parent-profile.html</b>, the header button uses the class below. Replace the green class with any option above.</p>
+    <div class="gv-demo">
+      <button class="phdr-btn g-teal-grad">✉️ Contact school</button>
+      <button class="phdr-btn">✏️ Edit profile</button>
+    </div>
+    <div class="gv-code"><code>&lt;button class="phdr-btn g-teal-grad"&gt;✉️ Contact school&lt;/button&gt;</code><button class="gv-copy" onclick="gvCopy(this,'class=&quot;phdr-btn g-teal-grad&quot;')">Copy</button></div>
+  </div>
+</div>
+
+<div id="gvToast" style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;transition:.25s;background:#0f172a;color:#fff;font-size:13px;font-weight:600;padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);pointer-events:none;z-index:60">Copied</div>
+
+<script>
+  const VARIANTS=[
+    {cls:'g-teal-grad',name:'Emerald → Teal gradient',desc:'Fresh and on-brand with the app’s teal. Warm but energetic.',sw:'linear-gradient(93.65deg,#10b981 5%,#0d9488 90%)',def:true},
+    {cls:'g-emerald',name:'Emerald solid',desc:'Clean, confident, high-contrast. The safest positive green.',sw:'#059669'},
+    {cls:'g-brand-green',name:'Brand Teal → Green',desc:'Mirrors the Edeviser brand gradient, shifted greener.',sw:'linear-gradient(93.65deg,#14b8a6 5%,#22c55e 90%)'},
+    {cls:'g-green-lime',name:'Green → Lime gradient',desc:'Energetic and growth-focused. Great for a “positive” feel.',sw:'linear-gradient(93.65deg,#16a34a 5%,#65a30d 90%)'},
+    {cls:'g-forest',name:'Forest solid',desc:'Grounded and trustworthy. Calmer, more serious tone.',sw:'#15803d'},
+    {cls:'g-mint',name:'Soft mint',desc:'Gentle and friendly — a softer CTA on light green.',sw:'#dcfce7'},
+  ];
+  const grid=document.getElementById('gvGrid');
+  grid.innerHTML=VARIANTS.map(v=>`
+    <div class="gv-card">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="gv-swatch" style="background:${v.sw}"></span>
+        <span class="gv-name">${v.name}</span>
+        ${v.def?'<span class="gv-badge">✓ In use</span>':''}
+      </div>
+      <p class="gv-desc">${v.desc}</p>
+      <div class="gv-demo">
+        <button class="phdr-btn ${v.cls}">✉️ Contact school</button>
+        <button class="phdr-btn">✏️ Edit</button>
+      </div>
+      <div class="gv-code"><code>class="phdr-btn ${v.cls}"</code><button class="gv-copy" onclick='gvCopy(this,"class=\\"phdr-btn ${v.cls}\\"")'>Copy</button></div>
+    </div>`).join('');
+
+  function gvCopy(btn,text){
+    const t=document.getElementById('gvToast');
+    const done=()=>{t.textContent='Copied  '+text;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';clearTimeout(window.__gvT);window.__gvT=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},1800);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(done);}else{done();}
+  }
+</script>
+</body>
+</html>

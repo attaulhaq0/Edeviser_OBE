@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — CQI Plans</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Coordinator CQI — maps to: cqi_action_plans, useCQIPlans, cqi-review-reminder.
+     "Close the loop": gap → action plan → implement → measure → evaluate.
+     status planned → in_progress → completed → evaluated. */
+  .cqi-cols{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:900px){html.mode-laptop .cqi-cols{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  .cqi-col{background:#f8fafc;border:1px solid #eef2f6;border-radius:14px;padding:10px;min-height:120px}
+  .cqi-col h3{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#64748b;padding:2px 4px 8px}
+  .cqi-card{background:#fff;border:1px solid #eef2f6;border-radius:12px;padding:11px;margin-bottom:8px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .loop-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;text-align:center}
+  .loop-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;background:#eff6ff;color:#1d4ed8}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <button class="btn3d sm" onclick="toast('New CQI action plan…','➕')" style="background:#0382bd">➕ New plan</button>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+  <div class="feed-wide">
+    <h1 class="text-xl font-black tracking-tight text-gray-900">Continuous Quality Improvement</h1>
+    <p class="text-xs text-gray-500 mt-0.5">Approve program-level plans, route work to faculty, then measure whether the intervention worked.</p>
+  </div>
+
+  <div class="feed-wide pcard p-4 border border-blue-200" style="background:#f8fbff">
+    <div class="sec-h"><span class="chip">✨</span><p class="t">E Deviser CQI draft</p><span class="ml-auto pill pill-blue">A2 · draft only</span></div>
+    <p class="text-sm font-bold text-gray-900">PLO2 — Apply Engineering Principles</p><p class="text-xs text-gray-600 mt-1">Pattern detected across 3 contributing courses; evidence confidence is high.</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-xs"><div class="rounded-lg bg-white border border-slate-100 p-2"><b>Baseline</b><br><span class="text-red-600 font-black">67%</span></div><div class="rounded-lg bg-white border border-slate-100 p-2"><b>Target</b><br><span class="text-blue-600 font-black">78%</span></div><div class="rounded-lg bg-white border border-slate-100 p-2"><b>Owner</b><br>Prof. Ahmed</div><div class="rounded-lg bg-white border border-slate-100 p-2"><b>Due</b><br>Nov 30</div></div>
+    <p class="text-xs text-gray-600 mt-3"><b>Action:</b> REST APIs targeted retrieval + evidence reassessment. <b>Expected evidence:</b> CLO5 attainment after reassessment.</p>
+    <div class="flex gap-2 mt-3"><button onclick="aiApprove(this,'CQI plan approved and routed to Prof. Ahmed')" class="btn3d sm">Approve CQI plan</button><button onclick="toast('CQI draft opened for editing','✏️')" class="btn3d sm b-ghost">Edit</button><button onclick="toast('CQI draft rejected','↩️')" class="btn3d sm b-ghost">Reject</button></div>
+  </div>
+
+  <!-- CQI loop -->
+  <div class="feed-wide pcard p-4">
+    <div class="flex items-center gap-1">
+      <div class="loop-step"><div class="loop-ic">🔍</div><p class="text-[11px] font-bold text-gray-700">Identify gap</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">📝</div><p class="text-[11px] font-bold text-gray-700">Plan actions</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">🚀</div><p class="text-[11px] font-bold text-gray-700">Implement</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">📊</div><p class="text-[11px] font-bold text-gray-700">Measure</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">✅</div><p class="text-[11px] font-bold text-gray-700">Evaluate</p></div>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Open plans</p><p class="text-2xl font-black text-gray-900 mt-1">6</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">In progress</p><p class="text-2xl font-black text-blue-600 mt-1">3</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Evaluated · term</p><p class="text-2xl font-black text-green-600 mt-1">4</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Avg attainment lift</p><p class="text-2xl font-black text-green-600 mt-1">+11%</p></div>
+  </div>
+
+  <!-- Kanban by status -->
+  <div class="feed-wide cqi-cols">
+    <div class="cqi-col">
+      <h3>📋 Planned</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-red">PLO4 · 13% coverage</span></div><p class="text-sm font-bold text-gray-900">Add concurrency assessment</p><p class="text-[11px] text-gray-500 mt-1">Baseline: no direct evidence · Target: direct assessment in SE310</p><p class="text-[10px] text-gray-400 mt-2">Owner: SE310 teacher · due Nov 22</p></div>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-amber">PLO7 · 55%</span></div><p class="text-sm font-bold text-gray-900">Ethics case-study seminar</p><p class="text-[10px] text-gray-400 mt-2">Owner: Dr. Sara · due Sep</p></div>
+    </div>
+    <div class="cqi-col">
+      <h3>🚀 In progress</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-amber">PLO2 · 67%</span></div><p class="text-sm font-bold text-gray-900">REST APIs remediation</p><p class="text-[11px] text-gray-500 mt-1">Target 78% · Prof. Ahmed · CLO5 reassessment evidence</p><div class="emeter attention mt-2"><span style="width:50%"></span></div><p class="text-[10px] text-gray-400 mt-2">Current result: +4 pts preliminary</p></div>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-amber">CLO3 · 62%</span></div><p class="text-sm font-bold text-gray-900">Extra normalization labs</p><div class="emeter attention mt-2"><span style="width:70%"></span></div></div>
+    </div>
+    <div class="cqi-col">
+      <h3>✅ Completed</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-blue">PLO2 · 76%</span></div><p class="text-sm font-bold text-gray-900">Communication workshops</p><p class="text-[11px] text-gray-500 mt-1">Awaiting next measurement.</p></div>
+    </div>
+    <div class="cqi-col">
+      <h3>🎯 Evaluated</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-green">PLO1 · 88%</span></div><p class="text-sm font-bold text-gray-900">Foundations bridge module</p><p class="text-[11px] text-green-600 font-bold mt-1">72% → 88% (+16%)</p><p class="text-[10px] text-gray-400 mt-1">Loop closed ✓</p></div>
+    </div>
+  </div>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

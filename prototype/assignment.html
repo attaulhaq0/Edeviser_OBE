@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Assignment</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="student-refinement.css"/>
+</head>
+<body class="bg-slate-50" data-role="student">
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="learn.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <h1 class="text-base font-bold tracking-tight text-gray-900">Assignment</h1>
+  </div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useAssignments, useSubmissions, useRubrics | tables: assignments, submissions, grades, rubrics, rubric_criteria -->
+
+  <!-- Above the fold: everything critical visible immediately -->
+  <div class="bg-white rounded-xl shadow-md overflow-hidden accent-l is-soon">
+    <div class="p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">Database Design · CS301</span>
+        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">⏰ <span data-student-due-label>Due in 2 days</span></span>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-gray-900">Database Assignment 3</h1>
+      <p class="text-sm text-gray-600 mt-1">Design a normalized schema for a library management system. Apply 1NF, 2NF, and 3NF.</p>
+
+      <!-- Key facts grid -->
+      <div class="grid grid-cols-3 gap-3 mt-4">
+        <div class="bg-slate-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-gray-400">Due</p><p class="text-sm font-bold text-gray-900 mt-0.5" data-student-due>Friday</p></div>
+        <div class="bg-slate-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-gray-400">Marks</p><p class="text-sm font-bold text-gray-900 mt-0.5">100</p></div>
+        <div class="bg-amber-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-amber-500">Reward</p><p class="text-sm font-bold text-amber-700 mt-0.5">+25 XP</p></div>
+      </div>
+
+      <!-- What this builds toward (student-friendly, not "CLO 40%") -->
+      <div class="mt-4">
+        <p class="text-[10px] font-black tracking-widest uppercase text-gray-400 mb-2">This builds your skills in</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg">Database Normalization</span>
+          <span class="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg">Schema Design</span>
+        </div>
+      </div>
+
+      <!-- Difficulty bonus -->
+      <div class="mt-3 flex items-center gap-2">
+        <span class="text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">🧠 Analyzing</span>
+        <span class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">✨ 1.5x XP Bonus</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <p class="text-xs font-black tracking-widest uppercase text-gray-500 mb-3">Submit Your Work</p>
+    <div id="upload-zone" onclick="fakeUpload()" class="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition">
+      <svg class="h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+      <p class="text-sm font-medium text-gray-600">Tap to upload your file</p>
+      <p class="text-xs text-gray-400 mt-0.5">PDF, DOCX up to 10MB</p>
+    </div>
+    <div id="upload-done" class="hidden mt-3 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3"><svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg><span class="text-sm font-medium text-green-700">schema_design.pdf uploaded</span></div>
+    <button onclick="submitAssignment()" id="submit-btn" class="w-full mt-4 py-3 rounded-xl text-white font-semibold text-sm shadow-lg active:scale-[.97] transition-transform" style="background:var(--brand-gradient)">Submit Assignment</button>
+  </div>
+
+  <!-- Ask Tutor -->
+  <a href="tutor.html" class="block bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl p-4 border border-teal-200">
+    <div class="flex items-center gap-3"><div class="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">🤖</span></div><div class="flex-1"><p class="text-sm font-semibold text-gray-900">Need help before submitting?</p><p class="text-xs text-gray-500">Ask the AI Tutor about normalization</p></div><span class="px-3 py-2 rounded-lg text-xs font-semibold text-white" style="background:var(--brand-gradient)">Ask</span></div>
+  </a>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+
+<script src="shared.js"></script>
+<script src="demo-data.js"></script><script src="student-refinement.js"></script>
+<script>
+function fakeUpload(){document.getElementById('upload-zone').classList.add('hidden');document.getElementById('upload-done').classList.remove('hidden');}
+function submitAssignment(){
+  confetti();
+  const btn=document.getElementById('submit-btn');
+  btn.textContent='✓ Submitted! +25 XP';
+  btn.style.background='#22c55e';
+  setTimeout(()=>{window.location.href='dashboard.html';},1800);
+}
+</script>
+</body>
+</html>

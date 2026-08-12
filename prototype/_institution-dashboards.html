@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Edeviser · Institution dashboards — Editorial × Tactile cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box}
+  :root{--brand:linear-gradient(93.65deg,#14B8A6 5.37%,#0382BD 78.89%)}
+  body{margin:0;font-family:'Noto Sans',sans-serif;background:#e9eef4;color:#0f172a}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+  a{color:inherit;text-decoration:none}
+  .topnav{position:sticky;top:0;z-index:80;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0}
+  .topnav .wrap{display:flex;align-items:center;gap:8px;height:54px;overflow-x:auto}
+  .topnav b{font-weight:900;font-size:15px;margin-right:auto;white-space:nowrap}
+  .j{font-size:12px;font-weight:800;color:#475569;padding:6px 11px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;white-space:nowrap}
+  .j.back{background:#0f172a;color:#fff;border-color:#0f172a}
+  .intro{padding:36px 0 6px}
+  .intro .eye{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#0d9488}
+  .intro h1{font-size:29px;font-weight:900;letter-spacing:-.02em;margin:8px 0 10px}
+  .intro p{font-size:14px;color:#475569;max-width:860px;line-height:1.6;margin:0}
+
+  .rband{border-radius:16px;padding:16px 20px;color:#fff;margin:30px 0 14px;display:flex;align-items:center;gap:12px;scroll-margin-top:64px}
+  .rband .em{font-size:26px}
+  .rband h2{font-size:19px;font-weight:900;margin:0}
+  .rband p{margin:1px 0 0;font-size:12px;opacity:.92}
+
+  /* ===== laptop frame ===== */
+  .frame{background:#fff;border:1px solid #d8e0ea;border-radius:16px;overflow:hidden;box-shadow:0 24px 50px -28px rgba(16,24,40,.4);display:grid;grid-template-columns:216px 1fr 292px}
+  @media(max-width:1080px){.frame{grid-template-columns:200px 1fr}.rl{display:none}}
+  @media(max-width:720px){.frame{grid-template-columns:1fr}.sb{display:none}}
+
+  /* sidebar (current chrome) */
+  .sb{border-right:1px solid #eef2f6;padding:14px 12px;display:flex;flex-direction:column;background:#fff}
+  .sb .brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:15px;margin-bottom:14px}
+  .sb .brand .mk{width:28px;height:28px;border-radius:9px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .sb .sl{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:12px;font-size:14px;font-weight:600;color:#64748b;margin-bottom:2px}
+  .sb .sl .gi{width:20px;text-align:center;font-size:15px}
+  .sb .sl.on{background:#eef6ff;color:#1d4ed8;font-weight:800}
+  .sb .lbl{font-size:9px;font-weight:800;letter-spacing:.08em;color:#b6c2d0;text-transform:uppercase;padding:10px 14px 5px}
+  .sb .prof{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:#f8fafc;border:1px solid #eef2f6}
+  .sb .prof .av{width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+  .sb .prof .nm{font-size:12px;font-weight:800}.sb .prof .lv{height:5px;border-radius:3px;background:#e2e8f0;overflow:hidden;margin:4px 0 2px}.sb .prof .lv>i{display:block;height:100%;background:var(--brand)}.sb .prof .sub{font-size:10px;color:#94a3b8}
+
+  /* main + topbar */
+  .mn{background:#f5f8fc;padding:14px 16px;overflow:auto;max-height:860px}
+  .tp{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .tp .search{flex:1;max-width:330px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;color:#94a3b8;font-size:13px;display:flex;align-items:center;gap:8px}
+  .tp .chip{display:flex;align-items:center;gap:5px;background:#f8fafc;border:1px solid #eef2f6;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:800}
+  .tp .bell{margin-left:auto;font-size:18px;color:#64748b}
+  .tp .av{width:32px;height:32px;border-radius:50%;background:var(--brand)}
+  .stack>*+*{margin-top:14px}
+
+  /* ai banner (hero — kept current) */
+  .ai{border-radius:16px;padding:16px 18px;color:#fff;position:relative;overflow:hidden}
+  .ai .why{position:absolute;top:12px;right:14px;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:3px 8px;border-radius:999px}
+  .ai .row{display:flex;align-items:center;gap:12px}
+  .ai .em{width:44px;height:44px;border-radius:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:20px}
+  .ai h1{font-size:18px;font-weight:800;margin:0}
+  .ai .sub{font-size:12px;color:rgba(255,255,255,.75);margin:2px 0 0}
+  .ai .chips{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+  .ai .c{font-size:11px;font-weight:700;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:4px 9px;border-radius:999px}
+
+  /* ===== EDITORIAL × TACTILE section cards (the new bit) ===== */
+  .ec{background:#fff;border:1px solid #e6e9ee;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .ec.pad{padding:14px}
+  .sec-h{display:flex;align-items:center;gap:8px;margin:0 0 11px}
+  .sec-h .chip{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(20,184,166,.22)}
+  .sec-h .t{font-size:13px;font-weight:800;margin:0}
+  .sec-h .more{margin-left:auto;font-size:11.5px;font-weight:700;color:#1d4ed8}
+  .kpirow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+  @media(max-width:560px){.kpirow{grid-template-columns:repeat(2,1fr)}}
+  .kc{background:#fff;border:1px solid #e6e9ee;border-radius:12px;padding:13px;display:flex;align-items:flex-start;justify-content:space-between;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .kc .l{font-size:9px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#94a3b8}
+  .kc .n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-.03em;margin-top:3px}
+  .kc .tr{font-size:10px;font-weight:700;margin-top:3px}
+  .tr.up{color:#16a34a}.tr.flat{color:#94a3b8}
+  .kc .ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+  .i-blue{background:#eff6ff}.i-green{background:#f0fdf4}.i-teal{background:#ecfeff}.i-red{background:#fef2f2}
+
+  /* action buttons — flat solid, colour + depth driven by body class toggle */
+  body.green{--prim:#16A34A;--prim-d:#15803d}
+  body.blue{--prim:#2563EB;--prim-d:#1e40af}
+  body.teal{--prim:#0E8AA6;--prim-d:#0a6c82}
+  body.cyan{--prim:#0891B2;--prim-d:#0e7490}
+  body.sky{--prim:#0682B4;--prim-d:#045a82}
+  body.brand{--prim:#0382BD;--prim-d:#0b6a93}
+  .bt{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer;padding:8px 13px;color:#fff;background:var(--prim,#16A34A);box-shadow:0 1px 2px rgba(16,24,40,.14);transition:transform .06s,box-shadow .06s,filter .15s}
+  .bt:hover{filter:brightness(1.06)}
+  .bt.soft{background:#eff6ff;color:#1d4ed8;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+  .bt.ghost{background:#fff;color:#475569;border:1px solid #e2e8f0;box-shadow:none}
+  .bt.full{width:100%;justify-content:center}
+  .bt.sm{padding:6px 11px;font-size:12px}
+  /* TACTILE: bottom edge that presses in (uses the darker shade of the primary) */
+  body.tactile .bt{box-shadow:0 3px 0 var(--prim-d,#15803d)}
+  body.tactile .bt:active{transform:translateY(3px);box-shadow:0 0 0 var(--prim-d,#15803d)}
+  body.tactile .bt.soft{box-shadow:0 3px 0 #bfdbfe}
+  body.tactile .bt.soft:active{transform:translateY(3px);box-shadow:0 0 0 #bfdbfe}
+  body.tactile .bt.ghost{box-shadow:0 3px 0 #e2e8f0}
+  body.tactile .bt.ghost:active{transform:translateY(3px);box-shadow:0 0 0 #e2e8f0}
+  /* control bar */
+  .ctrlbar{position:sticky;top:54px;z-index:70;background:#0f172a}
+  .ctrlbar .wrap{display:flex;align-items:center;gap:8px;height:46px;overflow-x:auto}
+  .ctrlbar .cl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#94a3b8;white-space:nowrap}
+  .cbtn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#cbd5e1;background:#1e293b;border:1px solid #334155;border-radius:9px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+  .cbtn.on{background:#fff;color:#0f172a;border-color:#fff}
+  .cbtn .dot{width:11px;height:11px;border-radius:50%}
+
+  .lead{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:0 0 auto}
+  .sev-high{background:#fef2f2;color:#dc2626;box-shadow:0 0 0 3px #fee2e2}
+  .sev-med{background:#fffbeb;color:#d97706;box-shadow:0 0 0 3px #fef3c7}
+  .sev-low{background:#f0fdf4;color:#16a34a;box-shadow:0 0 0 3px #dcfce7}
+  .pill{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px}
+  .p-red{background:#fef2f2;color:#dc2626}.p-amber{background:#fffbeb;color:#b45309}.p-green{background:#f0fdf4;color:#15803d}.p-blue{background:#eff6ff;color:#1d4ed8}
+  .tri{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tri .tt{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:6px 12px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#64748b}
+  .tri .tt .cnt{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
+  .tri .tt.crit{border-color:#fecaca;color:#dc2626}.tri .tt.att{border-color:#fde68a;color:#b45309}
+  .spark{display:inline-flex;align-items:flex-end;gap:2px;height:26px}
+  .spark i{width:3px;border-radius:1px;background:#86efac;display:block}
+  .time-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:9px;background:#ecfeff;color:#0f766e;border:1px solid #cffafe}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  .lg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .lg4{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:600px){.lg2,.lg4{grid-template-columns:1fr}}
+  .bar{height:8px;border-radius:5px;background:#eef2f6;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:5px}
+
+  /* right rail (kept current, cards lightly editorial) */
+  .rl{background:#f5f8fc;border-left:1px solid #eef2f6;padding:14px 12px;overflow:auto;max-height:860px}
+  .rc{background:#fff;border:1px solid #e6e9ee;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .rc .rh{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:9px}
+  .rc .rh .r{font-size:10px;font-weight:800;color:#0f766e;background:#ecfeff;border:1px solid #a5f3fc;border-radius:999px;padding:2px 7px}
+  .rrow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#475569;padding:3px 0}
+  .rrow .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .rchk{display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;padding:3px 0}
+  .rchk .box{width:18px;height:18px;border-radius:6px;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex:0 0 auto}
+  .rchk .tm{margin-left:auto;font-size:11px;font-weight:700;color:#94a3b8}
+  .rbtn{display:block;text-align:center;padding:8px;border-radius:9px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;margin-top:9px}
+  .foot{padding:38px 0 70px;text-align:center;color:#94a3b8;font-size:12.5px;line-height:1.7}
+  .foot a{color:#1d4ed8;font-weight:700}
+</style>
+</head>
+<body class="tactile green">
+<div class="topnav"><div class="wrap">
+  <b>Institution dashboards · Editorial × Tactile cards</b>
+  <a class="j back" href="_style-directions.html">← All 10 systems</a>
+  <a class="j" href="#teacher">Teacher</a>
+  <a class="j" href="#coordinator">Coordinator</a>
+  <a class="j" href="#admin">Admin</a>
+  <a class="j" href="_institution-variations.html">Button levels</a>
+</div></div>
+<div class="ctrlbar"><div class="wrap">
+  <span class="cl">Buttons</span>
+  <button class="cbtn on" data-style="tactile">Tactile</button>
+  <button class="cbtn" data-style="flat">Flat</button>
+  <span class="cl" style="margin-left:12px">Primary</span>
+  <button class="cbtn on" data-color="green"><span class="dot" style="background:#16A34A"></span>Green</button>
+  <button class="cbtn" data-color="blue"><span class="dot" style="background:#2563EB"></span>Blue</button>
+  <button class="cbtn" data-color="teal"><span class="dot" style="background:#0E8AA6"></span>Teal-cyan</button>
+  <button class="cbtn" data-color="cyan"><span class="dot" style="background:#0891B2"></span>Cyan</button>
+  <button class="cbtn" data-color="sky"><span class="dot" style="background:#0682B4"></span>Sky-blue</button>
+  <button class="cbtn" data-color="brand"><span class="dot" style="background:#0382BD"></span>Brand</button>
+</div></div>
+
+<div class="wrap">
+  <div class="intro">
+    <div class="eye">Same dashboards · new section-card system</div>
+    <h1>Your real institution dashboards, re-skinned</h1>
+    <p>These are faithful clones of the current prototype dashboards — <b>same layout, sections, content, icons and chrome</b> (sidebar, top search + stat chips, right rail, the AI-prepared hero). The only thing changed is the <b>section cards</b>: now Editorial × Tactile — flat hairline cards, monospace KPI numerals, and calmer flat buttons (no chunky <code>btn3d</code> press). Risk colours stay as-is because they're functional status, not decoration.</p>
+  </div>
+</div>
+
+<!-- ===================== TEACHER ===================== -->
+<div class="wrap" id="teacher">
+  <div class="rband" style="background:linear-gradient(120deg,#0f766e,#0382bd)"><span class="em">🧑‍🏫</span><div><h2>Teacher — Prof. Ahmed</h2><p>Complete clone of teacher-dashboard.html · section cards now Editorial × Tactile</p></div></div>
+  <div class="frame">
+    <!-- sidebar -->
+    <div class="sb">
+      <div class="brand"><span class="mk">✦</span> Edeviser</div>
+      <div class="sl on"><span class="gi">🏠</span> Home</div>
+      <div class="sl"><span class="gi">🧑‍🎓</span> Students</div>
+      <div class="sl"><span class="gi">🧬</span> Studio</div>
+      <div class="sl"><span class="gi">✍️</span> Grade</div>
+      <div class="sl"><span class="gi">🙂</span> Me</div>
+      <div class="lbl">More</div>
+      <div class="sl"><span class="gi">🧑‍🎓</span> Student Triage</div>
+      <div class="sl"><span class="gi">🧬</span> Curriculum Studio</div>
+      <div class="sl"><span class="gi">✍️</span> Grading Queue</div>
+      <div class="sl"><span class="gi">⚙️</span> Settings</div>
+      <div class="prof"><div class="av">A</div><div style="flex:1"><div class="nm">Prof. Ahmed</div><div class="lv"><i style="width:100%"></i></div><div class="sub">Computer Science · 4 classes</div></div></div>
+    </div>
+    <!-- main -->
+    <div class="mn">
+      <div class="tp"><div class="search">🔍 Search or jump to… (⌘K)</div><div class="chip" style="color:#0f766e">🎓 4 classes</div><div class="chip" style="color:#b45309">✍️ 12 to grade</div><span class="bell">🔔</span><div class="av"></div></div>
+      <div class="stack">
+        <!-- AI banner -->
+        <div class="ai" style="background:linear-gradient(135deg,#0f172a,#1e3a8a 60%,#3730a3)">
+          <span class="why">🛡️ why am I seeing this</span>
+          <div class="row"><div class="em">🧑‍🏫</div><div><h1>Good morning, Prof. Ahmed 👋</h1><p class="sub">I've prepared your day. Let's make it productive — nothing acts without your OK.</p></div></div>
+          <div class="chips"><span class="c">⚠️ 3 students need attention</span><span class="c">✍️ 12 feedback drafts ready</span><span class="c">🧬 6 micro-lessons drafted</span><span class="c">📋 2 CLO gaps</span></div>
+        </div>
+        <!-- KPI row -->
+        <div class="kpirow">
+          <div class="kc"><div><div class="l">Classes</div><div class="n">4</div><div class="tr flat">= 0 this week</div></div><div class="ic i-blue">📚</div></div>
+          <div class="kc"><div><div class="l">Avg mastery</div><div class="n" style="color:#16a34a">74%</div><div class="tr up">▲ 6% vs last week</div></div><div class="ic i-green">📈</div></div>
+          <div class="kc"><div><div class="l">On-time</div><div class="n">88%</div><div class="tr up">▲ 4% vs last week</div></div><div class="ic i-teal">⏱️</div></div>
+          <div class="kc"><div><div class="l">CLOs below</div><div class="n" style="color:#d97706">2</div><div class="tr up">▼ 1 vs last week</div></div><div class="ic i-red">🎯</div></div>
+        </div>
+        <!-- Triage -->
+        <div>
+          <div class="sec-h"><span class="chip">⚠️</span><p class="t">Do first · Student triage</p><a class="more">All students →</a></div>
+          <div class="tri"><span class="tt crit">Critical <span class="cnt">1</span></span><span class="tt att">Attention <span class="cnt">2</span></span><span class="tt">Monitor <span class="cnt">15</span></span></div>
+          <div class="stack">
+            <div class="ec pad">
+              <div style="display:flex;align-items:flex-start;gap:12px">
+                <div class="lead sev-high">S</div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">Sara Al-Mansoori</b><span class="pill p-red">78% risk</span><span style="font-size:11px;color:#94a3b8">CS301 · Database Design</span></div>
+                  <p style="font-size:12px;color:#475569;margin:5px 0 0">Declining <b>Normalization</b> (CLO3: 62%→54%), 2 missed submissions, last login 3 days ago.</p>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px"><button class="bt sm">🔔 Send nudge</button><button class="bt soft sm">🎯 Assign review</button><button class="bt ghost sm">📅 Book 1:1</button><span style="font-size:11px;font-weight:700;color:#94a3b8;align-self:center">why?</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="ec pad">
+              <div style="display:flex;align-items:flex-start;gap:12px">
+                <div class="lead sev-med">O</div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">Omar Haddad</b><span class="pill p-amber">67% risk</span><span style="font-size:11px;color:#94a3b8">CS301</span></div>
+                  <p style="font-size:12px;color:#475569;margin:5px 0 0">Stagnant attainment, 2 late submissions this week. Engaged but slipping.</p>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px"><button class="bt sm">🔔 Send nudge</button><button class="bt soft sm">🎯 Assign practice</button></div>
+                </div>
+                <span class="spark" style="align-self:center"><i style="height:60%;background:#fcd34d"></i><i style="height:45%;background:#fcd34d"></i><i style="height:52%;background:#fcd34d"></i><i style="height:40%;background:#fcd34d"></i><i style="height:44%;background:#fcd34d"></i></span>
+              </div>
+            </div>
+            <div class="ec pad">
+              <div style="display:flex;align-items:flex-start;gap:12px">
+                <div class="lead sev-med">L</div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">Lina Yusuf</b><span class="pill p-amber">55% risk</span><span style="font-size:11px;color:#94a3b8">CS205 · Web Dev</span></div>
+                  <p style="font-size:12px;color:#475569;margin:5px 0 0">No login for 6 days. Was on track — possible disengagement.</p>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px"><button class="bt sm">💬 Send check-in</button><button class="bt ghost sm">🧭 Flag to advisor</button></div>
+                </div>
+                <span class="spark" style="align-self:center"><i style="height:70%;background:#fcd34d"></i><i style="height:64%;background:#fcd34d"></i><i style="height:30%;background:#fca5a5"></i><i style="height:12%;background:#fca5a5"></i><i style="height:8%;background:#fca5a5"></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- action row -->
+        <div class="lg4">
+          <div class="ec pad">
+            <div class="sec-h"><span class="chip">✍️</span><p class="t">Approve AI Feedback</p><a class="more">Queue (12)</a></div>
+            <div style="display:flex;gap:8px;margin-bottom:11px"><button class="bt sm" style="flex:1;justify-content:center">✅ Approve all (9)</button><button class="bt ghost sm">Review</button></div>
+            <div class="stack">
+              <div style="border:1px solid #eef2f6;border-radius:10px;padding:11px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">Aisha K. · Assignment 3</b><span class="pill p-green">92%</span></div><p style="font-size:11.5px;color:#64748b;font-style:italic;margin:5px 0 0">"Strong 3NF decomposition. Each table avoids transitive dependencies…"</p><div style="display:flex;gap:8px;margin-top:9px"><button class="bt sm">✅ Approve</button><button class="bt ghost sm">✏️ Edit</button></div></div>
+              <div style="border:1px solid #eef2f6;border-radius:10px;padding:11px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">Yousef M. · Assignment 3</b><span class="pill p-amber">64%</span></div><p style="font-size:11.5px;color:#64748b;font-style:italic;margin:5px 0 0">"You've grasped 1NF and 2NF. The gap is 3NF — let's revisit with an example…"</p><div style="display:flex;gap:8px;margin-top:9px"><button class="bt sm">✅ Approve</button><button class="bt ghost sm">✏️ Edit</button></div></div>
+            </div>
+          </div>
+          <div class="ec" style="overflow:hidden">
+            <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0f766e,#0382bd)"><span style="color:#fff">🧬</span><b style="color:#fff;font-size:13px">Curriculum Studio</b><span style="margin-left:auto;font-size:10px;font-weight:800;color:#fff;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:999px">NEW</span></div>
+            <div style="padding:14px"><b style="font-size:13.5px">Your upload became 6 micro-lessons</b><p style="font-size:11.5px;color:#64748b;margin:4px 0 0">"Normalization.pptx" → objectives, CLO tags, retrieval questions, flashcards &amp; a spaced-review plan — drafted, awaiting your edit.</p><div style="display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap"><button class="bt sm">Review draft →</button><span class="time-chip">⏱️ Saved ~42 min</span></div></div>
+          </div>
+          <div class="ec pad">
+            <div class="sec-h"><span class="chip">📋</span><p class="t">Outcome Gaps</p></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><div><b style="font-size:13px">REST APIs (CLO5)</b><p style="font-size:11.5px;color:#64748b;margin:1px 0 0">CS205 · below target in 2 sections</p></div><span class="pill p-red">46%</span></div>
+            <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:9px;padding:9px 11px;margin-top:9px"><p style="font-size:11.5px;color:#1e40af;margin:0">💡 Recommended: assign the "REST verbs" micro-lesson + a 5-item retrieval check before next class.</p></div>
+            <button class="bt soft full sm" style="margin-top:10px">Assign now →</button>
+          </div>
+          <div class="ec pad">
+            <div class="sec-h"><span class="chip">📅</span><p class="t">Today's Classes</p></div>
+            <div class="stack">
+              <div style="border:1px solid #eef2f6;border-radius:10px;padding:10px"><div style="display:flex;align-items:center;gap:12px"><div style="text-align:center;width:44px"><b style="font-size:12px">9:00</b><p style="font-size:10px;color:#94a3b8;margin:0">10:30</p></div><div style="flex:1"><b style="font-size:13px">Database Design</b><p style="font-size:11px;color:#64748b;margin:0">CS301 · Room 204 · 32 students</p></div></div><button class="bt soft full sm" style="margin-top:8px">📂 Open class</button></div>
+              <div style="border:1px solid #eef2f6;border-radius:10px;padding:10px"><div style="display:flex;align-items:center;gap:12px"><div style="text-align:center;width:44px"><b style="font-size:12px">11:00</b><p style="font-size:10px;color:#94a3b8;margin:0">12:30</p></div><div style="flex:1"><b style="font-size:13px">Web Development</b><p style="font-size:11px;color:#64748b;margin:0">CS205 · Lab 3 · 28 students</p></div></div><button class="bt soft full sm" style="margin-top:8px">📂 Open class</button></div>
+              <a class="more" style="display:block;text-align:center;padding-top:2px">View full timetable →</a>
+            </div>
+          </div>
+        </div>
+        <!-- autonomy footer -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e6e9ee;background:#fff;border-radius:12px;padding:12px 14px"><p style="font-size:11.5px;color:#475569;margin:0">🛡️ AI autonomy: <b>A2 — Suggest &amp; approve.</b> AI never sends, grades, or messages without your click.</p><span style="font-size:11.5px;font-weight:800;color:#1d4ed8">Manage</span></div>
+      </div>
+    </div>
+    <!-- right rail -->
+    <div class="rl">
+      <div class="rc"><div class="rh"><span>🤖 AI prepared your day</span></div><p style="font-size:11px;color:#94a3b8;margin:0 0 8px">Based on your classes &amp; workload</p><div class="rchk"><span class="box">✓</span> Review 12 AI feedback <span class="tm">5 min</span></div><div class="rchk"><span class="box">✓</span> Help 3 students <span class="tm">6 min</span></div><div class="rchk"><span class="box">✓</span> Review 1 curriculum draft <span class="tm">3 min</span></div><div style="display:flex;align-items:center;justify-content:space-between;background:#f1f5f9;border-radius:9px;padding:8px 12px;margin-top:10px;font-size:12px;font-weight:700">Estimated workload <b class="mono">~14 min</b></div></div>
+      <div class="rc"><div class="rh"><span>At-risk students</span><span class="r" style="background:#fef2f2;color:#dc2626;border-color:#fecaca">3</span></div><div class="rrow"><span class="dot" style="background:#ef4444"></span><span style="flex:1">Sara — Normalization ↓</span><b>78%</b></div><div class="rrow"><span class="dot" style="background:#f59e0b"></span><span style="flex:1">Omar — missed 2 tasks</span><b>61%</b></div><div class="rrow"><span class="dot" style="background:#f59e0b"></span><span style="flex:1">Lina — inactive 6d</span><b>55%</b></div><a class="more" style="display:block;margin-top:8px">View all at-risk students →</a></div>
+      <div class="rc"><div class="rh"><span>📊 Class pulse</span></div><div class="rrow"><span style="flex:1">Avg mastery</span><b style="color:#16a34a">74%</b></div><div class="rrow"><span style="flex:1">Submissions on-time</span><b>88%</b></div><div class="rrow"><span style="flex:1">CLOs below target</span><b style="color:#b45309">2</b></div><a class="more" style="display:block;margin-top:8px">Detailed analytics →</a></div>
+      <div class="rc"><div class="rh"><span>🧬 Curriculum Studio</span><span class="r">NEW</span></div><p style="font-size:12px;color:#475569;margin:0 0 8px">Last upload → 6 micro-lessons drafted.</p><a class="rbtn">Review draft →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COORDINATOR ===================== -->
+<div class="wrap" id="coordinator">
+  <div class="rband" style="background:linear-gradient(120deg,#2563eb,#1e40af)"><span class="em">🧭</span><div><h2>Coordinator — Dr. Khalid</h2><p>Complete clone of coordinator-dashboard.html · cards Editorial × Tactile · purples recoloured to blue</p></div></div>
+  <div class="frame">
+    <div class="sb">
+      <div class="brand"><span class="mk">✦</span> Edeviser</div>
+      <div class="sl on"><span class="gi">🏠</span> Home</div>
+      <div class="sl"><span class="gi">🎯</span> Outcomes</div>
+      <div class="sl"><span class="gi">🗂️</span> Curriculum</div>
+      <div class="sl"><span class="gi">📋</span> Accredit</div>
+      <div class="sl"><span class="gi">🙂</span> Me</div>
+      <div class="lbl">More</div>
+      <div class="sl"><span class="gi">🎯</span> Outcome Attainment</div>
+      <div class="sl"><span class="gi">🗂️</span> Curriculum Matrix</div>
+      <div class="sl"><span class="gi">📋</span> Accreditation</div>
+      <div class="sl"><span class="gi">⚙️</span> Settings</div>
+      <div class="prof"><div class="av">K</div><div style="flex:1"><div class="nm">Dr. Khalid</div><div class="lv"><i style="width:100%"></i></div><div class="sub">Program Coordinator · CS</div></div></div>
+    </div>
+    <div class="mn">
+      <div class="tp"><div class="search">🔍 Search or jump to… (⌘K)</div><div class="chip" style="color:#2563eb">🎯 3 programs</div><div class="chip" style="color:#b45309">⚠️ 2 gaps</div><span class="bell">🔔</span><div class="av"></div></div>
+      <div class="stack">
+        <div class="ai" style="background:linear-gradient(135deg,#1e3a8a,#0369a1)">
+          <span class="why">🛡️ why am I seeing this</span>
+          <div class="row"><div class="em">🧭</div><div><h1>Program health, prepared</h1><p class="sub">Computer Science · this term vs last. Two things need your attention.</p></div></div>
+          <div class="chips"><span class="c">📉 PLO2 −6%</span><span class="c">🗂️ 1 curriculum gap</span><span class="c">📋 Accreditation 82% ready</span></div>
+        </div>
+        <div class="kpirow">
+          <div class="kc"><div><div class="l">Programs</div><div class="n">3</div></div></div>
+          <div class="kc"><div><div class="l">Avg PLO</div><div class="n" style="color:#2563eb">73%</div></div></div>
+          <div class="kc"><div><div class="l">Below target</div><div class="n" style="color:#d97706">2</div></div></div>
+          <div class="kc"><div><div class="l">Accred. ready</div><div class="n" style="color:#16a34a">82%</div></div></div>
+        </div>
+        <div>
+          <div class="sec-h"><span class="chip">📉</span><p class="t">Attainment alerts</p><a class="more">All outcomes →</a></div>
+          <div class="stack">
+            <div class="ec pad"><div style="display:flex;align-items:flex-start;gap:12px"><div class="lead sev-high">📉</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">PLO2 — Apply engineering principles</b><span class="pill p-red">67% ↓6</span></div><p style="font-size:12px;color:#475569;margin:5px 0 0">Dipped across the program this term. Traced mainly to <b>CLO5 (REST APIs)</b> in CS205 and a weaker cohort in CS301.</p><div style="display:flex;gap:8px;margin-top:11px"><button class="bt sm">📝 Draft CQI plan</button><button class="bt soft sm">Drill down</button></div></div></div></div>
+            <div class="ec pad"><div style="display:flex;align-items:flex-start;gap:12px"><div class="lead sev-med">🎯</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13.5px">CLO5 — REST APIs</b><span class="pill p-amber">48%</span></div><p style="font-size:12px;color:#475569;margin:5px 0 0">Below target in 2 sections. Suggested remediation already sent to the teacher for approval.</p></div></div></div>
+          </div>
+        </div>
+        <div class="lg2">
+          <div class="ec" style="overflow:hidden">
+            <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0369a1,#0f766e)"><span style="color:#fff">🗂️</span><b style="color:#fff;font-size:13px">Curriculum gap detected</b></div>
+            <div style="padding:14px"><b style="font-size:13.5px">"Concurrency" has no mapped assessment</b><p style="font-size:11.5px;color:#64748b;margin:4px 0 0">PLO4 depends on it, but no course currently assesses it — a coverage hole for accreditation.</p><button class="bt sm" style="margin-top:11px">Open matrix →</button></div>
+          </div>
+          <div class="ec pad">
+            <div class="sec-h"><span class="chip">📋</span><p class="t">Accreditation evidence</p><a class="more">Open →</a></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div class="bar" style="flex:1"><i style="width:82%;background:#22c55e"></i></div><b style="font-size:14px;color:#16a34a">82%</b></div>
+            <p style="font-size:11.5px;color:#475569;margin:0">AI drafted the <b>CS301 course file</b> (syllabus, CLO-PLO map, sample work, attainment analysis). Awaiting your review.</p>
+            <button class="bt sm" style="margin-top:11px">Review &amp; approve draft</button>
+          </div>
+        </div>
+        <div class="ec pad">
+          <div class="sec-h"><span class="chip">🔄</span><p class="t">Close the loop (CQI)</p></div>
+          <div class="stack" style="--s:8px">
+            <div style="display:flex;align-items:center;gap:9px"><span class="pill p-green">Completed</span><span style="font-size:13px;color:#374151;flex:1">Added worked examples to 3NF — attainment +8%</span></div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:8px"><span class="pill p-amber">In progress</span><span style="font-size:13px;color:#374151;flex:1">REST APIs remediation this term</span></div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:8px"><span class="pill p-blue">Planned</span><span style="font-size:13px;color:#374151;flex:1">Add Concurrency assessment (AI-suggested)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rl">
+      <div class="rc"><div class="rh"><span>📉 Attainment alerts</span><span class="r" style="background:#fef2f2;color:#dc2626;border-color:#fecaca">2</span></div><div class="rrow"><span class="dot" style="background:#ef4444"></span><span style="flex:1">PLO2 −6% this term</span></div><div class="rrow"><span class="dot" style="background:#f59e0b"></span><span style="flex:1">CLO5 below target ×2</span></div></div>
+      <div class="rc"><div class="rh"><span>🗂️ Curriculum gap</span></div><p style="font-size:12px;color:#475569;margin:0 0 8px">"Concurrency" has no mapped assessment.</p><a class="rbtn">Open matrix →</a></div>
+      <div class="rc"><div class="rh"><span>📋 Accreditation</span></div><div class="rrow"><span style="flex:1">Evidence readiness</span><b style="color:#16a34a">82%</b></div><a class="rbtn" style="margin-top:8px">Review draft →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN ===================== -->
+<div class="wrap" id="admin">
+  <div class="rband" style="background:linear-gradient(120deg,#334155,#0f172a)"><span class="em">🏛️</span><div><h2>Admin — Gulf Academy</h2><p>Complete clone of admin-dashboard.html · section cards Editorial × Tactile</p></div></div>
+  <div class="frame">
+    <div class="sb">
+      <div class="brand"><span class="mk">✦</span> Edeviser</div>
+      <div class="sl on"><span class="gi">🏠</span> Home</div>
+      <div class="sl"><span class="gi">📊</span> Analytics</div>
+      <div class="sl"><span class="gi">🛡️</span> AI Gov</div>
+      <div class="sl"><span class="gi">👥</span> People</div>
+      <div class="sl"><span class="gi">🙂</span> Me</div>
+      <div class="lbl">More</div>
+      <div class="sl"><span class="gi">📊</span> Analytics</div>
+      <div class="sl"><span class="gi">🛡️</span> AI Governance</div>
+      <div class="sl"><span class="gi">👥</span> People</div>
+      <div class="sl"><span class="gi">⚙️</span> Settings</div>
+      <div class="prof"><div class="av">G</div><div style="flex:1"><div class="nm">Gulf Academy</div><div class="lv"><i style="width:100%"></i></div><div class="sub">Institution Admin</div></div></div>
+    </div>
+    <div class="mn">
+      <div class="tp"><div class="search">🔍 Search or jump to… (⌘K)</div><div class="chip" style="color:#2563eb">🏛️ 1,240 learners</div><div class="chip" style="color:#16a34a">92% active</div><span class="bell">🔔</span><div class="av"></div></div>
+      <div class="stack">
+        <div class="ai" style="background:linear-gradient(135deg,#0f172a,#1e3a8a 60%,#334155)">
+          <span class="why">🛡️ why am I seeing this</span>
+          <div class="row"><div class="em">🏛️</div><div><h1>Gulf Academy — this week</h1><p class="sub">Engagement is healthy; retention risk is concentrated in one cohort.</p></div></div>
+          <div class="chips"><span class="c">👥 1,240 learners</span><span class="c">🟢 92% weekly active</span><span class="c">⚠️ 38 retention risk</span></div>
+        </div>
+        <div class="kpirow">
+          <div class="kc"><div><div class="l">Learners</div><div class="n">1,240</div></div></div>
+          <div class="kc"><div><div class="l">Weekly active</div><div class="n" style="color:#16a34a">92%</div></div></div>
+          <div class="kc"><div><div class="l">Avg mastery</div><div class="n" style="color:#2563eb">72%</div></div></div>
+          <div class="kc"><div><div class="l">Retention risk</div><div class="n" style="color:#d97706">38</div></div></div>
+        </div>
+        <div class="ec pad">
+          <div class="sec-h"><span class="chip">💡</span><p class="t">Executive insight</p><span class="pill p-blue" style="margin-left:auto">AI-generated</span></div>
+          <p style="font-size:13px;color:#374151;line-height:1.6;margin:0">Engagement is strong and steady. The main watch-item is <b>Business Foundations</b>, where outcome attainment (63%) trails other departments and 22 of the 38 at-risk learners are concentrated. The pattern resembles last year's cohort before intervention — an early, targeted outreach now is likely to recover most of them.</p>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="bt">📋 Draft outreach plan</button><button class="bt ghost">See analytics</button></div>
+        </div>
+        <div class="lg2">
+          <div class="ec pad">
+            <div class="sec-h"><span class="chip">🏫</span><p class="t">Departments by mastery</p></div>
+            <div class="stack" style="--s:10px">
+              <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">🥇 Computer Science</span><b style="color:#16a34a;font-size:13px">81%</b></div><div class="bar"><i style="width:81%;background:#22c55e"></i></div></div>
+              <div style="margin-top:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">Engineering</span><b style="color:#2563eb;font-size:13px">74%</b></div><div class="bar"><i style="width:74%;background:#3b82f6"></i></div></div>
+              <div style="margin-top:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">Business Foundations</span><b style="color:#d97706;font-size:13px">63%</b></div><div class="bar"><i style="width:63%;background:#f59e0b"></i></div></div>
+            </div>
+          </div>
+          <div class="ec" style="overflow:hidden">
+            <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0f172a,#334155)"><span style="color:#fff">🛡️</span><b style="color:#fff;font-size:13px">AI Governance</b></div>
+            <div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+              <div><p class="mono" style="font-size:18px;font-weight:700;margin:0">A2</p><p style="font-size:10px;color:#64748b;margin:2px 0 0">Autonomy ceiling</p></div>
+              <div><p class="mono" style="font-size:18px;font-weight:700;margin:0">214</p><p style="font-size:10px;color:#64748b;margin:2px 0 0">AI suggestions / wk</p></div>
+              <div><p class="mono" style="font-size:18px;font-weight:700;margin:0;color:#16a34a">0</p><p style="font-size:10px;color:#64748b;margin:2px 0 0">Unapproved actions</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rl">
+      <div class="rc"><div class="rh"><span>🏛️ Institution</span></div><div class="rrow"><span style="flex:1">Active learners</span><b>1,240</b></div><div class="rrow"><span style="flex:1">Weekly active</span><b style="color:#16a34a">92%</b></div><div class="rrow"><span style="flex:1">Retention risk</span><b style="color:#b45309">38</b></div></div>
+      <div class="rc"><div class="rh"><span>🛡️ AI governance</span></div><div class="rrow"><span style="flex:1">Autonomy ceiling</span><b>A2 · approve</b></div><div class="rrow"><span style="flex:1">Auto-actions</span><b>0</b></div><a class="rbtn" style="margin-top:8px">Manage →</a></div>
+      <div class="rc"><div class="rh"><span>Departments</span></div><div class="rrow"><span style="flex:1">🥇 Computer Science</span><b style="color:#16a34a">81%</b></div><div class="rrow"><span style="flex:1">Business</span><b style="color:#b45309">63%</b></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="foot">
+    <b>Faithful clones — same layout, sections, icons &amp; chrome; section cards now Editorial × Tactile.</b><br />
+    Flat hairline cards · monospace numerals · calm flat buttons (no chunky press). Functional risk colours kept.<br />
+    <a href="_institution-variations.html">← Button/professionalism levels</a> · <a href="_institution-fusion.html">Fusion page</a> · <a href="_style-directions.html">All 10 systems</a>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('.cbtn[data-style]').forEach(b => b.onclick = () => {
+    document.body.classList.remove('tactile', 'flat');
+    document.body.classList.add(b.dataset.style);
+    document.querySelectorAll('.cbtn[data-style]').forEach(x => x.classList.toggle('on', x === b));
+  });
+  document.querySelectorAll('.cbtn[data-color]').forEach(b => b.onclick = () => {
+    document.body.classList.remove('green', 'blue', 'teal', 'cyan', 'sky', 'brand');
+    document.body.classList.add(b.dataset.color);
+    document.querySelectorAll('.cbtn[data-color]').forEach(x => x.classList.toggle('on', x === b));
+  });
+</script>
+</body>
+</html>

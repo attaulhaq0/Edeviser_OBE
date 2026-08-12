@@ -1,0 +1,71 @@
+[dashboard laptop] {"hasRail":true,"hasProfileChip":true,"profileName":"Sarah Ahmed","profileSub":"Lvl 4 · 750 / 1000 XP","hasUpgrade":true,"sidebarBorderR":"1px","railBorderL":"1px","searchCenter":720,"vw":1440,"halfVw":720,"greenContinueLeft":false}
+[upgrade-card admin laptop] {"before":0,"after":0}
+[upgrade-card coordinator laptop] {"before":0,"after":0}
+[upgrade-card teacher laptop] {"before":0,"after":0}
+[upgrade-card parent laptop] {"before":0,"after":0}
+[upgrade-card student laptop] {"before":1,"after":1}
+[path.journey laptop] {"hasRail":false,"hasToggle":true,"journeyVisible":true,"treeHidden":true}
+[path.tree laptop] {"treeVisible":true,"ktreeExists":true,"nodeCount":6,"masteryPanelPresent":false,"masteryPanelVisible":false,"hasMastery":false}
+[coordinator-outcomes laptop] captured
+[coordinator-curriculum laptop] {"coverageBars":4,"distinctBarColors":["rgb(59, 130, 246)"]}
+[admin-dashboard laptop] {"toggles":0,"found":{"AI Governance":true}}
+[admin-analytics laptop] {"toggles":0,"found":{"AI Co-Pilot performance":true,"PLO attainment heatmap":true,"Weekly active learners":true}}
+[admin-profile laptop] {"toggles":14,"found":{}}
+[teacher-dashboard laptop] {"toggles":0,"found":{"At-risk students":true,"Teaching impact":true}}
+[teacher-profile laptop] {"toggles":9,"found":{}}
+[coordinator-dashboard laptop] {"toggles":0,"found":{"Recovery pathways":true,"Curriculum gap detected":true}}
+[coordinator-profile laptop] {"toggles":0,"found":{}}
+[parent-profile laptop] {"toggles":4,"found":{}}
+[learn laptop] {"toggles":0,"found":{"Recently graded":true}}
+[progress laptop] {"toggles":0,"found":{}}
+[profile laptop] {"toggles":1,"found":{}}
+[course laptop] {"toggles":0,"found":{}}
+[marketplace laptop] {"toggles":0,"found":{"XP wallet":false,"Active boosts":true,"Class goal":true}}
+[calendar laptop] {"toggles":0,"found":{"Upcoming deadlines":true,"My tasks":true}}
+[team laptop] {"toggles":0,"found":{"Peer teaching moments":true,"Team health":true}}
+[leaderboard laptop] {"toggles":1,"found":{"Most improved":true,"League":true}}
+[review laptop] {"toggles":0,"found":{"cards due today":true,"by topic":true}}
+[wellness laptop] {"toggles":0,"found":{"Today's habits":true,"Habit level":true}}
+[focus laptop] {"toggles":0,"found":{"Set your intent":false,"Scheduled reviews":true}}
+[quests laptop] {"toggles":0,"found":{"Active quests":true,"Create & earn":true,"My submissions":true}}
+[announcements laptop] {"toggles":0,"found":{"Announcements":true,"Recent":true}}
+[admin-marketplace laptop] {"toggles":6,"found":{"XP economy":true,"Sale events":true,"Bonus XP":true}}
+[teacher-questions laptop] {"toggles":0,"found":{"Question Bank":true,"Generate with AI":true}}
+[teacher-gradebook laptop] {"toggles":0,"found":{"Gradebook":true,"CLO attain":false}}
+[teacher-attendance laptop] {"toggles":0,"found":{"Attendance":true,"Roster":true}}
+[coordinator-cqi laptop] {"toggles":0,"found":{"Continuous Quality Improvement":true,"Evaluated":false}}
+[institution-variations laptop] {"hasSemanticMeter":true,"meters":8}
+[dashboard mobile] {"hasRail":true,"hasProfileChip":true,"profileName":"Sarah Ahmed","profileSub":"Lvl 4 · 750 / 1000 XP","hasUpgrade":true,"sidebarBorderR":"0px","railBorderL":"0px","searchCenter":null,"vw":402,"halfVw":201,"greenContinueLeft":false}
+[upgrade-card admin mobile] {"before":0,"after":0}
+[upgrade-card coordinator mobile] {"before":0,"after":0}
+[upgrade-card teacher mobile] {"before":0,"after":0}
+[upgrade-card parent mobile] {"before":0,"after":0}
+[upgrade-card student mobile] {"before":1,"after":1}
+[path.journey mobile] {"hasRail":false,"hasToggle":true,"journeyVisible":true,"treeHidden":true}
+[path.tree mobile] {"treeVisible":true,"ktreeExists":true,"nodeCount":6,"masteryPanelPresent":false,"masteryPanelVisible":false,"hasMastery":false}
+[admin-dashboard mobile] {"toggles":0,"found":{"AI Governance":true}}
+[admin-analytics mobile] {"toggles":0,"found":{"AI Co-Pilot performance":true,"PLO attainment heatmap":true,"Weekly active learners":true}}
+[admin-profile mobile] {"toggles":14,"found":{}}
+[teacher-dashboard mobile] {"toggles":0,"found":{"At-risk students":true,"Teaching impact":true}}
+[teacher-profile mobile] {"toggles":9,"found":{}}
+[coordinator-dashboard mobile] {"toggles":0,"found":{"Recovery pathways":true,"Curriculum gap detected":true}}
+[coordinator-profile mobile] {"toggles":0,"found":{}}
+[parent-profile mobile] {"toggles":4,"found":{}}
+[learn mobile] {"toggles":0,"found":{"Recently graded":true}}
+[progress mobile] {"toggles":0,"found":{}}
+[profile mobile] {"toggles":1,"found":{}}
+[course mobile] {"toggles":0,"found":{}}
+[marketplace mobile] {"toggles":0,"found":{"XP wallet":false,"Active boosts":true,"Class goal":true}}
+[calendar mobile] {"toggles":0,"found":{"Upcoming deadlines":true,"My tasks":true}}
+[team mobile] {"toggles":0,"found":{"Peer teaching moments":true,"Team health":true}}
+[leaderboard mobile] {"toggles":1,"found":{"Most improved":true,"League":true}}
+[review mobile] {"toggles":0,"found":{"cards due today":true,"by topic":true}}
+[wellness mobile] {"toggles":0,"found":{"Today's habits":true,"Habit level":true}}
+[focus mobile] {"toggles":0,"found":{"Set your intent":false,"Scheduled reviews":true}}
+[quests mobile] {"toggles":0,"found":{"Active quests":true,"Create & earn":true,"My submissions":true}}
+[announcements mobile] {"toggles":0,"found":{"Announcements":true,"Recent":true}}
+[admin-marketplace mobile] {"toggles":6,"found":{"XP economy":true,"Sale events":true,"Bonus XP":true}}
+[teacher-questions mobile] {"toggles":0,"found":{"Question Bank":true,"Generate with AI":true}}
+[teacher-gradebook mobile] {"toggles":0,"found":{"Gradebook":true,"CLO attain":false}}
+[teacher-attendance mobile] {"toggles":0,"found":{"Attendance":true,"Roster":true}}
+[coordinator-cqi mobile] {"toggles":0,"found":{"Continuous Quality Improvement":true,"Evaluated":false}}

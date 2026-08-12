@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Edeviser · 10 Design System Directions</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Baloo+2:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<!-- Phosphor Icons web font: one downloadable pack, 5 weights (thin/regular/bold/fill/duotone) -->
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<!-- Lucide: the icon set the deployed React app already uses -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --teal:#14b8a6; --teal-d:#0f766e; --blue:#0382bd; --blue2:#2563eb; --blue-d:#1e40af;
+    --sky:#0ea5e9; --emerald:#059669; --green:#22c55e; --green-d:#15803d; --cyan:#06b6d4;
+    --navy:#1e293b; --ink:#0f172a; --slate:#64748b; --line:#e2e8f0;
+    --brand:linear-gradient(93.65deg,#14B8A6 5.37%,#0382BD 78.89%);
+  }
+  body{margin:0;font-family:'Noto Sans',sans-serif;background:#eef2f7;color:#0f172a}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+
+  /* ---------- page chrome ---------- */
+  .topbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0}
+  .topbar .wrap{display:flex;align-items:center;gap:6px;height:56px;overflow-x:auto}
+  .topbar b{font-weight:900;font-size:15px;letter-spacing:-.01em;margin-right:auto;white-space:nowrap}
+  .jump{font-size:11.5px;font-weight:700;color:#475569;padding:6px 10px;border-radius:9px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;text-decoration:none;white-space:nowrap}
+  .jump:hover{background:#f0f9ff;border-color:#7dd3fc;color:#0369a1}
+
+  .hero{padding:52px 0 26px}
+  .hero .eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#0d9488}
+  .hero h1{font-size:36px;font-weight:900;letter-spacing:-.025em;margin:8px 0 12px;line-height:1.08}
+  .hero p{font-size:15px;color:#475569;max-width:820px;line-height:1.65;margin:0}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .tag{font-size:11px;font-weight:800;padding:5px 11px;border-radius:999px;letter-spacing:.02em}
+  .tag-live{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0}
+  .tag-proto{background:#cffafe;color:#0e7490;border:1px solid #a5f3fc}
+  .tag-new{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe}
+  .constraint{margin-top:16px;display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 14px;font-size:12.5px;color:#334155;font-weight:600}
+  .constraint .dots{display:flex;gap:5px}
+  .constraint .dots i{width:16px;height:16px;border-radius:5px;display:block}
+
+  /* ---------- section shells ---------- */
+  .band{border-radius:22px;padding:24px 26px;color:#fff;position:relative;overflow:hidden;margin:30px 0 22px;scroll-margin-top:70px}
+  .band .idx{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.82}
+  .band h2{font-size:27px;font-weight:900;letter-spacing:-.01em;margin:5px 0 8px}
+  .band p{margin:0;font-size:13.5px;line-height:1.6;max-width:780px;opacity:.94}
+  .band .status{position:absolute;top:22px;right:24px;font-size:11px;font-weight:800;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.32)}
+  .sec{scroll-margin-top:66px}
+
+  .kit{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:940px){.kit{grid-template-columns:1.05fr 1fr}}
+  .panel{background:#fff;border:1px solid #e8edf3;border-radius:16px;padding:18px}
+  .panel h3{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#94a3b8;margin:0 0 13px;display:flex;align-items:center;gap:7px}
+
+  .swatches{display:flex;gap:7px;flex-wrap:wrap}
+  .sw{width:50px;text-align:center}
+  .sw i{display:block;height:34px;border-radius:9px;border:1px solid rgba(0,0,0,.06)}
+  .sw span{font-size:8.5px;font-weight:700;color:#64748b;display:block;margin-top:4px}
+  .specrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .note{font-size:12px;color:#64748b;line-height:1.5;margin:12px 0 0}
+  .note b{color:#334155}
+  .whenrow{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .when{flex:1;min-width:150px;background:#f8fafc;border:1px solid #eef2f6;border-radius:12px;padding:11px 13px}
+  .when p{margin:0;font-size:11.5px;line-height:1.5;color:#475569}
+  .when b{display:block;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin-bottom:3px}
+  .subhead{font-size:12px;font-weight:800;color:#475569;margin:16px 0 9px;letter-spacing:.01em}
+
+  /* shared mini KPI text */
+  .kpi-mini{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .kpi-mini .lbl{font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin:0}
+  .kpi-mini .val{font-size:23px;font-weight:900;margin:3px 0 0;letter-spacing:-.02em;color:#0f172a}
+
+  /* ---------- mini dashboard frame (reused by every system) ---------- */
+  .dash{margin-top:20px;border-radius:18px;overflow:hidden;border:1px solid #e6ecf3;background:#fff;display:grid;grid-template-columns:186px 1fr;min-height:340px}
+  @media(max-width:720px){.dash{grid-template-columns:1fr}.dash .dside{display:none}}
+  .dside{padding:16px 12px;border-right:1px solid #eef2f6;background:#fbfdff}
+  .dside .brandrow{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;margin-bottom:16px}
+  .dside .navi{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:#64748b;padding:8px 10px;border-radius:10px;margin-bottom:3px}
+  .dside .navi.on{color:#0f172a;font-weight:800}
+  .dside .navi .gi{width:18px;height:18px;display:inline-flex}
+  .dmain{padding:16px 18px;background:#f6f9fc}
+  .dbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .dbar .search{flex:1;height:34px;border-radius:10px;background:#fff;border:1px solid #e5eaf1;display:flex;align-items:center;gap:8px;padding:0 12px;color:#94a3b8;font-size:12px}
+  .dkpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  @media(max-width:600px){.dkpis{grid-template-columns:repeat(2,1fr)}}
+  .dcols{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+  @media(max-width:600px){.dcols{grid-template-columns:1fr}}
+  .foot{padding:44px 0 80px;text-align:center;color:#94a3b8;font-size:12.5px;line-height:1.7}
+  .foot b{color:#475569}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <b>Edeviser · Design Systems</b>
+    <a class="jump" href="_institution-fusion.html" style="background:#0f172a;color:#fff;border-color:#0f172a">★ Institution fusion</a>
+    <a class="jump" href="_institution-dashboards.html" style="background:#0369a1;color:#fff;border-color:#0369a1">★ Real dashboards re-skinned</a>
+    <a class="jump" href="_institution-variations.html" style="background:#1e40af;color:#fff;border-color:#1e40af">Staff · less gamified</a>
+    <a class="jump" href="_institution-system.html" style="background:#0f766e;color:#fff;border-color:#0f766e">Institution (editorial)</a>
+    <a class="jump" href="_duolingo-system.html" style="background:#16a34a;color:#fff;border-color:#16a34a">🦉 Duolingo per-role</a>
+    <a class="jump" href="#icons">Icons</a>
+    <a class="jump" href="#cast">Characters</a>
+    <a class="jump" href="#s1">1 Deployed</a>
+    <a class="jump" href="#s2">2 Tactile</a>
+    <a class="jump" href="#s3">3 Unified</a>
+    <a class="jump" href="#s4">4 Editorial</a>
+    <a class="jump" href="#s5">5 Edu-Hybrid</a>
+    <a class="jump" href="#s6">6 Duolingo</a>
+    <a class="jump" href="#s7">7 Duo-Academic</a>
+    <a class="jump" href="#s8">8 Aurora</a>
+    <a class="jump" href="#s9">9 Soft-3D</a>
+    <a class="jump" href="#s10">10 Minimal</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Investor-ready · 10 directions · one decision</div>
+    <h1>Ten ways Edeviser could look — all in our blue &amp; green</h1>
+    <p>Every direction below renders the <b>same specimen kit</b> (colors, type, buttons, inputs, cards, KPIs, tabs, pills, tables), an <b>icon direction</b>, our <b>character cast</b>, and a <b>full dashboard mockup</b> with the sections that matter — so you're judging the feel of the real app, not placeholder text. Directions 1–2 are exactly what's in the codebase today; 3–10 are new proposals built from our approaches, including a dedicated <b>Editorial × Tactile hybrid for the institution side</b> and several <b>Duolingo-inspired</b> takes. Pick one to standardize on, or mix parts.</p>
+    <div class="legend">
+      <span class="tag tag-live">● LIVE — shipping in the React app</span>
+      <span class="tag tag-proto">● PROTOTYPE — in prototype/shared.css</span>
+      <span class="tag tag-new">● NEW — proposed direction</span>
+    </div>
+    <div class="constraint">
+      <span class="dots"><i style="background:#0ea5e9"></i><i style="background:#14b8a6"></i><i style="background:#22c55e"></i><i style="background:#2563eb"></i><i style="background:#0f172a"></i></span>
+      Palette locked to blue &amp; green shades + neutral slate/navy — no orange, no purple.
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+      <a href="_institution-fusion.html" style="flex:1;min-width:260px;text-decoration:none;background:linear-gradient(120deg,#0f172a,#0f766e 60%,#1e40af);color:#fff;border-radius:14px;padding:15px 17px;display:block">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.85">Deep dive ★ recommended for staff</div>
+        <div style="font-size:16px;font-weight:900;margin:3px 0 3px">Editorial × Tactile × Prototype — Institution</div>
+        <div style="font-size:12px;opacity:.9;line-height:1.4">The 3-way fusion built for admin, coordinator, teacher — prototype pcards + editorial tables + tactile buttons →</div>
+      </a>
+      <a href="_duolingo-system.html" style="flex:1;min-width:260px;text-decoration:none;background:linear-gradient(120deg,#16a34a,#0ea5e9);color:#fff;border-radius:14px;padding:15px 17px;display:block">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.85">Deep dive 🦉</div>
+        <div style="font-size:16px;font-weight:900;margin:3px 0 3px">The Duolingo design system</div>
+        <div style="font-size:12px;opacity:.9;line-height:1.4">What it is + our whole app per role in that style — all blue/green →</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ICON LAB ================= -->
+<style>
+  .ilab .band{background:linear-gradient(120deg,#0f766e,#0369a1)}
+  .igrid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:940px){.igrid{grid-template-columns:1fr 1fr}}
+  .istyle{border:1px solid #eef2f6;border-radius:14px;padding:14px;background:#fbfdff}
+  .istyle .lab{font-size:11px;font-weight:800;color:#334155;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between}
+  .istyle .lab em{font-style:normal;font-weight:600;color:#94a3b8;font-size:10.5px}
+  .irow{display:flex;gap:16px;align-items:center;color:#0f766e;font-size:27px}
+  .irow.blue{color:#2563eb}.irow.green{color:#16a34a}.irow.sky{color:#0ea5e9}.irow.ink{color:#0f172a}
+  .irow i{line-height:1}
+  .irow [data-lucide]{width:27px;height:27px;stroke-width:2}
+  .packs{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px;margin-top:4px}
+  .pack{border:1px solid #e8edf3;border-radius:13px;padding:12px 13px;background:#fff}
+  .pack .nm{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:7px}
+  .pack .nm a{font-size:10.5px;font-weight:700;color:#0369a1;text-decoration:none;margin-left:auto;border:1px solid #bae6fd;background:#f0f9ff;border-radius:7px;padding:2px 7px;white-space:nowrap}
+  .pack .ds{font-size:11px;color:#64748b;margin:5px 0 9px;line-height:1.45}
+  .pack .demo{display:flex;gap:12px;font-size:21px;color:#334155;align-items:center}
+  .pack .demo [data-lucide]{width:21px;height:21px}
+  .tiles{display:flex;gap:12px;flex-wrap:wrap;margin-top:2px}
+  .tile3d{width:62px;height:62px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;box-shadow:0 8px 18px -6px rgba(2,132,189,.55),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -4px 8px rgba(0,0,0,.12);position:relative}
+  .tile3d::after{content:'';position:absolute;inset:0;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.28),transparent 55%)}
+</style>
+<div class="wrap ilab sec" id="icons">
+  <div class="band">
+    <span class="status">FOUNDATION</span>
+    <div class="idx">Icon system</div>
+    <h2>Icons — pick a pack, pick a style</h2>
+    <p>Icons set the whole personality. Below: one open-source pack shown in five weights (so you see line → solid → duotone from a single download), the sets we can pull today, and the <b>3D gamified</b> tile treatment you like — all tinted blue/green. Every pack here is free and downloadable.</p>
+  </div>
+  <div class="igrid">
+    <div class="panel">
+      <h3>One pack · five styles — Phosphor (live)</h3>
+      <div class="istyle">
+        <p class="lab">Thin <em>ph-thin</em></p>
+        <div class="irow"><i class="ph-thin ph-house"></i><i class="ph-thin ph-book-open"></i><i class="ph-thin ph-chart-line-up"></i><i class="ph-thin ph-trophy"></i><i class="ph-thin ph-flame"></i><i class="ph-thin ph-target"></i></div>
+      </div>
+      <div class="istyle" style="margin-top:10px">
+        <p class="lab">Regular / Bold <em>ph · ph-bold</em></p>
+        <div class="irow blue">🏠 📖 📈 <i class="ph-bold ph-trophy"></i><i class="ph-bold ph-flame"></i><i class="ph-bold ph-target"></i></div>
+      </div>
+      <div class="istyle" style="margin-top:10px">
+        <p class="lab">Fill / Duotone <em>ph-fill · ph-duotone</em></p>
+        <div class="irow green"><i class="ph-fill ph-house"></i><i class="ph-fill ph-book-open"></i><i class="ph-fill ph-chart-line-up"></i><i class="ph-duotone ph-trophy"></i><i class="ph-duotone ph-flame"></i><i class="ph-duotone ph-target"></i></div>
+      </div>
+      <p class="note"><b>Why Phosphor:</b> 9,000+ icons, 6 weights from one install, MIT-licensed. Great when we want one consistent line set across all 200+ screens with the option to go duotone on hero moments.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Sets we can pull today</h3>
+      <div class="packs">
+        <div class="pack">
+          <div class="nm">Lucide <span style="font-weight:600;color:#16a34a;font-size:10px">● in app now</span><a href="https://lucide.dev" target="_blank" rel="noopener">lucide.dev</a></div>
+          <div class="ds">The set the deployed React app already imports. Clean, consistent 2px stroke. (Rendered live →)</div>
+          <div class="demo sky"><i data-lucide="house"></i><i data-lucide="book-open"></i><i data-lucide="line-chart"></i><i data-lucide="trophy"></i><i data-lucide="flame"></i><i data-lucide="target"></i></div>
+        </div>
+        <div class="pack">
+          <div class="nm">Tabler<a href="https://tabler.io/icons" target="_blank" rel="noopener">tabler.io</a></div>
+          <div class="ds">5,800+ crisp 1.75px outline icons, MIT. Excellent for dense admin tables.</div>
+          <div class="demo">🏠 📚 📊 🏅 🔥 🎯 </div>
+        </div>
+        <div class="pack">
+          <div class="nm">Heroicons<a href="https://heroicons.com" target="_blank" rel="noopener">heroicons.com</a></div>
+          <div class="ds">By the Tailwind team — outline + solid pairs. Pairs naturally with our Tailwind stack.</div>
+          <div class="demo blue" style="color:#2563eb"><i class="ph-fill ph-house"></i><i class="ph-fill ph-book"></i><i class="ph-fill ph-chart-bar"></i><i class="ph-fill ph-medal"></i><i class="ph-fill ph-fire"></i><i class="ph-fill ph-crosshair"></i></div>
+        </div>
+        <div class="pack">
+          <div class="nm">Solar<a href="https://icones.js.org/collection/solar" target="_blank" rel="noopener">icônes</a></div>
+          <div class="ds">Bold-duotone set with a friendly, rounded feel — good for the student side.</div>
+          <div class="demo green" style="color:#0d9488"><i class="ph-duotone ph-house"></i><i class="ph-duotone ph-book"></i><i class="ph-duotone ph-chart-line-up"></i><i class="ph-duotone ph-medal"></i><i class="ph-duotone ph-fire"></i><i class="ph-duotone ph-crosshair"></i></div>
+        </div>
+      </div>
+      <p class="subhead">3D gamified tiles — the playful treatment (not photorealistic)</p>
+      <div class="tiles">
+        <div class="tile3d" style="background:linear-gradient(150deg,#0ea5e9,#0369a1)">🏠</div>
+        <div class="tile3d" style="background:linear-gradient(150deg,#14b8a6,#0f766e)">📚</div>
+        <div class="tile3d" style="background:linear-gradient(150deg,#22c55e,#15803d)">📈</div>
+        <div class="tile3d" style="background:linear-gradient(150deg,#0284c7,#1e40af)">🏆</div>
+        <div class="tile3d" style="background:linear-gradient(150deg,#06b6d4,#0e7490)">🎯</div>
+      </div>
+      <p class="note"><b>Free 3D packs:</b> <a href="https://3dicons.co" target="_blank" rel="noopener" style="color:#0369a1;font-weight:700">3dicons.co</a> (open-source) and Microsoft <a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener" style="color:#0369a1;font-weight:700">Fluent Emoji</a>. We recolor/tint these to our blue-green ramp so nothing reads orange or purple.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHARACTER CAST ================= -->
+<style>
+  .cast .band{background:linear-gradient(120deg,#0d9488,#0ea5e9)}
+  .castrow{display:flex;gap:14px;flex-wrap:wrap}
+  .char{flex:1;min-width:120px;text-align:center;background:#fbfdff;border:1px solid #eef2f6;border-radius:14px;padding:14px 10px}
+  .char .av{width:66px;height:66px;border-radius:50%;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 8px 16px -6px rgba(13,148,136,.4),inset 0 2px 0 rgba(255,255,255,.4)}
+  .char .nm{font-size:13px;font-weight:800}
+  .char .rl{font-size:10.5px;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+  .char .ds{font-size:11px;color:#64748b;margin-top:6px;line-height:1.4}
+  .ctx{display:flex;flex-direction:column;gap:12px}
+  .cbub{display:flex;align-items:center;gap:11px}
+  .cbub .av{width:46px;height:46px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 10px -3px rgba(13,148,136,.4)}
+  .cbub .msg{background:#f0fdfa;border:1px solid #99f6e4;border-radius:14px;border-top-left-radius:4px;padding:9px 13px}
+  .cbub .msg .t{font-size:11.5px;font-weight:800;margin:0;color:#0f766e}
+  .cbub .msg .m{font-size:12px;color:#475569;margin:2px 0 0;line-height:1.4}
+  .celebrate{background:linear-gradient(135deg,#ecfdf5,#e0f2fe);border:1px solid #a7f3d0;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px}
+  .celebrate .av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:27px;background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488);box-shadow:0 6px 14px -4px rgba(13,148,136,.5)}
+</style>
+<div class="wrap cast sec" id="cast">
+  <div class="band">
+    <span class="status">BRAND</span>
+    <div class="idx">Character cast</div>
+    <h2>Our characters — how the app feels human</h2>
+    <p>A small, consistent cast carries encouragement, coaching and celebration across the product — the warmth that separates Edeviser from a spreadsheet. Shown here as style placeholders in our blue-green ramp; final art would be commissioned illustration in the same palette. Staff screens use them sparingly; the student side leans in.</p>
+  </div>
+  <div class="kit">
+    <div class="panel">
+      <h3>The cast</h3>
+      <div class="castrow">
+        <div class="char"><div class="av" style="background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488)">🦉</div><div class="nm">Edu</div><div class="rl">AI Coach</div><div class="ds">Guides, nudges, explains outcomes &amp; next steps.</div></div>
+        <div class="char"><div class="av" style="background:radial-gradient(circle at 40% 35%,#7dd3fc,#0369a1)">🦊</div><div class="nm">Pip</div><div class="rl">Study buddy</div><div class="ds">Streaks, daily habits, celebrations, XP.</div></div>
+        <div class="char"><div class="av" style="background:radial-gradient(circle at 40% 35%,#86efac,#15803d)">🐢</div><div class="nm">Sage</div><div class="rl">Mentor</div><div class="ds">Mastery, reflection, well-being check-ins.</div></div>
+        <div class="char"><div class="av" style="background:radial-gradient(circle at 40% 35%,#67e8f9,#0e7490)">🤖</div><div class="nm">Nova</div><div class="rl">Tutor bot</div><div class="ds">Answers questions, hints, explains feedback.</div></div>
+      </div>
+      <p class="note"><b>Palette rule:</b> every character sits on a teal → sky → green ramp. No warm oranges or purples, so they always read on-brand next to data.</p>
+    </div>
+    <div class="panel">
+      <h3>In context — how they show up</h3>
+      <div class="ctx">
+        <div class="cbub">
+          <div class="av" style="background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488)">🦉</div>
+          <div class="msg"><p class="t">Edu · AI Coach</p><p class="m">You're 2 lessons from mastering <b>Analyze</b>. Want a 5-min warm-up?</p></div>
+        </div>
+        <div class="celebrate">
+          <div class="av">🦊</div>
+          <div><p style="margin:0;font-size:13px;font-weight:800;color:#0f766e">Perfect day! +50 XP 🎉</p><p style="margin:3px 0 0;font-size:12px;color:#475569">Pip: "All four habits done. That's a 12-day streak!"</p></div>
+        </div>
+        <div class="cbub">
+          <div class="av" style="background:radial-gradient(circle at 40% 35%,#67e8f9,#0e7490)">🤖</div>
+          <div class="msg"><p class="t">Nova · Tutor</p><p class="m">Your essay lost points on evidence. Here are 3 ways to strengthen it.</p></div>
+        </div>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Where used</b><p>Empty states, streaks, celebrations, coach tips, tutor chat, well-being nudges.</p></div>
+        <div class="when"><b>Where hidden</b><p>Dense admin/coordinator tables — kept clean and professional.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 1 · DEPLOYED (Clean Shadcn) ================= -->
+<style>
+  .s1 .band{background:linear-gradient(120deg,#0f172a,#1e3a8a 60%,#312e81)}
+  .s1-hero{border-radius:12px;overflow:hidden;color:#fff;padding:18px 20px;box-shadow:0 10px 15px -3px rgba(0,0,0,.1);background:linear-gradient(135deg,#0f172a,#1e3a8a 50%,#1e40af)}
+  .s1-hero h4{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .s1-hero p{margin:3px 0 0;font-size:12.5px;color:rgba(255,255,255,.7)}
+  .s1-card{background:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -2px rgba(0,0,0,.06);border-radius:12px;overflow:hidden}
+  .s1-cardhead{padding:11px 15px;display:flex;align-items:center;gap:8px;background:var(--brand);color:#fff}
+  .s1-cardhead h5{margin:0;font-size:14px;font-weight:700}
+  .s1-cardhead [data-lucide]{width:18px;height:18px}
+  .s1-kpi{background:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,.08);border-radius:12px;padding:14px}
+  .s1-kpi .ic{width:32px;height:32px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;color:#2563eb}
+  .s1-kpi .ic [data-lucide]{width:17px;height:17px}
+  .s1-btn{display:inline-flex;align-items:center;gap:7px;height:37px;padding:0 15px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;color:#fff;background:var(--brand);transition:transform .1s}
+  .s1-btn:active{transform:scale(.95)}
+  .s1-btn.ghost{background:#fff;color:#334155;border:1px solid #e2e8f0}
+  .s1-btn.dark{background:#0f172a}
+  .s1-inp{height:37px;border:1px solid #e2e8f0;border-radius:8px;padding:0 12px;font-size:13px;color:#334155;width:100%;background:#fff}
+  .s1-tab{display:inline-flex;gap:6px;background:#f1f5f9;padding:4px;border-radius:10px}
+  .s1-tab button{border:none;background:none;font-size:12px;font-weight:600;padding:6px 13px;border-radius:8px;color:#64748b;cursor:pointer}
+  .s1-tab button.on{background:#2563eb;color:#fff}
+  .s1-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:8px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+</style>
+<div class="wrap s1 sec" id="s1">
+  <div class="band">
+    <span class="status">● LIVE TODAY</span>
+    <div class="idx">System 01</div>
+    <h2>Deployed App — “Clean Shadcn”</h2>
+    <p>What every user sees in production right now. Shadcn/ui on Tailwind: white cards with soft <b>shadow-md</b> + <b>rounded-xl</b>, teal→blue gradient section headers, a dark navy hero, heavy <b>font-black</b> KPIs, gradient buttons that press with <b>active:scale-95</b>, and the <b>Lucide</b> icon set. Professional and safe — but one flat brand for every role and no gamified texture.</p>
+  </div>
+  <div class="kit">
+    <div class="panel">
+      <h3>Hero · Section card · Icons (Lucide)</h3>
+      <div class="s1-hero"><h4>Good morning, Sara 👋</h4><p>Keep up the momentum!</p></div>
+      <div class="s1-card" style="margin-top:13px">
+        <div class="s1-cardhead"><i data-lucide="calendar-clock"></i><h5>Upcoming Deadlines</h5></div>
+        <div style="padding:12px 15px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #f1f5f9"><span>Essay: Ecosystems</span><span class="s1-badge">Due 2d</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0"><span>Quiz: Cell Biology</span><span class="s1-badge">Due 5d</span></div>
+        </div>
+      </div>
+      <div class="specrow" style="margin-top:13px;color:#2563eb"><i data-lucide="home"></i><i data-lucide="book-open"></i><i data-lucide="line-chart"></i><i data-lucide="trophy"></i><i data-lucide="target"></i></div>
+      <div class="swatches" style="margin-top:12px">
+        <div class="sw"><i style="background:#14b8a6"></i><span>teal</span></div>
+        <div class="sw"><i style="background:#0382bd"></i><span>blue</span></div>
+        <div class="sw"><i style="background:#2563eb"></i><span>blue-600</span></div>
+        <div class="sw"><i style="background:#0f172a"></i><span>ink</span></div>
+        <div class="sw"><i style="background:#f1f5f9"></i><span>surf</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>KPI · Buttons · Input · Tabs · Pills</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="s1-kpi"><div class="kpi-mini"><div><p class="lbl">Courses</p><p class="val">6</p></div><div class="ic"><i data-lucide="book-open"></i></div></div></div>
+        <div class="s1-kpi"><div class="kpi-mini"><div><p class="lbl">Streak</p><p class="val">12d</p></div><div class="ic" style="background:#ecfdf5;color:#16a34a"><i data-lucide="flame"></i></div></div></div>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <button class="s1-btn">Primary</button>
+        <button class="s1-btn ghost">Secondary</button>
+        <button class="s1-btn dark">Dark</button>
+      </div>
+      <input class="s1-inp" style="margin-top:12px" placeholder="Search courses, outcomes…" />
+      <div class="specrow" style="margin-top:12px">
+        <div class="s1-tab"><button class="on">Overview</button><button>Grades</button><button>Files</button></div>
+      </div>
+      <div class="specrow" style="margin-top:12px">
+        <span class="s1-badge">In progress</span>
+        <span class="s1-badge" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0">Passed</span>
+        <span class="s1-badge" style="background:#eff6ff;color:#0369a1;border-color:#bae6fd">At risk</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- dashboard preview -->
+  <p class="subhead">Student dashboard — as it looks today</p>
+  <div class="dash">
+    <div class="dside">
+      <div class="brandrow"><span style="width:24px;height:24px;border-radius:7px;background:var(--brand);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#eff6ff"><span class="gi" style="color:#2563eb"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi"><span class="gi"><i data-lucide="book-open"></i></span> Courses</div>
+      <div class="navi"><span class="gi"><i data-lucide="line-chart"></i></span> Progress</div>
+      <div class="navi"><span class="gi"><i data-lucide="trophy"></i></span> Leaderboard</div>
+      <div class="navi"><span class="gi"><i data-lucide="user"></i></span> Profile</div>
+    </div>
+    <div class="dmain">
+      <div class="dbar"><div class="search"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div style="width:30px;height:30px;border-radius:50%;background:var(--brand)"></div></div>
+      <div class="s1-hero" style="padding:14px 16px"><h4 style="font-size:15px">Good morning, Sara 👋</h4><p>3-day streak · Level 7 · 2,480 XP</p></div>
+      <div class="dkpis" style="margin-top:12px">
+        <div class="s1-kpi"><p class="lbl" style="font-size:8px">Courses</p><p class="val" style="font-size:19px">6</p></div>
+        <div class="s1-kpi"><p class="lbl" style="font-size:8px">Completed</p><p class="val" style="font-size:19px">34</p></div>
+        <div class="s1-kpi"><p class="lbl" style="font-size:8px">Attainment</p><p class="val" style="font-size:19px">81%</p></div>
+        <div class="s1-kpi"><p class="lbl" style="font-size:8px">Streak</p><p class="val" style="font-size:19px">12d</p></div>
+      </div>
+      <div class="dcols">
+        <div class="s1-card"><div class="s1-cardhead"><i data-lucide="calendar-clock"></i><h5>Upcoming Deadlines</h5></div><div style="padding:11px 14px;font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f1f5f9">Essay: Ecosystems <span class="s1-badge">2d</span></div><div style="display:flex;justify-content:space-between;padding:5px 0">Quiz: Cell Biology <span class="s1-badge">5d</span></div></div></div>
+        <div class="s1-card"><div class="s1-cardhead" style="background:linear-gradient(93deg,#16a34a,#0d9488)"><i data-lucide="flame"></i><h5>Streak</h5></div><div style="padding:14px;text-align:center"><div style="font-size:30px;font-weight:900;color:#16a34a">12🔥</div><p style="font-size:11px;color:#64748b;margin:4px 0 0">Best: 21 days</p></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="whenrow">
+    <div class="when"><b>Strength</b><p>Ships today, accessible, familiar, low-risk.</p></div>
+    <div class="when"><b>Gap</b><p>One brand for all roles; flat, not memorable; no character warmth.</p></div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 2 · PROTOTYPE (Tactile Gamified) ================= -->
+<style>
+  .s2 .band{background:linear-gradient(120deg,#0f766e,#0382bd)}
+  .s2-card{background:#fff;border:1px solid #eef2f6;border-radius:20px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.05);transition:transform .18s,box-shadow .18s;overflow:hidden}
+  .s2-card:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(16,24,40,.11)}
+  .s2-sech{display:flex;align-items:center;gap:8px}
+  .s2-sech .chip{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--brand);box-shadow:0 3px 8px rgba(20,184,166,.28)}
+  .s2-sech .chip [data-lucide]{width:16px;height:16px}
+  .s2-sech h5{font-size:13px;font-weight:800;margin:0}
+  .s2-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;padding:10px 15px;color:#fff;background:var(--brand);box-shadow:0 3px 0 #0b6a93;transition:transform .06s,box-shadow .06s}
+  .s2-btn:active{transform:translateY(3px);box-shadow:0 0 0 #0b6a93}
+  .s2-btn.soft{background:#ecfdf5;color:#15803d;box-shadow:0 3px 0 #bbf7d0}
+  .s2-btn.soft:active{box-shadow:0 0 0 #bbf7d0}
+  .s2-btn.ghost{background:#f0f9ff;color:#0369a1;box-shadow:0 3px 0 #bae6fd}
+  .s2-btn.ghost:active{box-shadow:0 0 0 #bae6fd}
+  .s2-lead{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;flex:0 0 auto}
+  .s2-lead.warn{background:#eff6ff;color:#0369a1;box-shadow:0 0 0 3px #dbeafe}
+  .s2-lead.ok{background:#ecfdf5;color:#0f766e;box-shadow:0 0 0 3px #d1fae5}
+  .s2-kpi .ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#ecfeff;color:#0f766e}
+  .s2-kpi .ic [data-lucide]{width:18px;height:18px}
+  .s2-pill{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px}
+  .s2-pill.g{color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0}
+  .s2-pill.b{color:#0369a1;background:#eff6ff;border:1px solid #bae6fd}
+  .s2-pill.t{color:#0f766e;background:#f0fdfa;border:1px solid #99f6e4}
+  .s2-mascot{width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#7dd3fc,#0369a1);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 12px rgba(15,23,42,.16);flex:0 0 auto}
+  .s2-bubble{background:#f0fdfa;border:1px solid #99f6e4;border-radius:16px;padding:9px 13px}
+  .s2-bubble .t{font-size:12px;font-weight:800;margin:0;color:#0f766e}
+  .s2-bubble .m{font-size:12px;color:#475569;margin:2px 0 0;line-height:1.4}
+</style>
+<div class="wrap s2 sec" id="s2">
+  <div class="band">
+    <span class="status">● PROTOTYPE</span>
+    <div class="idx">System 02</div>
+    <h2>Prototype — “Tactile Gamified”</h2>
+    <p>The evolved look already built in <b>prototype/shared.css</b>. Rounder <b>pcards (r20)</b> that lift on hover, <b>tactile btn3d buttons</b> with a solid bottom edge that collapses on press (Duolingo affordance, dialled subtle), a leading <b>severity-icon</b> pattern, and a living <b>character</b> companion. Warmer and product-grade. Recolored here so XP/streak read green-blue, never orange — still one teal→blue brand for every role.</p>
+  </div>
+  <div class="kit">
+    <div class="panel">
+      <h3>Section card · Severity list · Character</h3>
+      <div class="s2-card" style="padding:15px">
+        <div class="s2-sech"><div class="chip"><i data-lucide="trending-up"></i></div><h5>Learning Progress</h5></div>
+        <div style="display:flex;align-items:center;gap:11px;margin-top:12px">
+          <div class="s2-lead warn">!</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:700">CLO 2.3 · Analyze</div><div style="font-size:12px;color:#64748b">Mastery 48% — needs attention</div></div>
+          <span class="s2-pill b">Developing</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;margin-top:11px">
+          <div class="s2-lead ok">✓</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:700">CLO 1.1 · Remember</div><div style="font-size:12px;color:#64748b">Mastery 92% — excellent</div></div>
+          <span class="s2-pill g">Excellent</span>
+        </div>
+      </div>
+      <div class="s2-card" style="padding:13px;margin-top:13px;display:flex;align-items:center;gap:11px">
+        <div class="s2-mascot">🦊</div>
+        <div class="s2-bubble"><p class="t">Pip</p><p class="m">You're 2 lessons from a new badge. Keep going!</p></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>KPI · Tactile buttons · Pills</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="s2-card s2-kpi" style="padding:14px"><div class="kpi-mini"><div><p class="lbl">Total XP</p><p class="val" style="color:#0369a1">2,480</p></div><div class="ic"><i data-lucide="star"></i></div></div></div>
+        <div class="s2-card s2-kpi" style="padding:14px"><div class="kpi-mini"><div><p class="lbl">Level</p><p class="val" style="color:#0f766e">7</p></div><div class="ic" style="background:#ecfdf5;color:#16a34a"><i data-lucide="target"></i></div></div></div>
+      </div>
+      <div class="specrow" style="margin-top:15px">
+        <button class="s2-btn">Continue</button>
+        <button class="s2-btn soft">Review</button>
+        <button class="s2-btn ghost">Later</button>
+      </div>
+      <div class="note"><b>Press me</b> — the bottom edge collapses on click. That physical feedback is this system's signature.</div>
+      <div class="specrow" style="margin-top:12px">
+        <span class="s2-pill g">Excellent</span><span class="s2-pill b">Developing</span><span class="s2-pill t">Mapped</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Memorable, gamified, already coded.</p></div>
+        <div class="when"><b>Gap</b><p>Still role-flat; one brand for staff + students.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Student dashboard — tactile treatment</p>
+  <div class="dash" style="border-radius:20px">
+    <div class="dside">
+      <div class="brandrow"><span style="width:24px;height:24px;border-radius:8px;background:var(--brand);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#ecfeff;color:#0f766e"><span class="gi"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi"><span class="gi"><i data-lucide="map"></i></span> Learn</div>
+      <div class="navi"><span class="gi"><i data-lucide="trending-up"></i></span> Progress</div>
+      <div class="navi"><span class="gi"><i data-lucide="trophy"></i></span> League</div>
+    </div>
+    <div class="dmain">
+      <div class="dbar"><div class="search" style="border-radius:12px"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div class="s2-mascot" style="width:30px;height:30px;font-size:16px">🦊</div></div>
+      <div class="s2-card" style="padding:14px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0f766e,#0369a1);border:0">
+        <div style="flex:1;color:#fff"><div style="font-size:15px;font-weight:800">Good morning, Sara 👋</div><div style="font-size:11.5px;opacity:.85;margin-top:2px">Level 7 · 2,480 XP · 12-day streak</div></div>
+        <div class="s2-mascot" style="background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488)">🦉</div>
+      </div>
+      <div class="dkpis" style="margin-top:12px">
+        <div class="s2-card s2-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">XP</p><p class="val" style="font-size:18px;color:#0369a1">2,480</p></div>
+        <div class="s2-card s2-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">Level</p><p class="val" style="font-size:18px;color:#0f766e">7</p></div>
+        <div class="s2-card s2-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">Streak</p><p class="val" style="font-size:18px;color:#16a34a">12d</p></div>
+        <div class="s2-card s2-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">Badges</p><p class="val" style="font-size:18px;color:#0369a1">9</p></div>
+      </div>
+      <div class="dcols" style="margin-top:12px">
+        <div class="s2-card" style="padding:13px"><div class="s2-sech"><div class="chip"><i data-lucide="calendar-clock"></i></div><h5>Deadlines</h5></div><div style="font-size:12px;color:#475569;margin-top:9px"><div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0"><span>Essay: Ecosystems</span><span class="s2-pill b">2d</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0"><span>Quiz: Cell Biology</span><span class="s2-pill t">5d</span></div></div></div>
+        <div class="s2-card" style="padding:13px;text-align:center"><div class="s2-sech" style="justify-content:center"><div class="chip" style="background:linear-gradient(135deg,#16a34a,#0d9488)"><i data-lucide="flame"></i></div><h5>Streak</h5></div><div style="font-size:30px;font-weight:900;color:#16a34a;margin-top:6px">12🔥</div><button class="s2-btn soft" style="margin-top:8px;padding:7px 12px">Keep it up</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 3 · UNIFIED TACTILE (role tints) ================= -->
+<style>
+  .s3 .band{background:linear-gradient(120deg,#0ea5e9,#14b8a6 55%,#1e40af)}
+  .s3-card{background:#fff;border:1px solid #e9eef5;border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 24px -8px rgba(16,24,40,.12);overflow:hidden}
+  .s3-spine{border-left:4px solid var(--acc);padding-left:14px}
+  .s3-btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:13px;font-weight:800;font-size:13px;cursor:pointer;padding:11px 16px;color:#fff;background:var(--acc);box-shadow:0 3px 0 var(--acc-d);transition:transform .06s,box-shadow .06s}
+  .s3-btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--acc-d)}
+  .s3-btn.soft{background:var(--acc-l);color:var(--acc-d);box-shadow:0 3px 0 var(--acc-b)}
+  .s3-btn.soft:active{box-shadow:0 0 0 var(--acc-b)}
+  .s3-chipic{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--acc);box-shadow:0 3px 8px var(--acc-b)}
+  .s3-chipic [data-lucide]{width:16px;height:16px}
+  .s3-rolebar{display:flex;gap:6px;flex-wrap:wrap}
+  .s3-role{flex:1;min-width:82px;border-radius:12px;padding:9px 10px;color:#fff;font-size:10px;font-weight:800;letter-spacing:.03em;text-align:center}
+  .s3-kpi .ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--acc)}
+  .s3-kpi .ic [data-lucide]{width:18px;height:18px}
+</style>
+<div class="wrap s3 sec" id="s3">
+  <div class="band">
+    <span class="status">● NEW — RECOMMENDED</span>
+    <div class="idx">System 03</div>
+    <h2>Unified Tactile — “One system, five accents”</h2>
+    <p>Everything good from the prototype plus the missing piece: a <b>role-accent spine</b>, all within blue/green. One token set, one component library, but the accent follows the role — Student sky→teal, Teacher emerald, Coordinator blue→navy, Admin slate→navy, Parent cyan→teal. Student surfaces stay playful (characters, path); staff surfaces reuse the exact same cards and buttons in a restrained accent. The tactile press stays, tinted per role. No orange, no purple anywhere.</p>
+  </div>
+  <div class="kit">
+    <div class="panel">
+      <h3>Role-accent spine (the core idea) — all blue/green</h3>
+      <div class="s3-rolebar">
+        <div class="s3-role" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6)">STUDENT</div>
+        <div class="s3-role" style="background:#059669">TEACHER</div>
+        <div class="s3-role" style="background:linear-gradient(135deg,#2563eb,#1e40af)">COORDINATOR</div>
+        <div class="s3-role" style="background:linear-gradient(135deg,#334155,#0f172a)">ADMIN</div>
+        <div class="s3-role" style="background:linear-gradient(135deg,#06b6d4,#0d9488)">PARENT</div>
+      </div>
+      <div class="s3-card s3-spine" style="--acc:#2563eb;padding:14px;margin-top:15px">
+        <div class="s2-sech"><div class="s3-chipic" style="--acc:#2563eb;--acc-b:rgba(37,99,235,.3)"><i data-lucide="compass"></i></div><h5 style="font-size:13px;font-weight:800;margin:0">Coordinator · PLO Coverage</h5></div>
+        <div style="font-size:12px;color:#64748b;margin-top:8px">Same card, blue accent. Professional, no character.</div>
+      </div>
+      <div class="s3-card s3-spine" style="--acc:#0ea5e9;padding:14px;margin-top:12px">
+        <div class="s2-sech"><div class="s3-chipic" style="--acc:#0ea5e9;--acc-b:rgba(14,165,233,.3)"><i data-lucide="rocket"></i></div><h5 style="font-size:13px;font-weight:800;margin:0">Student · Your Quest</h5></div>
+        <div style="font-size:12px;color:#64748b;margin-top:8px">Same card, sky accent. Playful, character-ready.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Buttons + KPI tint per role</h3>
+      <div class="specrow">
+        <button class="s3-btn" style="--acc:#0ea5e9;--acc-d:#0369a1;--acc-l:#e0f2fe;--acc-b:#bae6fd">Student</button>
+        <button class="s3-btn" style="--acc:#059669;--acc-d:#047857;--acc-l:#ecfdf5;--acc-b:#a7f3d0">Teacher</button>
+        <button class="s3-btn" style="--acc:#2563eb;--acc-d:#1e40af;--acc-l:#eff6ff;--acc-b:#bfdbfe">Coordinator</button>
+      </div>
+      <div class="specrow" style="margin-top:11px">
+        <button class="s3-btn soft" style="--acc:#2563eb;--acc-d:#1e40af;--acc-l:#eff6ff;--acc-b:#bfdbfe">Soft</button>
+        <button class="s3-btn" style="--acc:#334155;--acc-d:#0f172a;--acc-l:#f1f5f9;--acc-b:#cbd5e1">Admin</button>
+        <button class="s3-btn" style="--acc:#0d9488;--acc-d:#0f766e;--acc-l:#f0fdfa;--acc-b:#99f6e4">Parent</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+        <div class="s3-card s3-kpi" style="--acc:#059669;padding:14px"><div class="kpi-mini"><div><p class="lbl">Grading queue</p><p class="val">18</p></div><div class="ic"><i data-lucide="clipboard-check"></i></div></div></div>
+        <div class="s3-card s3-kpi" style="--acc:#2563eb;padding:14px"><div class="kpi-mini"><div><p class="lbl">PLO met</p><p class="val">82%</p></div><div class="ic"><i data-lucide="target"></i></div></div></div>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Why this</b><p>Keeps coded work, fixes role-flatness, scales to all roles — all blue/green.</p></div>
+        <div class="when"><b>Cost</b><p>Add accent tokens + swap gradients per role shell.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Coordinator dashboard — same components, blue accent</p>
+  <div class="dash" style="border-radius:18px">
+    <div class="dside">
+      <div class="brandrow"><span style="width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#1e40af);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#eff6ff;color:#1e40af"><span class="gi"><i data-lucide="home"></i></span> Overview</div>
+      <div class="navi"><span class="gi"><i data-lucide="compass"></i></span> Programs</div>
+      <div class="navi"><span class="gi"><i data-lucide="git-branch"></i></span> Mappings</div>
+      <div class="navi"><span class="gi"><i data-lucide="bar-chart-3"></i></span> Attainment</div>
+    </div>
+    <div class="dmain">
+      <div class="dbar"><div class="search" style="border-radius:12px"><i data-lucide="search" style="width:15px;height:15px"></i> Search programs…</div><div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#1e40af)"></div></div>
+      <div class="s3-card s3-spine" style="--acc:#2563eb;padding:13px 15px"><div style="font-size:15px;font-weight:800;color:#1e293b">Welcome back, Dr. Aisha</div><div style="font-size:11.5px;color:#64748b;margin-top:2px">3 programs · 2 coverage gaps need review</div></div>
+      <div class="dkpis" style="margin-top:12px">
+        <div class="s3-card s3-kpi" style="--acc:#2563eb;padding:11px"><p class="lbl" style="font-size:8px">Programs</p><p class="val" style="font-size:18px">3</p></div>
+        <div class="s3-card s3-kpi" style="--acc:#059669;padding:11px"><p class="lbl" style="font-size:8px">PLO met</p><p class="val" style="font-size:18px">82%</p></div>
+        <div class="s3-card s3-kpi" style="--acc:#0ea5e9;padding:11px"><p class="lbl" style="font-size:8px">Courses</p><p class="val" style="font-size:18px">24</p></div>
+        <div class="s3-card s3-kpi" style="--acc:#334155;padding:11px"><p class="lbl" style="font-size:8px">Gaps</p><p class="val" style="font-size:18px">2</p></div>
+      </div>
+      <div class="dcols" style="margin-top:12px">
+        <div class="s3-card" style="padding:13px"><div class="s2-sech"><div class="s3-chipic" style="--acc:#2563eb;--acc-b:rgba(37,99,235,.3)"><i data-lucide="git-branch"></i></div><h5 style="margin:0;font-size:13px;font-weight:800">PLO → ILO Coverage</h5></div><div style="margin-top:10px;font-size:11.5px;color:#475569"><div style="display:flex;justify-content:space-between;padding:4px 0">PLO 1 · Communication<span style="font-weight:800;color:#059669">94%</span></div><div style="display:flex;justify-content:space-between;padding:4px 0">PLO 3 · Analysis<span style="font-weight:800;color:#2563eb">78%</span></div><div style="display:flex;justify-content:space-between;padding:4px 0">PLO 5 · Ethics<span style="font-weight:800;color:#334155">61%</span></div></div></div>
+        <div class="s3-card" style="padding:13px"><div class="s2-sech"><div class="s3-chipic" style="--acc:#059669;--acc-b:rgba(5,150,105,.3)"><i data-lucide="alert-triangle"></i></div><h5 style="margin:0;font-size:13px;font-weight:800">Gaps</h5></div><div style="margin-top:10px;font-size:11.5px;color:#475569"><p style="margin:0 0 6px">PLO 5 below 70% target</p><button class="s3-btn soft" style="--acc:#2563eb;--acc-d:#1e40af;--acc-l:#eff6ff;--acc-b:#bfdbfe;padding:8px 12px">Open CQI plan</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 4 · EDITORIAL ENTERPRISE ================= -->
+<style>
+  .s4{font-family:'Inter',sans-serif}
+  .s4 .band{background:linear-gradient(120deg,#0f172a,#1e40af)}
+  .s4-card{background:#fff;border:1px solid #e6e8eb;border-radius:10px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .s4-card .hd{padding:10px 14px;border-bottom:1px solid #eef0f2;display:flex;align-items:center;gap:8px}
+  .s4-card .hd h5{margin:0;font-size:13px;font-weight:700;letter-spacing:-.01em;color:#16181d}
+  .s4-card .hd [data-lucide]{width:15px;height:15px;color:#64748b}
+  .s4-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid #16181d;background:#16181d;color:#fff}
+  .s4-btn.blue{background:#2563eb;border-color:#2563eb}
+  .s4-btn.ghost{background:#fff;color:#374151;border:1px solid #e6e8eb}
+  .s4-inp{height:32px;border:1px solid #e6e8eb;border-radius:7px;padding:0 11px;font-size:12.5px;width:100%;font-family:'Inter',sans-serif}
+  .s4-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#0f172a}
+  .s4-lbl{font-size:11px;font-weight:600;color:#6b7280}
+  .s4-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+  .s4-badge .d{width:6px;height:6px;border-radius:50%;background:#16a34a}
+  .s4-tab{display:inline-flex;gap:2px;border-bottom:1px solid #eef0f2}
+  .s4-tab button{border:none;background:none;font-size:12.5px;font-weight:600;padding:8px 12px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .s4-tab button.on{color:#16181d;border-bottom-color:#2563eb}
+  .s4-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .s4-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;padding:7px 10px;border-bottom:1px solid #eef0f2}
+  .s4-table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;color:#374151}
+  .s4-table .mono{font-family:'JetBrains Mono',monospace}
+</style>
+<div class="wrap s4 sec" id="s4">
+  <div class="band">
+    <span class="status">● NEW</span>
+    <div class="idx">System 04</div>
+    <h2>Editorial Enterprise — “Dense &amp; precise”</h2>
+    <p>A Linear/Notion-grade direction optimized for the 200+ admin, coordinator and teacher screens: forms, management tables, analytics. <b>Inter</b> UI type, <b>tabular monospace numerals</b>, tight <b>10px radii</b>, hairline borders, almost no shadow, underline tabs, blue accents. Maximum information density and calm. The student side gets its playfulness from color washes and characters instead of 3D. Best when the app is mostly data.</p>
+  </div>
+  <div class="kit">
+    <div class="panel" style="background:#fcfcfd">
+      <h3>Management table + card</h3>
+      <div class="s4-card">
+        <div class="hd"><i data-lucide="folder"></i><h5>Programs</h5><span class="s4-badge" style="margin-left:auto"><span class="d"></span>Active</span></div>
+        <table class="s4-table">
+          <thead><tr><th>Program</th><th>PLOs</th><th>Attain.</th></tr></thead>
+          <tbody>
+            <tr><td>B.Sc Computer Science</td><td class="mono">12</td><td class="mono">84%</td></tr>
+            <tr><td>B.A Education</td><td class="mono">9</td><td class="mono">78%</td></tr>
+            <tr><td>B.Eng Civil</td><td class="mono">11</td><td class="mono">81%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="specrow" style="margin-top:12px;color:#64748b"><i data-lucide="layout-dashboard"></i><i data-lucide="table"></i><i data-lucide="settings"></i><i data-lucide="bar-chart-3"></i><i data-lucide="users"></i></div>
+      <p class="note" style="font-family:'Inter'">Tabler / Heroicons line icons fit this density best.</p>
+    </div>
+    <div class="panel" style="background:#fcfcfd">
+      <h3>KPI · Buttons · Input · Tabs · Badge</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="s4-card" style="padding:13px"><p class="s4-lbl">Total students</p><p class="s4-num">1,284</p></div>
+        <div class="s4-card" style="padding:13px"><p class="s4-lbl">Avg attainment</p><p class="s4-num">80.6%</p></div>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <button class="s4-btn blue">Create program</button>
+        <button class="s4-btn ghost">Export</button>
+      </div>
+      <input class="s4-inp" style="margin-top:12px" placeholder="Filter by program, code, coordinator…" />
+      <div class="specrow" style="margin-top:13px">
+        <div class="s4-tab"><button class="on">Overview</button><button>Mappings</button><button>CQI</button></div>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <span class="s4-badge"><span class="d"></span>Verified</span>
+        <span class="s4-badge" style="background:#eff6ff;color:#0369a1;border-color:#bae6fd"><span class="d" style="background:#0ea5e9"></span>Review</span>
+        <span class="s4-badge" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0"><span class="d"></span>On track</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Scales to hundreds of data screens; timeless.</p></div>
+        <div class="when"><b>Gap</b><p>Needs deliberate warmth added on the student side.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead" style="font-family:'Inter'">Admin analytics — dense &amp; precise</p>
+  <div class="dash" style="border-radius:12px">
+    <div class="dside" style="font-family:'Inter'">
+      <div class="brandrow"><span style="width:22px;height:22px;border-radius:6px;background:#16181d;display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#f3f4f6;color:#16181d"><span class="gi"><i data-lucide="layout-dashboard"></i></span> Analytics</div>
+      <div class="navi"><span class="gi"><i data-lucide="users"></i></span> Users</div>
+      <div class="navi"><span class="gi"><i data-lucide="folder"></i></span> Programs</div>
+      <div class="navi"><span class="gi"><i data-lucide="shield"></i></span> Roles</div>
+    </div>
+    <div class="dmain" style="background:#fbfbfc;font-family:'Inter'">
+      <div class="dbar"><div class="search" style="border-radius:7px;font-family:'Inter'"><i data-lucide="search" style="width:14px;height:14px"></i> Search…</div><button class="s4-btn blue" style="height:30px">＋ New</button></div>
+      <div class="dkpis">
+        <div class="s4-card" style="padding:11px"><p class="s4-lbl" style="font-size:10px">Learners</p><p class="s4-num" style="font-size:17px">1,284</p></div>
+        <div class="s4-card" style="padding:11px"><p class="s4-lbl" style="font-size:10px">Active</p><p class="s4-num" style="font-size:17px">92%</p></div>
+        <div class="s4-card" style="padding:11px"><p class="s4-lbl" style="font-size:10px">Programs</p><p class="s4-num" style="font-size:17px">14</p></div>
+        <div class="s4-card" style="padding:11px"><p class="s4-lbl" style="font-size:10px">Attain.</p><p class="s4-num" style="font-size:17px">80.6%</p></div>
+      </div>
+      <div class="s4-card" style="margin-top:12px">
+        <div class="hd"><i data-lucide="folder"></i><h5>Programs</h5><div class="s4-tab" style="margin-left:auto;border:0"><button class="on" style="padding:4px 8px">All</button><button style="padding:4px 8px">Gaps</button></div></div>
+        <table class="s4-table">
+          <thead><tr><th>Program</th><th>Coordinator</th><th>PLOs</th><th>Attain.</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>B.Sc Computer Science</td><td>Dr. Aisha</td><td class="mono">12</td><td class="mono">84%</td><td><span class="s4-badge"><span class="d"></span>OK</span></td></tr>
+            <tr><td>B.A Education</td><td>Mr. David</td><td class="mono">9</td><td class="mono">78%</td><td><span class="s4-badge" style="background:#eff6ff;color:#0369a1;border-color:#bae6fd"><span class="d" style="background:#0ea5e9"></span>Review</span></td></tr>
+            <tr><td>B.Eng Civil</td><td>Dr. Omar</td><td class="mono">11</td><td class="mono">81%</td><td><span class="s4-badge"><span class="d"></span>OK</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 5 · EDITORIAL x TACTILE (Institution) ================= -->
+<style>
+  .s5x{font-family:'Inter',sans-serif}
+  .s5x .band{background:linear-gradient(120deg,#0f766e,#1e40af)}
+  .s5x-card{background:#fff;border:1px solid #e6e9ee;border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 18px -10px rgba(16,24,40,.14)}
+  .s5x-card .hd{padding:11px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:8px}
+  .s5x-card .hd .chip{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#2563eb,#1e40af);box-shadow:0 2px 6px rgba(37,99,235,.3)}
+  .s5x-card .hd .chip [data-lucide]{width:15px;height:15px}
+  .s5x-card .hd h5{margin:0;font-size:13px;font-weight:700;color:#16181d}
+  /* editorial numerals, tactile buttons */
+  .s5x-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#0f172a}
+  .s5x-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
+  .s5x-btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer;padding:9px 14px;color:#fff;background:#2563eb;box-shadow:0 3px 0 #1e40af;transition:transform .06s,box-shadow .06s;font-family:'Inter'}
+  .s5x-btn:active{transform:translateY(3px);box-shadow:0 0 0 #1e40af}
+  .s5x-btn.emer{background:#059669;box-shadow:0 3px 0 #047857}
+  .s5x-btn.emer:active{box-shadow:0 0 0 #047857}
+  .s5x-btn.ghost{background:#f1f5f9;color:#334155;box-shadow:0 3px 0 #cbd5e1}
+  .s5x-btn.ghost:active{box-shadow:0 0 0 #cbd5e1}
+  .s5x-tab{display:inline-flex;gap:2px;border-bottom:1px solid #eef1f4}
+  .s5x-tab button{border:none;background:none;font-size:12.5px;font-weight:600;padding:8px 12px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Inter'}
+  .s5x-tab button.on{color:#16181d;border-bottom-color:#059669}
+  .s5x-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .s5x-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;padding:7px 10px;border-bottom:1px solid #eef1f4}
+  .s5x-table td{padding:8px 10px;border-bottom:1px solid #f4f6f8;color:#374151}
+  .s5x-table .mono{font-family:'JetBrains Mono',monospace}
+  .s5x-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+  .s5x-badge.g{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+  .s5x-badge.b{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+</style>
+<div class="wrap s5x sec" id="s5">
+  <div class="band">
+    <span class="status">● NEW — FOR INSTITUTION SIDE</span>
+    <div class="idx">System 05</div>
+    <h2>Editorial × Tactile — “Serious tables, satisfying actions”</h2>
+    <p>The hybrid you asked for, purpose-built for the <b>institution side</b> (admin, coordinator, teacher). It keeps Editorial's density where staff live — <b>Inter</b> type, <b>monospace numerals</b>, hairline management tables, underline tabs — but swaps flat buttons for the prototype's <b>tactile press</b> and gives cards a gentle 13px lift. So a coordinator gets a precise attainment table, and the "Approve", "Open CQI", "Grade" buttons still feel physical and rewarding. Blue for coordinator/admin, emerald for teacher.</p>
+  </div>
+  <div class="kit">
+    <div class="panel" style="background:#fcfdfe">
+      <h3>Management table + tactile actions</h3>
+      <div class="s5x-card">
+        <div class="hd"><div class="chip"><i data-lucide="clipboard-check"></i></div><h5>Grading Queue</h5><div class="s5x-tab" style="margin-left:auto;border:0"><button class="on" style="padding:4px 8px">Pending</button><button style="padding:4px 8px">Done</button></div></div>
+        <table class="s5x-table">
+          <thead><tr><th>Student</th><th>Assignment</th><th>Score</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>A. Khan</td><td>Essay: Ecosystems</td><td class="mono">—</td><td><button class="s5x-btn emer" style="padding:5px 10px">Grade</button></td></tr>
+            <tr><td>M. Said</td><td>Quiz: Cell Bio</td><td class="mono">88%</td><td><span class="s5x-badge g">Done</span></td></tr>
+            <tr><td>R. Noor</td><td>Lab Report 3</td><td class="mono">—</td><td><button class="s5x-btn emer" style="padding:5px 10px">Grade</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="font-family:'Inter'"><b>The blend:</b> data is editorial-precise; every action button has the tactile bottom-edge press. Staff get speed <em>and</em> a little delight.</p>
+    </div>
+    <div class="panel" style="background:#fcfdfe">
+      <h3>KPI · Buttons · Tabs · Badges</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="s5x-card" style="padding:13px"><p class="s5x-lbl">To grade</p><p class="s5x-num">18</p></div>
+        <div class="s5x-card" style="padding:13px"><p class="s5x-lbl">Avg class attain.</p><p class="s5x-num">79%</p></div>
+      </div>
+      <div class="specrow" style="margin-top:14px">
+        <button class="s5x-btn">Approve</button>
+        <button class="s5x-btn emer">Grade next</button>
+        <button class="s5x-btn ghost">Export</button>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <div class="s5x-tab"><button class="on">Classes</button><button>Outcomes</button><button>CQI</button></div>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <span class="s5x-badge g">On track</span><span class="s5x-badge b">Mapped</span><span class="s5x-badge" style="background:#eff6ff;color:#0369a1;border:1px solid #bae6fd">Needs review</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Best of both: staff efficiency + tactile reward. One code path with the student system.</p></div>
+        <div class="when"><b>Gap</b><p>Two type families (Inter + Noto) to manage.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead" style="font-family:'Inter'">Teacher dashboard — editorial data, tactile buttons</p>
+  <div class="dash" style="border-radius:13px">
+    <div class="dside" style="font-family:'Inter'">
+      <div class="brandrow"><span style="width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#059669,#047857);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#ecfdf5;color:#047857"><span class="gi"><i data-lucide="home"></i></span> Overview</div>
+      <div class="navi"><span class="gi"><i data-lucide="clipboard-check"></i></span> Grading</div>
+      <div class="navi"><span class="gi"><i data-lucide="book-open"></i></span> Courses</div>
+      <div class="navi"><span class="gi"><i data-lucide="target"></i></span> CLOs</div>
+    </div>
+    <div class="dmain" style="background:#fbfcfe;font-family:'Inter'">
+      <div class="dbar"><div class="search" style="border-radius:9px;font-family:'Inter'"><i data-lucide="search" style="width:14px;height:14px"></i> Search students…</div><button class="s5x-btn emer" style="padding:7px 12px">Grade next</button></div>
+      <div class="dkpis">
+        <div class="s5x-card" style="padding:11px"><p class="s5x-lbl" style="font-size:9px">Classes</p><p class="s5x-num" style="font-size:17px">4</p></div>
+        <div class="s5x-card" style="padding:11px"><p class="s5x-lbl" style="font-size:9px">To grade</p><p class="s5x-num" style="font-size:17px">18</p></div>
+        <div class="s5x-card" style="padding:11px"><p class="s5x-lbl" style="font-size:9px">Attain.</p><p class="s5x-num" style="font-size:17px">79%</p></div>
+        <div class="s5x-card" style="padding:11px"><p class="s5x-lbl" style="font-size:9px">At risk</p><p class="s5x-num" style="font-size:17px">6</p></div>
+      </div>
+      <div class="s5x-card" style="margin-top:12px">
+        <div class="hd"><div class="chip"><i data-lucide="clipboard-check"></i></div><h5>Grading Queue</h5><span class="s5x-badge b" style="margin-left:auto">18 pending</span></div>
+        <table class="s5x-table">
+          <thead><tr><th>Student</th><th>Assignment</th><th>Due</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>A. Khan</td><td>Essay: Ecosystems</td><td class="mono">2d</td><td><button class="s5x-btn emer" style="padding:5px 10px">Grade</button></td></tr>
+            <tr><td>R. Noor</td><td>Lab Report 3</td><td class="mono">3d</td><td><button class="s5x-btn emer" style="padding:5px 10px">Grade</button></td></tr>
+            <tr><td>L. Farah</td><td>Quiz: Genetics</td><td class="mono">5d</td><td><button class="s5x-btn ghost" style="padding:5px 10px">Open</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 6 · DUOLINGO PLAYFUL ================= -->
+<style>
+  .s6{font-family:'Baloo 2',sans-serif}
+  .s6 .band{background:linear-gradient(120deg,#16a34a,#0ea5e9)}
+  .s6-card{background:#fff;border:2px solid #e6ecf2;border-radius:22px;box-shadow:0 4px 0 #e6ecf2;overflow:hidden}
+  .s6-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:16px;font-family:'Baloo 2';font-weight:800;font-size:14px;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;padding:12px 20px;color:#fff;background:#22c55e;box-shadow:0 5px 0 #16a34a;transition:transform .06s,box-shadow .06s}
+  .s6-btn:active{transform:translateY(5px);box-shadow:0 0 0 #16a34a}
+  .s6-btn.blue{background:#0ea5e9;box-shadow:0 5px 0 #0369a1}
+  .s6-btn.blue:active{box-shadow:0 0 0 #0369a1}
+  .s6-btn.ghost{background:#fff;color:#0369a1;border:2px solid #e6ecf2;box-shadow:0 5px 0 #e6ecf2}
+  .s6-btn.ghost:active{box-shadow:0 0 0 #e6ecf2}
+  .s6-ring{width:70px;height:70px;border-radius:50%;background:conic-gradient(#22c55e var(--p,68%),#e6f4ea 0);display:flex;align-items:center;justify-content:center}
+  .s6-ring .inner{width:54px;height:54px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;color:#15803d;font-size:15px}
+  .s6-node{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.14)}
+  .s6-node.done{background:#22c55e;box-shadow:0 5px 0 #16a34a}
+  .s6-node.now{background:#0ea5e9;box-shadow:0 5px 0 #0369a1}
+  .s6-node.lock{background:#cbd5e1;box-shadow:0 5px 0 #94a3b8}
+  .s6-pill{display:inline-flex;align-items:center;gap:5px;font-family:'Baloo 2';font-size:12px;font-weight:800;padding:4px 12px;border-radius:999px}
+  .s6-pill.g{background:#dcfce7;color:#15803d}.s6-pill.b{background:#e0f2fe;color:#0369a1}
+  .s6-mascot{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#7dd3fc,#0369a1);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 6px 0 rgba(3,105,161,.3)}
+  .s6-xpbar{height:14px;border-radius:999px;background:#e6ecf2;overflow:hidden}
+  .s6-xpbar i{display:block;height:100%;width:64%;background:linear-gradient(90deg,#22c55e,#0ea5e9);border-radius:999px}
+</style>
+<div class="wrap s6 sec" id="s6">
+  <div class="band">
+    <span class="status">● NEW — DUOLINGO-INSPIRED</span>
+    <div class="idx">System 06</div>
+    <h2>Duolingo Playful — “Learn like a game”</h2>
+    <p>The most gamified, joy-first direction — straight from Duolingo's playbook, recolored to our blue-green. Chunky <b>Baloo 2</b> rounded type, big <b>3D press buttons</b> with a deep bottom edge, <b>progress rings</b>, a <b>lesson-path</b> of node bubbles, an <b>XP bar</b>, and characters front and center. Built for daily-habit stickiness on the student side. (Staff screens would borrow only the buttons + rings, not the full playfulness.)</p>
+  </div>
+  <div class="kit">
+    <div class="panel">
+      <h3>Lesson path · Rings · Character</h3>
+      <div class="s6-card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:14px;justify-content:center">
+          <div class="s6-node done">★</div><div style="width:26px;height:5px;background:#22c55e;border-radius:3px"></div>
+          <div class="s6-node done">✓</div><div style="width:26px;height:5px;background:#0ea5e9;border-radius:3px"></div>
+          <div class="s6-node now">▶</div><div style="width:26px;height:5px;background:#e2e8f0;border-radius:3px"></div>
+          <div class="s6-node lock">🔒</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:16px">
+          <div class="s6-ring" style="--p:68%"><div class="inner">68%</div></div>
+          <div style="flex:1"><div style="font-weight:800;font-size:15px">Unit 3 · Analyze</div><div style="font-size:12.5px;color:#64748b;font-weight:600">2 of 5 lessons complete</div></div>
+        </div>
+      </div>
+      <div class="s6-card" style="padding:14px;margin-top:13px;display:flex;align-items:center;gap:12px">
+        <div class="s6-mascot">🦊</div>
+        <div><div style="font-weight:800;color:#0f766e">Pip says:</div><div style="font-size:13px;color:#475569;font-weight:600">Nice! One more lesson to keep your streak alive 🔥</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>XP bar · Buttons · Pills</h3>
+      <div class="s6-card" style="padding:15px">
+        <div style="display:flex;justify-content:space-between;font-weight:800;font-size:13px;margin-bottom:7px"><span>Level 7</span><span style="color:#15803d">2,480 / 3,000 XP</span></div>
+        <div class="s6-xpbar"><i></i></div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <div style="flex:1;text-align:center;background:#dcfce7;border-radius:14px;padding:10px"><div style="font-size:22px;font-weight:800;color:#15803d">12🔥</div><div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase">Streak</div></div>
+          <div style="flex:1;text-align:center;background:#e0f2fe;border-radius:14px;padding:10px"><div style="font-size:22px;font-weight:800;color:#0369a1">9</div><div style="font-size:10px;font-weight:800;color:#0369a1;text-transform:uppercase">Badges</div></div>
+        </div>
+      </div>
+      <div class="specrow" style="margin-top:15px">
+        <button class="s6-btn">Continue</button>
+        <button class="s6-btn blue">Practice</button>
+        <button class="s6-btn ghost">Later</button>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <span class="s6-pill g">✓ Complete</span><span class="s6-pill b">▶ In progress</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Maximum stickiness &amp; delight; investor "wow".</p></div>
+        <div class="when"><b>Gap</b><p>Too playful for staff; use only student-side.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Student home — game-style</p>
+  <div class="dash" style="border-radius:22px;border-width:2px">
+    <div class="dside" style="font-family:'Baloo 2'">
+      <div class="brandrow"><span style="width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#22c55e,#0ea5e9);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#dcfce7;color:#15803d;font-weight:800"><span class="gi"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi" style="font-weight:700"><span class="gi"><i data-lucide="map"></i></span> Learn</div>
+      <div class="navi" style="font-weight:700"><span class="gi"><i data-lucide="trophy"></i></span> League</div>
+      <div class="navi" style="font-weight:700"><span class="gi"><i data-lucide="user"></i></span> Me</div>
+    </div>
+    <div class="dmain" style="background:#f2fbf6">
+      <div class="dbar"><div class="search" style="border-radius:16px;border:2px solid #e6ecf2;font-family:'Baloo 2';font-weight:600"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div class="s6-mascot" style="width:32px;height:32px;font-size:17px;box-shadow:0 4px 0 rgba(3,105,161,.3)">🦊</div></div>
+      <div class="s6-card" style="padding:14px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#16a34a,#0ea5e9);border:0;box-shadow:0 5px 0 #0f766e">
+        <div class="s6-mascot" style="background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488);box-shadow:none">🦉</div>
+        <div style="flex:1;color:#fff"><div style="font-weight:800;font-size:16px">Hi Sara! Ready to learn?</div><div style="font-size:12px;opacity:.9;font-weight:600">12-day streak · Level 7</div></div>
+        <button class="s6-btn" style="background:#fff;color:#15803d;box-shadow:0 5px 0 rgba(0,0,0,.15)">Start</button>
+      </div>
+      <div class="dcols" style="margin-top:12px">
+        <div class="s6-card" style="padding:14px"><div style="font-weight:800;font-size:13px;margin-bottom:10px">Today's path</div><div style="display:flex;align-items:center;gap:10px;justify-content:center"><div class="s6-node done" style="width:40px;height:40px;font-size:18px">✓</div><div style="width:20px;height:4px;background:#22c55e"></div><div class="s6-node now" style="width:40px;height:40px;font-size:18px">▶</div><div style="width:20px;height:4px;background:#e2e8f0"></div><div class="s6-node lock" style="width:40px;height:40px;font-size:16px">🔒</div></div></div>
+        <div class="s6-card" style="padding:14px;text-align:center"><div class="s6-ring" style="--p:68%;margin:0 auto"><div class="inner">68%</div></div><div style="font-weight:800;font-size:12px;margin-top:8px">Unit 3 mastery</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 7 · DUOLINGO x ACADEMIC ================= -->
+<style>
+  .s7{--mint:#f2fbf7}
+  .s7 .band{background:linear-gradient(120deg,#0d9488,#15803d)}
+  .s7-card{background:#fbfefc;border:1px solid #dcefe6;border-radius:24px;box-shadow:0 2px 4px rgba(13,148,136,.05),0 14px 30px -12px rgba(13,148,136,.18);overflow:hidden}
+  .s7-h{font-family:'Fraunces',serif}
+  .s7-sech{display:flex;align-items:center;gap:10px}
+  .s7-sech .chip{width:34px;height:34px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:#d1fae5;color:#0f766e}
+  .s7-sech .chip [data-lucide]{width:18px;height:18px}
+  .s7-sech h5{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .s7-btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:16px;font-weight:800;font-size:13.5px;cursor:pointer;padding:12px 18px;color:#fff;background:linear-gradient(135deg,#0d9488,#0ea5e9);box-shadow:0 5px 14px -4px rgba(13,148,136,.5)}
+  .s7-btn:active{transform:translateY(1px)}
+  .s7-btn.soft{background:#ecfdf5;color:#0f766e;box-shadow:none;border:1.5px solid #a7f3d0}
+  .s7-hero{border-radius:22px;padding:20px 22px;color:#083344;background:linear-gradient(135deg,#d1fae5 0%,#cffafe 55%,#e0f2fe 100%);position:relative;overflow:hidden}
+  .s7-hero h4{margin:0;font-family:'Fraunces',serif;font-size:21px;font-weight:600}
+  .s7-hero p{margin:4px 0 0;font-size:13px;color:#0f766e;font-weight:500}
+  .s7-mascot{width:60px;height:60px;border-radius:22px;background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 16px -4px rgba(13,148,136,.5);flex:0 0 auto}
+  .s7-kpi .val{font-family:'Fraunces',serif;font-weight:600}
+  .s7-kpi .ic{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#d1fae5;color:#0f766e}
+  .s7-kpi .ic [data-lucide]{width:19px;height:19px}
+  .s7-pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 11px;border-radius:999px;background:#d1fae5;color:#0f766e}
+  .s7-pill.b{background:#e0f2fe;color:#0369a1}
+</style>
+<div class="wrap s7 sec" id="s7">
+  <div class="band">
+    <span class="status">● NEW — DUOLINGO-INSPIRED</span>
+    <div class="idx">System 07</div>
+    <h2>Duolingo × Academic — “Warm, but scholarly”</h2>
+    <p>Duolingo's warmth meets a premium university feel — in blue/green instead of cream. Soft mint &amp; sky <b>tinted surfaces</b>, a <b>Fraunces</b> serif for headings paired with a friendly sans body, generous whitespace, <b>rounded-3xl (24px)</b> cards, teal→sky accents, and characters that feel like caring mentors rather than cartoons. Reads mature and trustworthy while staying human — strong for a well-being-forward, student-first product.</p>
+  </div>
+  <div class="kit">
+    <div class="panel" style="background:var(--mint)">
+      <h3>Hero · Section card · Character</h3>
+      <div class="s7-hero" style="display:flex;align-items:center;gap:14px">
+        <div class="s7-mascot">🦉</div>
+        <div><h4>Welcome back, Sara</h4><p>You've learned 3 days in a row — lovely pace.</p></div>
+      </div>
+      <div class="s7-card" style="padding:17px;margin-top:13px">
+        <div class="s7-sech"><div class="chip"><i data-lucide="sprout"></i></div><h5>Today's Growth</h5></div>
+        <div style="margin-top:11px;font-size:13px;color:#475569">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><span>Analyze · CLO 2.3</span><span class="s7-pill">+12%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><span>Reflection journal</span><span class="s7-pill b">Done</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="background:var(--mint)">
+      <h3>KPI · Buttons · Pills</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="s7-card s7-kpi" style="padding:15px"><div class="kpi-mini"><div><p class="lbl">Mastery</p><p class="val" style="font-size:22px;color:#0f766e">81%</p></div><div class="ic"><i data-lucide="trending-up"></i></div></div></div>
+        <div class="s7-card s7-kpi" style="padding:15px"><div class="kpi-mini"><div><p class="lbl">Streak</p><p class="val" style="font-size:22px;color:#15803d">12d</p></div><div class="ic" style="background:#dcfce7;color:#15803d"><i data-lucide="flame"></i></div></div></div>
+      </div>
+      <div class="specrow" style="margin-top:15px">
+        <button class="s7-btn">Continue learning</button>
+        <button class="s7-btn soft">Reflect</button>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <span class="s7-pill">Excellent</span><span class="s7-pill b">Mapped</span><span class="s7-pill" style="background:#e0f2fe;color:#0369a1">On track</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Distinctive, warm, trustworthy; great for well-being.</p></div>
+        <div class="when"><b>Gap</b><p>Serif + tints need care to stay crisp on dense tables.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Student dashboard — warm academic</p>
+  <div class="dash" style="border-radius:24px">
+    <div class="dside" style="background:#f2fbf7">
+      <div class="brandrow s7-h" style="font-weight:600"><span style="width:26px;height:26px;border-radius:10px;background:linear-gradient(135deg,#0d9488,#0ea5e9);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:#d1fae5;color:#0f766e"><span class="gi"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi"><span class="gi"><i data-lucide="book-open"></i></span> Learn</div>
+      <div class="navi"><span class="gi"><i data-lucide="heart"></i></span> Well-being</div>
+      <div class="navi"><span class="gi"><i data-lucide="line-chart"></i></span> Progress</div>
+    </div>
+    <div class="dmain" style="background:#eefaf4">
+      <div class="dbar"><div class="search" style="border-radius:16px;border:1px solid #dcefe6"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div class="s7-mascot" style="width:32px;height:32px;border-radius:11px;font-size:17px">🦊</div></div>
+      <div class="s7-hero" style="display:flex;align-items:center;gap:12px;padding:15px 17px"><div class="s7-mascot" style="width:44px;height:44px;font-size:23px">🦉</div><div style="flex:1"><h4 style="font-size:17px">Welcome back, Sara</h4><p>3-day streak · Level 7 · gentle pace</p></div></div>
+      <div class="dkpis" style="margin-top:12px">
+        <div class="s7-card s7-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">Mastery</p><p class="val" style="font-size:18px;color:#0f766e">81%</p></div>
+        <div class="s7-card s7-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">Streak</p><p class="val" style="font-size:18px;color:#15803d">12d</p></div>
+        <div class="s7-card s7-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">XP</p><p class="val" style="font-size:18px;color:#0369a1">2,480</p></div>
+        <div class="s7-card s7-kpi" style="padding:11px"><p class="lbl" style="font-size:8px">Mood</p><p class="val" style="font-size:18px;color:#0f766e">🙂</p></div>
+      </div>
+      <div class="dcols" style="margin-top:12px">
+        <div class="s7-card" style="padding:14px"><div class="s7-sech"><div class="chip"><i data-lucide="sprout"></i></div><h5 style="font-size:14px">Today's Growth</h5></div><div style="margin-top:9px;font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:5px 0">Analyze · CLO 2.3<span class="s7-pill">+12%</span></div><div style="display:flex;justify-content:space-between;padding:5px 0">Journal<span class="s7-pill b">Done</span></div></div></div>
+        <div class="s7-card" style="padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-bottom:8px">Edu's tip</div><p style="font-size:12px;color:#475569;text-align:center;margin:0">"A short warm-up beats a long cram. Try 5 minutes now."</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 8 · AURORA GLASS ================= -->
+<style>
+  .s8 .band{background:linear-gradient(120deg,#0369a1,#0d9488 55%,#22c55e)}
+  .s8-stage{border-radius:20px;padding:18px;background:radial-gradient(120% 120% at 0% 0%,#0ea5e9 0%,transparent 45%),radial-gradient(120% 120% at 100% 0%,#22c55e 0%,transparent 45%),radial-gradient(120% 120% at 50% 100%,#14b8a6 0%,transparent 50%),#0b1220}
+  .s8-glass{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 32px -8px rgba(0,0,0,.35);color:#fff}
+  .s8-glass .lbl{color:rgba(255,255,255,.7)}
+  .s8-btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:13px;font-weight:800;font-size:13px;cursor:pointer;padding:11px 16px;color:#06283d;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);box-shadow:0 6px 18px -6px rgba(0,0,0,.4)}
+  .s8-btn.line{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.4)}
+  .s8-pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 11px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
+  .s8-icn{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
+  .s8-icn [data-lucide]{width:18px;height:18px}
+  .s8-tab{display:inline-flex;gap:4px;background:rgba(255,255,255,.14);padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,.25)}
+  .s8-tab button{border:none;background:none;color:rgba(255,255,255,.75);font-size:12px;font-weight:700;padding:6px 13px;border-radius:9px;cursor:pointer}
+  .s8-tab button.on{background:rgba(255,255,255,.9);color:#06283d}
+</style>
+<div class="wrap s8 sec" id="s8">
+  <div class="band">
+    <span class="status">● NEW</span>
+    <div class="idx">System 08</div>
+    <h2>Aurora Glass — “Modern &amp; premium”</h2>
+    <p>A frosted-glass, aurora-gradient direction for maximum investor sizzle. Blue-green <b>aurora backdrops</b>, translucent <b>glass cards</b> with blur, luminous accents, and crisp white type. Feels like a next-gen SaaS launch. Best used on hero/marketing surfaces and the student home — with an opaque fallback for dense data (glass on data tables hurts contrast, which our accessibility rules flag).</p>
+  </div>
+  <div class="kit">
+    <div class="panel" style="background:#0b1220;border-color:#0b1220">
+      <h3 style="color:#7dd3fc">Glass cards · Icons · Character</h3>
+      <div class="s8-stage">
+        <div class="s8-glass" style="padding:16px;display:flex;align-items:center;gap:12px">
+          <div style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488);display:flex;align-items:center;justify-content:center;font-size:26px">🦉</div>
+          <div><div style="font-weight:800;font-size:15px">Good morning, Sara</div><div style="font-size:12px;color:rgba(255,255,255,.75)">Level 7 · 2,480 XP · 12-day streak</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <div class="s8-glass" style="padding:13px"><div class="kpi-mini"><div><p class="lbl" style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em">Mastery</p><p class="val" style="color:#fff;font-size:21px">81%</p></div><div class="s8-icn"><i data-lucide="trending-up"></i></div></div></div>
+          <div class="s8-glass" style="padding:13px"><div class="kpi-mini"><div><p class="lbl" style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em">Streak</p><p class="val" style="color:#fff;font-size:21px">12d</p></div><div class="s8-icn"><i data-lucide="flame"></i></div></div></div>
+        </div>
+        <div class="specrow" style="margin-top:12px"><i data-lucide="home" style="color:#fff"></i><i data-lucide="book-open" style="color:#fff"></i><i data-lucide="trophy" style="color:#fff"></i><i data-lucide="target" style="color:#fff"></i></div>
+      </div>
+    </div>
+    <div class="panel" style="background:#0b1220;border-color:#0b1220">
+      <h3 style="color:#7dd3fc">Buttons · Tabs · Pills (on aurora)</h3>
+      <div class="s8-stage">
+        <div class="specrow">
+          <button class="s8-btn">Continue</button>
+          <button class="s8-btn line">Practice</button>
+        </div>
+        <div class="specrow" style="margin-top:13px">
+          <div class="s8-tab"><button class="on">Overview</button><button>Grades</button><button>Files</button></div>
+        </div>
+        <div class="specrow" style="margin-top:13px">
+          <span class="s8-pill">Excellent</span><span class="s8-pill">Mapped</span><span class="s8-pill">On track</span>
+        </div>
+        <div class="s8-glass" style="padding:14px;margin-top:13px">
+          <div style="font-size:12px;font-weight:800;margin-bottom:8px">Weekly XP</div>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:60px">
+            <div style="flex:1;height:40%;background:linear-gradient(180deg,#7dd3fc,#0ea5e9);border-radius:5px"></div>
+            <div style="flex:1;height:70%;background:linear-gradient(180deg,#5eead4,#14b8a6);border-radius:5px"></div>
+            <div style="flex:1;height:55%;background:linear-gradient(180deg,#86efac,#22c55e);border-radius:5px"></div>
+            <div style="flex:1;height:90%;background:linear-gradient(180deg,#7dd3fc,#0ea5e9);border-radius:5px"></div>
+            <div style="flex:1;height:65%;background:linear-gradient(180deg,#5eead4,#14b8a6);border-radius:5px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Premium, modern, memorable; great for pitch/marketing.</p></div>
+        <div class="when"><b>Gap</b><p>Glass hurts contrast on dense data — needs opaque fallback.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Student home — aurora glass</p>
+  <div class="dash" style="border-radius:20px;border:0">
+    <div class="dside" style="background:#0e1626;border-right:1px solid rgba(255,255,255,.08)">
+      <div class="brandrow" style="color:#fff"><span style="width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#22c55e);display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="background:rgba(255,255,255,.12);color:#fff"><span class="gi"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi" style="color:#94a3b8"><span class="gi"><i data-lucide="map"></i></span> Learn</div>
+      <div class="navi" style="color:#94a3b8"><span class="gi"><i data-lucide="trophy"></i></span> League</div>
+      <div class="navi" style="color:#94a3b8"><span class="gi"><i data-lucide="user"></i></span> Me</div>
+    </div>
+    <div class="dmain" style="padding:0">
+      <div class="s8-stage" style="border-radius:0;min-height:100%;padding:16px">
+        <div class="dbar" style="margin-bottom:12px"><div class="s8-glass" style="flex:1;height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px;color:rgba(255,255,255,.8)"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#22c55e)"></div></div>
+        <div class="s8-glass" style="padding:14px;display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#7dd3fc,#0369a1);display:flex;align-items:center;justify-content:center;font-size:22px">🦊</div><div style="flex:1"><div style="font-weight:800">Ready to learn, Sara?</div><div style="font-size:11.5px;color:rgba(255,255,255,.75)">12-day streak · keep it glowing</div></div><button class="s8-btn">Start</button></div>
+        <div class="dkpis" style="margin-top:12px">
+          <div class="s8-glass" style="padding:10px"><p class="lbl" style="font-size:8px;text-transform:uppercase">XP</p><p style="font-weight:900;font-size:17px;margin:2px 0 0">2,480</p></div>
+          <div class="s8-glass" style="padding:10px"><p class="lbl" style="font-size:8px;text-transform:uppercase">Level</p><p style="font-weight:900;font-size:17px;margin:2px 0 0">7</p></div>
+          <div class="s8-glass" style="padding:10px"><p class="lbl" style="font-size:8px;text-transform:uppercase">Streak</p><p style="font-weight:900;font-size:17px;margin:2px 0 0">12d</p></div>
+          <div class="s8-glass" style="padding:10px"><p class="lbl" style="font-size:8px;text-transform:uppercase">Badges</p><p style="font-weight:900;font-size:17px;margin:2px 0 0">9</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 9 · NEO SOFT-3D ================= -->
+<style>
+  .s9{--bg:#eaf0f6}
+  .s9 .band{background:linear-gradient(120deg,#1e40af,#0d9488)}
+  .s9-card{background:#eaf0f6;border-radius:20px;box-shadow:8px 8px 18px #c8d3df,-8px -8px 18px #ffffff}
+  .s9-inset{background:#eaf0f6;border-radius:16px;box-shadow:inset 5px 5px 11px #c8d3df,inset -5px -5px 11px #ffffff}
+  .s9-btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:14px;font-weight:800;font-size:13px;cursor:pointer;padding:11px 17px;color:#fff;background:linear-gradient(135deg,#0ea5e9,#0369a1);box-shadow:5px 5px 12px #c8d3df,-5px -5px 12px #ffffff}
+  .s9-btn:active{box-shadow:inset 3px 3px 7px rgba(3,105,161,.5),inset -3px -3px 7px rgba(255,255,255,.3)}
+  .s9-btn.green{background:linear-gradient(135deg,#22c55e,#15803d)}
+  .s9-btn.ghost{background:#eaf0f6;color:#0369a1}
+  .s9-tile{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:25px;color:#fff;box-shadow:5px 5px 12px #c8d3df,-5px -5px 12px #ffffff,inset 0 2px 0 rgba(255,255,255,.35)}
+  .s9-icn{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#0369a1;background:#eaf0f6;box-shadow:inset 3px 3px 7px #c8d3df,inset -3px -3px 7px #ffffff}
+  .s9-icn [data-lucide]{width:19px;height:19px}
+  .s9-pill{display:inline-block;font-size:11px;font-weight:800;padding:4px 12px;border-radius:999px;color:#0f766e;background:#eaf0f6;box-shadow:inset 2px 2px 5px #c8d3df,inset -2px -2px 5px #fff}
+  .s9-ring{width:64px;height:64px;border-radius:50%;background:conic-gradient(#0ea5e9 var(--p,68%),#dbe4ee 0);display:flex;align-items:center;justify-content:center;box-shadow:5px 5px 12px #c8d3df,-5px -5px 12px #fff}
+  .s9-ring .inner{width:48px;height:48px;border-radius:50%;background:#eaf0f6;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#0369a1;box-shadow:inset 3px 3px 7px #c8d3df,inset -3px -3px 7px #fff}
+</style>
+<div class="wrap s9 sec" id="s9">
+  <div class="band">
+    <span class="status">● NEW</span>
+    <div class="idx">System 09</div>
+    <h2>Neo Soft-3D — “Tactile depth”</h2>
+    <p>A soft, sculpted direction where every surface looks moulded from one material — dual-tone soft shadows, <b>extruded tiles</b>, pressable controls that sink in, and <b>gamified 3D icon tiles</b> in blue/green. It reads modern and toy-like without being loud; the depth gives strong affordance (you instantly know what's pressable). Pairs beautifully with the 3D icon packs. Use a subtle, restrained version for staff.</p>
+  </div>
+  <div class="kit">
+    <div class="panel" style="background:#eaf0f6;border-color:#dbe4ee">
+      <h3>Sculpted cards · 3D tiles · Ring</h3>
+      <div class="s9-card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="s9-ring" style="--p:68%"><div class="inner">68%</div></div>
+          <div style="flex:1"><div style="font-weight:800;font-size:14px">Unit 3 · Analyze</div><div style="font-size:12px;color:#64748b">2 of 5 lessons complete</div></div>
+        </div>
+        <div class="s9-inset" style="padding:11px;margin-top:13px;font-size:12px;color:#475569">Everything is one soft material — light from the top-left.</div>
+      </div>
+      <div class="specrow" style="margin-top:13px">
+        <div class="s9-tile" style="background:linear-gradient(135deg,#0ea5e9,#0369a1)">📚</div>
+        <div class="s9-tile" style="background:linear-gradient(135deg,#14b8a6,#0f766e)">🎯</div>
+        <div class="s9-tile" style="background:linear-gradient(135deg,#22c55e,#15803d)">🏆</div>
+        <div class="s9-tile" style="background:linear-gradient(135deg,#06b6d4,#0e7490)">🔥</div>
+      </div>
+    </div>
+    <div class="panel" style="background:#eaf0f6;border-color:#dbe4ee">
+      <h3>KPI · Buttons · Pills</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="s9-card" style="padding:14px"><div class="kpi-mini"><div><p class="lbl">Mastery</p><p class="val">81%</p></div><div class="s9-icn"><i data-lucide="trending-up"></i></div></div></div>
+        <div class="s9-card" style="padding:14px"><div class="kpi-mini"><div><p class="lbl">Streak</p><p class="val">12d</p></div><div class="s9-icn" style="color:#15803d"><i data-lucide="flame"></i></div></div></div>
+      </div>
+      <div class="specrow" style="margin-top:15px">
+        <button class="s9-btn">Continue</button>
+        <button class="s9-btn green">Practice</button>
+        <button class="s9-btn ghost">Later</button>
+      </div>
+      <input class="s9-inset" style="margin-top:13px;width:100%;height:38px;border:0;padding:0 14px;font-size:13px;color:#334155;outline:none" placeholder="Search…" />
+      <div class="specrow" style="margin-top:13px">
+        <span class="s9-pill">Excellent</span><span class="s9-pill" style="color:#0369a1">Mapped</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Unmistakable, strong affordance, loves 3D icons.</p></div>
+        <div class="when"><b>Gap</b><p>Soft-shadow contrast needs tuning for accessibility.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Student home — sculpted</p>
+  <div class="dash" style="border-radius:20px;border:0;background:#eaf0f6">
+    <div class="dside" style="background:#eaf0f6;border-right:0">
+      <div class="brandrow"><span style="width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#0ea5e9,#0369a1);display:inline-block"></span> Edeviser</div>
+      <div class="navi on s9-inset" style="color:#0369a1;margin-bottom:8px"><span class="gi"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi"><span class="gi"><i data-lucide="map"></i></span> Learn</div>
+      <div class="navi"><span class="gi"><i data-lucide="line-chart"></i></span> Progress</div>
+      <div class="navi"><span class="gi"><i data-lucide="trophy"></i></span> League</div>
+    </div>
+    <div class="dmain" style="background:#eaf0f6">
+      <div class="dbar"><div class="s9-inset" style="flex:1;height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px;color:#94a3b8"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div class="s9-icn" style="width:30px;height:30px">🦊</div></div>
+      <div class="s9-card" style="padding:14px;display:flex;align-items:center;gap:12px">
+        <div class="s9-tile" style="background:radial-gradient(circle at 40% 35%,#5eead4,#0d9488)">🦉</div>
+        <div style="flex:1"><div style="font-weight:800;font-size:15px">Good morning, Sara</div><div style="font-size:11.5px;color:#64748b">Level 7 · 12-day streak</div></div>
+        <button class="s9-btn" style="padding:9px 14px">Start</button>
+      </div>
+      <div class="dkpis" style="margin-top:12px">
+        <div class="s9-card" style="padding:11px"><p class="lbl" style="font-size:8px">XP</p><p class="val" style="font-size:17px">2,480</p></div>
+        <div class="s9-card" style="padding:11px"><p class="lbl" style="font-size:8px">Level</p><p class="val" style="font-size:17px">7</p></div>
+        <div class="s9-card" style="padding:11px"><p class="lbl" style="font-size:8px">Streak</p><p class="val" style="font-size:17px">12d</p></div>
+        <div class="s9-card" style="padding:11px"><p class="lbl" style="font-size:8px">Mastery</p><p class="val" style="font-size:17px">81%</p></div>
+      </div>
+      <div class="dcols" style="margin-top:12px">
+        <div class="s9-card" style="padding:13px"><div style="font-weight:800;font-size:13px;margin-bottom:9px">Today's path</div><div style="display:flex;gap:9px;justify-content:center"><div class="s9-tile" style="width:38px;height:38px;font-size:16px;background:linear-gradient(135deg,#22c55e,#15803d)">✓</div><div class="s9-tile" style="width:38px;height:38px;font-size:16px;background:linear-gradient(135deg,#0ea5e9,#0369a1)">▶</div><div class="s9-tile" style="width:38px;height:38px;font-size:15px;background:#cbd5e1">🔒</div></div></div>
+        <div class="s9-card" style="padding:13px;text-align:center"><div class="s9-ring" style="--p:68%;margin:0 auto"><div class="inner">68%</div></div><div style="font-weight:800;font-size:12px;margin-top:8px">Unit 3</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SYSTEM 10 · MINIMAL CALM FOCUS ================= -->
+<style>
+  .s10 .band{background:linear-gradient(120deg,#334155,#0d9488)}
+  .s10-card{background:#fff;border:1px solid #eef2f6;border-radius:14px}
+  .s10-btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 18px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;color:#fff;background:#0d9488;transition:background .15s}
+  .s10-btn:hover{background:#0f766e}
+  .s10-btn.ghost{background:#fff;color:#334155;border:1px solid #e2e8f0}
+  .s10-btn.link{background:none;color:#0d9488;padding:0;height:auto;font-weight:700}
+  .s10-inp{height:38px;border:1px solid #e2e8f0;border-radius:10px;padding:0 13px;font-size:13px;width:100%}
+  .s10-num{font-size:30px;font-weight:800;letter-spacing:-.03em;color:#0f172a}
+  .s10-lbl{font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.02em}
+  .s10-tab{display:inline-flex;gap:22px;border-bottom:1px solid #eef2f6}
+  .s10-tab button{border:none;background:none;font-size:13px;font-weight:600;padding:9px 0;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .s10-tab button.on{color:#0f172a;border-bottom-color:#0d9488}
+  .s10-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background:#f1f5f9;color:#475569}
+  .s10-pill .d{width:6px;height:6px;border-radius:50%;background:#0d9488}
+  .s10-icn{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#f0fdfa;color:#0d9488}
+  .s10-icn [data-lucide]{width:17px;height:17px}
+</style>
+<div class="wrap s10 sec" id="s10">
+  <div class="band">
+    <span class="status">● NEW</span>
+    <div class="idx">System 10</div>
+    <h2>Minimal Calm Focus — “Quiet confidence”</h2>
+    <p>The restrained, airy direction — maximum whitespace, thin hairlines, big calm type, and a <b>single teal-green accent</b> used sparingly. No gradients competing for attention, no noise; the content is the hero. Feels premium, focused and grown-up — easy to build, easy to keep consistent across 200+ screens, and it ages well. Characters appear only at moments that matter (celebration, empty states).</p>
+  </div>
+  <div class="kit">
+    <div class="panel">
+      <h3>Card · KPI · Icons</h3>
+      <div class="s10-card" style="padding:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:15px;font-weight:700">Upcoming Deadlines</div><button class="s10-btn link">View all</button></div>
+        <div style="margin-top:12px;font-size:13px;color:#475569">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f4f6f8"><span>Essay: Ecosystems</span><span class="s10-pill"><span class="d"></span>2 days</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><span>Quiz: Cell Biology</span><span class="s10-pill"><span class="d" style="background:#0ea5e9"></span>5 days</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:13px">
+        <div class="s10-card" style="padding:15px"><p class="s10-lbl">Mastery</p><p class="s10-num">81%</p></div>
+        <div class="s10-card" style="padding:15px"><p class="s10-lbl">Streak</p><p class="s10-num">12</p></div>
+      </div>
+      <div class="specrow" style="margin-top:13px;color:#0d9488"><i data-lucide="home"></i><i data-lucide="book-open"></i><i data-lucide="line-chart"></i><i data-lucide="target"></i><i data-lucide="user"></i></div>
+    </div>
+    <div class="panel">
+      <h3>Buttons · Input · Tabs · Pills</h3>
+      <div class="specrow">
+        <button class="s10-btn">Continue</button>
+        <button class="s10-btn ghost">Secondary</button>
+        <button class="s10-btn link">Learn more →</button>
+      </div>
+      <input class="s10-inp" style="margin-top:13px" placeholder="Search courses, outcomes…" />
+      <div class="specrow" style="margin-top:15px">
+        <div class="s10-tab"><button class="on">Overview</button><button>Grades</button><button>Files</button></div>
+      </div>
+      <div class="specrow" style="margin-top:15px">
+        <span class="s10-pill"><span class="d"></span>On track</span>
+        <span class="s10-pill"><span class="d" style="background:#0ea5e9"></span>Mapped</span>
+        <span class="s10-pill"><span class="d" style="background:#22c55e"></span>Passed</span>
+      </div>
+      <div class="whenrow">
+        <div class="when"><b>Strength</b><p>Timeless, fast to build, consistent, premium calm.</p></div>
+        <div class="when"><b>Gap</b><p>Least gamified; leans on characters + motion for warmth.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subhead">Student dashboard — calm &amp; focused</p>
+  <div class="dash" style="border-radius:14px">
+    <div class="dside">
+      <div class="brandrow"><span style="width:24px;height:24px;border-radius:7px;background:#0d9488;display:inline-block"></span> Edeviser</div>
+      <div class="navi on" style="color:#0f172a"><span class="gi" style="color:#0d9488"><i data-lucide="home"></i></span> Home</div>
+      <div class="navi"><span class="gi"><i data-lucide="book-open"></i></span> Courses</div>
+      <div class="navi"><span class="gi"><i data-lucide="line-chart"></i></span> Progress</div>
+      <div class="navi"><span class="gi"><i data-lucide="user"></i></span> Profile</div>
+    </div>
+    <div class="dmain" style="background:#fbfcfd">
+      <div class="dbar"><div class="search" style="border-radius:10px"><i data-lucide="search" style="width:15px;height:15px"></i> Search…</div><div style="width:30px;height:30px;border-radius:50%;background:#0d9488"></div></div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.02em">Good morning, Sara</div>
+      <div style="font-size:12.5px;color:#94a3b8;margin-bottom:14px">Level 7 · 2,480 XP · 12-day streak</div>
+      <div class="dkpis">
+        <div class="s10-card" style="padding:13px"><p class="s10-lbl" style="font-size:9px">Courses</p><p class="s10-num" style="font-size:20px">6</p></div>
+        <div class="s10-card" style="padding:13px"><p class="s10-lbl" style="font-size:9px">Completed</p><p class="s10-num" style="font-size:20px">34</p></div>
+        <div class="s10-card" style="padding:13px"><p class="s10-lbl" style="font-size:9px">Mastery</p><p class="s10-num" style="font-size:20px">81%</p></div>
+        <div class="s10-card" style="padding:13px"><p class="s10-lbl" style="font-size:9px">Streak</p><p class="s10-num" style="font-size:20px">12</p></div>
+      </div>
+      <div class="dcols" style="margin-top:12px">
+        <div class="s10-card" style="padding:15px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:13px">Upcoming</span><button class="s10-btn link" style="font-size:12px">All</button></div><div style="margin-top:9px;font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f4f6f8">Essay: Ecosystems<span class="s10-pill"><span class="d"></span>2d</span></div><div style="display:flex;justify-content:space-between;padding:6px 0">Quiz: Cell Biology<span class="s10-pill"><span class="d" style="background:#0ea5e9"></span>5d</span></div></div></div>
+        <div class="s10-card" style="padding:15px"><span style="font-weight:700;font-size:13px">Mastery by outcome</span><div style="margin-top:11px"><div style="font-size:11px;color:#64748b;display:flex;justify-content:space-between"><span>Analyze</span><span>62%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;margin:4px 0 10px"><div style="width:62%;height:100%;background:#0d9488;border-radius:3px"></div></div><div style="font-size:11px;color:#64748b;display:flex;justify-content:space-between"><span>Apply</span><span>88%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;margin:4px 0 0"><div style="width:88%;height:100%;background:#22c55e;border-radius:3px"></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<div class="wrap">
+  <div class="foot">
+    <b>10 directions · one specimen kit · all blue &amp; green.</b><br />
+    Systems 1–2 are live/coded today · 3–10 are proposals · System 5 is the institution-side Editorial × Tactile hybrid · 6–7 are Duolingo-inspired.<br />
+    Tell me which one to standardize on, or which parts to mix (e.g. "System 5 for staff, System 6 for students, Phosphor icons, the character cast").
+  </div>
+</div>
+
+<script>
+  // Render Lucide icons used across every system
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
+</body>
+</html>

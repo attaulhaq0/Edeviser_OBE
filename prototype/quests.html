@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Quests</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Knowledge Quests — maps to: knowledge_quests (quest_type: quiz_challenge |
+     content_creation | peer_review), student_quest_progress, student_content
+     (content_type: study_plan | quiz_question | explanation_video; status
+     pending/approved/rejected), useKnowledgeQuests. Reward = xp or item. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .qs-grid{display:block}
+  html.mode-laptop .qs-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  html.mode-laptop .qs-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .quest{border:1px solid #eef2f6;border-radius:16px;padding:16px;position:relative;overflow:hidden}
+  .quest::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+  .quest.creation::before{background:#8b5cf6}.quest.challenge::before{background:#14b8a6}.quest.review::before{background:#f59e0b}
+  .create-card{border:1px dashed #cbd5e1;border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+  .create-card:hover{border-color:#14b8a6;background:#f0fdfa}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Knowledge Quests</h1><p class="text-xs text-gray-500">Create, challenge, and teach to earn</p></div>
+  </div>
+  <span class="text-xs font-black text-purple-700 bg-purple-50 border border-purple-100 px-2.5 py-1.5 rounded-full">⚔️ 3 active</span>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="qs-grid">
+    <div class="space-y-4">
+
+      <!-- Active quests (knowledge_quests + student_quest_progress) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">⚔️</span><p class="t">Active quests</p></div>
+        <div class="space-y-3">
+          <div class="quest creation">
+            <div class="flex items-center gap-2 mb-1"><span class="pill" style="background:#ede9fe;color:#6d28d9">Content creation</span><span class="pill pill-blue">CLO3</span></div>
+            <p class="text-sm font-bold text-gray-900">Explain "Normalization" in a 2-min video</p>
+            <p class="text-xs text-gray-500 mt-1">Teach a concept your way. Best explanations get featured.</p>
+            <div class="flex items-center justify-between mt-2"><span class="text-xs font-bold text-gray-500">Reward: 💎 200 + "Teacher" badge</span><span class="text-[11px] text-gray-400">ends in 4 days</span></div>
+            <button class="btn3d sm mt-2" onclick="toast('Opening video recorder…','🎥')" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">Start quest</button>
+          </div>
+          <div class="quest challenge">
+            <div class="flex items-center gap-2 mb-1"><span class="pill" style="background:#ccfbf1;color:#0f766e">Quiz challenge</span><span class="pill pill-blue">CLO4</span></div>
+            <p class="text-sm font-bold text-gray-900">Score 90%+ on the Indexing challenge quiz</p>
+            <div class="emeter good mt-2"><span style="width:60%"></span></div>
+            <div class="flex items-center justify-between mt-1.5"><span class="text-xs text-gray-500">Best: 72% · 2 attempts left</span><span class="text-xs font-bold text-gray-500">Reward: 💎 150</span></div>
+          </div>
+          <div class="quest review">
+            <div class="flex items-center gap-2 mb-1"><span class="pill" style="background:#fef3c7;color:#b45309">Peer review</span></div>
+            <p class="text-sm font-bold text-gray-900">Review 5 classmates' explanations</p>
+            <div class="flex items-center justify-between mt-2"><span class="text-xs text-gray-500">3 / 5 reviewed</span><span class="text-xs font-bold text-gray-500">Reward: 💎 120</span></div>
+            <div class="emeter attention mt-1.5"><span style="width:60%"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create content (student_content) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">✨</span><p class="t">Create & earn</p></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="create-card" onclick="toast('New study plan…','🗺️')"><div class="text-3xl mb-1">🗺️</div><p class="text-sm font-bold text-gray-900">Study plan</p><p class="text-[11px] text-gray-500">Share a plan for a topic</p></div>
+          <div class="create-card" onclick="toast('New quiz question…','❓')"><div class="text-3xl mb-1">❓</div><p class="text-sm font-bold text-gray-900">Quiz question</p><p class="text-[11px] text-gray-500">Author a question for the bank</p></div>
+          <div class="create-card" onclick="toast('New explanation video…','🎥')"><div class="text-3xl mb-1">🎥</div><p class="text-sm font-bold text-gray-900">Explanation video</p><p class="text-[11px] text-gray-500">Teach a concept in a clip</p></div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-3">Submissions are reviewed by your teacher before they're approved and rewarded.</p>
+      </div>
+
+      <!-- My submissions (student_content status) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📦</span><p class="t">My submissions</p></div>
+        <div class="divide-y divide-gray-50">
+          <div class="flex items-center gap-3 py-2.5"><span class="text-base">🎥</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">"Update anomalies explained"</p><p class="text-[11px] text-gray-500">Explanation video · CLO4</p></div><span class="pill pill-green">Approved · +💎200</span></div>
+          <div class="flex items-center gap-3 py-2.5"><span class="text-base">❓</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">"What is a partial dependency?"</p><p class="text-[11px] text-gray-500">Quiz question · CLO3</p></div><span class="pill pill-amber">Pending review</span></div>
+          <div class="flex items-center gap-3 py-2.5"><span class="text-base">🗺️</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">"7-day REST APIs plan"</p><p class="text-[11px] text-gray-500">Study plan · CLO5</p></div><span class="pill pill-red">Needs changes</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="qs-rail">
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%)">
+        <p class="text-[10px] font-black tracking-widest uppercase text-white/60">Quest rewards</p>
+        <p class="text-3xl font-black text-white mt-1">💎 1,240</p>
+        <p class="text-xs text-white/60 mt-0.5">earned from quests this term</p>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div class="rounded-xl bg-white/10 p-2.5"><p class="text-[9px] font-bold uppercase text-white/60">Completed</p><p class="text-sm font-black text-white">14</p></div>
+          <div class="rounded-xl bg-white/10 p-2.5"><p class="text-[9px] font-bold uppercase text-white/60">Featured</p><p class="text-sm font-black text-amber-300">3</p></div>
+        </div>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🏆</span><p class="t">Top creators · class</p></div>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-3 py-1"><span class="text-sm font-black text-amber-500 w-5">1</span><span class="text-sm text-gray-700 flex-1">Maryam</span><span class="text-sm font-bold text-gray-500">9</span></div>
+          <div class="flex items-center gap-3 py-1 rounded-lg bg-blue-50 px-2 -mx-2"><span class="text-sm font-black text-gray-400 w-5">2</span><span class="text-sm font-bold text-blue-700 flex-1">You</span><span class="text-sm font-black text-blue-700">7</span></div>
+          <div class="flex items-center gap-3 py-1"><span class="text-sm font-black text-amber-700 w-5">3</span><span class="text-sm text-gray-700 flex-1">Omar</span><span class="text-sm font-bold text-gray-500">5</span></div>
+        </div>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border:1px solid #ddd6fe">
+        <p class="text-xs font-black text-purple-700 mb-1">💡 Why create?</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Teaching a concept is one of the strongest ways to lock in your own mastery — and it helps your team.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>window.addEventListener('load',()=>equalizeColumns('.qs-grid > div:first-child','.qs-rail'));</script>
+</body>
+</html>

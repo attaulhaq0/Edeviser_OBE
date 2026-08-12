@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Discussions</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Discussions — cross-cutting (student asks/answers, teacher moderates).
+     Maps to: discussion_threads (is_pinned, is_resolved), discussion_replies
+     (is_answer), useDiscussionThreads (paginated, DISCUSSION_PAGE_SIZE=20),
+     useCreateThread/useCreateReply (+10/+15 XP via XP_SCHEDULE), useTogglePinThread
+     + useMarkAnswer (teacher-only moderation). */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .ds-grid{display:block}
+  html.mode-laptop .ds-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  html.mode-laptop .ds-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .ds-thread{border:1px solid #eef2f6;border-radius:14px;padding:14px;transition:box-shadow .15s;cursor:pointer}
+  .ds-thread:hover{box-shadow:0 6px 16px rgba(16,24,40,.08)}
+  .ds-thread.pinned{border-color:#bfdbfe;background:#f8fbff}
+  .ds-thread.resolved{opacity:.75}
+  .ds-reply{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  .ds-reply:last-child{border-bottom:none}
+  .ds-reply.answer{background:#f0fdf4;border-radius:10px;padding:10px;border-bottom:none;margin-bottom:4px}
+</style>
+</head>
+<body class="bg-slate-50" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a id="backlink" href="learn.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Discussions</h1><p class="text-xs text-gray-500">CS301 · Database Design</p></div>
+  </div>
+  <button class="btn3d sm" onclick="openNewThread()">➕ Ask</button>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="ds-grid">
+    <div class="space-y-4">
+
+      <!-- New thread composer (collapsed by default) -->
+      <div id="composer" class="pcard p-4" hidden>
+        <div class="sec-h"><span class="chip">✍️</span><p class="t">Ask a question</p></div>
+        <input id="nt-title" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" placeholder="Question title"/>
+        <textarea id="nt-body" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" rows="3" placeholder="Add details…"></textarea>
+        <div class="flex gap-2 justify-end">
+          <button class="btn3d sm b-ghost" onclick="document.getElementById('composer').hidden=true">Cancel</button>
+          <button class="btn3d sm" onclick="postThread()">Post · +10 XP</button>
+        </div>
+      </div>
+
+      <!-- Thread list -->
+      <div class="space-y-3" id="thread-list">
+        <div class="ds-thread pinned" onclick="openThread(this)">
+          <div class="flex items-center gap-2 mb-1"><span class="pill pill-blue">📌 Pinned</span><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">by Prof. Ahmed · 2 days ago</span></div>
+          <p class="text-sm font-bold text-gray-900">Read this first: common normalization mistakes</p>
+          <p class="text-[11px] text-gray-500 mt-1">A rundown of the update anomalies most students hit on Assignment 3.</p>
+          <p class="text-[11px] text-gray-400 mt-1.5">💬 6 replies</p>
+        </div>
+        <div class="ds-thread" onclick="openThread(this)">
+          <div class="flex items-center gap-2 mb-1"><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">by Omar · 5 hours ago</span></div>
+          <p class="text-sm font-bold text-gray-900">Why does decomposing this table remove the anomaly?</p>
+          <p class="text-[11px] text-gray-500 mt-1">I decomposed Orders into Orders + OrderItems but I'm not sure why it fixes the update anomaly...</p>
+          <p class="text-[11px] text-gray-400 mt-1.5">💬 3 replies</p>
+        </div>
+        <div class="ds-thread resolved" onclick="openThread(this)">
+          <div class="flex items-center gap-2 mb-1"><span class="pill pill-green">✓ Resolved</span><span class="pill pill-blue">CLO4</span><span class="text-[11px] text-gray-400">by Layla · yesterday</span></div>
+          <p class="text-sm font-bold text-gray-900">Composite index vs two single-column indexes?</p>
+          <p class="text-[11px] text-gray-500 mt-1">Answered — see the marked reply below.</p>
+          <p class="text-[11px] text-gray-400 mt-1.5">💬 4 replies</p>
+        </div>
+        <div class="ds-thread" onclick="openThread(this)">
+          <div class="flex items-center gap-2 mb-1"><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">by Sarah (You) · 3 days ago</span></div>
+          <p class="text-sm font-bold text-gray-900">Best way to identify transitive dependencies quickly?</p>
+          <p class="text-[11px] text-gray-500 mt-1">Is there a shortcut beyond drawing out every FD by hand?</p>
+          <p class="text-[11px] text-gray-400 mt-1.5">💬 2 replies</p>
+        </div>
+      </div>
+
+      <button class="btn3d sm b-ghost full" onclick="toast('Loaded 20 more threads','💬')">Load more</button>
+
+      <!-- Thread detail (opens on click, mock expand) -->
+      <div id="thread-detail" class="pcard p-4" hidden>
+        <button onclick="document.getElementById('thread-detail').hidden=true" class="text-xs font-bold text-gray-500 mb-3">← Back to threads</button>
+        <div class="flex items-center gap-2 mb-1"><span class="pill pill-green">✓ Resolved</span><span class="pill pill-blue">CLO4</span></div>
+        <h2 class="text-base font-black text-gray-900">Composite index vs two single-column indexes?</h2>
+        <p class="text-xs text-gray-500 mt-1">by Layla · yesterday</p>
+        <p class="text-sm text-gray-700 mt-3">When should I use a composite index instead of creating two separate single-column indexes on the same table?</p>
+        <div class="mt-4 pt-3" style="border-top:1px solid #f1f5f9">
+          <div class="ds-reply answer"><div class="h-8 w-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-xs font-bold shrink-0">A</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-gray-900">Prof. Ahmed <span class="pill pill-green ms-1">✓ Answer</span></p><p class="text-sm text-gray-700 mt-1">Use a composite index when your queries filter on both columns together — it's more efficient than two separate indexes for that specific combination, since the DB can use one index scan instead of two.</p></div></div>
+          <div class="ds-reply"><div class="h-8 w-8 rounded-full bg-teal-400 flex items-center justify-center text-white text-xs font-bold shrink-0">O</div><div class="flex-1 min-w-0"><p class="text-xs font-bold text-gray-900">Omar</p><p class="text-sm text-gray-700 mt-1">This clicked for me after re-reading the indexing lesson — thanks!</p></div></div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <input class="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2" placeholder="Write a reply…"/>
+          <button class="btn3d sm" onclick="toast('Reply posted','💬')">Reply</button>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="ds-rail">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📊</span><p class="t">Discussion activity</p></div>
+        <div class="rail-row"><span style="flex:1">Open threads</span><b>18</b></div>
+        <div class="rail-row"><span style="flex:1">Resolved</span><b style="color:#16a34a">42</b></div>
+        <div class="rail-row"><span style="flex:1">Your replies</span><b>6</b></div>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">✨ Earn XP by helping</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Asking a question earns <b>+10 XP</b>. If your answer gets marked correct, you earn <b>+15 XP</b>.</p>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🏆</span><p class="t">Top helpers this week</p></div>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-3 py-1"><span class="text-sm font-black text-amber-500 w-5">1</span><span class="text-sm text-gray-700 flex-1">Prof. Ahmed</span><span class="text-sm font-bold text-gray-500">9 answers</span></div>
+          <div class="flex items-center gap-3 py-1"><span class="text-sm font-black text-gray-400 w-5">2</span><span class="text-sm text-gray-700 flex-1">Maryam</span><span class="text-sm font-bold text-gray-500">5 answers</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar" id="navbar"></nav>
+<script>
+  (function(){
+    // Prefer the persisted role (set by shared.js). Referrer is only a
+    // fallback. Discussions chrome only supports student/teacher/coordinator.
+    let role=null; try{role=localStorage.getItem('edv-role');}catch(e){}
+    if(!role){ const r=document.referrer||''; role='student'; if(/teacher-/.test(r))role='teacher'; else if(/coordinator-/.test(r))role='coordinator'; }
+    if(role!=='teacher'&&role!=='coordinator') role='student';
+    document.body.dataset.role=role;
+    const back={student:'learn.html',teacher:'teacher-curriculum.html',coordinator:'coordinator-curriculum.html'};
+    document.getElementById('backlink').href=back[role]||'learn.html';
+    const TABS={
+      student:[['dashboard.html','🏠','Home','home'],['learn.html','📚','Learn','learn'],['tutor.html','🤖','Tutor','tutor'],['progress.html','📈','Progress','progress'],['profile.html','👤','Me','me']],
+      teacher:[['teacher-dashboard.html','🏠','Home','home'],['teacher-students.html','🧑‍🎓','Students','students'],['teacher-curriculum.html','🧬','Curriculum','curriculum'],['teacher-grading.html','✍️','Grading','grading'],['teacher-profile.html','👤','Me','me']],
+      coordinator:[['coordinator-dashboard.html','🏠','Home','home'],['coordinator-outcomes.html','🎯','Outcomes','outcomes'],['coordinator-curriculum.html','🗂️','Matrix','matrix'],['coordinator-accreditation.html','📋','Accredit','accred'],['coordinator-profile.html','👤','Me','me']],
+    };
+    document.getElementById('navbar').innerHTML=(TABS[role]||TABS.student).map(t=>`<a href="${t[0]}" class="tab-btn" data-tab="${t[3]}"><span class="tab-ic" style="font-size:20px">${t[1]}</span><span>${t[2]}</span></a>`).join('');
+    // Teachers/coordinators get moderation affordances on each thread.
+    if(role==='teacher'||role==='coordinator'){
+      document.querySelectorAll('.ds-thread').forEach(t=>{
+        const pinBtn=document.createElement('button');
+        pinBtn.className='text-[10px] font-bold text-blue-600 ms-2';
+        pinBtn.textContent='📌 Pin';
+        pinBtn.onclick=(e)=>{e.stopPropagation();toast('Thread pinned','📌');};
+        t.querySelector('.flex.items-center.gap-2')?.appendChild(pinBtn);
+      });
+    }
+  })();
+  function openNewThread(){ document.getElementById('composer').hidden=false; document.getElementById('composer').scrollIntoView({behavior:'smooth'}); }
+  function postThread(){
+    const title=document.getElementById('nt-title').value.trim();
+    if(!title){ toast('Add a title first','⚠️'); return; }
+    document.getElementById('composer').hidden=true;
+    document.getElementById('nt-title').value=''; document.getElementById('nt-body').value='';
+    toast('Question posted · +10 XP','✅');
+  }
+  function openThread(el){ document.getElementById('thread-detail').hidden=false; document.getElementById('thread-detail').scrollIntoView({behavior:'smooth'}); }
+</script>
+<script src="shared.js"></script>
+<script>window.addEventListener('load',()=>equalizeColumns('.ds-grid > div:first-child','.ds-rail'));</script>
+</body>
+</html>

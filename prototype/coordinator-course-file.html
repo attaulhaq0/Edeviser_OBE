@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Course File Generator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Course File Generator — maps to: useCourseFile + generate-course-file edge
+     fn. A "course file" is a standard OBE accreditation artifact per course per
+     semester: syllabus, CLO-PLO mapping, assessment instruments, sample student
+     work, attainment analysis, teacher reflection, CQI recommendations. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .cf-check{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  .cf-check:last-child{border-bottom:none}
+  .cf-ic{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="coordinator-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Course File Generator</h1><p class="text-xs text-gray-500">Accreditation-ready documentation, per course per semester</p></div>
+  </div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- Picker + generate -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📘</span><p class="t">Generate a course file</p></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div><label class="text-[11px] font-bold text-gray-500">Course</label><select id="cf-course" class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>CS301 · Database Design</option><option>CS205 · Web Development</option><option>AI101 · AI Fundamentals</option></select></div>
+      <div><label class="text-[11px] font-bold text-gray-500">Semester</label><select id="cf-sem" class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>Spring 2026</option><option>Fall 2025</option><option>Spring 2025</option></select></div>
+      <div class="flex items-end"><button class="btn3d w-full" onclick="generateFile()" style="background:#0382bd">📄 Generate course file</button></div>
+    </div>
+    <p id="cf-status" class="text-[11px] text-gray-400 mt-2"></p>
+  </div>
+
+  <!-- Section readiness checklist -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">✅</span><p class="t">Section readiness · CS301 Spring 2026</p><span class="pill pill-amber">5 of 7 ready</span></div>
+    <div class="divide-y divide-gray-50">
+      <div class="cf-check"><span class="cf-ic" style="background:#dcfce7;color:#16a34a">✓</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Syllabus attached</p><p class="text-[11px] text-gray-500">Uploaded Aug 2025</p></div></div>
+      <div class="cf-check"><span class="cf-ic" style="background:#dcfce7;color:#16a34a">✓</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CLO–PLO mapping</p><p class="text-[11px] text-gray-500">8 mappings, all weights sum to 100</p></div></div>
+      <div class="cf-check"><span class="cf-ic" style="background:#dcfce7;color:#16a34a">✓</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Assessment instruments</p><p class="text-[11px] text-gray-500">6 assignments + 3 quizzes linked</p></div></div>
+      <div class="cf-check"><span class="cf-ic" style="background:#fef3c7;color:#b45309">⚠</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Sample student work</p><p class="text-[11px] text-gray-500">3 of 5 required samples attached — needs 2 more</p></div></div>
+      <div class="cf-check"><span class="cf-ic" style="background:#dcfce7;color:#16a34a">✓</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Attainment analysis</p><p class="text-[11px] text-gray-500">Auto-generated from outcome_attainment</p></div></div>
+      <div class="cf-check"><span class="cf-ic" style="background:#f1f5f9;color:#94a3b8">○</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Teacher reflection</p><p class="text-[11px] text-gray-500">Pending submission from Prof. Ahmed</p></div><button class="btn3d sm b-ghost shrink-0" onclick="toast('Reminder sent to Prof. Ahmed','📨')">Remind</button></div>
+      <div class="cf-check"><span class="cf-ic" style="background:#dcfce7;color:#16a34a">✓</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CQI recommendations linked</p><p class="text-[11px] text-gray-500">2 action plans referenced</p></div></div>
+    </div>
+  </div>
+
+  <!-- Previously generated -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🗂️</span><p class="t">Previously generated</p></div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:560px">
+      <thead><tr><th>Course</th><th>Semester</th><th>Generated</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:#0f172a">CS301 · Database Design</b></td><td>Fall 2025</td><td>Dec 18, 2025</td><td><button class="text-xs font-bold text-blue-600" onclick="toast('Downloading PDF…','⬇️')">Download</button></td></tr>
+        <tr><td><b style="color:#0f172a">CS205 · Web Development</b></td><td>Fall 2025</td><td>Dec 20, 2025</td><td><button class="text-xs font-bold text-blue-600" onclick="toast('Downloading PDF…','⬇️')">Download</button></td></tr>
+        <tr><td><b style="color:#0f172a">AI101 · AI Fundamentals</b></td><td>Spring 2025</td><td>Jun 2, 2025</td><td><button class="text-xs font-bold text-blue-600" onclick="toast('Downloading PDF…','⬇️')">Download</button></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="coordinator-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="coordinator-outcomes.html" class="tab-btn" data-tab="outcomes"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Outcomes</span></a>
+  <a href="coordinator-course-file.html" class="tab-btn active" data-tab="coursefile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg><span>Course File</span></a>
+  <a href="coordinator-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg><span>Matrix</span></a>
+  <a href="coordinator-accreditation.html" class="tab-btn" data-tab="accred"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg><span>Accredit</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function generateFile(){
+    const s=document.getElementById('cf-status');
+    const course=document.getElementById('cf-course').value;
+    toast('Generating course file…','⏳');
+    s.textContent='Compiling syllabus, mappings, evidence and analysis…';
+    setTimeout(()=>{ toast('Course file ready','📄'); s.textContent=course+' course file ready — check the table below.'; },1300);
+  }
+</script>
+</body>
+</html>

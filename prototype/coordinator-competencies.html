@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Competency Frameworks</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Competency Frameworks — maps to: competency_frameworks, competency_items,
+     competency_outcome_mappings, useCompetencyFrameworks, import-competency-csv
+     edge fn. External standards (e.g. ABET) cross-walked onto the institution's
+     own PLO/CLO hierarchy — without duplicating that hierarchy. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .cp-grid{display:block}
+  html.mode-laptop .cp-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  html.mode-laptop .cp-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .cp-fw{border:1px solid #eef2f6;border-radius:14px;padding:14px;cursor:pointer;transition:box-shadow .15s}
+  .cp-fw:hover{box-shadow:0 6px 16px rgba(16,24,40,.08)}
+  .cp-fw.active{border-color:#93c5fd;background:#f8fbff}
+  .cp-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f7fa}
+  .cp-item:last-child{border-bottom:none}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="coordinator-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Competency Frameworks</h1><p class="text-xs text-gray-500">Cross-walk external standards onto your outcomes</p></div>
+  </div>
+  <button class="btn3d sm" onclick="importCsv()" style="background:#0382bd">📥 Import framework</button>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="cp-grid">
+    <div class="space-y-4">
+
+      <!-- Framework list -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🗺️</span><p class="t">Frameworks</p></div>
+        <div class="space-y-3" id="fw-list">
+          <div class="cp-fw active" onclick="selectFramework(this)">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="min-w-0"><p class="text-sm font-bold text-gray-900">ABET Student Outcomes 2024</p><p class="text-[11px] text-gray-500 mt-0.5">v2024.1 · 7 competency items</p></div>
+              <span class="pill pill-blue">86% mapped</span>
+            </div>
+            <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden mt-2"><div class="h-full rounded-full bg-blue-500" style="width:86%"></div></div>
+          </div>
+          <div class="cp-fw" onclick="selectFramework(this)">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="min-w-0"><p class="text-sm font-bold text-gray-900">National Qualifications Framework · Level 6</p><p class="text-[11px] text-gray-500 mt-0.5">v3.0 · 5 competency items</p></div>
+              <span class="pill pill-amber">60% mapped</span>
+            </div>
+            <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden mt-2"><div class="h-full rounded-full bg-amber-500" style="width:60%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected framework detail -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🎯</span><p class="t" id="fw-detail-title">ABET Student Outcomes 2024 · items</p></div>
+        <div class="divide-y divide-gray-50" id="fw-items">
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO1</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Identify, formulate, and solve complex engineering problems</p></div><span class="pill pill-green shrink-0">PLO1</span></div>
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO2</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Apply engineering design to produce solutions</p></div><span class="pill pill-green shrink-0">PLO2</span></div>
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO3</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Communicate effectively with a range of audiences</p></div><span class="pill pill-green shrink-0">PLO7</span></div>
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO4</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Recognize ethical and professional responsibilities</p></div><span class="pill pill-green shrink-0">PLO6</span></div>
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO5</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Function effectively on a team</p></div><span class="pill pill-green shrink-0">PLO8</span></div>
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO6</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Develop and conduct experiments, analyze data</p></div><span class="pill pill-green shrink-0">PLO3</span></div>
+          <div class="cp-item"><span class="text-xs font-black text-gray-400 w-14 shrink-0">SO7</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Acquire and apply new knowledge as needed</p></div><span class="pill pill-amber shrink-0">⚠ Needs mapping</span></div>
+        </div>
+        <button class="btn3d sm b-ghost mt-3" onclick="toast('Opening mapping editor for SO7…','🔗')">🔗 Map unmapped items</button>
+      </div>
+
+    </div>
+
+    <aside class="cp-rail">
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">💡 Why cross-walk?</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">External accreditors (ABET, national frameworks) use their own outcome language. Mapping their items to your existing PLOs proves compliance without maintaining two parallel outcome hierarchies.</p>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📊</span><p class="t">Mapping coverage</p></div>
+        <div class="rail-row"><span style="flex:1">Frameworks tracked</span><b>2</b></div>
+        <div class="rail-row"><span style="flex:1">Total items</span><b>12</b></div>
+        <div class="rail-row"><span style="flex:1">Unmapped</span><b class="text-amber-600">3</b></div>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📥</span><p class="t">Import a framework</p></div>
+        <p class="text-[11px] text-gray-500 mb-2">Upload a CSV of competency items (code, title, description) to add a new framework.</p>
+        <button class="btn3d sm full" onclick="importCsv()" style="background:#0382bd">📥 Import CSV</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="coordinator-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="coordinator-outcomes.html" class="tab-btn" data-tab="outcomes"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Outcomes</span></a>
+  <a href="coordinator-competencies.html" class="tab-btn active" data-tab="competencies"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/></svg><span>Competencies</span></a>
+  <a href="coordinator-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg><span>Matrix</span></a>
+  <a href="coordinator-accreditation.html" class="tab-btn" data-tab="accred"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg><span>Accredit</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function selectFramework(el){
+    document.querySelectorAll('.cp-fw').forEach(f=>f.classList.remove('active'));
+    el.classList.add('active');
+    const title=el.querySelector('p.font-bold')?.textContent || el.querySelector('.text-sm').textContent;
+    document.getElementById('fw-detail-title').textContent=title+' · items';
+  }
+  function importCsv(){
+    toast('Parsing CSV…','📄');
+    setTimeout(()=>toast('Imported 12 competency items','✅'),1000);
+  }
+  window.addEventListener('load',()=>equalizeColumns('.cp-grid > div:first-child','.cp-rail'));
+</script>
+</body>
+</html>
