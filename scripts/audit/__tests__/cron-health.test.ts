@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildProbeHeaders, isVercelPreviewUrl } from "../cron-health.ts";
+import {
+  buildProbeHeaders,
+  getProbeTimeoutMs,
+  isVercelPreviewUrl,
+} from "../cron-health.ts";
 
 describe("cron health Vercel Preview protection", () => {
   it("adds the bypass header while preserving cron authentication headers", () => {
@@ -36,5 +40,23 @@ describe("cron health Vercel Preview protection", () => {
 
     expect(headers["x-vercel-protection-bypass"]).toBeUndefined();
     expect(headers.Authorization).toBe("Bearer cron-secret");
+  });
+
+  it("allows only the known long-running compute probe additional time", () => {
+    expect(
+      getProbeTimeoutMs(
+        "https://e-deviser-git-branch-attaulhaq0s-projects.vercel.app/api/cron/compute-at-risk"
+      )
+    ).toBe(60_000);
+    expect(
+      getProbeTimeoutMs(
+        "https://e-deviser-git-branch-attaulhaq0s-projects.vercel.app/api/cron/leaderboard-refresh"
+      )
+    ).toBe(30_000);
+    expect(
+      getProbeTimeoutMs(
+        "https://e-deviser-git-branch-attaulhaq0s-projects.vercel.app/api/cron/compute-at-risk-extra"
+      )
+    ).toBe(30_000);
   });
 });
