@@ -46,15 +46,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isWithinActiveHours(new Date(), START_HOUR_UTC, END_HOUR_UTC)) {
     res
       .status(200)
-      .json({ skipped: true, reason: "outside active hours (UTC)" });
+      .json({ ok: true, skipped: true, reason: "outside active hours (UTC)" });
     return;
   }
 
   try {
     const { status, data } = await invokeEdgeFunction("health");
+    const ok = status >= 200 && status < 300;
     // Surface the upstream status so a degraded DB is visible in cron logs,
     // but never throw — a warm-ping failure must not page anyone.
-    res.status(status >= 200 && status < 300 ? 200 : 502).json({
+    res.status(ok ? 200 : 502).json({
+      ok,
       pinged: true,
       upstreamStatus: status,
       health: data,
