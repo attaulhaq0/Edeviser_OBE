@@ -60,12 +60,19 @@ export const signInAs = async (
     },
   });
 
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) {
-    throw new Error(
-      `[rls-smoke signIn] signInWithPassword(<${email}>) failed: ${error.message}`
-    );
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if (!error) return client;
+
+    const isRateLimited = /rate limit/i.test(error.message);
+    if (!isRateLimited || attempt === 3) {
+      throw new Error(
+        `[rls-smoke signIn] signInWithPassword(<${email}>) failed: ${error.message}`
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
   }
 
-  return client;
+  throw new Error(`[rls-smoke signIn] sign-in retry budget exhausted for <${email}>`);
 };

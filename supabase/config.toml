@@ -409,4 +409,37 @@ verify_jwt = true
 [functions.send-email-notification]
 verify_jwt = true
 
+# Cron targets are invoked server-to-server with a managed Supabase secret key
+# and enforce that key/CRON_SECRET in-handler. The health probe retains gateway
+# JWT verification to match the current Production function configuration.
+[functions.agent-worker]
+verify_jwt = false
+
+[functions.compute-at-risk-signals]
+verify_jwt = false
+
+[functions.exam-period-notify]
+verify_jwt = false
+
+[functions.leaderboard-refresh]
+verify_jwt = false
+
+[functions.notification-digest]
+verify_jwt = false
+
+[functions.perfect-day-prompt]
+verify_jwt = false
+
+[functions.process-streak]
+verify_jwt = false
+
+[functions.streak-risk-cron]
+verify_jwt = false
+
+[functions.weekly-summary-cron]
+verify_jwt = false
+
+[functions.health]
+verify_jwt = true
+
 # PR 237 preview synchronization marker; no runtime configuration change.

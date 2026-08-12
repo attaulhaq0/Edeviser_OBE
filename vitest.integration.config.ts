@@ -1,6 +1,10 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
-import { assertNotProduction } from "./src/__tests__/integration-rls/guard";
+import {
+  assertNotProduction,
+  readRlsEnv,
+  rlsSkipReason,
+} from "./src/__tests__/integration-rls/guard";
 
 /**
  * Feature: qa-partner-review-remediation — Req 19 (RLS_Smoke_Test)
@@ -28,7 +32,16 @@ import { assertNotProduction } from "./src/__tests__/integration-rls/guard";
  * (`SUPABASE_DB_ENV === "preview"`) against the production project ref. When the
  * preview secrets are absent the guard is a no-op and the suite skips itself.
  */
-assertNotProduction();
+const rlsEnv = readRlsEnv();
+assertNotProduction(rlsEnv);
+if (process.env.RLS_SMOKE_REQUIRED === "true") {
+  const skipReason = rlsSkipReason(rlsEnv);
+  if (skipReason !== null) {
+    throw new Error(
+      `[rls-smoke] RLS_SMOKE_REQUIRED=true but the isolated preview suite is not configured: ${skipReason}`
+    );
+  }
+}
 
 export default defineConfig({
   resolve: {
@@ -48,6 +61,12 @@ export default defineConfig({
     testTimeout: 30000,
     hookTimeout: 60000,
     pool: "forks",
+    // Preview Auth rate limits are shared across the real integration files.
+    // Keep the full suite enabled, but serialize its files in the required CI
+    // path so authorization cases do not stampede the isolated branch.
+    fileParallelism: process.env.RLS_SMOKE_REQUIRED !== "true",
+    maxWorkers: process.env.RLS_SMOKE_REQUIRED === "true" ? 1 : undefined,
+    minWorkers: process.env.RLS_SMOKE_REQUIRED === "true" ? 1 : undefined,
     css: false,
   },
 });

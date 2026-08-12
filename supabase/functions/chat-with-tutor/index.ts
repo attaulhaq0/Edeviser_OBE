@@ -167,6 +167,14 @@ function validateRequest(
     return { valid: false, error: "message cannot exceed 2000 characters" };
   }
 
+  if (
+    b.clo_scope !== undefined &&
+    (!Array.isArray(b.clo_scope) ||
+      !b.clo_scope.every((id: unknown) => typeof id === "string"))
+  ) {
+    return { valid: false, error: "clo_scope must be an array of strings" };
+  }
+
   // conversation_id or course_id required
   if (!b.conversation_id && !b.course_id) {
     return {
@@ -666,16 +674,18 @@ serve(async (req) => {
   // user-controlled at signup and must never determine AI tenant scope.
   const { data: callerProfile, error: profileError } = await supabase
     .from("profiles")
-    .select("institution_id, role, is_active")
+    .select("institution_id, role, is_active, status")
     .eq("id", studentId)
     .maybeSingle();
   if (
     profileError ||
     !callerProfile?.institution_id ||
-    callerProfile.is_active !== true
+    callerProfile.is_active !== true ||
+    callerProfile.status !== "active" ||
+    callerProfile.role !== "student"
   ) {
     return new Response(
-      JSON.stringify({ error: "Forbidden: active profile required" }),
+      JSON.stringify({ error: "Forbidden: active student profile required" }),
       {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -733,13 +743,47 @@ serve(async (req) => {
     courseId = conv.course_id as string;
   }
 
-  // Verify course enrollment
+  // Verify the authoritative course tenant and active enrollment before any
+  // usage/conversation writes. The course's institution comes only from
+  // courses → programs, never from request or JWT metadata.
   if (courseId) {
+    const { data: course, error: courseError } = await supabase
+      .from("courses")
+      .select("id, program_id, programs!inner(institution_id)")
+      .eq("id", courseId)
+      .maybeSingle();
+    const courseRow = course as {
+      programs:
+        | { institution_id: string }
+        | { institution_id: string }[]
+        | null;
+    } | null;
+    const program = courseRow
+      ? Array.isArray(courseRow.programs)
+        ? courseRow.programs[0]
+        : courseRow.programs
+      : null;
+    if (
+      courseError ||
+      !courseRow ||
+      !program?.institution_id ||
+      program.institution_id !== institutionId
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: course institution mismatch" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { data: enrollment, error: enrollErr } = await supabase
       .from("student_courses")
       .select("id")
       .eq("student_id", studentId)
       .eq("course_id", courseId)
+      .eq("status", "active")
       .maybeSingle();
 
     if (enrollErr || !enrollment) {
@@ -747,6 +791,50 @@ serve(async (req) => {
         JSON.stringify({
           error: "You are not enrolled in this course",
         }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+  }
+
+  // Validate every requested CLO before usage/conversation writes or RAG.
+  const requestedCloScope =
+    chatReq.clo_scope ?? (existingConversation?.clo_scope as string[]) ?? [];
+  if (requestedCloScope.length > 0) {
+    if (!courseId) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: CLO scope requires a course" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const uniqueCloIds = [...new Set(requestedCloScope)];
+    const { data: scopedOutcomes, error: cloError } = await supabase
+      .from("learning_outcomes")
+      .select("id, type, course_id, institution_id")
+      .in("id", uniqueCloIds);
+    if (
+      cloError ||
+      !scopedOutcomes ||
+      scopedOutcomes.length !== uniqueCloIds.length ||
+      scopedOutcomes.some(
+        (outcome: {
+          type: string;
+          course_id: string | null;
+          institution_id: string;
+        }) =>
+          outcome.type !== "CLO" ||
+          outcome.course_id !== courseId ||
+          outcome.institution_id !== institutionId
+      )
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: CLO scope is outside this course" }),
         {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -961,8 +1049,7 @@ serve(async (req) => {
   let cloAutonomy: AutonomyLevel | null = null;
 
   // Check if conversation is scoped to CLOs that have autonomy settings
-  const cloScope =
-    chatReq.clo_scope ?? (existingConversation?.clo_scope as string[]) ?? [];
+  const cloScope = requestedCloScope;
 
   // Fetch assignment autonomy level if CLOs are scoped to an assignment
   if (cloScope.length > 0 && courseId) {
@@ -1078,7 +1165,10 @@ serve(async (req) => {
   if (courseId && queryEmbedding) {
     const matchCloIds = cloScope.length > 0 ? cloScope : null;
 
-    const { data: chunks, error: searchErr } = await supabase.rpc(
+    // Use the caller JWT for RAG. SECURITY INVOKER then evaluates the
+    // corrected embedding policies for this exact student instead of allowing
+    // the service-role client to bypass them.
+    const { data: chunks, error: searchErr } = await userClient.rpc(
       "search_course_materials",
       {
         query_embedding: JSON.stringify(queryEmbedding),

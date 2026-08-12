@@ -39,9 +39,9 @@ interface TeacherDashboardPayload {
     gradedThisWeek: number;
     avgAttainment: number;
     atRiskCount: number;
-    totalStudents: number;
+    totalAssignedStudents: number;
+    totalAssignedCourses: number;
   };
-  bloomsDistribution: unknown[];
 }
 
 /** Narrow structural type for calling an RPC not yet in the generated types. */
@@ -70,11 +70,11 @@ const callTeacherDashboardRpc = async (
 };
 
 const expectEmpty = (payload: TeacherDashboardPayload): void => {
-  expect(payload.kpis.totalStudents).toBe(0);
+  expect(payload.kpis.totalAssignedStudents).toBe(0);
   expect(payload.kpis.atRiskCount).toBe(0);
   expect(payload.kpis.pendingSubmissions).toBe(0);
   expect(payload.kpis.gradedThisWeek).toBe(0);
-  expect(payload.bloomsDistribution).toEqual([]);
+  expect(payload.kpis.totalAssignedCourses).toBe(0);
 };
 
 describe.skipIf(!shouldRunRls())(

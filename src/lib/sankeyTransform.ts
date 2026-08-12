@@ -16,7 +16,9 @@ export interface SankeyLink {
 }
 
 interface OutcomeMapping {
+  /** Canonical parent outcome (ILO or PLO). */
   parent_id: string;
+  /** Canonical child outcome (PLO or CLO). */
   child_id: string;
   weight: number;
 }
@@ -65,8 +67,10 @@ export const transformToSankey = (
   const links: SankeyLink[] = mappings
     .filter((m) => nodeIndex.has(m.parent_id) && nodeIndex.has(m.child_id))
     .map((m) => ({
-      source: nodeIndex.get(m.child_id)!,
-      target: nodeIndex.get(m.parent_id)!,
+      // Recharts flows from source to target. The persisted OBE direction is
+      // parent → child, so keep the visual flow aligned with ILO → PLO → CLO.
+      source: nodeIndex.get(m.parent_id)!,
+      target: nodeIndex.get(m.child_id)!,
       value: m.weight,
       weight: m.weight,
     }));
