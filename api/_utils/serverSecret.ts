@@ -7,6 +7,13 @@
 export function getManagedServerKey(
   env: NodeJS.ProcessEnv = process.env
 ): string {
+  // Supabase's Vercel integration refreshes this branch-scoped value whenever
+  // a Preview branch is created or recreated. Prefer that canonical binding
+  // over the Edge Runtime's JSON key set, which may also exist in Vercel as a
+  // stale, manually scoped override from an earlier Preview project.
+  const integrationKey = env.SUPABASE_SECRET_KEY;
+  if (integrationKey) return integrationKey;
+
   const configured = env.SUPABASE_SECRET_KEYS;
   const keyName = env.SUPABASE_SECRET_KEY_NAME ?? "default";
 
