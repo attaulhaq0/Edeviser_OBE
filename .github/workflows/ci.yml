@@ -436,6 +436,7 @@ jobs:
           preview_ref=""
           for attempt in $(seq 1 30); do
             if ! branches=$(curl --fail --silent --show-error \
+              --connect-timeout 5 --max-time 20 \
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
               "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches"); then
               echo "::warning::Supabase Preview branch lookup attempt $attempt failed; retrying"
@@ -457,6 +458,7 @@ jobs:
           done
 
           keys=$(curl --fail --silent --show-error \
+            --connect-timeout 5 --max-time 20 \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             "https://api.supabase.com/v1/projects/$preview_ref/api-keys")
           anon_key=$(jq -r '[.[] | select((.name == "publishable" or .type == "publishable") or (.name == "anon" and .type == "legacy")) | .api_key][0] // empty' <<< "$keys")

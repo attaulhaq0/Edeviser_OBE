@@ -160,7 +160,7 @@ const OutcomeMappingColumns = ({
     </div>
     {/* Outcome mapping — nodes grouped by type */}
     <div className="grid grid-cols-3 gap-4 min-h-[300px]">
-      {(["CLO", "PLO", "ILO"] as const).map((type) => (
+      {(["ILO", "PLO", "CLO"] as const).map((type) => (
         <div key={type} className="space-y-2">
           <p className="text-xs font-black tracking-widest uppercase text-slate-400 text-center">
             {type}s

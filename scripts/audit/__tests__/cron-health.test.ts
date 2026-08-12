@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildProbeHeaders,
-  isVercelPreviewUrl,
-} from "../cron-health.ts";
+import { buildProbeHeaders, isVercelPreviewUrl } from "../cron-health.ts";
 
 describe("cron health Vercel Preview protection", () => {
   it("adds the bypass header while preserving cron authentication headers", () => {
@@ -17,10 +14,27 @@ describe("cron health Vercel Preview protection", () => {
     expect(headers["x-cron-secret"]).toBe("cron-secret");
   });
 
-  it("recognizes only Vercel-hosted preview URLs", () => {
-    expect(isVercelPreviewUrl("https://example-preview.vercel.app")).toBe(
-      true
+  it("recognizes only the configured E Deviser Vercel Preview identity", () => {
+    expect(
+      isVercelPreviewUrl(
+        "https://e-deviser-git-agent-foundation-rag-6ad77b-attaulhaq0s-projects.vercel.app"
+      )
+    ).toBe(true);
+    expect(isVercelPreviewUrl("https://unrelated-preview.vercel.app")).toBe(
+      false
     );
     expect(isVercelPreviewUrl("https://app.example.com")).toBe(false);
+  });
+
+  it("does not forward the bypass secret to an unrelated Vercel hostname", () => {
+    const unrelatedUrl = "https://unrelated-preview.vercel.app";
+    const headers = buildProbeHeaders(
+      "cron-secret",
+      "vercel-bypass-secret",
+      isVercelPreviewUrl(unrelatedUrl)
+    );
+
+    expect(headers["x-vercel-protection-bypass"]).toBeUndefined();
+    expect(headers.Authorization).toBe("Bearer cron-secret");
   });
 });

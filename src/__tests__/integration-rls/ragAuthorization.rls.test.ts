@@ -58,7 +58,9 @@ run("course material embedding authorization", () => {
     admin = createAdminClient();
     const env = readRlsEnv();
     if (!env.supabaseUrl || !env.supabaseAnonKey) {
-      throw new Error("RAG RLS test requires preview Supabase URL and anon key");
+      throw new Error(
+        "RAG RLS test requires preview Supabase URL and anon key"
+      );
     }
     anonymous = createClient<Database>(env.supabaseUrl, env.supabaseAnonKey, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -166,7 +168,8 @@ run("course material embedding authorization", () => {
       })
       .select("id")
       .single();
-    if (otherCourse.error || !otherCourse.data) throw new Error(otherCourse.error?.message);
+    if (otherCourse.error || !otherCourse.data)
+      throw new Error(otherCourse.error?.message);
     otherCourseId = otherCourse.data.id;
 
     const otherSection = await admin
@@ -178,7 +181,8 @@ run("course material embedding authorization", () => {
       })
       .select("id")
       .single();
-    if (otherSection.error || !otherSection.data) throw new Error(otherSection.error?.message);
+    if (otherSection.error || !otherSection.data)
+      throw new Error(otherSection.error?.message);
     otherSectionId = otherSection.data.id;
     const enrollment = await admin.from("student_courses").insert({
       course_id: otherCourseId,
@@ -212,7 +216,8 @@ run("course material embedding authorization", () => {
       })
       .select("id")
       .single();
-    if (foreignProgram.error || !foreignProgram.data) throw new Error(foreignProgram.error?.message);
+    if (foreignProgram.error || !foreignProgram.data)
+      throw new Error(foreignProgram.error?.message);
     foreignProgramId = foreignProgram.data.id;
 
     const foreignCourse = await admin
@@ -228,7 +233,8 @@ run("course material embedding authorization", () => {
       })
       .select("id")
       .single();
-    if (foreignCourse.error || !foreignCourse.data) throw new Error(foreignCourse.error?.message);
+    if (foreignCourse.error || !foreignCourse.data)
+      throw new Error(foreignCourse.error?.message);
     foreignCourseId = foreignCourse.data.id;
 
     const inactiveCourse = await admin
@@ -313,7 +319,7 @@ run("course material embedding authorization", () => {
     ]);
     if (outcomes.error) throw new Error(outcomes.error.message);
 
-    const vector = `[${"0,".repeat(1535)}0]`;
+    const vector = `[1,${"0,".repeat(1534)}0]`;
     const embeddings = await admin
       .from("course_material_embeddings")
       .insert([
@@ -367,11 +373,24 @@ run("course material embedding authorization", () => {
         },
       ])
       .select("id, source_filename");
-    if (embeddings.error || !embeddings.data) throw new Error(embeddings.error?.message);
-    ownEmbeddingId = embeddings.data.find((row) => row.source_filename.includes("own"))?.id ?? "";
-    otherEmbeddingId = embeddings.data.find((row) => row.source_filename.includes("other"))?.id ?? "";
-    foreignEmbeddingId = embeddings.data.find((row) => row.source_filename.includes("foreign"))?.id ?? "";
-    otherProgramEmbeddingId = embeddings.data.find((row) => row.source_filename.includes("other-program"))?.id ?? "";
+    if (embeddings.error || !embeddings.data)
+      throw new Error(embeddings.error?.message);
+    ownEmbeddingId =
+      embeddings.data.find((row) => row.source_filename.includes("own"))?.id ??
+      "";
+    otherEmbeddingId =
+      embeddings.data.find((row) => row.source_filename.includes("other"))
+        ?.id ?? "";
+    foreignEmbeddingId =
+      embeddings.data.find((row) => row.source_filename.includes("foreign"))
+        ?.id ?? "";
+    const otherProgramEmbedding = embeddings.data.find((row) =>
+      row.source_filename.includes("other-program")
+    );
+    if (!otherProgramEmbedding) {
+      throw new Error("other-program embedding fixture was not created");
+    }
+    otherProgramEmbeddingId = otherProgramEmbedding.id;
   });
 
   afterAll(async () => {
@@ -388,11 +407,25 @@ run("course material embedding authorization", () => {
           otherProgramEmbeddingId,
         ].filter(Boolean)
       );
-    await admin.from("student_courses").delete().eq("course_id", otherCourseId);
-    await admin.from("student_courses").delete().eq("course_id", inactiveCourseId);
-    await admin.from("course_sections").delete().eq("id", inactiveSectionId);
-    await admin.from("course_sections").delete().eq("id", otherSectionId);
-    await admin.from("course_sections").delete().eq("id", otherTeacherSectionId);
+    if (otherCourseId)
+      await admin
+        .from("student_courses")
+        .delete()
+        .eq("course_id", otherCourseId);
+    if (inactiveCourseId)
+      await admin
+        .from("student_courses")
+        .delete()
+        .eq("course_id", inactiveCourseId);
+    if (inactiveSectionId)
+      await admin.from("course_sections").delete().eq("id", inactiveSectionId);
+    if (otherSectionId)
+      await admin.from("course_sections").delete().eq("id", otherSectionId);
+    if (otherTeacherSectionId)
+      await admin
+        .from("course_sections")
+        .delete()
+        .eq("id", otherTeacherSectionId);
     await admin
       .from("learning_outcomes")
       .delete()
@@ -402,41 +435,99 @@ run("course material embedding authorization", () => {
       .delete()
       .in(
         "id",
-        [otherCourseId, foreignCourseId, inactiveCourseId, otherTeacherCourseId].filter(Boolean)
+        [
+          otherCourseId,
+          foreignCourseId,
+          inactiveCourseId,
+          otherTeacherCourseId,
+        ].filter(Boolean)
       );
-    await admin.from("programs").delete().eq("id", otherProgramId);
-    await admin.from("programs").delete().eq("id", foreignProgramId);
-    await admin.from("institutions").delete().eq("id", foreignInstitutionId);
+    if (otherProgramId)
+      await admin.from("programs").delete().eq("id", otherProgramId);
+    if (foreignProgramId)
+      await admin.from("programs").delete().eq("id", foreignProgramId);
+    if (foreignInstitutionId)
+      await admin.from("institutions").delete().eq("id", foreignInstitutionId);
     if (otherTeacherId) await admin.auth.admin.deleteUser(otherTeacherId);
-    if (otherCoordinatorId) await admin.auth.admin.deleteUser(otherCoordinatorId);
+    if (otherCoordinatorId)
+      await admin.auth.admin.deleteUser(otherCoordinatorId);
     await teardownRlsFixtures(ctx);
   });
 
   it("enforces direct REST table scope by role and institution", async () => {
-    const [student, teacher, coordinator, administrator, parent] = await Promise.all([
-      clients.student.from("course_material_embeddings").select("id").in("course_id", [ctx.courseId, otherCourseId, foreignCourseId, otherTeacherCourseId]),
-      clients.teacher.from("course_material_embeddings").select("id").in("course_id", [ctx.courseId, otherCourseId, foreignCourseId, otherTeacherCourseId]),
-      clients.coordinator.from("course_material_embeddings").select("id").in("course_id", [ctx.courseId, otherCourseId, foreignCourseId, otherTeacherCourseId]),
-      clients.admin.from("course_material_embeddings").select("id").in("course_id", [ctx.courseId, otherCourseId, foreignCourseId, otherTeacherCourseId]),
-      clients.parent.from("course_material_embeddings").select("id").in("course_id", [ctx.courseId, otherCourseId, foreignCourseId, otherTeacherCourseId]),
-    ]);
+    const [student, teacher, coordinator, administrator, parent] =
+      await Promise.all([
+        clients.student
+          .from("course_material_embeddings")
+          .select("id")
+          .in("course_id", [
+            ctx.courseId,
+            otherCourseId,
+            foreignCourseId,
+            otherTeacherCourseId,
+          ]),
+        clients.teacher
+          .from("course_material_embeddings")
+          .select("id")
+          .in("course_id", [
+            ctx.courseId,
+            otherCourseId,
+            foreignCourseId,
+            otherTeacherCourseId,
+          ]),
+        clients.coordinator
+          .from("course_material_embeddings")
+          .select("id")
+          .in("course_id", [
+            ctx.courseId,
+            otherCourseId,
+            foreignCourseId,
+            otherTeacherCourseId,
+          ]),
+        clients.admin
+          .from("course_material_embeddings")
+          .select("id")
+          .in("course_id", [
+            ctx.courseId,
+            otherCourseId,
+            foreignCourseId,
+            otherTeacherCourseId,
+          ]),
+        clients.parent
+          .from("course_material_embeddings")
+          .select("id")
+          .in("course_id", [
+            ctx.courseId,
+            otherCourseId,
+            foreignCourseId,
+            otherTeacherCourseId,
+          ]),
+      ]);
     expect(student.error).toBeNull();
     expect(student.data?.map((row) => row.id)).toEqual([ownEmbeddingId]);
     expect(teacher.error).toBeNull();
-    expect(teacher.data?.map((row) => row.id).sort()).toEqual([ownEmbeddingId, otherEmbeddingId].sort());
+    expect(teacher.data?.map((row) => row.id).sort()).toEqual(
+      [ownEmbeddingId, otherEmbeddingId].sort()
+    );
     expect(coordinator.error).toBeNull();
-    expect(coordinator.data?.map((row) => row.id).sort()).toEqual([ownEmbeddingId, otherEmbeddingId].sort());
+    expect(coordinator.data?.map((row) => row.id).sort()).toEqual(
+      [ownEmbeddingId, otherEmbeddingId].sort()
+    );
     expect(administrator.error).toBeNull();
-    expect(administrator.data?.map((row) => row.id).sort()).toEqual([ownEmbeddingId, otherEmbeddingId, otherProgramEmbeddingId].sort());
+    expect(administrator.data?.map((row) => row.id).sort()).toEqual(
+      [ownEmbeddingId, otherEmbeddingId, otherProgramEmbeddingId].sort()
+    );
     expect(parent.error).toBeNull();
     expect(parent.data).toHaveLength(0);
   });
 
   it("denies anonymous table access and filters forged or mixed RPC course/CLO ids", async () => {
-    const directAnon = await anonymous.from("course_material_embeddings").select("id");
+    const directAnon = await anonymous
+      .from("course_material_embeddings")
+      .select("id");
     expect(directAnon.error).not.toBeNull();
 
-    const vector = `[${"0,".repeat(1535)}0]`;
+    const vector = `[1,${"0,".repeat(1534)}0]`;
     const rpc = (
       client: SupabaseClient<Database>,
       courseIds: string[],
@@ -450,13 +541,14 @@ run("course material embedding authorization", () => {
         match_count: 10,
       });
 
-    const [authorized, unauthorizedCourse, mixedCourses, forgedClo, anonRpc] = await Promise.all([
-      rpc(clients.student, [ctx.courseId], [ownCloId]),
-      rpc(clients.student, [otherCourseId], [otherCloId]),
-      rpc(clients.student, [ctx.courseId, otherCourseId, foreignCourseId]),
-      rpc(clients.student, [ctx.courseId], [randomUUID()]),
-      rpc(anonymous, [ctx.courseId]),
-    ]);
+    const [authorized, unauthorizedCourse, mixedCourses, forgedClo, anonRpc] =
+      await Promise.all([
+        rpc(clients.student, [ctx.courseId], [ownCloId]),
+        rpc(clients.student, [otherCourseId], [otherCloId]),
+        rpc(clients.student, [ctx.courseId, otherCourseId, foreignCourseId]),
+        rpc(clients.student, [ctx.courseId], [randomUUID()]),
+        rpc(anonymous, [ctx.courseId]),
+      ]);
     expect(authorized.error).toBeNull();
     expect(authorized.data?.map((row) => row.id)).toEqual([ownEmbeddingId]);
     expect(unauthorizedCourse.error).toBeNull();
@@ -470,18 +562,20 @@ run("course material embedding authorization", () => {
 
   it("rejects inconsistent metadata even for the privileged writer", async () => {
     const vector = `[${"0,".repeat(1535)}0]`;
-    const wrongInstitution = await admin.from("course_material_embeddings").insert({
-      course_id: ctx.courseId,
-      institution_id: foreignInstitutionId,
-      chunk_text: "invalid institution metadata",
-      source_filename: `rag-invalid-institution-${ctx.runId}`,
-      material_type: "lecture_notes",
-      token_count: 3,
-      chunk_index: 0,
-      embedding: vector,
-      clo_ids: [ownCloId],
-      indexing_status: "indexed",
-    });
+    const wrongInstitution = await admin
+      .from("course_material_embeddings")
+      .insert({
+        course_id: ctx.courseId,
+        institution_id: foreignInstitutionId,
+        chunk_text: "invalid institution metadata",
+        source_filename: `rag-invalid-institution-${ctx.runId}`,
+        material_type: "lecture_notes",
+        token_count: 3,
+        chunk_index: 0,
+        embedding: vector,
+        clo_ids: [ownCloId],
+        indexing_status: "indexed",
+      });
     const wrongClo = await admin.from("course_material_embeddings").insert({
       course_id: ctx.courseId,
       institution_id: ctx.institutionId,
@@ -494,8 +588,18 @@ run("course material embedding authorization", () => {
       clo_ids: [otherCloId],
       indexing_status: "indexed",
     });
-    expect(wrongInstitution.error).not.toBeNull();
-    expect(wrongClo.error).not.toBeNull();
+    try {
+      expect(wrongInstitution.error).not.toBeNull();
+      expect(wrongClo.error).not.toBeNull();
+    } finally {
+      await admin
+        .from("course_material_embeddings")
+        .delete()
+        .in("source_filename", [
+          `rag-invalid-institution-${ctx.runId}`,
+          `rag-invalid-clo-${ctx.runId}`,
+        ]);
+    }
   });
 
   const invokeFunction = async (
@@ -525,15 +629,19 @@ run("course material embedding authorization", () => {
       .select("id")
       .eq("id", otherEmbeddingId)
       .single();
-    const response = await invokeFunction(clients.student, "embed-course-material", {
-      file_url: "does-not-exist.txt",
-      course_id: otherCourseId,
-      institution_id: foreignInstitutionId,
-      clo_ids: [otherCloId],
-      material_type: "lecture_notes",
-      source_filename: `rag-other-${ctx.runId}`,
-      reindex: true,
-    });
+    const response = await invokeFunction(
+      clients.student,
+      "embed-course-material",
+      {
+        file_url: "does-not-exist.txt",
+        course_id: otherCourseId,
+        institution_id: foreignInstitutionId,
+        clo_ids: [otherCloId],
+        material_type: "lecture_notes",
+        source_filename: `rag-other-${ctx.runId}`,
+        reindex: true,
+      }
+    );
     expect(response.status).toBe(403);
     const after = await admin
       .from("course_material_embeddings")
@@ -551,10 +659,14 @@ run("course material embedding authorization", () => {
       { course_id: ctx.courseId, clo_scope: [randomUUID()] },
     ];
     for (const request of deniedRequests) {
-      const response = await invokeFunction(clients.student, "chat-with-tutor", {
-        message: "Explain this course outcome.",
-        ...request,
-      });
+      const response = await invokeFunction(
+        clients.student,
+        "chat-with-tutor",
+        {
+          message: "Explain this course outcome.",
+          ...request,
+        }
+      );
       expect(response.status).toBe(403);
     }
   });

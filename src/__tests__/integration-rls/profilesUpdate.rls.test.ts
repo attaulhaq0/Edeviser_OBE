@@ -24,6 +24,8 @@
  *                 → rejected (WITH CHECK pins role to the stored value).
  *   4. profiles — student attempts to change their own status to 'active'…
  *                 actually to a different value → rejected (status is pinned).
+ *   5. profiles — student attempts to deactivate their own profile → rejected
+ *                 because is_active is shared authentication state.
  *
  * Skip-safety: runRlsCases wraps everything in describe.skipIf(!shouldRunRls()),
  * so with no preview secrets nothing connects and `npm run test:rls` exits 0.
@@ -84,6 +86,19 @@ const RLS_CASES: readonly RLSCase[] = [
       const { error } = await client
         .from("profiles")
         .update({ status: "suspended" })
+        .eq("id", ctx.studentId);
+      return { error };
+    },
+  },
+  {
+    table: "profiles",
+    description: "student cannot change own is_active authentication state",
+    asRole: "student",
+    expect: "rejected",
+    action: async (ctx, client) => {
+      const { error } = await client
+        .from("profiles")
+        .update({ is_active: false })
         .eq("id", ctx.studentId);
       return { error };
     },

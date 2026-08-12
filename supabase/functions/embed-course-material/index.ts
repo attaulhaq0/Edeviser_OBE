@@ -586,14 +586,12 @@ async function authorizeTeacherCourse(
 
   const row = data as {
     teacher_id: string | null;
-    programs:
-      | { institution_id: string }
-      | { institution_id: string }[]
-      | null;
+    programs: { institution_id: string } | { institution_id: string }[] | null;
   };
   const program = Array.isArray(row.programs) ? row.programs[0] : row.programs;
+  const teacherId = row.teacher_id;
 
-  if (!program?.institution_id || row.teacher_id !== callerId) {
+  if (!program?.institution_id || !teacherId || teacherId !== callerId) {
     return {
       authorized: false,
       status: 403,
@@ -605,7 +603,7 @@ async function authorizeTeacherCourse(
     authorized: true,
     course: {
       institutionId: program.institution_id,
-      teacherId: row.teacher_id,
+      teacherId,
     },
   };
 }
@@ -664,10 +662,13 @@ serve(async (req) => {
     // remain behind the role/course/CLO checks.
     const auth = await authenticateRequest(req);
     if (!auth.user) {
-      return new Response(JSON.stringify({ error: auth.error ?? "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: auth.error ?? "Unauthorized" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
     if (auth.user.role !== "teacher") {
       return new Response(

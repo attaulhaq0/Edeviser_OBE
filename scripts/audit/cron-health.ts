@@ -124,9 +124,14 @@ interface ProbeResult {
   readonly error?: string;
 }
 
+const TRUSTED_VERCEL_PREVIEW_HOST =
+  /^e-deviser-git-[a-z0-9-]+-attaulhaq0s-projects\.vercel\.app$/;
+
 export const isVercelPreviewUrl = (url: string): boolean => {
   try {
-    return new URL(url).hostname.toLowerCase().endsWith(".vercel.app");
+    return TRUSTED_VERCEL_PREVIEW_HOST.test(
+      new URL(url).hostname.toLowerCase()
+    );
   } catch {
     return false;
   }
