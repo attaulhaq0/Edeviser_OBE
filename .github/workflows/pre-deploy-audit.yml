@@ -518,6 +518,7 @@ jobs:
       - name: Download connectivity matrix
         if: needs.connectivity.result != 'skipped'
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: connectivity-matrix
           path: audit/output/
@@ -525,6 +526,7 @@ jobs:
       - name: Download RLS matrix
         if: needs.rls.result != 'skipped'
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: rls-matrix
           path: audit/output/
@@ -532,6 +534,7 @@ jobs:
       - name: Download cron health
         if: needs.cron.result != 'skipped'
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: cron-health
           path: audit/output/
@@ -556,6 +559,8 @@ jobs:
         env:
           GITHUB_SHA: ${{ github.sha }}
           AUDIT_ENV: ${{ env.AUDIT_ENV }}
+          REQUIRED_AUDIT_STAGE_RESULTS: >-
+            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ needs.cron.result }}"}
 
       - uses: actions/upload-artifact@v7
         if: always()

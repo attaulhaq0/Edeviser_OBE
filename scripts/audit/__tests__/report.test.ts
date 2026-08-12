@@ -8,7 +8,13 @@
 //     whole doc; just asserts the critical sections exist)
 //   - buildVerdictArtifact — refuses to emit when provenance is incomplete
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -18,14 +24,18 @@ import {
   buildVerdictArtifact,
   countSeverities,
   ingestFindings,
+  requiredStageFindings,
   renderReport,
+  runReportStage,
 } from "../report.ts";
 
 let originalCwd: string;
 let workspaceDir: string;
+let originalRequiredStageResults: string | undefined;
 
 beforeEach(() => {
   originalCwd = process.cwd();
+  originalRequiredStageResults = process.env.REQUIRED_AUDIT_STAGE_RESULTS;
   workspaceDir = mkdtempSync(join(tmpdir(), "audit-report-"));
   mkdirSync(join(workspaceDir, "audit", "output"), { recursive: true });
   mkdirSync(join(workspaceDir, "audit", "baselines"), { recursive: true });
@@ -33,12 +43,64 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  if (originalRequiredStageResults === undefined) {
+    delete process.env.REQUIRED_AUDIT_STAGE_RESULTS;
+  } else {
+    process.env.REQUIRED_AUDIT_STAGE_RESULTS = originalRequiredStageResults;
+  }
   process.chdir(originalCwd);
   try {
     rmSync(workspaceDir, { recursive: true, force: true });
   } catch {
     // best-effort cleanup
   }
+});
+
+describe("required audit stage outcomes", () => {
+  it("makes a failed required Cron stage No-Go and fails report generation", async () => {
+    mkdirSync(join(workspaceDir, "supabase", "migrations"), {
+      recursive: true,
+    });
+    writeFileSync(
+      join(workspaceDir, "supabase", "migrations", "20260101_base.sql"),
+      "select 1;\n",
+      "utf8"
+    );
+    writeArtifact("manifest.json", {
+      runId: "run-required-stage",
+      commitSha: "abc123",
+      migrationHead: null,
+      envId: "ci",
+      startedAt: "2026-01-01T00:00:00.000Z",
+      finishedAt: "2026-01-01T00:01:00.000Z",
+      stages: [],
+    });
+    process.env.REQUIRED_AUDIT_STAGE_RESULTS = JSON.stringify({
+      security: "success",
+      "static-scanners": "success",
+      connectivity: "success",
+      rls: "success",
+      cron: "failure",
+    });
+
+    const result = await runReportStage();
+    const verdict = JSON.parse(
+      readFileSync(
+        join(workspaceDir, "audit", "output", "verdict.json"),
+        "utf8"
+      )
+    ) as { verdict: string };
+    const report = readFileSync(
+      join(workspaceDir, "audit", "output", "audit-report.md"),
+      "utf8"
+    );
+
+    expect(requiredStageFindings(undefined)[0]?.severity).toBe("Blocker");
+    expect(result.status).toBe("failed");
+    expect(verdict.verdict).toBe("No-Go");
+    expect(report).toContain("Verdict: **No-Go**");
+    expect(report).toContain("Required audit stage cron did not pass");
+  });
 });
 
 const writeArtifact = (name: string, body: unknown) => {
