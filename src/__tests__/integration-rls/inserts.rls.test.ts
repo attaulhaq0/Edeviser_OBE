@@ -37,7 +37,21 @@
  */
 import type { Database } from "@/types/database";
 import { runRlsCases, type RLSCase } from "./runner";
-import { createAdminClient, teardownRlsFixtures, type SeededCtx } from "./seed";
+import {
+  createAdminClient,
+  seedRlsFixtures,
+  teardownRlsFixtures,
+  type SeededCtx,
+} from "./seed";
+
+let forgedInstitutionId: string | null = null;
+
+const requireForgedInstitutionId = (): string => {
+  if (!forgedInstitutionId) {
+    throw new Error("forged institution fixture was not created");
+  }
+  return forgedInstitutionId;
+};
 
 /** The generated insert shape for `social_challenges` (real columns only). */
 type ChallengeInsert =
@@ -119,7 +133,60 @@ const RLS_CASES: readonly RLSCase[] = [
       return { error };
     },
   },
+  {
+    table: "social_challenges",
+    description: "teacher cannot forge institution_id for an owned course",
+    asRole: "teacher",
+    expect: "rejected",
+    action: async (ctx, client) => {
+      const { error } = await client.from("social_challenges").insert({
+        ...buildChallengePayload(ctx, ctx.teacherId),
+        institution_id: requireForgedInstitutionId(),
+        title: `RLS forged teacher challenge ${ctx.runId.slice(0, 8)}`,
+      });
+      return { error };
+    },
+  },
+  {
+    table: "social_challenges",
+    description: "admin cannot forge institution_id for an in-tenant course",
+    asRole: "admin",
+    expect: "rejected",
+    action: async (ctx, client) => {
+      const { error } = await client.from("social_challenges").insert({
+        ...buildChallengePayload(ctx, ctx.adminId),
+        institution_id: requireForgedInstitutionId(),
+        title: `RLS forged admin challenge ${ctx.runId.slice(0, 8)}`,
+      });
+      return { error };
+    },
+  },
 ];
+
+const seedWithForeignInstitution = async (): Promise<SeededCtx> => {
+  const ctx = await seedRlsFixtures();
+  const admin = createAdminClient();
+  const inserted = await admin
+    .from("institutions")
+    .insert({
+      name: `RLS Foreign Institution ${ctx.runId}`,
+      slug: `rls-foreign-${ctx.runId}`,
+      join_mode: "open",
+    })
+    .select("id")
+    .single();
+
+  if (inserted.error || !inserted.data) {
+    await teardownRlsFixtures(ctx);
+    throw new Error(
+      `foreign institution fixture failed: ${
+        inserted.error?.message ?? "missing row"
+      }`
+    );
+  }
+  forgedInstitutionId = inserted.data.id;
+  return ctx;
+};
 
 /**
  * Removes the rows the cases above insert (scoped to the seeded course) before
@@ -134,6 +201,9 @@ const teardownWithInsertedRows = async (ctx: SeededCtx): Promise<void> => {
       .delete()
       .eq("course_id", ctx.courseId);
     await admin.from("teams").delete().eq("course_id", ctx.courseId);
+    if (forgedInstitutionId) {
+      await admin.from("institutions").delete().eq("id", forgedInstitutionId);
+    }
   } catch (error) {
     console.warn(
       `[rls-smoke teardown] pre-clean of inserted teams/challenges skipped: ${String(
@@ -141,10 +211,12 @@ const teardownWithInsertedRows = async (ctx: SeededCtx): Promise<void> => {
       )}`
     );
   }
+  forgedInstitutionId = null;
   await teardownRlsFixtures(ctx);
 };
 
 runRlsCases(RLS_CASES, {
   suiteName: "RLS smoke — teams & social_challenges inserts (task 5.3)",
+  seed: seedWithForeignInstitution,
   teardown: teardownWithInsertedRows,
 });

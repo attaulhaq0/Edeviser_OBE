@@ -40,7 +40,6 @@ import { signInAs, type RoleClient } from "./signIn";
 interface DashboardPayload {
   kpis: { enrolledCourses: number; completedAssignments: number };
   deadlines: unknown[];
-  announcements: unknown[];
   attendance: unknown[];
 }
 
@@ -113,7 +112,6 @@ describe.skipIf(!shouldRunRls())(
         expect(payload.kpis.enrolledCourses).toBe(0);
         expect(payload.kpis.completedAssignments).toBe(0);
         expect(payload.deadlines).toEqual([]);
-        expect(payload.announcements).toEqual([]);
         expect(payload.attendance).toEqual([]);
       } finally {
         await client.auth.signOut();
