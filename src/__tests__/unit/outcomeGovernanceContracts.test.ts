@@ -103,6 +103,19 @@ describe("OBE hierarchy governance contracts", () => {
     expect(migration).toMatch(
       /GRANT SELECT, INSERT, UPDATE, DELETE[\s\S]*TO authenticated/
     );
+    expect(migration).toMatch(
+      /UPDATE public\.learning_outcomes AS outcome[\s\S]*outcome\.type = 'PLO'[\s\S]*outcome\.program_id = program\.id/
+    );
+    expect(migration).toMatch(
+      /UPDATE public\.learning_outcomes AS outcome[\s\S]*outcome\.type = 'CLO'[\s\S]*outcome\.course_id = course\.id/
+    );
+    expect(
+      migration.indexOf("UPDATE public.learning_outcomes AS outcome")
+    ).toBeLessThan(
+      migration.indexOf(
+        "VALIDATE CONSTRAINT learning_outcomes_canonical_shape_check"
+      )
+    );
   });
 
   it("uses operation-specific hierarchy policies with explicit write checks", () => {
