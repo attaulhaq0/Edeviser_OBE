@@ -136,10 +136,13 @@ jobs:
           path: dist/
 
       - name: Enforce prototype diff, import, and artifact boundaries
+        env:
+          PROTOTYPE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PROTOTYPE_HEAD_REF: ${{ github.head_ref }}
         run: >-
           node scripts/check-prototype-boundary.mjs
-          --base-sha "${{ github.event.pull_request.base.sha }}"
-          --head-ref "${{ github.head_ref }}"
+          --base-sha "$PROTOTYPE_BASE_SHA"
+          --head-ref "$PROTOTYPE_HEAD_REF"
           --dist dist
 
   security-audit:
