@@ -297,43 +297,6 @@ CREATE TRIGGER trg_enforce_learning_outcome_scope
   FOR EACH ROW
   EXECUTE FUNCTION public.enforce_learning_outcome_scope();
 
--- Normalize legacy rows before validating the canonical shape. Historical
--- fixtures and pre-governance writes could omit the denormalized program on a
--- CLO or retain a lower-level scope on a parent outcome. Derive scope only
--- from authoritative relationships; rows with missing relationships remain
--- invalid and deliberately fail the constraint validation below.
-UPDATE public.learning_outcomes
-SET
-  program_id = NULL,
-  course_id = NULL
-WHERE type = 'ILO'::public.outcome_type
-  AND (program_id IS NOT NULL OR course_id IS NOT NULL);
-
-UPDATE public.learning_outcomes AS outcome
-SET
-  institution_id = program.institution_id,
-  course_id = NULL
-FROM public.programs AS program
-WHERE outcome.type = 'PLO'::public.outcome_type
-  AND outcome.program_id = program.id
-  AND (
-    outcome.institution_id IS DISTINCT FROM program.institution_id
-    OR outcome.course_id IS NOT NULL
-  );
-
-UPDATE public.learning_outcomes AS outcome
-SET
-  institution_id = program.institution_id,
-  program_id = course.program_id
-FROM public.courses AS course
-JOIN public.programs AS program ON program.id = course.program_id
-WHERE outcome.type = 'CLO'::public.outcome_type
-  AND outcome.course_id = course.id
-  AND (
-    outcome.institution_id IS DISTINCT FROM program.institution_id
-    OR outcome.program_id IS DISTINCT FROM course.program_id
-  );
-
 ALTER TABLE public.learning_outcomes
   DROP CONSTRAINT IF EXISTS learning_outcomes_canonical_shape_check;
 
