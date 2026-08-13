@@ -553,3 +553,6 @@ jobs:
 
       - name: Run RLS insert/update smoke tests against the preview branch
         run: npm run test:rls
+
+      - name: Run HTTP runtime authorization smoke tests against the preview branch
+        run: npm run test:preview-runtime-auth
