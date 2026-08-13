@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "requiredSourceAndDeployment": [
+    "accept-invitation",
+    "agent-worker",
+    "bootstrap-first-admin",
+    "chat-with-tutor",
+    "embed-course-material",
+    "invitation-preview",
+    "resend-webhook",
+    "send-invitation-email"
+  ],
+  "allowedDrift": {
+    "sourceOnly": ["coordinator-ai-insights"],
+    "deployedOnly": ["fee-overdue-check"]
+  },
+  "legacy": {
+    "fee-overdue-check": "Deployed without repository source; the current repository retains only the database-scheduled overdue-fee path. Do not redeploy from an unknown source."
+  }
+}

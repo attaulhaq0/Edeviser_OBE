@@ -170,6 +170,9 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Verify production build contains no prototype artifacts
+        run: node scripts/check-prototype-boundary.mjs --skip-diff --dist dist
+
       - uses: actions/upload-artifact@v7
         with:
           name: dist
