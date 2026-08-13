@@ -79,6 +79,8 @@ describe("internal RLS helper grant contract", () => {
       "team_in_course_i_teach(uuid)",
       "team_in_course_i_teach_active(uuid)",
       "team_in_my_institution(uuid)",
+      "get_coordinator_accreditation_readiness()",
+      "get_teacher_dashboard(uuid)",
     ]) {
       expect(grantsMigration).toContain(
         `REVOKE EXECUTE ON FUNCTION public.${fn} FROM PUBLIC, anon;`
@@ -87,5 +89,14 @@ describe("internal RLS helper grant contract", () => {
         `GRANT EXECUTE ON FUNCTION public.${fn} TO authenticated, service_role;`
       );
     }
+  });
+
+  it("keeps server-side team XP mutation restricted to service role", () => {
+    expect(grantsMigration).toContain(
+      "REVOKE EXECUTE ON FUNCTION public.increment_team_xp(uuid, integer) FROM PUBLIC, anon, authenticated;"
+    );
+    expect(grantsMigration).toContain(
+      "GRANT EXECUTE ON FUNCTION public.increment_team_xp(uuid, integer) TO service_role;"
+    );
   });
 });
