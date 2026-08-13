@@ -52,3 +52,14 @@ The scheduled health workflow runs the same comparison. It fails on new
 source/deployment drift, a missing important function, a non-active deployment,
 or `verify_jwt` drift. Existing known drift stays visible without silently
 expanding the allowlist.
+
+The two reviewed exceptions have deliberately different ownership:
+
+- `coordinator-ai-insights` has fail-soft frontend consumers, but invocation is
+  disabled unless `VITE_COORDINATOR_AI_INSIGHTS_ENABLED=true`. Production does
+  not define that flag, so its legacy Gemini-backed source remains deferred to
+  provider cleanup instead of being deployed merely to remove inventory drift.
+- `fee-overdue-check` has no repository source and no Vercel HTTP cron route.
+  Overdue fee state is owned by the pure-SQL `fee-overdue-check` database cron
+  retained by the migration chain. The unknown deployed Edge artifact is a
+  legacy cleanup candidate and must not be redeployed without source recovery.
