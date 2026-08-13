@@ -103,19 +103,22 @@ describe("OBE hierarchy governance contracts", () => {
     expect(migration).toMatch(
       /GRANT SELECT, INSERT, UPDATE, DELETE[\s\S]*TO authenticated/
     );
-    expect(migration).toMatch(
-      /UPDATE public\.learning_outcomes AS outcome[\s\S]*outcome\.type = 'PLO'[\s\S]*outcome\.program_id = program\.id/
+    const ploBackfill = migration.match(
+      /UPDATE public\.learning_outcomes AS outcome[\s\S]*?SET[\s\S]*?institution_id = program\.institution_id,[\s\S]*?course_id = NULL[\s\S]*?WHERE outcome\.type = 'PLO'::public\.outcome_type[\s\S]*?outcome\.program_id = program\.id/
     );
-    expect(migration).toMatch(
-      /UPDATE public\.learning_outcomes AS outcome[\s\S]*outcome\.type = 'CLO'[\s\S]*outcome\.course_id = course\.id/
+    const cloBackfill = migration.match(
+      /UPDATE public\.learning_outcomes AS outcome[\s\S]*?SET[\s\S]*?institution_id = program\.institution_id,[\s\S]*?program_id = course\.program_id[\s\S]*?WHERE outcome\.type = 'CLO'::public\.outcome_type[\s\S]*?outcome\.course_id = course\.id/
     );
-    expect(
-      migration.indexOf("UPDATE public.learning_outcomes AS outcome")
-    ).toBeLessThan(
-      migration.indexOf(
-        "VALIDATE CONSTRAINT learning_outcomes_canonical_shape_check"
-      )
+    expect(ploBackfill).not.toBeNull();
+    expect(cloBackfill).not.toBeNull();
+
+    const validationIndex = migration.indexOf(
+      "VALIDATE CONSTRAINT learning_outcomes_canonical_shape_check"
     );
+    expect(ploBackfill?.index ?? -1).toBeGreaterThanOrEqual(0);
+    expect(cloBackfill?.index ?? -1).toBeGreaterThanOrEqual(0);
+    expect(ploBackfill?.index ?? validationIndex).toBeLessThan(validationIndex);
+    expect(cloBackfill?.index ?? validationIndex).toBeLessThan(validationIndex);
   });
 
   it("uses operation-specific hierarchy policies with explicit write checks", () => {
