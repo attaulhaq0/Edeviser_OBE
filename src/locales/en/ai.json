@@ -88,7 +88,8 @@
         "maxImages": "Maximum {{count}} images allowed",
         "docType": "Only PDF and DOCX documents are supported",
         "docSize": "Document must be under 10MB",
-        "uploadFailed": "Failed to upload attachment. Please try again."
+        "uploadFailed": "Failed to upload attachment. Please try again.",
+        "attachmentsUnavailable": "Attachments are unavailable while the tutor uses a text-only provider."
       }
     },
     "sidebar": {

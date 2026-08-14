@@ -18,7 +18,10 @@ export interface GeneratedQuestion {
 
 export interface GenerateQuestionsResponse {
   generation_id: string;
-  questions: GeneratedQuestion[];
+  proposal_id: string;
+  question_drafts: GeneratedQuestion[];
+  approval_status: "pending";
+  protected_action_executed: false;
   warnings: string[];
   chunks_used: number;
 }

@@ -113,7 +113,7 @@ describe("courseMaterialIndexing — indexCourseMaterialIfSupported", () => {
   it("does not throw when the function returns an error (graceful degradation)", async () => {
     mockInvoke.mockResolvedValue({
       data: null,
-      error: { message: "OPENAI_API_KEY is not configured" },
+      error: { message: "Supabase-native embedding runtime is unavailable" },
     });
 
     const result = await indexCourseMaterialIfSupported({

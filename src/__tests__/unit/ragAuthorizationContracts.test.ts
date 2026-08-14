@@ -29,32 +29,48 @@ describe("RAG authorization contract", () => {
     );
     expect(migration).toMatch(/sc\.status = 'active'/);
     expect(migration).toMatch(/p\.coordinator_id = \(SELECT auth\.uid\(\)\)/);
-    expect(migration).toMatch(/p\.institution_id = \(SELECT public\.auth_institution_id\(\)\)/);
+    expect(migration).toMatch(
+      /p\.institution_id = \(SELECT public\.auth_institution_id\(\)\)/
+    );
     expect(migration).toMatch(
       /CREATE POLICY "embeddings_admin_read"[\s\S]*JOIN public\.programs AS p[\s\S]*p\.institution_id = \(SELECT public\.auth_institution_id\(\)\)/
     );
-    expect(migration).toMatch(/REVOKE ALL ON TABLE public\.course_material_embeddings/);
-    expect(migration).toMatch(/GRANT SELECT ON TABLE public\.course_material_embeddings TO authenticated/);
-    expect(migration).toMatch(/REVOKE EXECUTE ON FUNCTION public\.search_course_materials/);
+    expect(migration).toMatch(
+      /REVOKE ALL ON TABLE public\.course_material_embeddings/
+    );
+    expect(migration).toMatch(
+      /GRANT SELECT ON TABLE public\.course_material_embeddings TO authenticated/
+    );
+    expect(migration).toMatch(
+      /REVOKE EXECUTE ON FUNCTION public\.search_course_materials/
+    );
     expect(migration).toMatch(/FROM PUBLIC, anon/);
-    expect(migration).toMatch(/GRANT EXECUTE ON FUNCTION public\.search_course_materials/);
+    expect(migration).toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.search_course_materials/
+    );
   });
 
   it("does not reintroduce an unrestricted embedding policy", () => {
     expect(migration).not.toMatch(
       /CREATE\s+POLICY\s+["']authenticated_read_embeddings["']/
     );
-    expect(migration).not.toMatch(/course_material_embeddings[\s\S]*USING \(true\)/);
+    expect(migration).not.toMatch(
+      /course_material_embeddings[\s\S]*USING \(true\)/
+    );
   });
 
   it("enforces privileged-writer metadata consistency", () => {
     expect(metadataMigration).toMatch(
-      /validate_course_material_embedding_metadata/,
+      /validate_course_material_embedding_metadata/
     );
     expect(metadataMigration).toMatch(/NEW\.institution_id IS DISTINCT FROM/);
     expect(metadataMigration).toMatch(/lo\.type <> 'CLO'/);
-    expect(metadataMigration).toMatch(/lo\.course_id IS DISTINCT FROM NEW\.course_id/);
-    expect(metadataMigration).toMatch(/trg_validate_course_material_embedding_metadata/);
+    expect(metadataMigration).toMatch(
+      /lo\.course_id IS DISTINCT FROM NEW\.course_id/
+    );
+    expect(metadataMigration).toMatch(
+      /trg_validate_course_material_embedding_metadata/
+    );
   });
 
   it("authorizes embedding writes before any service-role side effect", () => {
@@ -62,8 +78,36 @@ describe("RAG authorization contract", () => {
     expect(embedFunction).toMatch(/auth\.user\.role !== "teacher"/);
     expect(embedFunction).toMatch(/programs!inner\(institution_id\)/);
     expect(embedFunction).toMatch(/validateCloScope\(/);
-    expect(embedFunction.indexOf("authenticateRequest(req)")).toBeLessThan(
-      embedFunction.indexOf(".delete()")
+    expect(embedFunction).toMatch(/authorizeSourceMaterial\(/);
+    expect(embedFunction).toMatch(/course_modules!inner\(course_id\)/);
+    expect(embedFunction).toMatch(/\.eq\("file_path", requestedFilePath\)/);
+    expect(embedFunction).toMatch(
+      /Source-material authorization lookup failed: \$\{error\.message\}/
+    );
+    expect(embedFunction).toMatch(
+      /\.catch\(\(error: unknown\) => \{[\s\S]*Source-material authorization lookup failed:[\s\S]*sourceMaterialAuthorized === null[\s\S]*Internal server error[\s\S]*status: 500/
+    );
+    expect(embedFunction).toMatch(
+      /if \(!sourceMaterialAuthorized\)[\s\S]*status: 403/
+    );
+    const authenticationIndex = embedFunction.indexOf(
+      "authenticateRequest(req)"
+    );
+    const replacementIndex = embedFunction.indexOf(
+      'rpc("replace_course_material_embeddings_v2"'
+    );
+    const sourceAuthorizationIndex = embedFunction.indexOf(
+      "const sourceMaterialAuthorized"
+    );
+    const downloadIndex = embedFunction.indexOf(".download(embedReq.file_url)");
+    expect(authenticationIndex).toBeGreaterThanOrEqual(0);
+    expect(replacementIndex).toBeGreaterThanOrEqual(0);
+    expect(sourceAuthorizationIndex).toBeGreaterThanOrEqual(0);
+    expect(downloadIndex).toBeGreaterThanOrEqual(0);
+    expect(authenticationIndex).toBeLessThan(replacementIndex);
+    expect(sourceAuthorizationIndex).toBeLessThan(downloadIndex);
+    expect(embedFunction).not.toMatch(
+      /from\("course_material_embeddings"\)[\s\S]{0,120}\.delete\(\)/
     );
     expect(embedFunction).not.toMatch(/institution_id, teacher_id\)"/);
   });

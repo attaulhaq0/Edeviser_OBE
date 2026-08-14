@@ -42,6 +42,7 @@ const ACCEPTED_DOC_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
+const supportsTutorAttachments = (): boolean => false;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,11 @@ interface ChatPanelProps {
   onAutonomyChange?: (level: "L1" | "L3" | null) => void;
 }
 
+interface ImageAttachment {
+  file: File;
+  previewUrl: string;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const ChatPanel = ({
@@ -92,7 +98,7 @@ const ChatPanel = ({
 }: ChatPanelProps) => {
   const { t } = useTranslation("ai");
   const [inputValue, setInputValue] = useState("");
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageFiles, setImageFiles] = useState<ImageAttachment[]>([]);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [streamingContent, setStreamingContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -104,6 +110,7 @@ const ChatPanel = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const imageFilesRef = useRef<ImageAttachment[]>([]);
 
   const isLimitReached = usage ? usage.remaining_messages <= 0 : false;
   const isTokenBudgetExceeded = usage
@@ -126,6 +133,15 @@ const ChatPanel = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingContent]);
+
+  useEffect(
+    () => () => {
+      for (const attachment of imageFilesRef.current) {
+        URL.revokeObjectURL(attachment.previewUrl);
+      }
+    },
+    []
+  );
 
   // Auto-resize textarea
   useEffect(() => {
@@ -155,18 +171,22 @@ const ChatPanel = ({
         validFiles.push(file);
       }
 
-      setImageFiles((prev) => {
-        const combined = [...prev, ...validFiles].slice(0, MAX_IMAGES);
-        if (prev.length + validFiles.length > MAX_IMAGES) {
-          toast.error(t("tutor.chat.errors.maxImages", { count: MAX_IMAGES }));
-        }
-        return combined;
-      });
+      const availableSlots = Math.max(0, MAX_IMAGES - imageFiles.length);
+      const additions = validFiles.slice(0, availableSlots).map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+      if (validFiles.length > availableSlots) {
+        toast.error(t("tutor.chat.errors.maxImages", { count: MAX_IMAGES }));
+      }
+      const nextAttachments = [...imageFiles, ...additions];
+      imageFilesRef.current = nextAttachments;
+      setImageFiles(nextAttachments);
 
       // Reset input so the same file can be re-selected
       e.target.value = "";
     },
-    [t]
+    [imageFiles, t]
   );
 
   const handleDocSelect = useCallback(
@@ -192,7 +212,13 @@ const ChatPanel = ({
   );
 
   const removeImage = useCallback((index: number) => {
-    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImageFiles((prev) => {
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      const next = prev.filter((_, i) => i !== index);
+      imageFilesRef.current = next;
+      return next;
+    });
   }, []);
 
   const removeDocument = useCallback(() => {
@@ -208,6 +234,14 @@ const ChatPanel = ({
     const imagesToUpload = imageFiles;
     const docToUpload = documentFile;
 
+    if (
+      !supportsTutorAttachments() &&
+      (imagesToUpload.length > 0 || docToUpload)
+    ) {
+      toast.error(t("tutor.chat.errors.attachmentsUnavailable"));
+      return;
+    }
+
     let imageUrls: string[] = [];
     let documentUrl: string | undefined;
 
@@ -218,7 +252,7 @@ const ChatPanel = ({
       setIsUploading(true);
       try {
         imageUrls = await Promise.all(
-          imagesToUpload.map((file) => uploadAttachment(file))
+          imagesToUpload.map(({ file }) => uploadAttachment(file))
         );
         if (docToUpload) {
           documentUrl = await uploadAttachment(docToUpload);
@@ -237,6 +271,10 @@ const ChatPanel = ({
 
     // Only clear the composer once any uploads have succeeded.
     setInputValue("");
+    for (const attachment of imagesToUpload) {
+      URL.revokeObjectURL(attachment.previewUrl);
+    }
+    imageFilesRef.current = [];
     setImageFiles([]);
     setDocumentFile(null);
     setStreamingContent("");
@@ -421,46 +459,47 @@ const ChatPanel = ({
       {/* Input area */}
       <div className="border-t border-gray-100 bg-white p-4">
         {/* Attachment previews */}
-        {(imageFiles.length > 0 || documentFile) && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {imageFiles.map((file, i) => (
-              <div key={i} className="relative group">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={t("tutor.chat.attachmentAlt", { index: i + 1 })}
-                  className="h-16 w-16 rounded-lg object-cover border border-gray-200"
-                />
-                <button
-                  onClick={() => removeImage(i)}
-                  className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={t("tutor.chat.removeImage", { index: i + 1 })}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-            {documentFile && (
-              <div className="relative group">
-                <Badge
-                  variant="outline"
-                  className="h-16 px-3 flex items-center gap-2 border-gray-200"
-                >
-                  <FileUp className="h-4 w-4 text-gray-500" />
-                  <span className="text-xs max-w-24 truncate">
-                    {documentFile.name}
-                  </span>
-                </Badge>
-                <button
-                  onClick={removeDocument}
-                  className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={t("tutor.chat.removeDocument")}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        {supportsTutorAttachments() &&
+          (imageFiles.length > 0 || documentFile) && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {imageFiles.map((attachment, i) => (
+                <div key={attachment.previewUrl} className="relative group">
+                  <img
+                    src={attachment.previewUrl}
+                    alt={t("tutor.chat.attachmentAlt", { index: i + 1 })}
+                    className="h-16 w-16 rounded-lg object-cover border border-gray-200"
+                  />
+                  <button
+                    onClick={() => removeImage(i)}
+                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={t("tutor.chat.removeImage", { index: i + 1 })}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {documentFile && (
+                <div className="relative group">
+                  <Badge
+                    variant="outline"
+                    className="h-16 px-3 flex items-center gap-2 border-gray-200"
+                  >
+                    <FileUp className="h-4 w-4 text-gray-500" />
+                    <span className="text-xs max-w-24 truncate">
+                      {documentFile.name}
+                    </span>
+                  </Badge>
+                  <button
+                    onClick={removeDocument}
+                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={t("tutor.chat.removeDocument")}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
         {/* Daily message limit reached banner */}
         {isLimitReached && !isTokenBudgetExceeded && (
@@ -491,50 +530,54 @@ const ChatPanel = ({
         {/* Input row */}
         <div className="flex items-end gap-2">
           {/* Attachment buttons */}
-          <div className="flex gap-1 shrink-0 pb-1">
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              multiple
-              className="hidden"
-              onChange={handleImageSelect}
-              aria-label={t("tutor.chat.attachImages")}
-            />
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={
-                isInputDisabled ||
-                isUploading ||
-                imageFiles.length >= MAX_IMAGES
-              }
-              aria-label={t("tutor.chat.attachImage")}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <ImagePlus className="h-4 w-4" />
-            </Button>
+          {supportsTutorAttachments() && (
+            <div className="flex gap-1 shrink-0 pb-1">
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                multiple
+                className="hidden"
+                onChange={handleImageSelect}
+                aria-label={t("tutor.chat.attachImages")}
+              />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={
+                  isInputDisabled ||
+                  isUploading ||
+                  imageFiles.length >= MAX_IMAGES
+                }
+                aria-label={t("tutor.chat.attachImage")}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <ImagePlus className="h-4 w-4" />
+              </Button>
 
-            <input
-              ref={docInputRef}
-              type="file"
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              className="hidden"
-              onChange={handleDocSelect}
-              aria-label={t("tutor.chat.attachDocument")}
-            />
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => docInputRef.current?.click()}
-              disabled={isInputDisabled || isUploading || documentFile !== null}
-              aria-label={t("tutor.chat.attachDocument")}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <FileUp className="h-4 w-4" />
-            </Button>
-          </div>
+              <input
+                ref={docInputRef}
+                type="file"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="hidden"
+                onChange={handleDocSelect}
+                aria-label={t("tutor.chat.attachDocument")}
+              />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => docInputRef.current?.click()}
+                disabled={
+                  isInputDisabled || isUploading || documentFile !== null
+                }
+                aria-label={t("tutor.chat.attachDocument")}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <FileUp className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
           {/* Text input */}
           <div className="flex-1 relative">

@@ -3,8 +3,8 @@
 // =============================================================================
 //
 // Calls the `coordinator-ai-insights` Edge Function, which returns a real
-// rule-based attainment insight (optionally LLM-enhanced when a GEMINI_API_KEY
-// is configured server-side). This hook is ADDITIVE and fails soft: if the
+// rule-based attainment insight (optionally enhanced by the canonical
+// server-side AIProvider). This hook is ADDITIVE and fails soft: if the
 // function is not deployed yet, errors, or the caller has no institution, it
 // returns `null` so consuming screens simply fall back to their own computed
 // insight instead of showing an error. No writes from the client.
