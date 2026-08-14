@@ -15,6 +15,14 @@ const grantsMigration = readFileSync(
   "utf8"
 );
 
+const proactiveMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    "supabase/migrations/20260829000001_create_proactive_agent_queue.sql"
+  ),
+  "utf8"
+);
+
 describe("agent-worker security contract", () => {
   it("keeps scheduled scans fail-closed to server or cron credentials", () => {
     expect(worker).toMatch(
@@ -24,45 +32,58 @@ describe("agent-worker security contract", () => {
       /req\.headers\.get\("x-cron-secret"\) === cronSecret/
     );
     expect(worker).toMatch(
-      /if \(!isSystemCaller\(req\)\) return response\(401, \{ error: "Unauthorized" \}\);/
+      /if \(!isSystemCaller\(req\)\) \{\s*return json\(401, \{ error: "Unauthorized" \}\);/
     );
   });
 
   it("does not let CORS preflight authorize a worker operation", () => {
     expect(worker).toMatch(
-      /if \(req\.method === "OPTIONS"\)\s+return new Response\("ok", \{ headers: corsHeaders \}\);/
+      /if \(req\.method === "OPTIONS"\) \{\s*return new Response\("ok", \{ headers: corsHeaders \}\);/
     );
-    expect(worker).toMatch(
-      /if \(req\.method !== "POST"\) return \{ action: "scheduled_scan" \};/
-    );
+    expect(worker).toMatch(/if \(req\.method !== "POST"\)/);
+    expect(worker).toMatch(/return json\(405/);
   });
 
-  it("requires a verified user JWT and teacher identity for protected approvals", () => {
-    expect(worker).toMatch(/supabase\.auth\.getUser\(\s*token\s*\)/);
-    expect(worker).toMatch(
-      /if \(userError \|\| !userData\.user\)\s+return response\(401/
-    );
-    expect(worker).toMatch(/actorData\?\.role !== "teacher"/);
-    expect(worker).toMatch(/Teacher approval is required/);
+  it("uses the shared orchestrator and canonical proposal boundary", () => {
+    expect(worker).toContain("runAgentOrchestrator");
+    expect(worker).toContain("agent_action_proposals");
+    expect(worker).not.toContain("approve_protected_action");
+    expect(worker).not.toContain("ai_feedback");
   });
 
-  it("revalidates proposal ownership, tenancy, course ownership, evidence and idempotency", () => {
-    expect(worker).toMatch(/proposal\.actor_id !== actorData\.id/);
-    expect(worker).toMatch(
-      /proposal\.institution_id !== actorData\.institution_id/
+  it("rejects retired or unknown actions instead of treating them as scans", () => {
+    expect(worker).toContain('body.action !== "scheduled_scan"');
+    expect(worker).toContain('body.action !== "evidence_event"');
+    expect(worker).toContain("Unsupported worker action");
+    expect(worker).not.toContain("approve_protected_action");
+  });
+
+  it("claims a bounded durable queue with retries and dead letters", () => {
+    expect(worker).toContain("claim_proactive_agent_jobs_v1");
+    expect(worker).toContain("complete_proactive_agent_job_v1");
+    expect(worker).toContain("fail_proactive_agent_job_v1");
+    expect(proactiveMigration).toContain("FOR UPDATE SKIP LOCKED");
+    expect(proactiveMigration).toContain("'dead_letter'");
+    expect(proactiveMigration).toContain("lease_expired_after_max_attempts");
+    expect(proactiveMigration).toContain(
+      "job.attempt_count < job.max_attempts"
     );
-    expect(worker).toMatch(/courseData\?\.teacher_id !== actorData\.id/);
-    expect(worker).toMatch(/Evidence is no longer available/);
-    expect(worker).toMatch(/Proposal was already executed/);
-    expect(worker).toMatch(/Proposal is already being processed/);
+    expect(proactiveMigration).toContain(
+      "UNIQUE (institution_id, idempotency_key)"
+    );
   });
 
   it("defaults proactive and auto-action features to disabled", () => {
-    expect(worker).toMatch(/AI_PROACTIVE_AGENTS_ENABLED"\) !== "true"/);
-    expect(worker).toMatch(/AI_AUTO_LOW_RISK_ENABLED"\) === "true"/);
-    expect(worker).toMatch(
-      /return \{ success: true, disabled: true, reason: "feature_flag" \}/
-    );
+    expect(worker).toMatch(/!config\.enabled \|\| !config\.proactiveEnabled/);
+    expect(worker).toMatch(/disabled: true,[\s\S]*reason: "feature_flag"/);
+  });
+
+  it("routes only canonical deterministic Learning State risk signals", () => {
+    expect(proactiveMigration).toContain("student_learning_states");
+    expect(proactiveMigration).toContain("risk.item->>'kind' = 'low_mastery'");
+    expect(proactiveMigration).not.toContain("ai_feedback");
+    expect(proactiveMigration).not.toContain("student_gamification");
+    expect(proactiveMigration).toContain("<> 'A0'");
   });
 });
 
