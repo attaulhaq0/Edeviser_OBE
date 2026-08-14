@@ -123,7 +123,7 @@ const EDeviserIntelligencePanel = () => {
                 <p className="whitespace-pre-wrap leading-6">
                   {item.recommendation}
                 </p>
-                {item.proposal_ids.map((proposal) => (
+                {item.proposals.map((proposal) => (
                   <div key={proposal.id} className="mt-3 border-t pt-3">
                     {approvedIds.has(proposal.id) &&
                     mayExecute(proposal.actionType) ? (

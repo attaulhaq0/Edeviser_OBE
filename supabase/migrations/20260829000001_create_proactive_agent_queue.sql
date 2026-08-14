@@ -320,7 +320,7 @@ CREATE OR REPLACE FUNCTION public.get_my_proactive_intelligence_v1(
 RETURNS TABLE (
   id uuid, recipient_role text, specialist text, student_id uuid,
   course_id uuid, program_id uuid, trigger_key text,
-  evidence_packet jsonb, recommendation text, proposal_ids jsonb,
+  evidence_packet jsonb, recommendation text, proposals jsonb,
   completed_at timestamptz
 )
 LANGUAGE plpgsql
@@ -359,7 +359,7 @@ BEGIN
       WHERE proposal.run_id = job.run_id
         AND proposal.required_approver_user_id = v_actor_id
         AND proposal.required_approver_role = v_role
-    ), '[]'::jsonb) AS proposal_ids,
+    ), '[]'::jsonb) AS proposals,
     job.completed_at
   FROM public.proactive_agent_jobs job
   WHERE job.status = 'completed'

@@ -25,7 +25,7 @@ const proactiveItemSchema = z.object({
   trigger_key: z.string(),
   evidence_packet: z.record(z.string(), z.unknown()),
   recommendation: z.string(),
-  proposal_ids: z.array(
+  proposals: z.array(
     z.object({
       id: z.uuid(),
       actionType: z.string(),
