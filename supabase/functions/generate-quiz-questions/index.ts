@@ -1,4 +1,8 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { getAgenticConfig } from "../_shared/ai/config.ts";
+import type { AIProvider } from "../_shared/ai/provider.ts";
+import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
+import { hashEvidence } from "../_shared/ai/hash.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -64,10 +68,7 @@ const VALID_QUESTION_TYPES: QuestionType[] = [
 ];
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const LLM_MODEL = "openai/gpt-4o-mini";
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MIN_CHUNKS_THRESHOLD = 3;
-const LLM_RETRY_DELAY_MS = 2000;
 
 // ─── Bloom's Level Labels ───────────────────────────────────────────────────
 
@@ -240,15 +241,14 @@ Return a JSON array of question objects. Each object must have:
   "difficulty_rating": <number 1.0-5.0>
 }
 
-Return ONLY the JSON array, no markdown fences or extra text.`;
+Return ONLY JSON in this shape: {"questions": [<question objects>]}.`;
 }
 
-// ─── OpenRouter LLM Call ────────────────────────────────────────────────────
+// ─── Canonical AIProvider call ──────────────────────────────────────────────
 
-async function callOpenRouterLLM(
+async function callAIProvider(
   prompt: string,
-  apiKey: string,
-  retryCount = 1
+  provider: AIProvider
 ): Promise<{
   questions: LLMGeneratedQuestion[];
   promptTokens: number;
@@ -256,96 +256,37 @@ async function callOpenRouterLLM(
   totalTokens: number;
   model: string;
 }> {
-  const llmModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? LLM_MODEL;
-  // structured-outputs (response_format) is only supported by some providers
-  // (e.g. OpenAI gpt-4o). Models like moonshotai/kimi-k2 reject it with a 400.
-  // We rely on the prompt's "respond with valid JSON" instruction + downstream
-  // parsing/validation, and only request response_format for OpenAI models.
-  const supportsStructured = /^openai\//i.test(llmModel);
-  const requestBody: Record<string, unknown> = {
-    model: llmModel,
+  const response = await provider.complete({
     messages: [
       {
         role: "system",
         content:
-          "You are an expert educational assessment designer. Always respond with valid JSON arrays only.",
+          "You are an expert educational assessment designer. Return json only and use only supplied evidence.",
       },
       { role: "user", content: prompt },
     ],
     temperature: 0.7,
-    max_tokens: 4000,
+    maxOutputTokens: 4000,
+    responseFormat: "json",
+  });
+  const parsed: unknown = JSON.parse(response.content);
+  const questions = Array.isArray(parsed)
+    ? parsed
+    : parsed &&
+      typeof parsed === "object" &&
+      Array.isArray((parsed as Record<string, unknown>).questions)
+    ? ((parsed as Record<string, unknown>).questions as LLMGeneratedQuestion[])
+    : null;
+  if (!questions) {
+    throw new Error("Provider response is not a valid question array");
+  }
+  return {
+    questions: questions as LLMGeneratedQuestion[],
+    promptTokens: response.usage?.inputTokens ?? 0,
+    completionTokens: response.usage?.outputTokens ?? 0,
+    totalTokens: response.usage?.totalTokens ?? 0,
+    model: response.model,
   };
-  if (supportsStructured) {
-    requestBody.response_format = { type: "json_object" };
-  }
-
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt <= retryCount; attempt++) {
-    if (attempt > 0) {
-      // Exponential backoff: 2s initial delay
-      await new Promise((resolve) =>
-        setTimeout(resolve, LLM_RETRY_DELAY_MS * attempt)
-      );
-    }
-
-    try {
-      const response = await fetch(OPENROUTER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-          "HTTP-Referer": "https://edeviser.com",
-          "X-Title": "Edeviser Quiz Generator",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `OpenRouter API error (${response.status}): ${errorText}`
-        );
-      }
-
-      const result = await response.json();
-
-      const content = result.choices?.[0]?.message?.content;
-      if (!content) {
-        throw new Error("Empty response from LLM");
-      }
-
-      // Parse the JSON response — handle both raw array and wrapped object
-      let questions: LLMGeneratedQuestion[];
-      const parsed = JSON.parse(content);
-
-      if (Array.isArray(parsed)) {
-        questions = parsed;
-      } else if (parsed.questions && Array.isArray(parsed.questions)) {
-        questions = parsed.questions;
-      } else {
-        throw new Error("LLM response is not a valid question array");
-      }
-
-      const usage = result.usage ?? {};
-
-      return {
-        questions,
-        promptTokens: usage.prompt_tokens ?? 0,
-        completionTokens: usage.completion_tokens ?? 0,
-        totalTokens: usage.total_tokens ?? 0,
-        model: llmModel,
-      };
-    } catch (error) {
-      lastError = error as Error;
-      console.error(
-        `LLM call attempt ${attempt + 1} failed:`,
-        lastError.message
-      );
-    }
-  }
-
-  throw lastError ?? new Error("LLM call failed after retries");
 }
 
 // ─── LLM Response Validation ────────────────────────────────────────────────
@@ -642,14 +583,13 @@ serve(async (req) => {
       clo_ids
     );
 
-    // ── Step 6: Construct LLM Prompt & Call OpenRouter ──────────────────
-
-    const openrouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!openrouterApiKey) {
+    // ── Step 6: Construct prompt and call the canonical AIProvider ──────
+    const agenticConfig = getAgenticConfig(Deno.env);
+    if (!agenticConfig.enabled) {
       return new Response(
-        JSON.stringify({ error: "LLM API key not configured" }),
+        JSON.stringify({ error: "E Deviser Intelligence is not enabled" }),
         {
-          status: 500,
+          status: 503,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -672,12 +612,11 @@ serve(async (req) => {
     };
 
     const generationRequestId = crypto.randomUUID();
-    // Resolve the model the same way callOpenRouterLLM does, so failure-path
-    // logs (where llmResult is never assigned) still record the actual model.
-    const resolvedModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? LLM_MODEL;
+    const provider = createDeepSeekProvider(agenticConfig, { env: Deno.env });
+    const resolvedModel = agenticConfig.deepSeek.primaryModel;
 
     try {
-      llmResult = await callOpenRouterLLM(prompt, openrouterApiKey);
+      llmResult = await callAIProvider(prompt, provider);
     } catch (llmError) {
       const latencyMs = Date.now() - startTime;
 
@@ -768,42 +707,85 @@ serve(async (req) => {
       );
     }
 
-    // ── Step 8: INSERT into question_bank ────────────────────────────────
-
-    const questionBankRows = validatedQuestions.map((q) => ({
-      id: q.id,
-      institution_id: institutionId,
+    // ── Step 8: create a human-review proposal, never official content ──
+    const runId = crypto.randomUUID();
+    const inputHash = await hashEvidence({
       course_id,
-      clo_id: q.clo_id,
-      bloom_level: q.bloom_level,
-      question_type: q.question_type,
-      question_text: q.question_text,
-      options: q.options,
-      correct_answer: q.correct_answer,
-      explanation: q.explanation,
-      difficulty_rating: q.difficulty_rating,
-      status: "pending_review",
-      generation_source: "ai",
-      source_chunks: q.source_chunks,
-      labels: [],
-      generation_request_id: generationRequestId,
-      created_by: teacherId,
+      clo_ids,
+      bloom_levels,
+      question_count,
+      question_types,
+    });
+    const evidenceReferences = chunks.map((chunk) => ({
+      kind: "material",
+      id: chunk.chunk_id,
+      label: chunk.source_filename,
     }));
-
-    const { error: insertError } = await supabase
-      .from("question_bank")
-      .insert(questionBankRows);
-
-    if (insertError) {
-      console.error(
-        "Failed to insert questions into question_bank:",
-        insertError.message
-      );
+    const evidenceHash = await hashEvidence(evidenceReferences);
+    const idempotencyKey = await hashEvidence({
+      institutionId,
+      teacherId,
+      course_id,
+      inputHash,
+      evidenceHash,
+      questions: validatedQuestions,
+    });
+    const { error: runError } = await supabase.from("agent_runs").insert({
+      id: runId,
+      request_id: generationRequestId,
+      actor_user_id: teacherId,
+      actor_role: "teacher",
+      institution_id: institutionId,
+      session_id: generationRequestId,
+      specialist: "teacher",
+      input_hash: inputHash,
+      status: "completed",
+      provider: "deepseek",
+      model: llmResult.model,
+      completed_at: new Date().toISOString(),
+      latency_ms: Date.now() - startTime,
+      usage: {
+        inputTokens: llmResult.promptTokens,
+        outputTokens: llmResult.completionTokens,
+        totalTokens: llmResult.totalTokens,
+      },
+    });
+    if (runError) {
       return new Response(
-        JSON.stringify({
-          error: "Failed to save generated questions",
-          detail: insertError.message,
-        }),
+        JSON.stringify({ error: "Failed to audit generated question drafts" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    const proposalId = crypto.randomUUID();
+    const { error: proposalError } = await supabase
+      .from("agent_action_proposals")
+      .insert({
+        id: proposalId,
+        run_id: runId,
+        actor_user_id: teacherId,
+        institution_id: institutionId,
+        course_id,
+        action_type: "publish_official_content",
+        payload: {
+          kind: "quiz_question_drafts",
+          questions: validatedQuestions,
+        },
+        reason:
+          "Generated assessment questions require assigned-teacher review before publication.",
+        evidence_references: evidenceReferences,
+        evidence_hash: evidenceHash,
+        required_approver_role: "teacher",
+        required_approver_user_id: teacherId,
+        status: "pending",
+        idempotency_key: idempotencyKey,
+        expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+      });
+    if (proposalError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to store question review proposal" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -844,7 +826,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         generation_id: generationRequestId,
-        questions: validatedQuestions,
+        proposal_id: proposalId,
+        question_drafts: validatedQuestions,
+        approval_status: "pending",
+        protected_action_executed: false,
         warnings,
         chunks_used: chunks.length,
       }),

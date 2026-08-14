@@ -497,18 +497,16 @@ describe("3.7 Preservation — attainment cascade remains; rollup edge fn discon
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3.6 — Tutor without RAG: with no OPENAI_API_KEY the tutor still returns persona + CLO answers,
-//       and the academic-integrity guard continues to refuse/redirect homework-completion requests.
+// 3.6 — Tutor without native RAG still returns persona + CLO answers, and the
+//       academic-integrity guard continues to refuse/redirect protected work.
 // ─────────────────────────────────────────────────────────────────────────────
 describe("3.6 Preservation — tutor degrades gracefully without RAG; integrity guard intact", () => {
   const tutor = readFileSafe("supabase/functions/chat-with-tutor/index.ts");
 
-  it("OPENAI_API_KEY is OPTIONAL — embedding/RAG is skipped (not fatal) when absent", () => {
-    // The function reads OPENAI_API_KEY and only attempts embedding when present; otherwise it
-    // continues without RAG retrieval (persona + CLO context + history still answer).
-    expect(tutor).toMatch(/OPENAI_API_KEY/);
-    expect(tutor).toMatch(/if\s*\(\s*openaiApiKey\s*\)/);
-    expect(tutor).toMatch(/without\s+(?:course-material\s+)?RAG/i);
+  it("Supabase-native embedding failure is non-fatal for tutor generation", () => {
+    expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
+    expect(tutor).toMatch(/continuing without RAG context/i);
+    expect(tutor).not.toMatch(/OPENAI_API_KEY/);
   });
 
   it("persona prompts and CLO/course context are assembled regardless of RAG availability", () => {

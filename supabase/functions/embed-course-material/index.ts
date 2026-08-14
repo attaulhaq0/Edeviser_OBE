@@ -1,7 +1,9 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { authenticateRequest } from "../_shared/auth.ts";
+import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Buffer } from "node:buffer";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,18 +60,24 @@ interface TextChunk {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002";
-const EMBEDDING_DIMENSIONS = 1536;
-// Embeddings provider config (OpenAI-compatible). Defaults to OpenAI, but the
-// base URL / model can be overridden via env so any OpenAI-compatible
-// embeddings endpoint works without a code change. The `course_material_embeddings.embedding`
-// column is `vector(1536)`, so the configured model MUST return 1536-dim vectors
-// (text-embedding-ada-002 / text-embedding-3-small both do); a mismatched
-// dimension is rejected by validateEmbeddingDimensions() before any insert.
-const EMBEDDINGS_BASE_URL =
-  Deno.env.get("EMBEDDINGS_BASE_URL") ?? "https://api.openai.com/v1";
-const EMBEDDING_MODEL =
-  Deno.env.get("EMBEDDINGS_MODEL") ?? OPENAI_EMBEDDING_MODEL;
+const embeddingProvider = createSupabaseEmbeddingProvider();
+type LooseTable = {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: [];
+};
+type LooseDatabase = {
+  public: {
+    Tables: Record<string, LooseTable>;
+    Views: Record<string, LooseTable>;
+    Functions: Record<
+      string,
+      { Args: Record<string, unknown>; Returns: unknown }
+    >;
+  };
+};
+type UntypedSupabaseClient = ReturnType<typeof createClient<LooseDatabase>>;
 const EMBEDDING_BATCH_SIZE = 100;
 const MAX_TOKENS_PER_CHUNK = 500;
 const MIN_TOKENS_PER_CHUNK = 200;
@@ -256,8 +264,8 @@ async function extractText(
  */
 async function extractTextFromPDF(fileBytes: Uint8Array): Promise<string> {
   // Dynamic import for Deno Edge Function environment
-  const pdfParse = (await import("https://esm.sh/pdf-parse@1.1.1")).default;
-  const result = await pdfParse(fileBytes);
+  const pdfParse = await import("https://esm.sh/pdf-parse@1.1.1");
+  const result = await pdfParse(Buffer.from(fileBytes));
   return result.text ?? "";
 }
 
@@ -267,62 +275,22 @@ async function extractTextFromPDF(fileBytes: Uint8Array): Promise<string> {
  */
 async function extractTextFromDOCX(fileBytes: Uint8Array): Promise<string> {
   const mammoth = await import("https://esm.sh/mammoth@1.6.0");
-  const result = await mammoth.extractRawText({ buffer: fileBytes });
+  const result = await mammoth.extractRawText({
+    arrayBuffer: fileBytes.slice().buffer as ArrayBuffer,
+  });
   return result.value ?? "";
 }
 
-// ─── OpenAI Embedding Generation ────────────────────────────────────────────
+// ─── Supabase-native Embedding Generation ───────────────────────────────────
 
-async function generateEmbeddings(
-  texts: string[],
-  apiKey: string
-): Promise<number[][]> {
+async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
-
   const results: number[][] = [];
-
-  // Process in batches of EMBEDDING_BATCH_SIZE
   for (let i = 0; i < texts.length; i += EMBEDDING_BATCH_SIZE) {
     const batch = texts.slice(i, i + EMBEDDING_BATCH_SIZE);
-
-    const response = await fetch(`${EMBEDDINGS_BASE_URL}/embeddings`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        input: batch,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`Embedding API error (${response.status}): ${errorBody}`);
-    }
-
-    const data = await response.json();
-    const embeddings = data.data
-      .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
-      .map((item: { embedding: number[] }) => item.embedding);
-
-    // Defensive dimension check: the pgvector column is vector(1536). A provider
-    // / model returning a different dimension would corrupt the column, so fail
-    // loudly here rather than on insert.
-    for (const emb of embeddings) {
-      if (!Array.isArray(emb) || emb.length !== EMBEDDING_DIMENSIONS) {
-        throw new Error(
-          `Embedding dimension mismatch: model "${EMBEDDING_MODEL}" returned ${
-            Array.isArray(emb) ? emb.length : "non-array"
-          }, expected ${EMBEDDING_DIMENSIONS}. Configure EMBEDDINGS_MODEL to a 1536-dim model.`
-        );
-      }
-    }
-
-    results.push(...embeddings);
+    const response = await embeddingProvider.embed({ inputs: batch });
+    results.push(...response.vectors.map((vector) => [...vector]));
   }
-
   return results;
 }
 
@@ -535,7 +503,7 @@ function assembleAutoIndexText(req: AutoIndexRequest): string {
 // ─── Notification Helper ────────────────────────────────────────────────────
 
 async function notifyTeacher(
-  supabase: ReturnType<typeof createClient>,
+  supabase: UntypedSupabaseClient,
   teacherId: string,
   institutionId: string,
   title: string,
@@ -567,7 +535,7 @@ interface AuthorizedCourse {
  * authority for either tenant or ownership.
  */
 async function authorizeTeacherCourse(
-  supabase: ReturnType<typeof createClient>,
+  supabase: UntypedSupabaseClient,
   courseId: string,
   callerId: string
 ): Promise<
@@ -584,7 +552,7 @@ async function authorizeTeacherCourse(
     return { authorized: false, status: 404, error: "Course not found" };
   }
 
-  const row = data as {
+  const row = data as unknown as {
     teacher_id: string | null;
     programs: { institution_id: string } | { institution_id: string }[] | null;
   };
@@ -610,7 +578,7 @@ async function authorizeTeacherCourse(
 
 /** Validate every requested CLO against the authoritative course scope. */
 async function validateCloScope(
-  supabase: ReturnType<typeof createClient>,
+  supabase: UntypedSupabaseClient,
   courseId: string,
   institutionId: string,
   cloIds: string[]
@@ -627,17 +595,14 @@ async function validateCloScope(
     error ||
     !data ||
     data.length !== uniqueCloIds.length ||
-    data.some(
-      (outcome: {
-        id: string;
-        type: string;
-        course_id: string | null;
-        institution_id: string;
-      }) =>
-        outcome.type !== "CLO" ||
-        outcome.course_id !== courseId ||
-        outcome.institution_id !== institutionId
-    )
+    data.some((outcome) => {
+      const row = outcome as Record<string, unknown>;
+      return (
+        row.type !== "CLO" ||
+        row.course_id !== courseId ||
+        row.institution_id !== institutionId
+      );
+    })
   ) {
     return "Forbidden: every CLO must belong to the requested course";
   }
@@ -732,22 +697,6 @@ serve(async (req) => {
         });
       }
 
-      const openaiApiKey =
-        Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
-      if (!openaiApiKey) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
-            indexing_status: "provider_unconfigured",
-          }),
-          {
-            status: 503,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
       // Delete old chunks for re-indexing (always re-index for auto-indexed content)
       if (autoReq.source_material_id) {
         await supabase
@@ -799,8 +748,7 @@ serve(async (req) => {
       let autoEmbeddings: number[][];
       try {
         autoEmbeddings = await generateEmbeddings(
-          autoChunks.map((c) => c.text),
-          openaiApiKey
+          autoChunks.map((c) => c.text)
         );
       } catch (embeddingError) {
         if (autoTeacherId) {
@@ -828,7 +776,11 @@ serve(async (req) => {
         institution_id: autoInstitutionId,
         course_id: autoReq.course_id,
         chunk_text: chunk.text,
-        embedding: JSON.stringify(autoEmbeddings[index]),
+        embedding_v2: JSON.stringify(autoEmbeddings[index]),
+        embedding_provider: embeddingProvider.metadata.provider,
+        embedding_model: embeddingProvider.metadata.model,
+        embedding_dimensions: embeddingProvider.metadata.dimensions,
+        embedding_version: embeddingProvider.metadata.version,
         source_filename: autoReq.source_filename,
         material_type: autoReq.material_type,
         clo_ids: autoReq.clo_ids ?? [],
@@ -904,22 +856,6 @@ serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
-
-    const openaiApiKey =
-      Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
-    if (!openaiApiKey) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
-          indexing_status: "provider_unconfigured",
-        }),
-        {
-          status: 503,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
     }
 
     // ── Delete old chunks for re-indexing ────────────────────────────────
@@ -1050,7 +986,11 @@ serve(async (req) => {
           institution_id: institutionId,
           course_id: embedReq.course_id,
           chunk_text: "",
-          embedding: Array(EMBEDDING_DIMENSIONS).fill(0),
+          embedding_v2: null,
+          embedding_provider: embeddingProvider.metadata.provider,
+          embedding_model: embeddingProvider.metadata.model,
+          embedding_dimensions: embeddingProvider.metadata.dimensions,
+          embedding_version: embeddingProvider.metadata.version,
           source_filename: embedReq.source_filename,
           material_type: embedReq.material_type,
           chunk_index: 0,
@@ -1145,13 +1085,10 @@ serve(async (req) => {
     }
 
     // ── Generate embeddings ─────────────────────────────────────────────
-    // (Task 3.2.3: Batch embedding generation via OpenAI API)
+    // (Task 3.2.3: Supabase-native, versioned batch embeddings)
     let embeddings: number[][];
     try {
-      embeddings = await generateEmbeddings(
-        chunks.map((c) => c.text),
-        openaiApiKey
-      );
+      embeddings = await generateEmbeddings(chunks.map((c) => c.text));
     } catch (embeddingError) {
       // Mark as failed and notify teacher
       if (embedReq.source_material_id) {
@@ -1159,7 +1096,11 @@ serve(async (req) => {
           institution_id: institutionId,
           course_id: embedReq.course_id,
           chunk_text: "",
-          embedding: Array(EMBEDDING_DIMENSIONS).fill(0),
+          embedding_v2: null,
+          embedding_provider: embeddingProvider.metadata.provider,
+          embedding_model: embeddingProvider.metadata.model,
+          embedding_dimensions: embeddingProvider.metadata.dimensions,
+          embedding_version: embeddingProvider.metadata.version,
           source_filename: embedReq.source_filename,
           material_type: embedReq.material_type,
           chunk_index: 0,
@@ -1196,7 +1137,11 @@ serve(async (req) => {
       institution_id: institutionId,
       course_id: embedReq.course_id,
       chunk_text: chunk.text,
-      embedding: JSON.stringify(embeddings[index]),
+      embedding_v2: JSON.stringify(embeddings[index]),
+      embedding_provider: embeddingProvider.metadata.provider,
+      embedding_model: embeddingProvider.metadata.model,
+      embedding_dimensions: embeddingProvider.metadata.dimensions,
+      embedding_version: embeddingProvider.metadata.version,
       source_filename: embedReq.source_filename,
       material_type: embedReq.material_type,
       clo_ids: embedReq.clo_ids ?? [],

@@ -22,12 +22,12 @@ const DEFAULT_OPTIONS: Required<ChunkOptions> = {
 
 /**
  * Estimates token count using a word-based heuristic.
- * OpenAI's tokenizer averages ~0.75 tokens per word for English text,
- * but for simplicity and safety we use 1 word ≈ 1.33 tokens (4 chars per token).
+ * The server embedding runtime uses a conservative character heuristic;
+ * for simplicity and safety we use roughly four characters per token.
  */
 export const estimateTokenCount = (text: string): number => {
   if (!text.trim()) return 0;
-  // Approximate: 1 token ≈ 4 characters (GPT tokenizer average)
+  // Approximate: 1 token ≈ 4 characters.
   return Math.ceil(text.length / 4);
 };
 
