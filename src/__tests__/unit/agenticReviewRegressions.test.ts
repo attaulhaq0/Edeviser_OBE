@@ -69,6 +69,21 @@ describe("agentic review regressions", () => {
     );
   });
 
+  it("authorizes tutor course and CLO scope before disclosing AI configuration", () => {
+    const endpoint = read("supabase/functions/chat-with-tutor/index.ts");
+    const enrollmentIndex = endpoint.indexOf('.from("student_courses")');
+    const cloScopeIndex = endpoint.indexOf('.from("learning_outcomes")');
+    const configurationIndex = endpoint.indexOf(
+      "agenticConfig = getAgenticConfig(Deno.env)"
+    );
+    const usageIndex = endpoint.indexOf('.from("tutor_usage_limits")');
+
+    expect(enrollmentIndex).toBeGreaterThan(0);
+    expect(cloScopeIndex).toBeGreaterThan(enrollmentIndex);
+    expect(configurationIndex).toBeGreaterThan(cloScopeIndex);
+    expect(configurationIndex).toBeLessThan(usageIndex);
+  });
+
   it("hardens plan outputs and proposal decision isolation", () => {
     const plan = read("supabase/functions/generate-plan-update/index.ts");
     const endpoint = read("supabase/functions/agent-orchestrator/index.ts");

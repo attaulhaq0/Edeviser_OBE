@@ -529,36 +529,6 @@ serve(async (req) => {
   }
 
   const chatReq = validation.data;
-
-  let agenticConfig: ReturnType<typeof getAgenticConfig>;
-  try {
-    agenticConfig = getAgenticConfig(Deno.env);
-  } catch {
-    return new Response(
-      JSON.stringify({
-        error: "E Deviser Intelligence configuration is unavailable",
-        message: "E Deviser Intelligence configuration is unavailable",
-        code: "AI_CONFIGURATION_ERROR",
-      }),
-      {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-  if (!agenticConfig.enabled) {
-    return new Response(
-      JSON.stringify({
-        error: "E Deviser Intelligence is not enabled",
-        message: "E Deviser Intelligence is not enabled",
-        code: "AI_FEATURE_DISABLED",
-      }),
-      {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
   if ((chatReq.image_urls?.length ?? 0) > 0 || chatReq.document_url) {
     return new Response(
       JSON.stringify({
@@ -703,6 +673,39 @@ serve(async (req) => {
         }
       );
     }
+  }
+
+  // Authorization must be complete before configuration state is disclosed.
+  // This remains ahead of usage accounting, RAG, and provider work so disabled
+  // AI is still fail-closed without consuming or persisting runtime activity.
+  let agenticConfig: ReturnType<typeof getAgenticConfig>;
+  try {
+    agenticConfig = getAgenticConfig(Deno.env);
+  } catch {
+    return new Response(
+      JSON.stringify({
+        error: "E Deviser Intelligence configuration is unavailable",
+        message: "E Deviser Intelligence configuration is unavailable",
+        code: "AI_CONFIGURATION_ERROR",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  if (!agenticConfig.enabled) {
+    return new Response(
+      JSON.stringify({
+        error: "E Deviser Intelligence is not enabled",
+        message: "E Deviser Intelligence is not enabled",
+        code: "AI_FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   // ── 3.1.2: Rate Limit and Token Budget Check ─────────────────────────
