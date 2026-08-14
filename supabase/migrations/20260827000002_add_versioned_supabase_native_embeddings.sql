@@ -77,7 +77,7 @@ AS $$
     cme.material_type,
     cme.clo_ids,
     cme.bloom_level,
-    (1 - (cme.embedding_v2 <=> query_embedding))::double precision,
+    (1 - (cme.embedding_v2 OPERATOR(public.<=>) query_embedding))::double precision,
     cme.embedding_provider,
     cme.embedding_model,
     cme.embedding_version
@@ -87,8 +87,8 @@ AS $$
     AND cme.course_id = ANY(match_course_ids)
     AND cme.indexing_status = 'indexed'
     AND (match_clo_ids IS NULL OR cme.clo_ids && match_clo_ids)
-    AND (1 - (cme.embedding_v2 <=> query_embedding)) >= match_threshold
-  ORDER BY cme.embedding_v2 <=> query_embedding
+    AND (1 - (cme.embedding_v2 OPERATOR(public.<=>) query_embedding)) >= match_threshold
+  ORDER BY cme.embedding_v2 OPERATOR(public.<=>) query_embedding
   LIMIT LEAST(GREATEST(match_count, 1), 20)
 $$;
 

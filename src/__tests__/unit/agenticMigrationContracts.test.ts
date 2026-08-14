@@ -41,6 +41,10 @@ describe("agentic migration contracts", () => {
     expect(embeddingMigration).toContain("supabase_edge_runtime");
     expect(embeddingMigration).toContain("gte-small");
     expect(embeddingMigration).toContain("search_course_materials_v2");
+    expect(embeddingMigration).toContain("SET search_path = ''");
+    expect(embeddingMigration.match(/OPERATOR\(public\.<=>\)/g)).toHaveLength(
+      3
+    );
     expect(embeddingMigration).toContain(
       "ALTER COLUMN embedding DROP NOT NULL"
     );
