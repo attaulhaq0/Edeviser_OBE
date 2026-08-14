@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { AgentExecutionContext } from "../../../supabase/functions/_shared/ai/contracts";
+import type {
+  AgentActionProposal,
+  AgentExecutionContext,
+} from "../../../supabase/functions/_shared/ai/contracts";
 import type { EmbeddingProvider } from "../../../supabase/functions/_shared/ai/embedding";
 import { SupabaseToolDataSource } from "../../../supabase/functions/agent-orchestrator/data-source";
 
@@ -94,7 +97,7 @@ class FakeClient {
         name === "profiles" &&
         filters.get("id") === ids.student &&
         filters.get("institution_id") === ids.institution &&
-        filters.get("status") === "active"
+        filters.get("is_active") === true
       ) {
         return { id: ids.student };
       }
@@ -226,6 +229,71 @@ describe("Supabase agent scope authorization", () => {
     ).resolves.toBe(true);
   });
 
+  it("reuses a fresh Learning State and refreshes only a stale one", async () => {
+    const context = roleContext("student", ids.student, {
+      route: "/student",
+      studentId: ids.student,
+    });
+    const reader = {
+      rpc: vi.fn().mockResolvedValue({ data: { version: 4 }, error: null }),
+    };
+    const clientWithRefreshState = (needsRefresh: boolean) => {
+      const rpc = vi.fn(async (name: string) => ({
+        data:
+          name === "student_learning_state_needs_refresh_v1"
+            ? needsRefresh
+            : {},
+        error: null,
+      }));
+      const admin = {
+        rpc,
+      };
+      return { admin, rpc };
+    };
+
+    const fresh = clientWithRefreshState(false);
+    const freshSource = new SupabaseToolDataSource(
+      fresh.admin as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[0],
+      embeddings,
+      reader as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[2]
+    );
+    await freshSource.executeRead(
+      "get_student_learning_context",
+      { studentId: ids.student },
+      context
+    );
+    expect(fresh.rpc).toHaveBeenCalledTimes(1);
+    expect(fresh.rpc).toHaveBeenCalledWith(
+      "student_learning_state_needs_refresh_v1",
+      { p_student_id: ids.student }
+    );
+
+    const stale = clientWithRefreshState(true);
+    const staleSource = new SupabaseToolDataSource(
+      stale.admin as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[0],
+      embeddings,
+      reader as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[2]
+    );
+    await staleSource.executeRead(
+      "get_student_learning_context",
+      { studentId: ids.student },
+      context
+    );
+    expect(stale.rpc).toHaveBeenNthCalledWith(
+      2,
+      "refresh_student_learning_state_v1",
+      { p_student_id: ids.student }
+    );
+  });
+
   it("enforces the complete five-role authorization matrix", async () => {
     await expect(
       dataSource.authorizeScope(
@@ -294,6 +362,76 @@ describe("Supabase agent scope authorization", () => {
         roleContext("admin", ids.admin)
       )
     ).resolves.toBe(true);
+  });
+
+  it("binds a parent support proposal to the verified linked parent", async () => {
+    await expect(
+      dataSource.authorizeProposal(
+        {
+          actionType: "acknowledge_child_support_plan",
+          payload: { acknowledged: true },
+          reason: "Linked parent acknowledgement is required.",
+          evidence: [],
+          studentId: ids.student,
+        },
+        roleContext("parent", ids.parent, {
+          route: "/parent/child",
+          studentId: ids.student,
+        }),
+        "parent"
+      )
+    ).resolves.toEqual({
+      studentId: ids.student,
+      courseId: undefined,
+      programId: undefined,
+      requiredApproverUserId: ids.parent,
+    });
+  });
+
+  it("rechecks exact student, payload, enrollment, and institution before a write", async () => {
+    const proposal: AgentActionProposal = {
+      id: crypto.randomUUID(),
+      runId: crypto.randomUUID(),
+      actorUserId: ids.student,
+      institutionId: ids.institution,
+      studentId: ids.student,
+      courseId: ids.course,
+      actionType: "create_planner_session",
+      payload: { courseId: ids.course },
+      reason: "Approved plan",
+      evidence: [],
+      evidenceHash: "a".repeat(64),
+      risk: "protected",
+      requiredApproverRole: "student",
+      requiredApproverUserId: ids.student,
+      status: "approved",
+      idempotencyKey: "b".repeat(64),
+      createdAt: new Date().toISOString(),
+    };
+    await expect(
+      dataSource.authorizeCurrentScope(proposal, {
+        userId: ids.student,
+        role: "student",
+        institutionId: ids.institution,
+      })
+    ).resolves.toBe(true);
+    await expect(
+      dataSource.authorizeCurrentScope(
+        { ...proposal, payload: { courseId: ids.foreignCourse } },
+        {
+          userId: ids.student,
+          role: "student",
+          institutionId: ids.institution,
+        }
+      )
+    ).resolves.toBe(false);
+    await expect(
+      dataSource.authorizeCurrentScope(proposal, {
+        userId: ids.otherStudent,
+        role: "student",
+        institutionId: ids.institution,
+      })
+    ).resolves.toBe(false);
   });
 
   it("rejects an empty embedding result before vector search", async () => {

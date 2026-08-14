@@ -57,6 +57,7 @@ const atRiskPredictions = createKeys("atRiskPredictions");
 const feedbackDrafts = createKeys("feedbackDrafts");
 const aiFeedback = createKeys("aiFeedback");
 const aiGovernance = createKeys("aiGovernance");
+const studentLearningState = createKeys("studentLearningState");
 
 // ─── Institutional Management ────────────────────────────────────────────────
 const semesters = createKeys("semesters");
@@ -286,6 +287,7 @@ export const queryKeys = {
   feedbackDrafts,
   aiFeedback,
   aiGovernance,
+  studentLearningState,
   // Institutional Management
   semesters,
   departments,

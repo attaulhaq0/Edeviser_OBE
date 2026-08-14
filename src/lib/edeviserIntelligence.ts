@@ -52,6 +52,20 @@ export const intelligenceResponseSchema = z.object({
 export type IntelligenceRequest = z.infer<typeof intelligenceRequestSchema>;
 export type IntelligenceResponse = z.infer<typeof intelligenceResponseSchema>;
 
+export const protectedWriteReceiptSchema = z.object({
+  executionId: z.uuid(),
+  targetId: z.uuid(),
+  targetType: z.enum(["weekly_goal", "study_session"]),
+  toolName: z.enum(["create_goal", "create_planner_session"]),
+  toolVersion: z.literal("1.0.0"),
+  studentId: z.uuid(),
+  courseId: z.uuid().optional(),
+  learningStateVersion: z.number().int().positive(),
+  alreadyExecuted: z.boolean(),
+});
+
+export type ProtectedWriteReceipt = z.infer<typeof protectedWriteReceiptSchema>;
+
 export const requestEDeviserIntelligence = async (
   input: IntelligenceRequest
 ): Promise<IntelligenceResponse> => {
@@ -91,4 +105,18 @@ export const decideIntelligenceProposal = async (input: {
       protectedActionExecuted: z.literal(false),
     })
     .parse(data);
+};
+
+export const executeIntelligenceProposal = async (input: {
+  proposalId: string;
+}): Promise<ProtectedWriteReceipt> => {
+  const proposalId = z.uuid().parse(input.proposalId);
+  const { data, error } = await supabase.functions.invoke(
+    "agent-orchestrator",
+    {
+      body: { action: "execute_proposal", proposalId },
+    }
+  );
+  if (error) throw error;
+  return z.object({ receipt: protectedWriteReceiptSchema }).parse(data).receipt;
 };
