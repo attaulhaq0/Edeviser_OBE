@@ -71,6 +71,10 @@ describe("agent-worker security contract", () => {
     expect(proactiveMigration).toContain(
       "UNIQUE (institution_id, idempotency_key)"
     );
+    expect(worker).toContain("p_batch_size: 1");
+    expect(worker).toContain("p_lease_seconds: 600");
+    expect(proactiveMigration).toContain("computed_idempotency_key");
+    expect(proactiveMigration).toContain("WHERE NOT EXISTS");
   });
 
   it("defaults proactive and auto-action features to disabled", () => {

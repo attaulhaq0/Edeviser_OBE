@@ -125,7 +125,8 @@ const EDeviserIntelligencePanel = () => {
                 </p>
                 {item.proposals.map((proposal) => (
                   <div key={proposal.id} className="mt-3 border-t pt-3">
-                    {approvedIds.has(proposal.id) &&
+                    {(approvedIds.has(proposal.id) ||
+                      proposal.status === "approved") &&
                     mayExecute(proposal.actionType) ? (
                       <Button
                         size="sm"

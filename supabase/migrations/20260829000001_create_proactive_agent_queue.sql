@@ -113,21 +113,30 @@ BEGIN
         institution.settings->>'ai_operational_autonomy',
         'A1'
       ) <> 'A0'
+  ), parsed AS (
+    SELECT candidate.*,
+      CASE WHEN candidate.risk_signal->>'courseId' ~*
+        '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        THEN (candidate.risk_signal->>'courseId')::uuid END AS signal_course_id,
+      CASE WHEN candidate.risk_signal->>'programId' ~*
+        '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        THEN (candidate.risk_signal->>'programId')::uuid END AS signal_program_id
+    FROM candidate_states candidate
+    WHERE candidate.risk_signal ?& ARRAY['courseId', 'programId', 'outcomeId']
   ), scoped AS (
     SELECT candidate.*,
-      (candidate.risk_signal->>'courseId')::uuid AS scoped_course_id,
-      (candidate.risk_signal->>'programId')::uuid AS scoped_program_id,
+      candidate.signal_course_id AS scoped_course_id,
+      candidate.signal_program_id AS scoped_program_id,
       candidate.risk_signal->>'outcomeId' AS outcome_id,
       course.teacher_id,
       program.coordinator_id
-    FROM candidate_states candidate
+    FROM parsed candidate
     JOIN public.courses course
-      ON course.id = (candidate.risk_signal->>'courseId')::uuid
+      ON course.id = candidate.signal_course_id
     JOIN public.programs program
       ON program.id = course.program_id
      AND program.institution_id = candidate.institution_id
-    WHERE candidate.risk_signal ?& ARRAY['courseId', 'programId', 'outcomeId']
-      AND course.program_id = (candidate.risk_signal->>'programId')::uuid
+    WHERE course.program_id = candidate.signal_program_id
   ), routed AS (
     SELECT scoped.*,
       recipient.user_id AS routed_user_id,
@@ -169,8 +178,20 @@ BEGIN
         recipient_profile.notification_preferences->>'ai_autonomy',
         'A1'
       ) <> 'A0'
+  ), keyed AS (
+    SELECT routed.*,
+      md5(concat_ws(':', institution_id, student_id, version, outcome_id,
+        routed_user_id, routed_role,
+        'student-learning-state/low-mastery/v1')) AS computed_idempotency_key
+    FROM routed
   ), bounded AS (
-    SELECT * FROM routed
+    SELECT keyed.* FROM keyed
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM public.proactive_agent_jobs existing
+      WHERE existing.institution_id = keyed.institution_id
+        AND existing.idempotency_key = keyed.computed_idempotency_key
+    )
     ORDER BY institution_id, student_id, outcome_id, routed_role, routed_user_id
     LIMIT p_batch_size
   ), inserted AS (
@@ -198,8 +219,7 @@ BEGIN
         'riskSignal', risk_signal,
         'recipientRole', routed_role
       )::text),
-      md5(concat_ws(':', institution_id, student_id, version, outcome_id,
-        routed_user_id, routed_role, 'student-learning-state/low-mastery/v1'))
+      computed_idempotency_key
     FROM bounded
     ON CONFLICT (institution_id, idempotency_key) DO NOTHING
     RETURNING 1

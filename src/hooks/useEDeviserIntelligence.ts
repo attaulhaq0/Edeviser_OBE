@@ -67,8 +67,17 @@ export const useProactiveIntelligenceFeed = () =>
 export const useEDeviserIntelligence = () =>
   useMutation({ mutationFn: requestEDeviserIntelligence });
 
-export const useIntelligenceProposalDecision = () =>
-  useMutation({ mutationFn: decideIntelligenceProposal });
+export const useIntelligenceProposalDecision = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: decideIntelligenceProposal,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.proactiveIntelligence.lists(),
+      });
+    },
+  });
+};
 
 export const useIntelligenceProposalExecution = () => {
   const queryClient = useQueryClient();
@@ -82,6 +91,9 @@ export const useIntelligenceProposalExecution = () => {
       void queryClient.invalidateQueries({ queryKey: affectedLists });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.studentLearningState.detail(receipt.studentId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.proactiveIntelligence.lists(),
       });
     },
   });

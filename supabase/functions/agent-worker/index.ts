@@ -407,18 +407,23 @@ serve(async (req) => {
 
     const workerId = crypto.randomUUID();
     const provider = createAIProvider(config, { env: Deno.env });
-    const { data: claimed, error: claimError } = await admin.rpc(
-      "claim_proactive_agent_jobs_v1",
-      {
-        p_worker_id: workerId,
-        p_batch_size: request.workBatchSize,
-        p_lease_seconds: 120,
-      }
-    );
-    if (claimError) throw new Error("Proactive queue claim failed");
-    const jobs = (claimed ?? []) as ProactiveJob[];
+    let claimedCount = 0;
     const totals = { completed: 0, retry: 0, deadLetter: 0 };
-    for (const job of jobs) {
+    for (let index = 0; index < request.workBatchSize; index += 1) {
+      // Claim immediately before processing so queued work never burns its
+      // lease while earlier model calls are running.
+      const { data: claimed, error: claimError } = await admin.rpc(
+        "claim_proactive_agent_jobs_v1",
+        {
+          p_worker_id: workerId,
+          p_batch_size: 1,
+          p_lease_seconds: 600,
+        }
+      );
+      if (claimError) throw new Error("Proactive queue claim failed");
+      const job = (claimed as ProactiveJob[] | null)?.[0];
+      if (!job) break;
+      claimedCount += 1;
       let status: "completed" | "retry" | "dead_letter";
       try {
         status = await processJob(admin, workerId, job, config, provider);
@@ -445,7 +450,7 @@ serve(async (req) => {
     return json(200, {
       success: true,
       enqueued: Number(enqueued ?? 0),
-      claimed: jobs.length,
+      claimed: claimedCount,
       ...totals,
     });
   } catch (error) {

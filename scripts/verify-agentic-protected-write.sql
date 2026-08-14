@@ -539,12 +539,24 @@ DECLARE
   v_claimed integer;
   v_status text;
 BEGIN
-  v_enqueued := public.enqueue_proactive_agent_jobs_v1(
-    '10000000-0000-4000-8000-000000000001',
-    '20000000-0000-4000-8000-000000000001',
-    10,
-    'schedule'
-  );
+  UPDATE public.student_learning_states
+  SET risk_signals = risk_signals || jsonb_build_array(jsonb_build_object(
+    'kind', 'low_mastery',
+    'courseId', 'malformed-course-id',
+    'programId', 'malformed-program-id',
+    'outcomeId', 'malformed-outcome-id'
+  ))
+  WHERE student_id = '20000000-0000-4000-8000-000000000001';
+
+  v_enqueued := 0;
+  FOR v_iteration IN 1..5 LOOP
+    v_enqueued := v_enqueued + public.enqueue_proactive_agent_jobs_v1(
+      '10000000-0000-4000-8000-000000000001',
+      '20000000-0000-4000-8000-000000000001',
+      1,
+      'schedule'
+    );
+  END LOOP;
   IF v_enqueued <> 5 OR (
     SELECT count(DISTINCT recipient_role)
     FROM public.proactive_agent_jobs
