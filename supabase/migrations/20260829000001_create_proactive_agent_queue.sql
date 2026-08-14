@@ -123,6 +123,8 @@ BEGIN
         THEN (candidate.risk_signal->>'programId')::uuid END AS signal_program_id
     FROM candidate_states candidate
     WHERE candidate.risk_signal ?& ARRAY['courseId', 'programId', 'outcomeId']
+      AND candidate.risk_signal->>'outcomeId' ~*
+        '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
   ), scoped AS (
     SELECT candidate.*,
       candidate.signal_course_id AS scoped_course_id,
@@ -158,11 +160,15 @@ BEGIN
           AND parent_link.verified = true
       UNION ALL SELECT scoped.coordinator_id, 'coordinator'
         WHERE scoped.coordinator_id IS NOT NULL
-      UNION ALL SELECT administrator.id, 'admin'
+      UNION ALL (
+        SELECT administrator.id, 'admin'
         FROM public.profiles administrator
         WHERE administrator.institution_id = scoped.institution_id
           AND administrator.role = 'admin'
           AND administrator.is_active = true
+        ORDER BY administrator.created_at, administrator.id
+        LIMIT 1
+      )
     ) recipient
     JOIN public.profiles recipient_profile
       ON recipient_profile.id = recipient.user_id
@@ -293,7 +299,8 @@ SECURITY DEFINER
 SET search_path = ''
 AS $function$
 BEGIN
-  IF length(p_recommendation) NOT BETWEEN 1 AND 16000
+  IF p_recommendation IS NULL OR p_proposal_ids IS NULL
+    OR length(p_recommendation) NOT BETWEEN 1 AND 16000
     OR jsonb_typeof(p_proposal_ids) <> 'array' THEN
     RAISE EXCEPTION 'Invalid completion payload' USING ERRCODE = '22023';
   END IF;
@@ -310,7 +317,8 @@ $function$;
 CREATE OR REPLACE FUNCTION public.fail_proactive_agent_job_v1(
   p_job_id uuid,
   p_worker_id uuid,
-  p_error_classification text
+  p_error_classification text,
+  p_retryable boolean DEFAULT true
 )
 RETURNS text
 LANGUAGE plpgsql
@@ -321,9 +329,11 @@ DECLARE
   v_status text;
 BEGIN
   UPDATE public.proactive_agent_jobs job
-  SET status = CASE WHEN job.attempt_count >= job.max_attempts
+  SET status = CASE WHEN NOT COALESCE(p_retryable, false)
+      OR job.attempt_count >= job.max_attempts
       THEN 'dead_letter' ELSE 'retry' END,
-    available_at = CASE WHEN job.attempt_count >= job.max_attempts THEN job.available_at
+    available_at = CASE WHEN NOT COALESCE(p_retryable, false)
+        OR job.attempt_count >= job.max_attempts THEN job.available_at
       ELSE now() + make_interval(mins => LEAST(60, power(5, job.attempt_count)::integer)) END,
     lease_until = NULL, claimed_by = NULL,
     error_classification = left(COALESCE(p_error_classification, 'unknown_error'), 200),
@@ -415,7 +425,7 @@ COMMENT ON FUNCTION public.enqueue_proactive_agent_jobs_v1(uuid, uuid, integer, 
   'Service-only deterministic candidate routing from fresh canonical Student Learning State risk signals.';
 COMMENT ON FUNCTION public.claim_proactive_agent_jobs_v1(uuid, integer, integer) IS
   'Service-only bounded SKIP LOCKED queue claim with expired-lease recovery.';
-COMMENT ON FUNCTION public.fail_proactive_agent_job_v1(uuid, uuid, text) IS
+COMMENT ON FUNCTION public.fail_proactive_agent_job_v1(uuid, uuid, text, boolean) IS
   'Service-only retry transition with bounded backoff and terminal dead-letter status.';
 COMMENT ON FUNCTION public.get_my_proactive_intelligence_v1(integer) IS
   'Authenticated five-role proactive feed with execution-time scope rechecks.';
@@ -426,7 +436,7 @@ REVOKE ALL ON FUNCTION public.claim_proactive_agent_jobs_v1(uuid, integer, integ
   FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.complete_proactive_agent_job_v1(uuid, uuid, uuid, text, jsonb, text, text)
   FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.fail_proactive_agent_job_v1(uuid, uuid, text)
+REVOKE ALL ON FUNCTION public.fail_proactive_agent_job_v1(uuid, uuid, text, boolean)
   FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.get_my_proactive_intelligence_v1(integer)
   FROM PUBLIC, anon;
@@ -436,7 +446,7 @@ GRANT EXECUTE ON FUNCTION public.claim_proactive_agent_jobs_v1(uuid, integer, in
   TO service_role;
 GRANT EXECUTE ON FUNCTION public.complete_proactive_agent_job_v1(uuid, uuid, uuid, text, jsonb, text, text)
   TO service_role;
-GRANT EXECUTE ON FUNCTION public.fail_proactive_agent_job_v1(uuid, uuid, text)
+GRANT EXECUTE ON FUNCTION public.fail_proactive_agent_job_v1(uuid, uuid, text, boolean)
   TO service_role;
 GRANT EXECUTE ON FUNCTION public.get_my_proactive_intelligence_v1(integer)
   TO authenticated, service_role;

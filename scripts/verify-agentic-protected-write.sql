@@ -48,6 +48,10 @@ VALUES
   (
     '20000000-0000-4000-8000-000000000006',
     'authenticated', 'authenticated', 'admin@agentic.test', now(), now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000007',
+    'authenticated', 'authenticated', 'admin-two@agentic.test', now(), now()
   );
 
 INSERT INTO public.institution_settings (
@@ -98,6 +102,11 @@ VALUES
     '20000000-0000-4000-8000-000000000006',
     '10000000-0000-4000-8000-000000000001',
     'Institution Admin', 'admin@agentic.test', 'admin', true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000007',
+    '10000000-0000-4000-8000-000000000001',
+    'Institution Admin Two', 'admin-two@agentic.test', 'admin', true
   );
 
 INSERT INTO public.programs (
@@ -591,6 +600,17 @@ BEGIN
   SELECT * INTO v_teacher_job FROM public.proactive_agent_jobs
   WHERE recipient_role = 'teacher';
 
+  BEGIN
+    PERFORM public.complete_proactive_agent_job_v1(
+      v_student_job.id, v_worker,
+      '71000000-0000-4000-8000-000000000001',
+      NULL, NULL, 'deepseek', 'deepseek-v4-flash'
+    );
+    RAISE EXCEPTION 'Null proactive completion payload was accepted';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    NULL;
+  END;
+
   INSERT INTO public.agent_runs (
     id, request_id, actor_user_id, actor_role, institution_id, session_id,
     specialist, input_hash, status, provider
@@ -630,6 +650,15 @@ BEGIN
     RAISE EXCEPTION 'Recoverable proactive failure did not enter retry';
   END IF;
 
+  SELECT * INTO v_teacher_job FROM public.proactive_agent_jobs
+  WHERE recipient_role = 'coordinator';
+  v_status := public.fail_proactive_agent_job_v1(
+    v_teacher_job.id, v_worker, 'max_tool_steps', false
+  );
+  IF v_status <> 'dead_letter' THEN
+    RAISE EXCEPTION 'Deterministic proactive failure was retried';
+  END IF;
+
   UPDATE public.proactive_agent_jobs
   SET max_attempts = attempt_count,
       lease_until = now() - interval '1 second'
@@ -661,6 +690,21 @@ BEGIN
   END IF;
 END;
 $proactive_feed$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000002',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $proactive_feed_denied$
+BEGIN
+  IF (SELECT count(*) FROM public.get_my_proactive_intelligence_v1(20)) <> 0 THEN
+    RAISE EXCEPTION 'Non-recipient received proactive guidance';
+  END IF;
+END;
+$proactive_feed_denied$;
 RESET ROLE;
 
 SELECT json_build_object(

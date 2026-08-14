@@ -31,18 +31,19 @@ upgrade this signal.
 
 For each signal, server-side joins resolve currently authorized recipients:
 
-| Role        | Scope rechecked at enqueue and feed read | Specialist  |
-| ----------- | ---------------------------------------- | ----------- |
-| Student     | Exact student                            | Mastery     |
-| Teacher     | Current course owner                     | Risk        |
-| Parent      | Verified parent-student link             | Parent      |
-| Coordinator | Current program coordinator              | Coordinator |
-| Admin       | Active profile in the institution        | Admin       |
+| Role        | Scope rechecked at enqueue and feed read     | Specialist  |
+| ----------- | -------------------------------------------- | ----------- |
+| Student     | Exact student                                | Mastery     |
+| Teacher     | Current course owner                         | Risk        |
+| Parent      | Verified parent-student link                 | Parent      |
+| Coordinator | Current program coordinator                  | Coordinator |
+| Admin       | Deterministic first active institution admin | Admin       |
 
 Inactive institutions/profiles, A0 autonomy, and explicit institution or user
 proactive opt-outs are suppressed. Each evidence packet contains only the
 canonical state version/hash, the deterministic risk signal, and course/program
-scope.
+scope. Selecting one deterministic admin avoids duplicate governance alerts
+when an institution has multiple active administrators.
 
 ## One bounded orchestrator
 

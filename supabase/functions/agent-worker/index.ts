@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { timingSafeEqual } from "../_shared/timing-safe-equal.ts";
 import { getAgenticConfig } from "../_shared/ai/config.ts";
 import {
   isAuthenticatedRole,
@@ -111,13 +112,25 @@ const readRequest = async (req: Request): Promise<WorkerRequest> => {
 
 const isSystemCaller = (req: Request): boolean => {
   const authHeader = req.headers.get("Authorization") ?? "";
-  const serverKey = getManagedServerKey();
+  let serverKey: string | null = null;
+  try {
+    serverKey = getManagedServerKey();
+  } catch {
+    // A configured cron credential can still authorize recovery work.
+  }
   const cronSecret = Deno.env.get("CRON_SECRET");
   return (
-    authHeader.replace("Bearer ", "") === serverKey ||
-    (Boolean(cronSecret) && req.headers.get("x-cron-secret") === cronSecret)
+    (serverKey !== null &&
+      timingSafeEqual(authHeader.replace("Bearer ", ""), serverKey)) ||
+    (cronSecret !== undefined &&
+      cronSecret.length > 0 &&
+      timingSafeEqual(req.headers.get("x-cron-secret") ?? "", cronSecret))
   );
 };
+
+const isRetryableFailure = (error: unknown): boolean =>
+  !(error instanceof AgentOrchestratorError) ||
+  error.kind === "provider_unavailable";
 
 const proposalFromRow = (
   row: Record<string, unknown>
@@ -337,6 +350,7 @@ const processJob = async (
         : error instanceof AgentOrchestratorError
         ? error.kind
         : "proactive_job_failed";
+    const retryable = isRetryableFailure(error);
     await admin
       .from("agent_runs")
       .update({
@@ -352,6 +366,7 @@ const processJob = async (
         p_job_id: job.id,
         p_worker_id: workerId,
         p_error_classification: classification,
+        p_retryable: retryable,
       }
     );
     if (failError)
@@ -434,6 +449,7 @@ serve(async (req) => {
             p_job_id: job.id,
             p_worker_id: workerId,
             p_error_classification: "proactive_job_initialization_failed",
+            p_retryable: true,
           }
         );
         if (failError) {

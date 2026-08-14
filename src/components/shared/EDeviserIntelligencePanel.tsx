@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, LoaderCircle, Send, ShieldCheck } from "lucide-react";
+import { Bot, Loader2, Send, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -21,10 +21,25 @@ import {
   useIntelligenceProposalExecution,
   useProactiveIntelligenceFeed,
 } from "@/hooks/useEDeviserIntelligence";
-import type { IntelligenceResponse } from "@/lib/edeviserIntelligence";
+import {
+  isExecutableIntelligenceAction,
+  type IntelligenceResponse,
+} from "@/lib/edeviserIntelligence";
 
-const mayExecute = (actionType: string): boolean =>
-  actionType === "create_goal" || actionType === "create_planner_session";
+type ProposalStatus = IntelligenceResponse["proposals"][number]["status"];
+
+const proposalStatusKey = (
+  status: ProposalStatus
+):
+  | "intelligence.approvedAwaiting"
+  | "intelligence.rejected"
+  | "intelligence.expired"
+  | "intelligence.executedStatus" => {
+  if (status === "rejected") return "intelligence.rejected";
+  if (status === "expired") return "intelligence.expired";
+  if (status === "executed") return "intelligence.executedStatus";
+  return "intelligence.approvedAwaiting";
+};
 
 const EDeviserIntelligencePanel = () => {
   const { t, i18n } = useTranslation("common");
@@ -32,6 +47,9 @@ const EDeviserIntelligencePanel = () => {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<IntelligenceResponse | null>(null);
   const [approvedIds, setApprovedIds] = useState<ReadonlySet<string>>(
+    new Set()
+  );
+  const [executedIds, setExecutedIds] = useState<ReadonlySet<string>>(
     new Set()
   );
   const intelligence = useEDeviserIntelligence();
@@ -69,6 +87,7 @@ const EDeviserIntelligencePanel = () => {
   const execute = async (proposalId: string) => {
     try {
       await execution.mutateAsync({ proposalId });
+      setExecutedIds((current) => new Set(current).add(proposalId));
       toast.success(t("intelligence.executed"));
     } catch {
       toast.error(t("intelligence.actionFailed"));
@@ -100,12 +119,12 @@ const EDeviserIntelligencePanel = () => {
           <SheetDescription>{t("intelligence.description")}</SheetDescription>
         </SheetHeader>
 
-        <section className="space-y-3 px-4">
+        <section className="space-y-3 ps-4 pe-4">
           <h3 className="text-sm font-semibold">
             {t("intelligence.proactive")}
           </h3>
           {feed.isLoading ? (
-            <LoaderCircle className="size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : feed.data?.length ? (
             feed.data.slice(0, 5).map((item) => (
               <article
@@ -125,9 +144,10 @@ const EDeviserIntelligencePanel = () => {
                 </p>
                 {item.proposals.map((proposal) => (
                   <div key={proposal.id} className="mt-3 border-t pt-3">
-                    {(approvedIds.has(proposal.id) ||
+                    {!executedIds.has(proposal.id) &&
+                    (approvedIds.has(proposal.id) ||
                       proposal.status === "approved") &&
-                    mayExecute(proposal.actionType) ? (
+                    isExecutableIntelligenceAction(proposal.actionType) ? (
                       <Button
                         size="sm"
                         onClick={() => void execute(proposal.id)}
@@ -146,7 +166,13 @@ const EDeviserIntelligencePanel = () => {
                       </Button>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        {t("intelligence.approvedAwaiting")}
+                        {t(
+                          proposalStatusKey(
+                            executedIds.has(proposal.id)
+                              ? "executed"
+                              : proposal.status
+                          )
+                        )}
                       </p>
                     )}
                   </div>
@@ -161,7 +187,7 @@ const EDeviserIntelligencePanel = () => {
         </section>
 
         {result && (
-          <section className="space-y-3 px-4">
+          <section className="space-y-3 ps-4 pe-4">
             <div className="rounded-xl border bg-card p-3 text-sm shadow-xs">
               <Badge variant="outline" className="mb-2">
                 {result.specialist}
@@ -177,8 +203,9 @@ const EDeviserIntelligencePanel = () => {
                 <p className="mb-3 text-sm text-muted-foreground">
                   {proposal.reason}
                 </p>
-                {approvedIds.has(proposal.id) &&
-                mayExecute(proposal.actionType) ? (
+                {!executedIds.has(proposal.id) &&
+                approvedIds.has(proposal.id) &&
+                isExecutableIntelligenceAction(proposal.actionType) ? (
                   <Button
                     size="sm"
                     onClick={() => void execute(proposal.id)}
@@ -197,7 +224,13 @@ const EDeviserIntelligencePanel = () => {
                   </Button>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    {t("intelligence.approvedAwaiting")}
+                    {t(
+                      proposalStatusKey(
+                        executedIds.has(proposal.id)
+                          ? "executed"
+                          : proposal.status
+                      )
+                    )}
                   </p>
                 )}
               </div>
@@ -219,7 +252,7 @@ const EDeviserIntelligencePanel = () => {
             disabled={intelligence.isPending || !message.trim()}
           >
             {intelligence.isPending ? (
-              <LoaderCircle className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
               <Send className="size-4" />
             )}

@@ -25,11 +25,11 @@ const proactiveMigration = readFileSync(
 
 describe("agent-worker security contract", () => {
   it("keeps scheduled scans fail-closed to server or cron credentials", () => {
+    expect(worker).toContain("timingSafeEqual");
+    expect(worker).not.toMatch(/=== serverKey/);
+    expect(worker).toMatch(/try \{\s*serverKey = getManagedServerKey\(\);/);
     expect(worker).toMatch(
-      /authHeader\.replace\("Bearer ", ""\) === serverKey/
-    );
-    expect(worker).toMatch(
-      /req\.headers\.get\("x-cron-secret"\) === cronSecret/
+      /timingSafeEqual\(req\.headers\.get\("x-cron-secret"\) \?\? "", cronSecret\)/
     );
     expect(worker).toMatch(
       /if \(!isSystemCaller\(req\)\) \{\s*return json\(401, \{ error: "Unauthorized" \}\);/
@@ -73,8 +73,12 @@ describe("agent-worker security contract", () => {
     );
     expect(worker).toContain("p_batch_size: 1");
     expect(worker).toContain("p_lease_seconds: 600");
+    expect(worker).toContain("p_retryable: retryable");
     expect(proactiveMigration).toContain("computed_idempotency_key");
     expect(proactiveMigration).toContain("WHERE NOT EXISTS");
+    expect(proactiveMigration).toMatch(
+      /ORDER BY administrator\.created_at, administrator\.id\s+LIMIT 1/
+    );
   });
 
   it("defaults proactive and auto-action features to disabled", () => {

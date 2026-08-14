@@ -4,6 +4,7 @@ import {
   buildProactiveMessage,
   type ProactiveJob,
 } from "../../../supabase/functions/_shared/ai/proactive-worker";
+import { timingSafeEqual } from "../../../supabase/functions/_shared/timing-safe-equal";
 
 const job = (role: ProactiveJob["recipient_role"]): ProactiveJob => ({
   id: "11111111-1111-4111-8111-111111111111",
@@ -23,11 +24,20 @@ const job = (role: ProactiveJob["recipient_role"]): ProactiveJob => ({
   },
 });
 
+const expectedRoleInstruction = {
+  student: "one manageable next learning step",
+  teacher: "one reviewable teaching intervention",
+  parent: "non-diagnostic support summary",
+  coordinator: "do not claim a cohort pattern",
+  admin: "governance or data-quality review step",
+} as const;
+
 describe("proactive worker prompt boundary", () => {
   it.each(["student", "teacher", "parent", "coordinator", "admin"] as const)(
     "creates bounded role guidance for %s",
     (role) => {
       const message = buildProactiveMessage(job(role));
+      expect(message).toContain(expectedRoleInstruction[role]);
       expect(message).toContain("deterministic server trigger");
       expect(message).toContain("Do not recalculate");
       expect(message).toContain("protected action");
@@ -35,4 +45,35 @@ describe("proactive worker prompt boundary", () => {
       expect(message).toContain('"kind":"low_mastery"');
     }
   );
+
+  it("compacts oversized evidence into valid bounded JSON", () => {
+    const oversized = job("student");
+    oversized.evidence_packet = {
+      ...oversized.evidence_packet,
+      riskSignal: {
+        kind: "low_mastery",
+        outcomeId: "77777777-7777-4777-8777-777777777777",
+        detail: "x".repeat(12_000),
+      },
+    };
+
+    const message = buildProactiveMessage(oversized);
+    const serializedPacket = message.split("UNTRUSTED_EVIDENCE_PACKET\n")[1];
+    expect(message.length).toBeLessThan(8_000);
+    if (!serializedPacket)
+      throw new Error("Serialized evidence packet missing");
+    expect(JSON.parse(serializedPacket)).toMatchObject({
+      packetTruncated: true,
+      riskSignal: { kind: "low_mastery" },
+    });
+  });
+});
+
+describe("worker credential comparison", () => {
+  it("matches only identical byte sequences", () => {
+    expect(timingSafeEqual("same-secret", "same-secret")).toBe(true);
+    expect(timingSafeEqual("same-secret", "different-secret")).toBe(false);
+    expect(timingSafeEqual("short", "shorter")).toBe(false);
+    expect(timingSafeEqual("مفتاح", "مفتاح")).toBe(true);
+  });
 });

@@ -24,7 +24,7 @@ const AIAtRiskWidget = () => {
         <SectionHeader icon={Sparkles} title="Needs Attention" />
       </div>
 
-      <div className="space-y-4 px-5 pb-5">
+      <div className="space-y-4 ps-5 pe-5 pb-5">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (

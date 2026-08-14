@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
+import { useAuth } from "@/hooks/useAuth";
 import {
   decideIntelligenceProposal,
   executeIntelligenceProposal,
@@ -50,9 +51,10 @@ const proactiveItemSchema = z.object({
 
 export type ProactiveIntelligenceItem = z.infer<typeof proactiveItemSchema>;
 
-export const useProactiveIntelligenceFeed = () =>
-  useQuery({
-    queryKey: queryKeys.proactiveIntelligence.lists(),
+export const useProactiveIntelligenceFeed = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.proactiveIntelligence.list({ userId: user?.id }),
     queryFn: async (): Promise<ProactiveIntelligenceItem[]> => {
       const { data, error } = await supabase.rpc(
         "get_my_proactive_intelligence_v1" as never,
@@ -61,8 +63,10 @@ export const useProactiveIntelligenceFeed = () =>
       if (error) throw error;
       return z.array(proactiveItemSchema).parse(data ?? []);
     },
+    enabled: Boolean(user?.id),
     staleTime: 60_000,
   });
+};
 
 export const useEDeviserIntelligence = () =>
   useMutation({ mutationFn: requestEDeviserIntelligence });
