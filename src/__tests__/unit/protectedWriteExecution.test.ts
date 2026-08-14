@@ -31,6 +31,7 @@ const proposal = (
   institutionId: ids.institution,
   studentId: ids.student,
   actionType: "create_goal",
+  toolVersion: "1.0.0",
   payload: { title: "Review CLO 1", targetValue: 3 },
   reason: "Student should review the deterministic recommendation.",
   evidence: [{ kind: "outcome", id: ids.course }],
@@ -150,6 +151,24 @@ describe("typed protected write execution", () => {
     ).rejects.toMatchObject({ kind: "unknown_tool" });
     await expect(
       executeApprovedProposal(
+        proposal({ toolVersion: undefined }),
+        approver,
+        policy,
+        authorized,
+        { executeApprovedPersonalAction: vi.fn() }
+      )
+    ).rejects.toMatchObject({ kind: "unknown_tool" });
+    await expect(
+      executeApprovedProposal(
+        proposal({ toolVersion: "2.0.0" }),
+        approver,
+        policy,
+        authorized,
+        { executeApprovedPersonalAction: vi.fn() }
+      )
+    ).rejects.toMatchObject({ kind: "unknown_tool" });
+    await expect(
+      executeApprovedProposal(
         proposal({ evidenceHash: "invalid" }),
         approver,
         policy,
@@ -171,6 +190,41 @@ describe("typed protected write execution", () => {
         executeApprovedPersonalAction: vi.fn().mockResolvedValue({}),
       })
     ).rejects.toMatchObject({ kind: "invalid_output" });
+  });
+
+  it("rejects impossible calendar dates instead of normalizing them", async () => {
+    const authorized = {
+      authorizeCurrentScope: vi.fn().mockResolvedValue(true),
+    };
+    const executor = { executeApprovedPersonalAction: vi.fn() };
+    await expect(
+      executeApprovedProposal(
+        proposal({ payload: { title: "Goal", weekStart: "2026-02-30" } }),
+        approver,
+        policy,
+        authorized,
+        executor
+      )
+    ).rejects.toMatchObject({ kind: "invalid_input" });
+    await expect(
+      executeApprovedProposal(
+        proposal({
+          actionType: "create_planner_session",
+          courseId: ids.course,
+          payload: {
+            title: "Review",
+            courseId: ids.course,
+            plannedDate: "2026-04-31",
+            durationMinutes: 45,
+          },
+        }),
+        approver,
+        policy,
+        authorized,
+        executor
+      )
+    ).rejects.toMatchObject({ kind: "invalid_input" });
+    expect(executor.executeApprovedPersonalAction).not.toHaveBeenCalled();
   });
 
   it("accepts a typed planner session and preserves an idempotent retry receipt", async () => {

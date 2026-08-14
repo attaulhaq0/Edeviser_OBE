@@ -1,10 +1,13 @@
 import type { AgentActionProposal, AuthenticatedRole } from "../contracts.ts";
 
 export type ProtectedWriteToolName = "create_goal" | "create_planner_session";
+export type ProtectedWriteToolVersion = "1.0.0";
+export type ProtectedWriteToolIdentifier =
+  `${ProtectedWriteToolName}@${ProtectedWriteToolVersion}`;
 
 export interface ProtectedWriteToolDefinition {
   name: ProtectedWriteToolName;
-  version: "1.0.0";
+  version: ProtectedWriteToolVersion;
   risk: "protected";
   approvalRequired: true;
   allowedApproverRoles: readonly AuthenticatedRole[];
@@ -78,10 +81,15 @@ const textField = (
 };
 
 const dateField = (value: unknown, field: string): void => {
+  const parsed =
+    typeof value === "string"
+      ? Date.parse(`${value}T00:00:00.000Z`)
+      : Number.NaN;
   if (
     typeof value !== "string" ||
     !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-    Number.isNaN(Date.parse(`${value}T00:00:00.000Z`))
+    Number.isNaN(parsed) ||
+    new Date(parsed).toISOString().slice(0, 10) !== value
   ) {
     throw new ProtectedWriteBoundaryError(
       "invalid_input",
@@ -199,9 +207,9 @@ const validateOutput = (value: unknown): Record<string, unknown> => {
 };
 
 export const PROTECTED_WRITE_REGISTRY: Readonly<
-  Record<ProtectedWriteToolName, ProtectedWriteToolDefinition>
+  Record<ProtectedWriteToolIdentifier, ProtectedWriteToolDefinition>
 > = {
-  create_goal: {
+  "create_goal@1.0.0": {
     name: "create_goal",
     version: "1.0.0",
     risk: "protected",
@@ -210,7 +218,7 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
     validateInput: validateGoal,
     validateOutput,
   },
-  create_planner_session: {
+  "create_planner_session@1.0.0": {
     name: "create_planner_session",
     version: "1.0.0",
     risk: "protected",
@@ -221,12 +229,21 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
   },
 };
 
+export const protectedWriteVersionForAction = (
+  actionType: string
+): ProtectedWriteToolVersion | undefined =>
+  actionType === "create_goal" || actionType === "create_planner_session"
+    ? "1.0.0"
+    : undefined;
+
 export const protectedWriteForProposal = (
   proposal: AgentActionProposal
-): ProtectedWriteToolDefinition | undefined =>
-  Object.prototype.hasOwnProperty.call(
+): ProtectedWriteToolDefinition | undefined => {
+  const identifier = `${proposal.actionType}@${proposal.toolVersion ?? ""}`;
+  return Object.prototype.hasOwnProperty.call(
     PROTECTED_WRITE_REGISTRY,
-    proposal.actionType
+    identifier
   )
-    ? PROTECTED_WRITE_REGISTRY[proposal.actionType as ProtectedWriteToolName]
+    ? PROTECTED_WRITE_REGISTRY[identifier as ProtectedWriteToolIdentifier]
     : undefined;
+};

@@ -9,6 +9,7 @@ import {
   type JsonValue,
   type ProtectedActionType,
 } from "./contracts.ts";
+import { protectedWriteVersionForAction } from "./write-tools/registry.ts";
 import { hashEvidence } from "./hash.ts";
 
 export interface ProposalRequest {
@@ -256,10 +257,12 @@ export const createHumanApprovalProposal = async (
     );
   }
   const evidenceHash = await hashEvidence(request.evidence);
+  const toolVersion = protectedWriteVersionForAction(request.actionType);
   const idempotencyKey = await hashEvidence({
     institutionId: context.identity.institutionId,
     actorUserId: context.identity.userId,
     actionType: request.actionType,
+    toolVersion,
     studentId: authorizedScope.studentId,
     courseId: authorizedScope.courseId,
     programId: authorizedScope.programId,
@@ -271,6 +274,7 @@ export const createHumanApprovalProposal = async (
     actorUserId: context.identity.userId,
     institutionId: context.identity.institutionId,
     actionType: request.actionType,
+    toolVersion,
     payload: request.payload,
     reason: request.reason,
     evidence: request.evidence,

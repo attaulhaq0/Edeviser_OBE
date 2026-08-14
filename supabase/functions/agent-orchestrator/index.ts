@@ -64,6 +64,8 @@ const proposalFromRow = (
   actorUserId: String(row.actor_user_id),
   institutionId: String(row.institution_id),
   actionType: String(row.action_type),
+  toolVersion:
+    typeof row.tool_version === "string" ? row.tool_version : undefined,
   payload: object(row.payload) ?? {},
   reason: String(row.reason),
   evidence: Array.isArray(row.evidence_references)
@@ -266,9 +268,45 @@ serve(async (req) => {
                 p_actor_id: identity.userId,
               }
             );
-            if (executionError || !result) {
+            if (executionError) {
+              const errorBySqlState: Readonly<
+                Record<
+                  string,
+                  { kind: ProtectedWriteBoundaryError["kind"]; message: string }
+                >
+              > = {
+                "42501": {
+                  kind: "unauthorized_scope",
+                  message: "Proposal scope is no longer authorized",
+                },
+                "22023": {
+                  kind: "invalid_input",
+                  message: "Proposal payload is no longer valid",
+                },
+                "23505": {
+                  kind: "not_approved",
+                  message: "Proposal was already executed",
+                },
+                "40001": {
+                  kind: "not_approved",
+                  message: "Proposal execution lost a concurrent race",
+                },
+                P0002: {
+                  kind: "not_approved",
+                  message: "Proposal no longer exists",
+                },
+              };
+              const mapped = errorBySqlState[executionError.code ?? ""];
+              if (mapped) {
+                throw new ProtectedWriteBoundaryError(
+                  mapped.kind,
+                  mapped.message
+                );
+              }
               throw new Error("Protected write RPC failed");
             }
+            if (!result)
+              throw new Error("Protected write RPC returned no receipt");
             return result;
           },
         }
@@ -388,6 +426,7 @@ serve(async (req) => {
             course_id: proposal.courseId ?? null,
             program_id: proposal.programId ?? null,
             action_type: proposal.actionType,
+            tool_version: proposal.toolVersion ?? null,
             payload: proposal.payload,
             reason: proposal.reason,
             evidence_references: proposal.evidence,

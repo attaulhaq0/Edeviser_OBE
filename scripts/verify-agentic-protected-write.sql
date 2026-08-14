@@ -215,7 +215,7 @@ VALUES
 
 INSERT INTO public.agent_action_proposals (
   id, run_id, actor_user_id, institution_id, student_id, course_id,
-  action_type, payload, reason, evidence_references, evidence_hash,
+  action_type, tool_version, payload, reason, evidence_references, evidence_hash,
   required_approver_role, required_approver_user_id, status,
   idempotency_key, expires_at, decided_at, decided_by
 )
@@ -228,6 +228,7 @@ VALUES
     '20000000-0000-4000-8000-000000000001',
     NULL,
     'create_goal',
+    '1.0.0',
     jsonb_build_object(
       'title', 'Raise CLO mastery',
       'goalType', 'mastery',
@@ -255,6 +256,7 @@ VALUES
     '20000000-0000-4000-8000-000000000001',
     '40000000-0000-4000-8000-000000000001',
     'create_planner_session',
+    '1.0.0',
     jsonb_build_object(
       'title', 'Review Agentic CLO',
       'courseId', '40000000-0000-4000-8000-000000000001',
@@ -297,6 +299,25 @@ BEGIN
     RAISE EXCEPTION 'Wrong exact approver was not rejected';
   END IF;
 
+  UPDATE public.agent_action_proposals
+  SET tool_version = '2.0.0'
+  WHERE id = '70000000-0000-4000-8000-000000000002';
+  denied := false;
+  BEGIN
+    PERFORM public.execute_approved_agent_personal_action_v1(
+      '70000000-0000-4000-8000-000000000002',
+      '20000000-0000-4000-8000-000000000001'
+    );
+  EXCEPTION WHEN insufficient_privilege THEN
+    denied := true;
+  END;
+  IF NOT denied THEN
+    RAISE EXCEPTION 'Unapproved protected-write version was not rejected';
+  END IF;
+  UPDATE public.agent_action_proposals
+  SET tool_version = '1.0.0'
+  WHERE id = '70000000-0000-4000-8000-000000000002';
+
   first_goal := public.execute_approved_agent_personal_action_v1(
     '70000000-0000-4000-8000-000000000001',
     '20000000-0000-4000-8000-000000000001'
@@ -335,8 +356,8 @@ BEGIN
     OR jsonb_array_length(state_row.risk_signals) <> 1
     OR jsonb_array_length(state_row.goals) <> 1
     OR jsonb_array_length(state_row.approved_executed_actions) <> 2
-    OR state_row.risk_signals->0->>'threshold' <> '60'
-    OR state_row.mastery->'outcomes'->0->>'attainmentPercent' <> '55'
+    OR (state_row.risk_signals->0->>'threshold')::numeric <> 60::numeric
+    OR (state_row.mastery->'outcomes'->0->>'attainmentPercent')::numeric <> 55::numeric
   THEN
     RAISE EXCEPTION 'Deterministic Student Learning State assertion failed';
   END IF;
@@ -351,6 +372,13 @@ BEGIN
     'EXECUTE'
   ) THEN
     RAISE EXCEPTION 'Authenticated callers can invoke the service-only executor';
+  END IF;
+  IF has_function_privilege(
+    'authenticated',
+    'public.student_learning_state_needs_refresh_v1(uuid)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'Authenticated callers can invoke the freshness boundary';
   END IF;
   IF has_table_privilege(
     'authenticated', 'public.student_learning_states', 'INSERT'

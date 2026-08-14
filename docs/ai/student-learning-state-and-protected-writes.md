@@ -27,6 +27,11 @@ returns only the requested course or program slice. This prevents a teacher
 assigned to one course from receiving another course's data. Authenticated
 clients have no state-write grant.
 
+Reads reuse a stored projection only while `fresh_until` is in the future;
+missing or stale state is rebuilt through a service-only freshness RPC. A
+refresh advances the public version only when the deterministic state hash
+changes.
+
 ## Protected write boundary
 
 The initial write registry contains only two typed personal tools:
@@ -37,6 +42,10 @@ The initial write registry contains only two typed personal tools:
 Every other protected proposal remains non-executable until an explicit typed
 executor is added. Unknown actions, extra payload fields, raw SQL, arbitrary
 table names, and arbitrary RPC names are rejected.
+
+The exact registry version is stored on the proposal, included in its
+idempotency key, and resolved again at execution. An approval therefore cannot
+silently move to different tool semantics after a deployment.
 
 Execution requires all of the following to still be true:
 

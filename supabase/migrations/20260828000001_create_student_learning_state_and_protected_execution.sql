@@ -2,6 +2,12 @@
 -- write executor. The state is a materialized, auditable projection of
 -- authoritative records; it is never accepted from an LLM or browser payload.
 
+ALTER TABLE public.agent_action_proposals
+  ADD COLUMN tool_version text;
+
+COMMENT ON COLUMN public.agent_action_proposals.tool_version IS
+  'Exact protected-write registry version bound into approval and execution; NULL for proposal-only actions.';
+
 CREATE TABLE public.student_learning_states (
   student_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   institution_id uuid NOT NULL REFERENCES public.institutions(id) ON DELETE CASCADE,
@@ -192,6 +198,7 @@ BEGIN
      AND enrollment.student_id = p_student_id
      AND enrollment.status = 'active'
     WHERE lo.institution_id = v_institution_id
+    ORDER BY lo.course_id, sc.clo_id, sc.sort_order, sc.id
     LIMIT 250
   ) scoped;
 
@@ -231,7 +238,7 @@ BEGIN
     WHERE oa.student_id = p_student_id
       AND lo.institution_id = v_institution_id
       AND oa.attainment_percent < v_success_threshold
-    ORDER BY oa.attainment_percent, oa.last_calculated_at DESC
+    ORDER BY oa.attainment_percent, oa.last_calculated_at DESC, oa.outcome_id
     LIMIT 50
   ) low;
 
@@ -251,7 +258,7 @@ BEGIN
     WHERE oa.student_id = p_student_id
       AND lo.institution_id = v_institution_id
       AND oa.attainment_percent >= v_excellent_threshold
-    ORDER BY oa.attainment_percent DESC
+    ORDER BY oa.attainment_percent DESC, oa.outcome_id
     LIMIT 50
   ) strong;
 
@@ -271,7 +278,7 @@ BEGIN
     WHERE oa.student_id = p_student_id
       AND lo.institution_id = v_institution_id
       AND oa.attainment_percent < v_satisfactory_threshold
-    ORDER BY oa.attainment_percent
+    ORDER BY oa.attainment_percent, oa.outcome_id
     LIMIT 50
   ) opportunity;
 
@@ -290,7 +297,7 @@ BEGIN
     SELECT g.* FROM public.weekly_goals g
     WHERE g.student_id = p_student_id
       AND g.status IN ('active', 'completed')
-    ORDER BY g.week_start_date DESC, g.created_at DESC
+    ORDER BY g.week_start_date DESC, g.created_at DESC, g.id
     LIMIT 25
   ) goal;
 
@@ -311,7 +318,7 @@ BEGIN
     WHERE p.student_id = p_student_id
       AND p.institution_id = v_institution_id
       AND p.status IN ('pending', 'approved')
-    ORDER BY p.created_at DESC
+    ORDER BY p.created_at DESC, p.id
     LIMIT 50
   ) proposal;
 
@@ -350,7 +357,7 @@ BEGIN
     FROM public.agent_action_proposals p
     WHERE p.student_id = p_student_id
       AND p.institution_id = v_institution_id
-    ORDER BY p.created_at DESC
+    ORDER BY p.created_at DESC, p.id
     LIMIT 50
   ) history;
 
@@ -379,7 +386,7 @@ BEGIN
     WHERE p.student_id = p_student_id
       AND p.institution_id = v_institution_id
       AND p.status IN ('approved', 'executed')
-    ORDER BY COALESCE(x.executed_at, p.decided_at) DESC
+    ORDER BY COALESCE(x.executed_at, p.decided_at) DESC, p.id
     LIMIT 50
   ) action;
 
@@ -428,7 +435,9 @@ BEGIN
   )
   ON CONFLICT (student_id) DO UPDATE SET
     institution_id = EXCLUDED.institution_id,
-    version = public.student_learning_states.version + 1,
+    version = public.student_learning_states.version +
+      CASE WHEN public.student_learning_states.state_hash IS DISTINCT FROM EXCLUDED.state_hash
+        THEN 1 ELSE 0 END,
     calculated_at = EXCLUDED.calculated_at,
     fresh_until = EXCLUDED.fresh_until,
     freshness = EXCLUDED.freshness,
@@ -455,6 +464,30 @@ COMMENT ON FUNCTION public.refresh_student_learning_state_v1(uuid) IS
   'Rebuilds one deterministic Student Learning State from authoritative tables. Service role only.';
 REVOKE ALL ON FUNCTION public.refresh_student_learning_state_v1(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.refresh_student_learning_state_v1(uuid) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.student_learning_state_needs_refresh_v1(
+  p_student_id uuid
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT NOT EXISTS (
+    SELECT 1
+    FROM public.student_learning_states state
+    WHERE state.student_id = p_student_id
+      AND state.fresh_until > now()
+  );
+$function$;
+
+COMMENT ON FUNCTION public.student_learning_state_needs_refresh_v1(uuid) IS
+  'Service-only freshness boundary used before rebuilding a Student Learning State.';
+REVOKE ALL ON FUNCTION public.student_learning_state_needs_refresh_v1(uuid)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.student_learning_state_needs_refresh_v1(uuid)
+  TO service_role;
 
 -- Staff never receive the global student row directly because it can contain
 -- data from courses/programs outside their assignment. This authenticated RPC
@@ -705,6 +738,7 @@ BEGIN
   IF v_actor_role <> 'student'
     OR v_proposal.student_id IS DISTINCT FROM v_actor_id
     OR v_proposal.action_type NOT IN ('create_goal', 'create_planner_session')
+    OR v_proposal.tool_version IS DISTINCT FROM '1.0.0'
   THEN
     RAISE EXCEPTION 'Protected action is not registered for this approver' USING ERRCODE = '42501';
   END IF;
@@ -841,7 +875,7 @@ BEGIN
     tool_name, tool_version, idempotency_key, result
   ) VALUES (
     v_proposal.id, v_proposal.run_id, v_proposal.institution_id,
-    v_actor_id, v_actor_id, v_proposal.action_type, '1.0.0',
+    v_actor_id, v_actor_id, v_proposal.action_type, v_proposal.tool_version,
     v_proposal.idempotency_key, v_result
   ) RETURNING id INTO v_target_id;
 
@@ -853,7 +887,7 @@ BEGIN
   ) VALUES (
     v_run.id, v_run.request_id, v_actor_id, v_actor_role,
     v_actor_institution_id, v_run.session_id, v_run.specialist,
-    v_proposal.action_type, '1.0.0', v_proposal.id,
+    v_proposal.action_type, v_proposal.tool_version, v_proposal.id,
     v_proposal.idempotency_key, v_proposal.evidence_hash,
     'succeeded', 'protected', 'executed', NULL, now(), now(), 0
   );

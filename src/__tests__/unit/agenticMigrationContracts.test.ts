@@ -181,6 +181,12 @@ describe("agentic migration contracts", () => {
     expect(learningStateMigration).toContain(
       "CREATE OR REPLACE FUNCTION public.get_student_learning_state_v1"
     );
+    expect(learningStateMigration).toContain(
+      "CREATE OR REPLACE FUNCTION public.student_learning_state_needs_refresh_v1"
+    );
+    expect(learningStateMigration).toMatch(
+      /student_learning_state_needs_refresh_v1\(uuid\)[\s\S]*FROM PUBLIC, anon, authenticated[\s\S]*TO service_role/
+    );
     expect(learningStateMigration).toMatch(
       /v_actor_role = 'teacher'[\s\S]*c\.teacher_id = v_actor_id/
     );
@@ -237,6 +243,10 @@ describe("agentic migration contracts", () => {
     expect(auditIndex).toBeLessThan(proposalUpdateIndex);
     expect(proposalUpdateIndex).toBeLessThan(stateRefreshIndex);
     expect(learningStateMigration).toMatch(/UNIQUE \(proposal_id\)/);
+    expect(learningStateMigration).toContain("ADD COLUMN tool_version text");
+    expect(learningStateMigration).toContain(
+      "v_proposal.tool_version IS DISTINCT FROM '1.0.0'"
+    );
     expect(learningStateMigration).toMatch(
       /execute_approved_agent_personal_action_v1\(uuid, uuid\)[\s\S]*FROM PUBLIC, anon, authenticated[\s\S]*TO service_role/
     );

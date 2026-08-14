@@ -361,12 +361,20 @@ export class SupabaseToolDataSource
     const programId = stringInput(input, "programId") ?? context.page.programId;
     switch (tool) {
       case "get_student_learning_context": {
-        const { error: refreshError } = await this.admin.rpc(
-          "refresh_student_learning_state_v1",
-          { p_student_id: studentId! }
-        );
-        if (refreshError) {
-          throw new Error("Learning State refresh failed");
+        const { data: needsRefresh, error: freshnessError } =
+          await this.admin.rpc("student_learning_state_needs_refresh_v1", {
+            p_student_id: studentId!,
+          });
+        if (freshnessError)
+          throw new Error("Learning State freshness check failed");
+        if (needsRefresh !== false) {
+          const { error: refreshError } = await this.admin.rpc(
+            "refresh_student_learning_state_v1",
+            { p_student_id: studentId! }
+          );
+          if (refreshError) {
+            throw new Error("Learning State refresh failed");
+          }
         }
         const { data, error } = await this.reader.rpc(
           "get_student_learning_state_v1",

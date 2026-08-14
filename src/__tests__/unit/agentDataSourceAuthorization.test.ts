@@ -229,6 +229,71 @@ describe("Supabase agent scope authorization", () => {
     ).resolves.toBe(true);
   });
 
+  it("reuses a fresh Learning State and refreshes only a stale one", async () => {
+    const context = roleContext("student", ids.student, {
+      route: "/student",
+      studentId: ids.student,
+    });
+    const reader = {
+      rpc: vi.fn().mockResolvedValue({ data: { version: 4 }, error: null }),
+    };
+    const clientWithRefreshState = (needsRefresh: boolean) => {
+      const rpc = vi.fn(async (name: string) => ({
+        data:
+          name === "student_learning_state_needs_refresh_v1"
+            ? needsRefresh
+            : {},
+        error: null,
+      }));
+      const admin = {
+        rpc,
+      };
+      return { admin, rpc };
+    };
+
+    const fresh = clientWithRefreshState(false);
+    const freshSource = new SupabaseToolDataSource(
+      fresh.admin as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[0],
+      embeddings,
+      reader as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[2]
+    );
+    await freshSource.executeRead(
+      "get_student_learning_context",
+      { studentId: ids.student },
+      context
+    );
+    expect(fresh.rpc).toHaveBeenCalledTimes(1);
+    expect(fresh.rpc).toHaveBeenCalledWith(
+      "student_learning_state_needs_refresh_v1",
+      { p_student_id: ids.student }
+    );
+
+    const stale = clientWithRefreshState(true);
+    const staleSource = new SupabaseToolDataSource(
+      stale.admin as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[0],
+      embeddings,
+      reader as unknown as ConstructorParameters<
+        typeof SupabaseToolDataSource
+      >[2]
+    );
+    await staleSource.executeRead(
+      "get_student_learning_context",
+      { studentId: ids.student },
+      context
+    );
+    expect(stale.rpc).toHaveBeenNthCalledWith(
+      2,
+      "refresh_student_learning_state_v1",
+      { p_student_id: ids.student }
+    );
+  });
+
   it("enforces the complete five-role authorization matrix", async () => {
     await expect(
       dataSource.authorizeScope(

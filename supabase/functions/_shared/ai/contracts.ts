@@ -69,6 +69,7 @@ export interface AgentActionProposal {
   actorUserId: string;
   institutionId: string;
   actionType: string;
+  toolVersion?: string;
   payload: JsonObject;
   reason: string;
   evidence: readonly EvidenceReference[];
