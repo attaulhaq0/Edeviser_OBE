@@ -68,6 +68,12 @@ HNSW index, and adds a new scoped RPC. New runtime code writes and searches only
 version 2. Existing version-1 rows remain intact for an explicit future
 backfill/archive decision.
 
+Forward migration `20260827000003_harden_agentic_embedding_constraint.sql`
+replaces the version-2 metadata constraint using `NOT VALID` and then validates
+it explicitly. This keeps the already Preview-applied versioned migration
+immutable while making constraint installation safe for a non-empty table and
+fully checked before the migration completes.
+
 The read-only Production audit on 2026-08-14 verified:
 
 - project `cdlgtbvxlxjpcddjazzx` is `ACTIVE_HEALTHY`;
@@ -94,6 +100,10 @@ data and capped before being returned to the model.
 
 Protected actions use `agent_action_proposals`. Approval re-checks the current
 profile role, institution, target ownership, proposal status, and expiry.
+Proposal creation also authorizes and normalizes request/page targets against
+current server-side institution, course, student, and program relationships,
+then pins a specific eligible approver user. Missing, ambiguous, or unauthorized
+scope fails closed before a proposal is stored.
 Approval changes proposal state only; this phase contains no general protected
 execution endpoint. A3 cannot make a protected action executable.
 
