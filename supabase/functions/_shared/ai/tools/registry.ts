@@ -92,6 +92,15 @@ const inputValidator =
         throw new ToolBoundaryError("invalid_input", `${key} must be a UUID`);
       }
     }
+    for (const key of permitted) {
+      if (
+        key !== "query" &&
+        row[key] !== undefined &&
+        (typeof row[key] !== "string" || !uuidPattern.test(row[key]))
+      ) {
+        throw new ToolBoundaryError("invalid_input", `${key} must be a UUID`);
+      }
+    }
     if (
       row.query !== undefined &&
       (typeof row.query !== "string" ||
@@ -248,7 +257,9 @@ export const executeRegisteredTool = async (
   context: AgentExecutionContext,
   dataSource: ToolDataSource
 ): Promise<Record<string, unknown>> => {
-  const tool = READ_TOOL_REGISTRY[name as ReadToolName];
+  const tool = Object.prototype.hasOwnProperty.call(READ_TOOL_REGISTRY, name)
+    ? READ_TOOL_REGISTRY[name as ReadToolName]
+    : undefined;
   if (!tool) {
     throw new ToolBoundaryError(
       "unknown_tool",

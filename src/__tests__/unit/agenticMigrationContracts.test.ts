@@ -13,6 +13,10 @@ const embeddingConstraintMigration = readFileSync(
   "supabase/migrations/20260827000003_harden_agentic_embedding_constraint.sql",
   "utf8"
 );
+const auditIndexMigration = readFileSync(
+  "supabase/migrations/20260827000004_add_agent_tool_attempt_actor_index.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -38,6 +42,9 @@ describe("agentic migration contracts", () => {
     }
     expect(auditMigration).toMatch(/agent_action_proposals_idempotency_unique/);
     expect(auditMigration).toMatch(/REVOKE ALL[\s\S]*authenticated/);
+    expect(auditIndexMigration).toMatch(
+      /institution_id,[\s\S]*actor_user_id,[\s\S]*started_at DESC/
+    );
   });
 
   it("uses a non-destructive versioned 384-dimensional native path", () => {

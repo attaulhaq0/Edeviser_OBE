@@ -84,7 +84,8 @@ const model = (
   name: string,
   fallback: DeepSeekModel
 ): DeepSeekModel => {
-  const value = env.get(name) ?? fallback;
+  const configured = env.get(name)?.trim();
+  const value = configured || fallback;
   if (value !== "deepseek-v4-flash" && value !== "deepseek-v4-pro") {
     throw new AgenticConfigurationError(
       name,

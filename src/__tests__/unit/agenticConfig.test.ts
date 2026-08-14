@@ -37,6 +37,17 @@ describe("agentic configuration", () => {
     ).toThrow(AgenticConfigurationError);
   });
 
+  it("treats blank model values as unset defaults", () => {
+    const config = getAgenticConfig(
+      reader({
+        DEEPSEEK_PRIMARY_MODEL: "   ",
+        DEEPSEEK_COMPLEX_MODEL: "",
+      })
+    );
+    expect(config.deepSeek.primaryModel).toBe("deepseek-v4-flash");
+    expect(config.deepSeek.complexModel).toBe("deepseek-v4-pro");
+  });
+
   it("validates deterministic execution bounds", () => {
     expect(() => getAgenticConfig(reader({ AI_MAX_TOOL_CALLS: "0" }))).toThrow(
       /AI_MAX_TOOL_CALLS/

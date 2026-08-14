@@ -232,6 +232,11 @@ export const createDeepSeekProvider = (
           if (!response.ok) {
             const classified = classifyStatus(response.status);
             if (classified.retryable && attempt < config.deepSeek.maxRetries) {
+              try {
+                await response.body?.cancel();
+              } catch {
+                // The response may already be closed; retry classification wins.
+              }
               await sleep(retryDelay(response, attempt));
               continue;
             }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { AgentExecutionContext } from "../../../supabase/functions/_shared/ai/contracts";
 import type { EmbeddingProvider } from "../../../supabase/functions/_shared/ai/embedding";
@@ -186,5 +186,31 @@ describe("Supabase agent scope authorization", () => {
         studentContext
       )
     ).resolves.toBe(true);
+  });
+
+  it("rejects an empty embedding result before vector search", async () => {
+    const rpc = vi.fn();
+    const searchClient = { rpc } as unknown as ConstructorParameters<
+      typeof SupabaseToolDataSource
+    >[0];
+    const emptyEmbeddings: EmbeddingProvider = {
+      ...embeddings,
+      async embed() {
+        return { vectors: [], metadata: embeddings.metadata };
+      },
+    };
+    const searchDataSource = new SupabaseToolDataSource(
+      searchClient,
+      emptyEmbeddings,
+      searchClient
+    );
+    await expect(
+      searchDataSource.executeRead(
+        "search_course_materials",
+        { query: "authorized query" },
+        teacherContext(ids.course)
+      )
+    ).rejects.toThrow("invalid output");
+    expect(rpc).not.toHaveBeenCalled();
   });
 });

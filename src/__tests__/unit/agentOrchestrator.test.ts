@@ -10,6 +10,7 @@ import type {
   AICompletionResponse,
   AIProvider,
 } from "../../../supabase/functions/_shared/ai/provider";
+import type { ProposalStore } from "../../../supabase/functions/_shared/ai/proposals";
 
 const context: AgentExecutionContext = {
   requestId: "11111111-1111-4111-8111-111111111111",
@@ -63,7 +64,7 @@ const dependencies = (provider: AIProvider, configOverride = config()) => ({
     }),
   },
   proposalStore: {
-    create: vi.fn(async (proposal) => ({
+    create: vi.fn<ProposalStore["create"]>(async (proposal) => ({
       ...proposal,
       id: "77777777-7777-4777-8777-777777777777",
     })),
@@ -115,6 +116,33 @@ describe("agent orchestrator execution boundary", () => {
     deps.audit.toolAttempt.mockRejectedValue(new Error("audit unavailable"));
     await expect(runAgentOrchestrator(deps)).rejects.toThrow(
       "audit unavailable"
+    );
+  });
+
+  it("returns recoverable tool-boundary errors to the bounded model loop", async () => {
+    const complete = vi
+      .fn()
+      .mockResolvedValueOnce(
+        response([
+          {
+            id: "call-unauthorized",
+            name: "get_admin_institution_context",
+            arguments: {},
+          },
+        ])
+      )
+      .mockResolvedValueOnce(response([], "Recovered safely"));
+    const result = await runAgentOrchestrator(
+      dependencies({ name: "deepseek", complete })
+    );
+    expect(result.response).toBe("Recovered safely");
+    expect(complete.mock.calls[1]?.[0].messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          role: "tool",
+          content: expect.stringContaining('"code":"unauthorized"'),
+        }),
+      ])
     );
   });
 
@@ -213,7 +241,7 @@ describe("agent orchestrator execution boundary", () => {
     ).rejects.toBeInstanceOf(AgentOrchestratorError);
   });
 
-  it("rejects missing context and unknown or unauthorized tool requests", async () => {
+  it("rejects unknown tool requests", async () => {
     const unknown: AIProvider = {
       name: "deepseek",
       complete: vi

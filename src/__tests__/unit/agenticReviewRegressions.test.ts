@@ -52,4 +52,29 @@ describe("agentic review regressions", () => {
     expect(page).toContain("Pending teacher approval");
     expect(page).not.toContain("result?.questions");
   });
+
+  it("rejects text-only tutor attachments before usage or retrieval work", () => {
+    const endpoint = read("supabase/functions/chat-with-tutor/index.ts");
+    const composer = read("src/pages/student/tutor/ChatPanel.tsx");
+    const unsupportedIndex = endpoint.indexOf('code: "UNSUPPORTED_MODALITY"');
+    expect(unsupportedIndex).toBeGreaterThan(0);
+    expect(unsupportedIndex).toBeLessThan(
+      endpoint.indexOf('from("tutor_usage_limits")')
+    );
+    expect(unsupportedIndex).toBeLessThan(
+      endpoint.indexOf("createSupabaseEmbeddingProvider().embed")
+    );
+    expect(composer).toContain(
+      "const supportsTutorAttachments = (): boolean => false"
+    );
+  });
+
+  it("hardens plan outputs and proposal decision isolation", () => {
+    const plan = read("supabase/functions/generate-plan-update/index.ts");
+    const endpoint = read("supabase/functions/agent-orchestrator/index.ts");
+    expect(plan).toContain("constantTimeEqual");
+    expect(plan).toMatch(/Math\.min\([\s\S]*5,[\s\S]*Math\.max\(1/);
+    expect(endpoint).toContain('.eq("institution_id", identity.institutionId)');
+    expect(endpoint).toContain("decisionError.kind");
+  });
 });

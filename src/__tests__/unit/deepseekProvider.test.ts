@@ -117,6 +117,29 @@ describe("DeepSeek AIProvider", () => {
     }
   );
 
+  it("releases a retryable response body before the next attempt", async () => {
+    envValues.set("AI_MAX_RETRIES", "1");
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    const retryableResponse = {
+      ok: false,
+      status: 503,
+      headers: new Headers(),
+      body: { cancel },
+    } as unknown as Response;
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: vi
+        .fn()
+        .mockResolvedValueOnce(retryableResponse)
+        .mockResolvedValueOnce(success()),
+      sleep: vi.fn().mockResolvedValue(undefined),
+    });
+    await expect(
+      provider.complete({ messages: [{ role: "user", content: "hello" }] })
+    ).resolves.toMatchObject({ content: "ok" });
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
   it("classifies a malformed response", async () => {
     const provider = createDeepSeekProvider(getAgenticConfig(env), {
       env,

@@ -204,7 +204,11 @@ function computeInsight(
 async function enhanceWithProvider(
   base: InsightPayload,
   provider: AIProvider
-): Promise<{ narrative: string; recommendations: string[] } | null> {
+): Promise<{
+  narrative: string;
+  recommendations: string[];
+  model: string;
+} | null> {
   const facts = {
     threshold: base.threshold,
     measuredOutcomes: base.ploCount,
@@ -241,7 +245,7 @@ async function enhanceWithProvider(
         )
         .slice(0, 5)
     : base.recommendations;
-  return { narrative, recommendations };
+  return { narrative, recommendations, model: response.model };
 }
 
 // ─── Handler ────────────────────────────────────────────────────────────────
@@ -372,9 +376,13 @@ serve(async (req) => {
       try {
         const enhanced = await enhanceWithProvider(base, provider);
         if (enhanced) {
-          payload = { ...base, ...enhanced };
+          payload = {
+            ...base,
+            narrative: enhanced.narrative,
+            recommendations: enhanced.recommendations,
+          };
           source = "ai";
-          model = agenticConfig.deepSeek.primaryModel;
+          model = enhanced.model;
         }
       } catch {
         console.error("Provider enhancement failed; using computed insight");

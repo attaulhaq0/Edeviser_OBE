@@ -113,6 +113,13 @@ const TutorPage = () => {
       onCitations: (citations: SourceCitation[]) => void;
       onDone: (data: { message_id: string; tokens_used: number }) => void;
     }) => {
+      if ((input.imageUrls?.length ?? 0) > 0 || input.documentUrl) {
+        setTutorState({
+          kind: "error",
+          message: t("tutor.chat.errors.attachmentsUnavailable"),
+        });
+        return;
+      }
       // Optimistically assume the tutor is reachable; a failure signal will
       // flip this to a distinct state via `mapTutorError`.
       setTutorState({ kind: "ready" });
@@ -189,6 +196,7 @@ const TutorPage = () => {
       createConversation,
       sendMessage,
       navigate,
+      t,
     ]
   );
 

@@ -47,6 +47,18 @@ interface LearningPlanUpdate {
   interaction_count: number;
 }
 
+const constantTimeEqual = (left: string, right: string): boolean => {
+  const encoder = new TextEncoder();
+  const leftBytes = encoder.encode(left);
+  const rightBytes = encoder.encode(right);
+  if (leftBytes.length !== rightBytes.length) return false;
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index]! ^ rightBytes[index]!;
+  }
+  return difference === 0;
+};
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -65,7 +77,7 @@ serve(async (req) => {
   try {
     const managedServerKey = getManagedServerKey();
     const authorization = req.headers.get("Authorization") ?? "";
-    if (authorization !== `Bearer ${managedServerKey}`) {
+    if (!constantTimeEqual(authorization, `Bearer ${managedServerKey}`)) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -241,8 +253,12 @@ serve(async (req) => {
             ? parsed.study_time_recommendation
             : "";
         suggestedPlannerSessions =
-          typeof parsed.suggested_planner_sessions === "number"
-            ? parsed.suggested_planner_sessions
+          typeof parsed.suggested_planner_sessions === "number" &&
+          Number.isFinite(parsed.suggested_planner_sessions)
+            ? Math.min(
+                5,
+                Math.max(1, Math.round(parsed.suggested_planner_sessions))
+              )
             : 2;
       } catch {
         return new Response(

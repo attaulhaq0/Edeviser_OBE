@@ -396,7 +396,15 @@ export class SupabaseToolDataSource
       case "search_course_materials": {
         const query = String(input.query);
         const embedded = await this.embeddings.embed({ inputs: [query] });
-        const vector = `[${embedded.vectors[0]!.join(",")}]`;
+        const firstVector = embedded.vectors[0];
+        if (
+          !firstVector ||
+          firstVector.length === 0 ||
+          firstVector.some((value) => !Number.isFinite(value))
+        ) {
+          throw new Error("Authorized embedding read returned invalid output");
+        }
+        const vector = `[${firstVector.join(",")}]`;
         const { data, error } = await this.reader.rpc(
           "search_course_materials_v2",
           {

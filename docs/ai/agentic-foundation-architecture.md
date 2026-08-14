@@ -5,6 +5,9 @@
 Production generation has one executable path: feature or orchestrator code
 calls the server-only `AIProvider`, whose only implementation is DeepSeek.
 Provider failure returns a typed unavailable error; there is no vendor fallback.
+The tutor remains text-only in this phase: attachments are disabled in its
+browser composer and rejected before usage accounting or retrieval if a client
+still submits them.
 
 Production embeddings have one executable path: `EmbeddingProvider` calls the
 Supabase Edge Runtime native `gte-small` session. Authorized retrieval uses
@@ -104,6 +107,11 @@ Proposal creation also authorizes and normalizes request/page targets against
 current server-side institution, course, student, and program relationships,
 then pins a specific eligible approver user. Missing, ambiguous, or unauthorized
 scope fails closed before a proposal is stored.
+Decision reads are institution-scoped before authorization, and typed decision
+errors distinguish expiry, prior decisions, and unauthorized approvers without
+disclosing cross-tenant proposal existence. Forward migration
+`20260827000004_add_agent_tool_attempt_actor_index.sql` adds the
+institution/actor/time index used for bounded audit review.
 Approval changes proposal state only; this phase contains no general protected
 execution endpoint. A3 cannot make a protected action executable.
 

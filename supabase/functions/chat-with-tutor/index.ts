@@ -1,5 +1,9 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { getAgenticConfig } from "../_shared/ai/config.ts";
+import {
+  AIProviderError,
+  type AICompletionResponse,
+} from "../_shared/ai/provider.ts";
 import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
 import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -525,6 +529,51 @@ serve(async (req) => {
   }
 
   const chatReq = validation.data;
+
+  let agenticConfig: ReturnType<typeof getAgenticConfig>;
+  try {
+    agenticConfig = getAgenticConfig(Deno.env);
+  } catch {
+    return new Response(
+      JSON.stringify({
+        error: "E Deviser Intelligence configuration is unavailable",
+        message: "E Deviser Intelligence configuration is unavailable",
+        code: "AI_CONFIGURATION_ERROR",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  if (!agenticConfig.enabled) {
+    return new Response(
+      JSON.stringify({
+        error: "E Deviser Intelligence is not enabled",
+        message: "E Deviser Intelligence is not enabled",
+        code: "AI_FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  if ((chatReq.image_urls?.length ?? 0) > 0 || chatReq.document_url) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "Attachments are not supported by the configured text-only provider",
+        message:
+          "Attachments are not supported by the configured text-only provider",
+        code: "UNSUPPORTED_MODALITY",
+      }),
+      {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 
   // Determine course_id from conversation or request
   let courseId = chatReq.course_id ?? null;
@@ -1161,35 +1210,9 @@ serve(async (req) => {
   }
 
   // ── 3.1.6: Canonical AIProvider generation via DeepSeek ────────────────
-  const agenticConfig = getAgenticConfig(Deno.env);
-  if (!agenticConfig.enabled) {
-    return new Response(
-      JSON.stringify({
-        error: "E Deviser Intelligence is not enabled",
-        code: "AI_FEATURE_DISABLED",
-      }),
-      {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-  if ((chatReq.image_urls?.length ?? 0) > 0 || chatReq.document_url) {
-    return new Response(
-      JSON.stringify({
-        error:
-          "Attachments are not supported by the configured text-only provider",
-        code: "UNSUPPORTED_MODALITY",
-      }),
-      {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
   const startTime = Date.now();
   const provider = createDeepSeekProvider(agenticConfig, { env: Deno.env });
-  let providerResult;
+  let providerResult: AICompletionResponse;
   try {
     providerResult = await provider.complete({
       messages: [
@@ -1208,8 +1231,10 @@ serve(async (req) => {
       temperature: 0.7,
       maxOutputTokens: 2048,
     });
-  } catch {
+  } catch (error: unknown) {
     const latencyMs = Date.now() - startTime;
+    const errorClassification =
+      error instanceof AIProviderError ? error.kind : "provider";
     await supabase.from("tutor_llm_logs").insert({
       institution_id: institutionId,
       student_id: studentId,
@@ -1220,7 +1245,7 @@ serve(async (req) => {
       total_tokens: 0,
       latency_ms: latencyMs,
       status: "error",
-      error_message: "provider_unavailable",
+      error_message: errorClassification,
     });
     return new Response(
       JSON.stringify({

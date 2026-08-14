@@ -20,6 +20,7 @@ import {
 import { AIProviderError } from "../_shared/ai/provider.ts";
 import {
   assertMayDecideProposal,
+  ProposalBoundaryError,
   type ProposalStore,
 } from "../_shared/ai/proposals.ts";
 import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
@@ -100,11 +101,15 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_URL")!,
     getManagedServerKey()
   );
+  const authorization = req.headers.get("Authorization");
+  if (!authorization) {
+    return json(401, { error: { code: "unauthorized" } });
+  }
   const reader = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     {
-      global: { headers: { Authorization: req.headers.get("Authorization")! } },
+      global: { headers: { Authorization: authorization } },
     }
   );
 
@@ -116,6 +121,7 @@ serve(async (req) => {
       .from("agent_action_proposals")
       .select("*")
       .eq("id", proposalId)
+      .eq("institution_id", identity.institutionId)
       .maybeSingle();
     if (error || !data)
       return json(404, { error: { code: "proposal_not_found" } });
@@ -126,8 +132,8 @@ serve(async (req) => {
       return json(403, {
         error: {
           code:
-            decisionError instanceof Error
-              ? decisionError.name
+            decisionError instanceof ProposalBoundaryError
+              ? decisionError.kind
               : "proposal_decision_rejected",
         },
       });

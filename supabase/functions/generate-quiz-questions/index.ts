@@ -229,7 +229,7 @@ ${chunkContext}
 8. Do NOT include any student personal information in questions or explanations.
 
 ## Output Format
-Return a JSON array of question objects. Each object must have:
+Return one JSON object with a "questions" array. Each question object must have:
 {
   "clo_id": "<one of the provided CLO IDs>",
   "bloom_level": <integer 1-6>,

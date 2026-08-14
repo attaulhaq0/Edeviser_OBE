@@ -64,9 +64,20 @@ describe("typed read-tool registry", () => {
       executeRegisteredTool("raw_sql", {}, context("admin"), dataSource)
     ).rejects.toMatchObject({ kind: "unknown_tool" });
     await expect(
+      executeRegisteredTool("constructor", {}, context("admin"), dataSource)
+    ).rejects.toMatchObject({ kind: "unknown_tool" });
+    await expect(
       executeRegisteredTool(
         "get_course_mastery",
         { courseId: "not-a-uuid" },
+        context("student"),
+        dataSource
+      )
+    ).rejects.toMatchObject({ kind: "invalid_input" });
+    await expect(
+      executeRegisteredTool(
+        "get_course_mastery",
+        { courseId: id("6"), studentId: "not-a-uuid" },
         context("student"),
         dataSource
       )

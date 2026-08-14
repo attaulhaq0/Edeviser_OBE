@@ -21,6 +21,7 @@ import {
   executeRegisteredTool,
   READ_TOOL_REGISTRY,
   registeredToolsForRole,
+  ToolBoundaryError,
   type ToolDataSource,
 } from "./tools/registry.ts";
 
@@ -346,6 +347,21 @@ export const runAgentOrchestrator = async (dependencies: {
           startedAt,
           completedAt: new Date().toISOString(),
         });
+        if (
+          error instanceof ToolBoundaryError &&
+          (error.kind === "invalid_input" ||
+            error.kind === "missing_context" ||
+            error.kind === "unauthorized")
+        ) {
+          messages.push({
+            role: "tool",
+            toolCallId: call.id,
+            content: JSON.stringify({
+              error: { code: error.kind, recoverable: true },
+            }),
+          });
+          continue;
+        }
         throw error;
       }
     }

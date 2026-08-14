@@ -14,10 +14,7 @@ const files = execFileSync(
 
 describe("strict provider consolidation", () => {
   it("has no active legacy generation or embedding runtime consumer", () => {
-    const activeSource = files
-      .map((file) => readFileSync(file, "utf8"))
-      .join("\n");
-    for (const pattern of [
+    const forbidden = [
       /OPENAI_API_KEY/,
       /OPENROUTER_API_KEY/,
       /GEMINI_API_KEY/,
@@ -26,9 +23,17 @@ describe("strict provider consolidation", () => {
       /openrouter\.ai/,
       /generativelanguage\.googleapis\.com/,
       /text-embedding-ada-002/,
-    ]) {
-      expect(activeSource).not.toMatch(pattern);
+    ];
+    const offenders: string[] = [];
+    for (const file of files) {
+      const contents = readFileSync(file);
+      if (contents.includes(0)) continue;
+      const source = contents.toString("utf8");
+      for (const pattern of forbidden) {
+        if (pattern.test(source)) offenders.push(`${file}: ${pattern.source}`);
+      }
     }
+    expect(offenders, offenders.join("\n")).toEqual([]);
   });
 
   it("routes active generation and embeddings through canonical boundaries", () => {

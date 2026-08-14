@@ -4,6 +4,7 @@ import type { AgentExecutionContext } from "../../../supabase/functions/_shared/
 import {
   assertMayDecideProposal,
   createHumanApprovalProposal,
+  type ProposalStore,
 } from "../../../supabase/functions/_shared/ai/proposals";
 
 const ids = {
@@ -29,7 +30,7 @@ const context: AgentExecutionContext = {
 
 describe("human-in-the-loop proposals", () => {
   it("stores a protected proposal instead of executing the action", async () => {
-    const create = vi.fn(async (proposal) => ({
+    const create = vi.fn<ProposalStore["create"]>(async (proposal) => ({
       ...proposal,
       id: ids.request,
     }));
