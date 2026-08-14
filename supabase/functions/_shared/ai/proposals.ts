@@ -29,10 +29,26 @@ export interface ProposalStore {
   ): Promise<AgentActionProposal>;
 }
 
+export interface AuthorizedProposalScope {
+  studentId?: string;
+  courseId?: string;
+  programId?: string;
+  requiredApproverUserId: string;
+}
+
+export interface ProposalAuthorizer {
+  authorizeProposal(
+    request: ProposalRequest,
+    context: AgentExecutionContext,
+    approverRole: AgentIdentity["role"]
+  ): Promise<AuthorizedProposalScope | null>;
+}
+
 export class ProposalBoundaryError extends Error {
   constructor(
     readonly kind:
       | "invalid_proposal"
+      | "unauthorized_scope"
       | "unauthorized_approver"
       | "expired"
       | "already_decided",
@@ -146,21 +162,33 @@ export const createHumanApprovalProposal = async (
   raw: unknown,
   context: AgentExecutionContext,
   store: ProposalStore,
+  authorizer: ProposalAuthorizer,
   now = new Date()
 ): Promise<AgentActionProposal> => {
   const request = parseProposalRequest(raw);
+  const approverRole = requiredApproverRole(request.actionType);
+  const authorizedScope = await authorizer.authorizeProposal(
+    request,
+    context,
+    approverRole
+  );
+  if (!authorizedScope) {
+    throw new ProposalBoundaryError(
+      "unauthorized_scope",
+      "Proposal scope or required approver is not authorized"
+    );
+  }
   const evidenceHash = await hashEvidence(request.evidence);
   const idempotencyKey = await hashEvidence({
     institutionId: context.identity.institutionId,
     actorUserId: context.identity.userId,
     actionType: request.actionType,
-    studentId: request.studentId,
-    courseId: request.courseId,
-    programId: request.programId,
+    studentId: authorizedScope.studentId,
+    courseId: authorizedScope.courseId,
+    programId: authorizedScope.programId,
     payload: request.payload,
     evidenceHash,
   });
-  const approverRole = requiredApproverRole(request.actionType);
   return store.create({
     runId: context.runId,
     actorUserId: context.identity.userId,
@@ -171,17 +199,14 @@ export const createHumanApprovalProposal = async (
     evidence: request.evidence,
     risk: "protected",
     requiredApproverRole: approverRole,
-    requiredApproverUserId:
-      approverRole === "student"
-        ? request.studentId ?? context.identity.userId
-        : undefined,
+    requiredApproverUserId: authorizedScope.requiredApproverUserId,
     status: "pending",
     idempotencyKey,
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + 7 * 86_400_000).toISOString(),
-    studentId: request.studentId,
-    courseId: request.courseId,
-    programId: request.programId,
+    studentId: authorizedScope.studentId,
+    courseId: authorizedScope.courseId,
+    programId: authorizedScope.programId,
   });
 };
 

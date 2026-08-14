@@ -42,15 +42,41 @@ describe("human-in-the-loop proposals", () => {
         studentId: ids.student,
       },
       context,
-      { create }
+      { create },
+      {
+        authorizeProposal: vi.fn().mockResolvedValue({
+          studentId: ids.student,
+          requiredApproverUserId: ids.teacher,
+        }),
+      }
     );
     expect(proposal).toMatchObject({
       status: "pending",
       risk: "protected",
       requiredApproverRole: "teacher",
+      requiredApproverUserId: ids.teacher,
     });
     expect(proposal.idempotencyKey).toHaveLength(64);
     expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an out-of-scope proposal before persistence", async () => {
+    const create = vi.fn();
+    await expect(
+      createHumanApprovalProposal(
+        {
+          actionType: "notify_parent",
+          payload: { summary: "Draft only" },
+          reason: "Review required.",
+          evidence: [],
+          studentId: ids.student,
+        },
+        context,
+        { create },
+        { authorizeProposal: vi.fn().mockResolvedValue(null) }
+      )
+    ).rejects.toMatchObject({ kind: "unauthorized_scope" });
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("rejects cross-institution, wrong-role, expired, and already-used approvals", () => {
@@ -65,6 +91,7 @@ describe("human-in-the-loop proposals", () => {
       evidence: [],
       risk: "protected" as const,
       requiredApproverRole: "teacher" as const,
+      requiredApproverUserId: ids.teacher,
       status: "pending" as const,
       idempotencyKey: "a".repeat(64),
       createdAt: "2026-08-14T00:00:00.000Z",
@@ -81,6 +108,17 @@ describe("human-in-the-loop proposals", () => {
       assertMayDecideProposal(
         proposal,
         { userId: ids.teacher, role: "admin", institutionId: ids.institution },
+        new Date("2026-08-15T00:00:00.000Z")
+      )
+    ).toThrow(/required proposal approver/);
+    expect(() =>
+      assertMayDecideProposal(
+        proposal,
+        {
+          userId: ids.student,
+          role: "teacher",
+          institutionId: ids.institution,
+        },
         new Date("2026-08-15T00:00:00.000Z")
       )
     ).toThrow(/required proposal approver/);

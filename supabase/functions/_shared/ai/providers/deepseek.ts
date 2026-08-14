@@ -196,7 +196,6 @@ export const createDeepSeekProvider = (
                   name: tool.name,
                   description: tool.description,
                   parameters: tool.inputJsonSchema,
-                  strict: true,
                 },
               })),
             }

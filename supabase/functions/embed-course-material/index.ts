@@ -1,5 +1,6 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { authenticateRequest } from "../_shared/auth.ts";
+import { EmbeddingProviderError } from "../_shared/ai/embedding.ts";
 import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -264,7 +265,7 @@ async function extractText(
  */
 async function extractTextFromPDF(fileBytes: Uint8Array): Promise<string> {
   // Dynamic import for Deno Edge Function environment
-  const pdfParse = await import("https://esm.sh/pdf-parse@1.1.1");
+  const { default: pdfParse } = await import("https://esm.sh/pdf-parse@1.1.1");
   const result = await pdfParse(Buffer.from(fileBytes));
   return result.text ?? "";
 }
@@ -751,6 +752,18 @@ serve(async (req) => {
           autoChunks.map((c) => c.text)
         );
       } catch (embeddingError) {
+        if (
+          embeddingError instanceof EmbeddingProviderError &&
+          embeddingError.kind === "configuration"
+        ) {
+          return new Response(
+            JSON.stringify({ error: "Embedding provider is not configured" }),
+            {
+              status: 503,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
         if (autoTeacherId) {
           await notifyTeacher(
             supabase,
@@ -1090,6 +1103,18 @@ serve(async (req) => {
     try {
       embeddings = await generateEmbeddings(chunks.map((c) => c.text));
     } catch (embeddingError) {
+      if (
+        embeddingError instanceof EmbeddingProviderError &&
+        embeddingError.kind === "configuration"
+      ) {
+        return new Response(
+          JSON.stringify({ error: "Embedding provider is not configured" }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
       // Mark as failed and notify teacher
       if (embedReq.source_material_id) {
         await supabase.from("course_material_embeddings").insert({

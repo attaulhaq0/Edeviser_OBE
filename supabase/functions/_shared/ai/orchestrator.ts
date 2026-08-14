@@ -14,6 +14,7 @@ import type {
 } from "./provider.ts";
 import {
   createHumanApprovalProposal,
+  type ProposalAuthorizer,
   type ProposalStore,
 } from "./proposals.ts";
 import {
@@ -147,12 +148,20 @@ export const runAgentOrchestrator = async (dependencies: {
   config: AgenticConfig;
   provider: AIProvider;
   dataSource: ToolDataSource;
+  proposalAuthorizer: ProposalAuthorizer;
   proposalStore: ProposalStore;
   audit: AgentAuditSink;
   request: OrchestratorRequest;
 }): Promise<OrchestratorResponse> => {
-  const { config, provider, dataSource, proposalStore, audit, request } =
-    dependencies;
+  const {
+    config,
+    provider,
+    dataSource,
+    proposalAuthorizer,
+    proposalStore,
+    audit,
+    request,
+  } = dependencies;
   if (!config.enabled) {
     throw new AgentOrchestratorError(
       "feature_disabled",
@@ -268,7 +277,8 @@ export const runAgentOrchestrator = async (dependencies: {
           const proposal = await createHumanApprovalProposal(
             call.arguments,
             callContext,
-            proposalStore
+            proposalStore,
+            proposalAuthorizer
           );
           proposals.push(proposal);
           messages.push({

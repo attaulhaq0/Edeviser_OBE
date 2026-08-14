@@ -9,6 +9,10 @@ const embeddingMigration = readFileSync(
   "supabase/migrations/20260827000002_add_versioned_supabase_native_embeddings.sql",
   "utf8"
 );
+const embeddingConstraintMigration = readFileSync(
+  "supabase/migrations/20260827000003_harden_agentic_embedding_constraint.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -50,5 +54,9 @@ describe("agentic migration contracts", () => {
     );
     expect(embeddingMigration).not.toMatch(/DROP COLUMN\s+embedding/i);
     expect(embeddingMigration).not.toMatch(/TRUNCATE|DELETE FROM/i);
+    expect(embeddingConstraintMigration).toMatch(/CHECK \([\s\S]*\) NOT VALID/);
+    expect(embeddingConstraintMigration).toContain(
+      "VALIDATE CONSTRAINT course_material_embeddings_vector_version_check"
+    );
   });
 });

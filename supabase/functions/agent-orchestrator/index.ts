@@ -262,30 +262,35 @@ serve(async (req) => {
 
   const audit: AgentAuditSink = {
     async toolAttempt(event) {
-      await admin.from("agent_tool_attempts").insert({
-        run_id: event.context.runId,
-        request_id: event.context.requestId,
-        actor_user_id: event.context.identity.userId,
-        actor_role: event.context.identity.role,
-        institution_id: event.context.identity.institutionId,
-        session_id: event.context.sessionId,
-        specialist: event.context.specialist,
-        tool_name: event.toolName,
-        tool_version: event.toolVersion,
-        proposal_id: event.proposalId ?? null,
-        evidence_hash: event.evidenceHash,
-        status: event.status,
-        risk_classification: event.risk,
-        approval_state: event.approvalState,
-        provider: "deepseek",
-        error_classification: event.errorClassification ?? null,
-        started_at: event.startedAt,
-        completed_at: event.completedAt,
-        latency_ms: Math.max(
-          0,
-          Date.parse(event.completedAt) - Date.parse(event.startedAt)
-        ),
-      });
+      const { error: auditError } = await admin
+        .from("agent_tool_attempts")
+        .insert({
+          run_id: event.context.runId,
+          request_id: event.context.requestId,
+          actor_user_id: event.context.identity.userId,
+          actor_role: event.context.identity.role,
+          institution_id: event.context.identity.institutionId,
+          session_id: event.context.sessionId,
+          specialist: event.context.specialist,
+          tool_name: event.toolName,
+          tool_version: event.toolVersion,
+          proposal_id: event.proposalId ?? null,
+          evidence_hash: event.evidenceHash,
+          status: event.status,
+          risk_classification: event.risk,
+          approval_state: event.approvalState,
+          provider: "deepseek",
+          error_classification: event.errorClassification ?? null,
+          started_at: event.startedAt,
+          completed_at: event.completedAt,
+          latency_ms: Math.max(
+            0,
+            Date.parse(event.completedAt) - Date.parse(event.startedAt)
+          ),
+        });
+      if (auditError) {
+        throw new Error("Agent audit record could not be stored");
+      }
     },
   };
 
@@ -335,14 +340,16 @@ serve(async (req) => {
 
   try {
     const provider = createDeepSeekProvider(config, { env: Deno.env });
+    const dataSource = new SupabaseToolDataSource(
+      admin,
+      createSupabaseEmbeddingProvider(),
+      reader
+    );
     const result = await runAgentOrchestrator({
       config,
       provider,
-      dataSource: new SupabaseToolDataSource(
-        admin,
-        createSupabaseEmbeddingProvider(),
-        reader
-      ),
+      dataSource,
+      proposalAuthorizer: dataSource,
       proposalStore,
       audit,
       request: { message, context },

@@ -55,6 +55,13 @@ const dependencies = (provider: AIProvider, configOverride = config()) => ({
     authorizeScope: vi.fn().mockResolvedValue(true),
     executeRead: vi.fn().mockResolvedValue({ records: [{ id: "safe" }] }),
   },
+  proposalAuthorizer: {
+    authorizeProposal: vi.fn().mockResolvedValue({
+      studentId: context.page.studentId,
+      courseId: context.page.courseId,
+      requiredApproverUserId: context.identity.userId,
+    }),
+  },
   proposalStore: {
     create: vi.fn(async (proposal) => ({
       ...proposal,
@@ -91,6 +98,23 @@ describe("agent orchestrator execution boundary", () => {
           content: expect.stringContaining("UNTRUSTED_TOOL_DATA"),
         }),
       ])
+    );
+  });
+
+  it("fails the run when a tool-attempt audit record cannot be stored", async () => {
+    const complete = vi.fn().mockResolvedValue(
+      response([
+        {
+          id: "call-audit",
+          name: "get_course_mastery",
+          arguments: { courseId: context.page.courseId },
+        },
+      ])
+    );
+    const deps = dependencies({ name: "deepseek", complete });
+    deps.audit.toolAttempt.mockRejectedValue(new Error("audit unavailable"));
+    await expect(runAgentOrchestrator(deps)).rejects.toThrow(
+      "audit unavailable"
     );
   });
 

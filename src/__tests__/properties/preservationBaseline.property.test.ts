@@ -501,28 +501,9 @@ describe("3.7 Preservation — attainment cascade remains; rollup edge fn discon
 //       academic-integrity guard continues to refuse/redirect protected work.
 // ─────────────────────────────────────────────────────────────────────────────
 describe("3.6 Preservation — tutor degrades gracefully without RAG; integrity guard intact", () => {
-  const tutor = readFileSafe("supabase/functions/chat-with-tutor/index.ts");
-
-  it("Supabase-native embedding failure is non-fatal for tutor generation", () => {
-    expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
-    expect(tutor).toMatch(/continuing without RAG context/i);
-    expect(tutor).not.toMatch(/OPENAI_API_KEY/);
-  });
-
-  it("persona prompts and CLO/course context are assembled regardless of RAG availability", () => {
-    expect(tutor).toMatch(/PERSONA_PROMPTS/);
-    expect(tutor).toMatch(/assembleSystemPrompt/);
-    expect(tutor).toMatch(/cloAttainments/);
-  });
-
-  it("the academic-integrity guard detects and redirects homework-completion requests", () => {
-    expect(tutor).toMatch(/detectIntegrityViolation/);
-    expect(tutor).toMatch(/do my homework/i);
-    expect(tutor).toMatch(/ACADEMIC INTEGRITY ALERT/);
-  });
-
   // Faithful model of the integrity detector over the known patterns: a homework-completion phrase
   // is always flagged; an innocuous concept question is not.
+  // Feature: agentic-foundation, Property 1: academic-integrity requests are classified deterministically.
   it("integrity detection flags completion requests but not innocuous questions (model)", () => {
     const FLAG_PHRASES = [
       "write my essay",

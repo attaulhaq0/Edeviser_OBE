@@ -56,6 +56,34 @@ describe("DeepSeek AIProvider", () => {
     expect(JSON.stringify(body)).not.toContain("test-only-secret");
   });
 
+  it("uses standard-endpoint tool calling without beta-only strict mode", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(success());
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock,
+    });
+    await provider.complete({
+      messages: [{ role: "user", content: "use the tool" }],
+      tools: [
+        {
+          name: "read_context",
+          description: "Read authorized context",
+          inputJsonSchema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {},
+            required: [],
+          },
+        },
+      ],
+    });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as {
+      tools: Array<{ function: Record<string, unknown> }>;
+    };
+    expect(body.tools[0]?.function).not.toHaveProperty("strict");
+  });
+
   it("fails safely when the server secret is absent", async () => {
     envValues.delete("DEEPSEEK_API_KEY");
     const fetchMock = vi.fn();

@@ -739,16 +739,9 @@ serve(async (req) => {
       session_id: generationRequestId,
       specialist: "teacher",
       input_hash: inputHash,
-      status: "completed",
+      status: "running",
       provider: "deepseek",
       model: llmResult.model,
-      completed_at: new Date().toISOString(),
-      latency_ms: Date.now() - startTime,
-      usage: {
-        inputTokens: llmResult.promptTokens,
-        outputTokens: llmResult.completionTokens,
-        totalTokens: llmResult.totalTokens,
-      },
     });
     if (runError) {
       return new Response(
@@ -759,33 +752,108 @@ serve(async (req) => {
         }
       );
     }
-    const proposalId = crypto.randomUUID();
-    const { error: proposalError } = await supabase
+    const markRunFailed = async (errorClassification: string) => {
+      await supabase
+        .from("agent_runs")
+        .update({
+          status: "failed",
+          error_classification: errorClassification,
+          completed_at: new Date().toISOString(),
+          latency_ms: Date.now() - startTime,
+        })
+        .eq("id", runId);
+    };
+    const proposedId = crypto.randomUUID();
+    const { data: insertedProposal, error: proposalError } = await supabase
       .from("agent_action_proposals")
-      .insert({
-        id: proposalId,
-        run_id: runId,
-        actor_user_id: teacherId,
-        institution_id: institutionId,
-        course_id,
-        action_type: "publish_official_content",
-        payload: {
-          kind: "quiz_question_drafts",
-          questions: validatedQuestions,
+      .upsert(
+        {
+          id: proposedId,
+          run_id: runId,
+          actor_user_id: teacherId,
+          institution_id: institutionId,
+          course_id,
+          action_type: "publish_official_content",
+          payload: {
+            kind: "quiz_question_drafts",
+            questions: validatedQuestions,
+          },
+          reason:
+            "Generated assessment questions require assigned-teacher review before publication.",
+          evidence_references: evidenceReferences,
+          evidence_hash: evidenceHash,
+          required_approver_role: "teacher",
+          required_approver_user_id: teacherId,
+          status: "pending",
+          idempotency_key: idempotencyKey,
+          expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
         },
-        reason:
-          "Generated assessment questions require assigned-teacher review before publication.",
-        evidence_references: evidenceReferences,
-        evidence_hash: evidenceHash,
-        required_approver_role: "teacher",
-        required_approver_user_id: teacherId,
-        status: "pending",
-        idempotency_key: idempotencyKey,
-        expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
-      });
+        {
+          onConflict: "institution_id,idempotency_key",
+          ignoreDuplicates: true,
+        }
+      )
+      .select("id")
+      .maybeSingle();
     if (proposalError) {
+      await markRunFailed("proposal_store_failed");
       return new Response(
         JSON.stringify({ error: "Failed to store question review proposal" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    let proposalId =
+      insertedProposal &&
+      typeof (insertedProposal as Record<string, unknown>).id === "string"
+        ? ((insertedProposal as Record<string, unknown>).id as string)
+        : undefined;
+    if (!proposalId) {
+      const { data: existingProposal, error: existingProposalError } =
+        await supabase
+          .from("agent_action_proposals")
+          .select("id")
+          .eq("institution_id", institutionId)
+          .eq("idempotency_key", idempotencyKey)
+          .single();
+      if (
+        existingProposalError ||
+        !existingProposal ||
+        typeof (existingProposal as Record<string, unknown>).id !== "string"
+      ) {
+        await markRunFailed("proposal_lookup_failed");
+        return new Response(
+          JSON.stringify({
+            error: "Failed to resolve question review proposal",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      proposalId = (existingProposal as Record<string, unknown>).id as string;
+    }
+
+    const { error: runCompletionError } = await supabase
+      .from("agent_runs")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        latency_ms: Date.now() - startTime,
+        usage: {
+          inputTokens: llmResult.promptTokens,
+          outputTokens: llmResult.completionTokens,
+          totalTokens: llmResult.totalTokens,
+        },
+      })
+      .eq("id", runId);
+    if (runCompletionError) {
+      await markRunFailed("run_completion_failed");
+      return new Response(
+        JSON.stringify({ error: "Failed to complete generation audit" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

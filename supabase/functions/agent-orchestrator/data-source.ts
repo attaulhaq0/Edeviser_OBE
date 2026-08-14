@@ -1,7 +1,15 @@
 import type { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import type { EmbeddingProvider } from "../_shared/ai/embedding.ts";
-import type { AgentExecutionContext } from "../_shared/ai/contracts.ts";
+import type {
+  AgentExecutionContext,
+  AuthenticatedRole,
+} from "../_shared/ai/contracts.ts";
+import type {
+  AuthorizedProposalScope,
+  ProposalAuthorizer,
+  ProposalRequest,
+} from "../_shared/ai/proposals.ts";
 import type {
   ReadToolName,
   ToolDataSource,
@@ -37,17 +45,28 @@ const safeData = <T>(data: T | null, error: { message: string } | null): T => {
   return data;
 };
 
-export class SupabaseToolDataSource implements ToolDataSource {
+interface AuthorizedCourse {
+  teacherId?: string;
+  programId: string;
+}
+
+interface AuthorizedProgram {
+  coordinatorId?: string;
+}
+
+export class SupabaseToolDataSource
+  implements ToolDataSource, ProposalAuthorizer
+{
   constructor(
     private readonly admin: AdminClient,
     private readonly embeddings: EmbeddingProvider,
     private readonly reader: AdminClient
   ) {}
 
-  private async courseScope(
+  private async authorizedCourse(
     courseId: string,
     context: AgentExecutionContext
-  ): Promise<boolean> {
+  ): Promise<AuthorizedCourse | null> {
     const { data: course } = await this.admin
       .from("courses")
       .select(
@@ -55,7 +74,7 @@ export class SupabaseToolDataSource implements ToolDataSource {
       )
       .eq("id", courseId)
       .maybeSingle();
-    if (!course) return false;
+    if (!course) return null;
     const courseRow = course as Record<string, unknown>;
     const programValue = courseRow.programs;
     const program = Array.isArray(programValue)
@@ -67,8 +86,17 @@ export class SupabaseToolDataSource implements ToolDataSource {
       (program as Record<string, unknown>).institution_id !==
         context.identity.institutionId
     ) {
-      return false;
+      return null;
     }
+    const teacherId =
+      typeof courseRow.teacher_id === "string"
+        ? courseRow.teacher_id
+        : undefined;
+    const programId = courseRow.program_id;
+    if (typeof programId !== "string") {
+      return null;
+    }
+    let authorized = false;
     switch (context.identity.role) {
       case "student": {
         const { data } = await this.admin
@@ -78,25 +106,38 @@ export class SupabaseToolDataSource implements ToolDataSource {
           .eq("course_id", courseId)
           .eq("status", "active")
           .maybeSingle();
-        return Boolean(data);
+        authorized = Boolean(data);
+        break;
       }
       case "teacher":
-        return courseRow.teacher_id === context.identity.userId;
+        authorized = teacherId === context.identity.userId;
+        break;
       case "coordinator":
-        return (
+        authorized =
           (program as Record<string, unknown>).coordinator_id ===
-          context.identity.userId
-        );
+          context.identity.userId;
+        break;
       case "admin":
-        return true;
+        authorized = true;
+        break;
       case "parent":
-        return false;
+        authorized = false;
+        break;
     }
+    return authorized ? { teacherId, programId } : null;
+  }
+
+  private async courseScope(
+    courseId: string,
+    context: AgentExecutionContext
+  ): Promise<boolean> {
+    return Boolean(await this.authorizedCourse(courseId, context));
   }
 
   private async studentScope(
     studentId: string,
-    context: AgentExecutionContext
+    context: AgentExecutionContext,
+    courseId = context.page.courseId
   ): Promise<boolean> {
     if (context.identity.role === "student") {
       return studentId === context.identity.userId;
@@ -109,9 +150,16 @@ export class SupabaseToolDataSource implements ToolDataSource {
         .eq("student_id", studentId)
         .eq("verified", true)
         .maybeSingle();
-      return Boolean(data);
+      if (!data) return false;
+      const { data: student } = await this.admin
+        .from("profiles")
+        .select("id")
+        .eq("id", studentId)
+        .eq("institution_id", context.identity.institutionId)
+        .eq("status", "active")
+        .maybeSingle();
+      return Boolean(student);
     }
-    const courseId = context.page.courseId;
     if (!courseId || !(await this.courseScope(courseId, context))) return false;
     const { data } = await this.admin
       .from("student_courses")
@@ -123,23 +171,96 @@ export class SupabaseToolDataSource implements ToolDataSource {
     return Boolean(data);
   }
 
-  private async programScope(
+  private async authorizedProgram(
     programId: string,
     context: AgentExecutionContext
-  ): Promise<boolean> {
+  ): Promise<AuthorizedProgram | null> {
     const { data } = await this.admin
       .from("programs")
       .select("id,institution_id,coordinator_id")
       .eq("id", programId)
       .eq("institution_id", context.identity.institutionId)
       .maybeSingle();
-    if (!data) return false;
-    if (context.identity.role === "admin") return true;
-    return (
-      context.identity.role === "coordinator" &&
-      (data as Record<string, unknown>).coordinator_id ===
-        context.identity.userId
-    );
+    if (!data) return null;
+    const coordinatorValue = (data as Record<string, unknown>).coordinator_id;
+    const coordinatorId =
+      typeof coordinatorValue === "string" ? coordinatorValue : undefined;
+    if (context.identity.role === "admin") return { coordinatorId };
+    return context.identity.role === "coordinator" &&
+      coordinatorId === context.identity.userId
+      ? { coordinatorId }
+      : null;
+  }
+
+  private async programScope(
+    programId: string,
+    context: AgentExecutionContext
+  ): Promise<boolean> {
+    return Boolean(await this.authorizedProgram(programId, context));
+  }
+
+  async authorizeProposal(
+    request: ProposalRequest,
+    context: AgentExecutionContext,
+    approverRole: AuthenticatedRole
+  ): Promise<AuthorizedProposalScope | null> {
+    const studentId = request.studentId ?? context.page.studentId;
+    const courseId = request.courseId ?? context.page.courseId;
+    const programId = request.programId ?? context.page.programId;
+    const course = courseId
+      ? await this.authorizedCourse(courseId, context)
+      : null;
+    const program = programId
+      ? await this.authorizedProgram(programId, context)
+      : null;
+
+    if (courseId && !course) return null;
+    if (programId && !program && course?.programId !== programId) return null;
+    if (course && programId && course.programId !== programId) return null;
+    if (studentId && !(await this.studentScope(studentId, context, courseId))) {
+      return null;
+    }
+
+    switch (approverRole) {
+      case "student":
+        return studentId
+          ? {
+              studentId,
+              courseId,
+              programId,
+              requiredApproverUserId: studentId,
+            }
+          : null;
+      case "teacher":
+        return course?.teacherId
+          ? {
+              studentId,
+              courseId,
+              programId: programId ?? course.programId,
+              requiredApproverUserId: course.teacherId,
+            }
+          : null;
+      case "coordinator":
+        return program?.coordinatorId
+          ? {
+              studentId,
+              courseId,
+              programId,
+              requiredApproverUserId: program.coordinatorId,
+            }
+          : null;
+      case "admin":
+        return context.identity.role === "admin"
+          ? {
+              studentId,
+              courseId,
+              programId,
+              requiredApproverUserId: context.identity.userId,
+            }
+          : null;
+      case "parent":
+        return null;
+    }
   }
 
   async authorizeScope(
@@ -170,9 +291,10 @@ export class SupabaseToolDataSource implements ToolDataSource {
         programId && (await this.programScope(programId, context))
       );
     }
-    if (studentId && !(await this.studentScope(studentId, context)))
+    if (studentId && !(await this.studentScope(studentId, context, courseId)))
       return false;
-    return Boolean(courseId && (await this.courseScope(courseId, context)));
+    if (courseId) return this.courseScope(courseId, context);
+    return tool === "get_student_learning_context" && Boolean(studentId);
   }
 
   async executeRead(
@@ -219,7 +341,7 @@ export class SupabaseToolDataSource implements ToolDataSource {
         const outcomeRows = safeData(outcomes ?? [], outcomeError);
         const sourceIds = outcomeRows
           .map((outcome: Record<string, unknown>) => outcome.id)
-          .filter((id): id is string => typeof id === "string");
+          .filter((id: unknown): id is string => typeof id === "string");
         const { data: mappings, error: mappingError } = sourceIds.length
           ? await this.reader
               .from("outcome_mappings")
@@ -258,7 +380,7 @@ export class SupabaseToolDataSource implements ToolDataSource {
           await enrollmentQuery;
         const enrolledStudentIds = safeData(enrollments ?? [], enrollmentError)
           .map((enrollment: Record<string, unknown>) => enrollment.student_id)
-          .filter((id): id is string => typeof id === "string");
+          .filter((id: unknown): id is string => typeof id === "string");
         if (enrolledStudentIds.length === 0) {
           return { courseId, signals: [] };
         }
@@ -335,8 +457,8 @@ export class SupabaseToolDataSource implements ToolDataSource {
           .select("id")
           .eq("program_id", programId!);
         const courseIds = safeData(courses ?? [], courseError)
-          .map((course) => course.id)
-          .filter((id): id is string => typeof id === "string");
+          .map((course: Record<string, unknown>) => course.id)
+          .filter((id: unknown): id is string => typeof id === "string");
         if (courseIds.length === 0) return { programId, outcomes: [] };
         const { data, error } = await this.reader
           .from("learning_outcomes")
