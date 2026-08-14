@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Sparkles, Check, X, AlertTriangle } from "lucide-react";
+import { Loader2, Sparkles, AlertTriangle, Clock3 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Card } from "@/components/ui/card";
@@ -30,7 +30,6 @@ import type {
   GenerateQuestionsResponse,
   GeneratedQuestion,
 } from "@/hooks/useGenerateQuestions";
-import { useApproveQuestion, useRejectQuestion } from "@/hooks/useReviewQueue";
 
 // ─── Form schema (client-side, adds course_id at submit time) ───────────────
 
@@ -71,8 +70,6 @@ const GenerateQuestionsPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const closQuery = useCLOs(courseId);
   const generateMutation = useGenerateQuestions();
-  const approveMutation = useApproveQuestion();
-  const rejectMutation = useRejectQuestion();
 
   const [result, setResult] = useState<GenerateQuestionsResponse | null>(null);
 
@@ -96,31 +93,13 @@ const GenerateQuestionsPage = () => {
       {
         onSuccess: (data) => {
           setResult(data);
-          toast.success(`Generated ${data.questions.length} questions`);
+          toast.success(
+            `Prepared ${data.question_drafts.length} drafts for teacher approval`
+          );
         },
         onError: (err) => {
           toast.error(err.message || "Failed to generate questions");
         },
-      }
-    );
-  };
-
-  const handleApprove = (questionId: string) => {
-    approveMutation.mutate(
-      { id: questionId },
-      {
-        onSuccess: () => toast.success("Question approved"),
-        onError: (err) => toast.error(err.message),
-      }
-    );
-  };
-
-  const handleReject = (questionId: string) => {
-    rejectMutation.mutate(
-      { id: questionId },
-      {
-        onSuccess: () => toast.success("Question rejected"),
-        onError: (err) => toast.error(err.message),
       }
     );
   };
@@ -319,15 +298,30 @@ const GenerateQuestionsPage = () => {
             </Card>
           )}
 
-          {result?.questions.map((question, index) => (
+          {result?.approval_status === "pending" && (
+            <Card className="bg-white border border-slate-200/60 shadow-md rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-transparent">
+                  <Clock3 className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">
+                    Pending teacher approval
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    These are drafts only. No official question-bank content was
+                    created.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {result?.question_drafts?.map((question, index) => (
             <GeneratedQuestionCard
               key={`${result.generation_id}-${index}`}
               question={question}
               index={index}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              isApproving={approveMutation.isPending}
-              isRejecting={rejectMutation.isPending}
             />
           ))}
 
@@ -349,25 +343,12 @@ const GenerateQuestionsPage = () => {
 interface GeneratedQuestionCardProps {
   question: GeneratedQuestion;
   index: number;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  isApproving: boolean;
-  isRejecting: boolean;
 }
 
 const GeneratedQuestionCard = ({
   question,
   index,
-  onApprove,
-  onReject,
-  isApproving,
-  isRejecting,
 }: GeneratedQuestionCardProps) => {
-  // The generation_id from the response is the batch id; individual question ids
-  // come from the question_bank after insertion. We use the question_text as a
-  // fallback identifier since the Edge Function inserts rows and returns them.
-  const questionId = (question as GeneratedQuestion & { id?: string }).id;
-
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
       <div className="px-4 py-3 bg-slate-50 border-b flex items-center justify-between">
@@ -391,31 +372,6 @@ const GeneratedQuestionCard = ({
           }
           disabled
         />
-
-        {questionId && (
-          <div className="flex items-center gap-2 pt-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isApproving}
-              onClick={() => onApprove(questionId)}
-              className="text-green-700 border-green-300 hover:bg-green-50"
-            >
-              <Check className="h-4 w-4" />
-              Approve
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isRejecting}
-              onClick={() => onReject(questionId)}
-              className="text-red-700 border-red-300 hover:bg-red-50"
-            >
-              <X className="h-4 w-4" />
-              Reject
-            </Button>
-          </div>
-        )}
       </div>
     </Card>
   );

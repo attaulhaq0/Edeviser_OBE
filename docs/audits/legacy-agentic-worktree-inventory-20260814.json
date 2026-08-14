@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-14",
+  "forensic_source": {
+    "path": "F:/Edeviser-Kiro",
+    "branch": "feat/proactive-agentic-intelligence",
+    "head": "4e182ed0c135dfec7a92d9bd2c1ee5313fd7e79f",
+    "comparison_base": "origin/main",
+    "ahead": 57,
+    "behind": 15,
+    "tracked_modified_count": 46,
+    "untracked_count": 71,
+    "destructive_operations_performed": false
+  },
+  "clean_recovery_target": {
+    "path": "C:/tmp/edeviser-agentic-foundation-20260814",
+    "branch": "agent/agentic-foundation-deepseek",
+    "base_sha": "e31d5779dadd6c6c4ce8dc9b62c30f721c165f93",
+    "started_clean": true
+  },
+  "tracked_modified_inventory": {
+    "environment_and_tooling": [
+      ".env.example",
+      "scripts/check-edge-fn-schema.mjs",
+      "scripts/deploy-edge-functions.sh"
+    ],
+    "authentication": [
+      "src/__tests__/unit/quickLoginNoor.test.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/auth/SignUpPage.tsx",
+      "src/providers/AuthProvider.tsx",
+      "src/design-system/README.md"
+    ],
+    "tenant_operations": [
+      "src/__tests__/unit/tenantOperations.test.ts",
+      "src/lib/tenantOperations.ts"
+    ],
+    "prototype_glob": "prototype/**",
+    "prototype_file_count": 34
+  },
+  "untracked_inventory": {
+    "provider": [
+      "supabase/functions/_shared/ai/providers/deepseek.ts",
+      "src/__tests__/unit/deepseekProvider.test.ts",
+      "docs/ai/deepseek-provider-bootstrap.md"
+    ],
+    "authentication": [
+      "src/__tests__/unit/authOnboardingPolicy.test.ts",
+      "src/design-system/AUTHENTICATION.md",
+      "src/lib/authErrors.ts",
+      "supabase/functions/bootstrap-first-admin/index.ts",
+      "supabase/migrations/20260809143726_auth_onboarding_hardening.sql",
+      "public/auth/edeviser-chain-mark.svg",
+      "public/auth/edeviser-logo-mark.png",
+      "public/auth/feature-timeline-en.png",
+      "public/auth/feedback-loop-ar.png",
+      "public/auth/feedback-loop-en.png",
+      "public/auth/foxi-branded-learning-scene.png"
+    ],
+    "prototype_glob": "prototype/**",
+    "generated_globs": [
+      ".playwright-cli/**",
+      "output/playwright/**",
+      "docs/codebase-review-pack/*.pdf"
+    ],
+    "review_documents": [
+      "EDEVISER-CODEX-MASTER-AGENTIC-GOAL.md",
+      "docs/audits/pre-agentic-product-hygiene-audit-20260813.md",
+      "worktree-audit.txt"
+    ]
+  },
+  "unique_commits": {
+    "count": 57,
+    "range": "origin/main..feat/proactive-agentic-intelligence",
+    "all_shas_oldest_first": [
+      "0b6267cc08f27d747b0d74db7c78f495bb81ebeb",
+      "9d340a4aeab4d2065a9bdeb7d805fc2850cbb09a",
+      "7be006545a42fa58e5c2080478672368d56cb4d6",
+      "3cf75a9ee0c1c814a17123521aaff0abfa48bd72",
+      "ccbef95600ead94df095f454480a07fd64bd0097",
+      "ca9ac278774552e4633d6d031d469d65e012e827",
+      "1f0534d2d5eb608cc31449358c9ec73c3986ea05",
+      "bfbd63c1785cf4db178a41d3897ab088f88642a8",
+      "079525b61cf00e54183c8fa7eb976b2c8372966a",
+      "b1cdbd29eae37b65253bc4833dfd7b485a5d5e95",
+      "f19d6df1fe08ed52192102b55ddf6bc333589c25",
+      "28e24f5cf1c17a1705dd59dea06ba00bc163775b",
+      "09f9b14d76f583b296daea41da63c89f0ca47e2b",
+      "84941c69bbf313a1ddf828ec9e39e77bfacb479c",
+      "e3a923a8fb806a1471c4a3b7d6ec6bf6258de3d2",
+      "8e6a0f837c2f60282523f532436d2efea9cf650f",
+      "af21da68808ccf4eaa6c2de5ad2f79196b9e33a1",
+      "2bf22d49bcb5a878e3c4360eec76a127b89f66c9",
+      "5273a992294de93db7db75e445a32b300e3f514b",
+      "749c8009aa8cd0a957305bcbe6ebf510a14ac316",
+      "cc9f42ee910a4580820e4b37c5aefe65d5409e25",
+      "b2e1999544ef63357373b490f7da38690a0371ca",
+      "5b9142c5240b4e146c5e8f5cc0b6c44ade5296e6",
+      "c70ddfe3f69bce9784a7fa4f316773f34f1f820d",
+      "925170c2fb1ffdedfbc836853df6660fce1471ef",
+      "7b5701d9efe5412e130d0405344999d3d873e40e",
+      "66e8326c143384c8af6bb3e512c0414f4792e11d",
+      "a211201ad75b5e7426b1902d125b5bd7109c755d",
+      "adf98067cc39a031e4785434d30f5b71603de8a1",
+      "490de4e944182b4dfd9d76069fd71b22af18a3fe",
+      "6d88624b5ced35f31e163d620aee63cea2c52178",
+      "fd635545b30ce1f2fa43a4372c35c9eeddb6f850",
+      "4a0832deb23b630461f2f7a99e15839324e0b4b8",
+      "64c47b18db44159876aa3aaa61091841b146443a",
+      "551e298301487ee0c73632a52bf3f1adc76c6edb",
+      "87cc4f774153e28fc1a6a34bcdfd2e726f4c1ac9",
+      "2091d7cef72acf558a4c66ed4ab285a75d3136a6",
+      "4a4886f577f43888c301f55a8184ac0313374e69",
+      "a77ff6e24ef70c66bc3d38cd11f70f3258814e20",
+      "1df843f0838fc36c4eefe40650e8ca448369df27",
+      "043f79ed645cc8bbb26a78405e3e74c60c457181",
+      "c8ebb6f9203a0e11efdb1c7975a423bcda84a97d",
+      "5fba5ee04a9e5eb189d9ae6e4504dcc470039881",
+      "39f325c908e8ed93793ddcb65605354c8f7e4d93",
+      "d3e5922c11dc2322c63eb48a74e40c4e0837857b",
+      "40a1b158c0aa152d9f55ef6f8cb9d8365a151f90",
+      "44189dd7836153e15cc5dcb751097f0974f3c208",
+      "bc6d902ddebcc54ab7e4d8ba3fc6de257749627f",
+      "99010a5ab18f60d491c1e9f9d8ca46886f62ec03",
+      "429cbf38b5a56763fc00d7817068ff5992600e29",
+      "aa55e26f574fbf2d39347bb90653f4dc45703e2e",
+      "36db4d798b854061fd65eac76324302efae8757d",
+      "96e9ffb79b68217a3323f1b16e2c32dd7521932c",
+      "0fb3c25d5b2f45d14826ab6b1f82c42d6d3b098a",
+      "7c3b74a75ddf49e254052f30f2d7c3458152f0f1",
+      "6c79046f20bc4fd15f1d7f00dc8a861ae709a9e4",
+      "4e182ed0c135dfec7a92d9bd2c1ee5313fd7e79f"
+    ],
+    "notable": [
+      {
+        "sha": "7c3b74a75ddf49e254052f30f2d7c3458152f0f1",
+        "subject": "feat(ai): add proactive agentic intelligence vertical slice",
+        "classification": "ALREADY_IN_MAIN_OR_SUPERSEDED"
+      },
+      {
+        "sha": "4e182ed0c135dfec7a92d9bd2c1ee5313fd7e79f",
+        "subject": "Fix auth landing content module",
+        "classification": "RECOVER_AUTH_SEPARATELY"
+      },
+      {
+        "sha": "6c79046f20bc4fd15f1d7f00dc8a861ae709a9e4",
+        "subject": "fix Arabic authentication timeline sizing",
+        "classification": "RECOVER_AUTH_SEPARATELY"
+      }
+    ],
+    "recovery_strategy": "Do not cherry-pick the range; recover logical pieces against current main."
+  },
+  "classifications": {
+    "RECOVER_PROVIDER": [
+      "supabase/functions/_shared/ai/providers/deepseek.ts",
+      "src/__tests__/unit/deepseekProvider.test.ts",
+      "docs/ai/deepseek-provider-bootstrap.md"
+    ],
+    "RECOVER_AGENT_FOUNDATION": [],
+    "RECOVER_AUTH_SEPARATELY": [
+      "src/pages/LoginPage.tsx",
+      "src/pages/auth/SignUpPage.tsx",
+      "src/providers/AuthProvider.tsx",
+      "src/lib/authErrors.ts",
+      "supabase/functions/bootstrap-first-admin/index.ts",
+      "supabase/migrations/20260809143726_auth_onboarding_hardening.sql",
+      "public/auth/**"
+    ],
+    "ALREADY_IN_MAIN": [
+      "supabase/functions/agent-worker/index.ts",
+      "supabase/functions/_shared/ai/proactive-intelligence.ts",
+      "src/lib/aiGovernancePolicy.ts"
+    ],
+    "SUPERSEDED": [
+      "legacy untracked DeepSeek implementation and test copied only as design evidence"
+    ],
+    "PROTOTYPE_REFERENCE_ONLY": ["prototype/**"],
+    "GENERATED_IGNORE": [
+      ".playwright-cli/**",
+      "output/playwright/**",
+      "docs/codebase-review-pack/*.pdf"
+    ],
+    "REVIEW_REQUIRED": [
+      "worktree-audit.txt",
+      "docs/audits/pre-agentic-product-hygiene-audit-20260813.md"
+    ],
+    "DO_NOT_COPY": [
+      ".env.local",
+      "supabase/migrations/20260809143726_auth_onboarding_hardening.sql",
+      "prototype/**"
+    ]
+  },
+  "potential_secret_bearing_files": [
+    {
+      "path": "F:/Edeviser-Kiro/.env.local",
+      "classification": "DO_NOT_COPY",
+      "contents_printed": false
+    },
+    {
+      "path": "F:/Edeviser-Kiro/.env.example",
+      "classification": "REVIEW_REQUIRED",
+      "contents_printed": false
+    },
+    {
+      "path": "F:/Edeviser-Kiro/worktree-audit.txt",
+      "classification": "REVIEW_REQUIRED",
+      "contents_printed": false
+    }
+  ]
+}
