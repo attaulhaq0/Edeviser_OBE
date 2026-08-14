@@ -1,7 +1,7 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { getAgenticConfig } from "../_shared/ai/config.ts";
 import type { AIProvider } from "../_shared/ai/provider.ts";
-import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
 import { hashEvidence } from "../_shared/ai/hash.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -612,7 +612,7 @@ serve(async (req) => {
     };
 
     const generationRequestId = crypto.randomUUID();
-    const provider = createDeepSeekProvider(agenticConfig, { env: Deno.env });
+    const provider = createAIProvider(agenticConfig, { env: Deno.env });
     const resolvedModel = agenticConfig.deepSeek.primaryModel;
 
     try {

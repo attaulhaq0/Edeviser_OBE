@@ -4,7 +4,17 @@ import { describe, expect, it } from "vitest";
 
 const files = execFileSync(
   "git",
-  ["ls-files", "supabase/functions", "api", "src", "scripts", ".env.example"],
+  [
+    "ls-files",
+    "--cached",
+    "--others",
+    "--exclude-standard",
+    "supabase/functions",
+    "api",
+    "src",
+    "scripts",
+    ".env.example",
+  ],
   { encoding: "utf8" }
 )
   .split(/\r?\n/)
@@ -49,10 +59,29 @@ describe("strict provider consolidation", () => {
       "supabase/functions/embed-course-material/index.ts",
       "utf8"
     );
-    expect(functions).toMatch(/createDeepSeekProvider/);
-    expect(tutor).toMatch(/createDeepSeekProvider/);
+    expect(functions).toMatch(/createAIProvider/);
+    expect(tutor).toMatch(/createAIProvider/);
     expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
     expect(embed).toMatch(/createSupabaseEmbeddingProvider/);
+  });
+
+  it("keeps vendor selection inside the canonical provider composition root", () => {
+    const vendorFactoryConsumers = files.filter((file) =>
+      readFileSync(file, "utf8").includes("createDeepSeekProvider")
+    );
+    expect(vendorFactoryConsumers).toEqual([
+      "supabase/functions/_shared/ai/provider-factory.ts",
+      "supabase/functions/_shared/ai/providers/deepseek.ts",
+    ]);
+    for (const consumer of [
+      "supabase/functions/agent-orchestrator/index.ts",
+      "supabase/functions/chat-with-tutor/index.ts",
+      "supabase/functions/coordinator-ai-insights/index.ts",
+      "supabase/functions/generate-plan-update/index.ts",
+      "supabase/functions/generate-quiz-questions/index.ts",
+    ]) {
+      expect(readFileSync(consumer, "utf8")).toContain("createAIProvider");
+    }
   });
 
   it("preserves tutor RAG degradation, context assembly, and integrity guards", () => {

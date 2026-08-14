@@ -57,13 +57,19 @@ export interface EvidenceReference {
   observedAt?: string;
 }
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonObject | readonly JsonValue[];
+export interface JsonObject {
+  readonly [key: string]: JsonValue;
+}
+
 export interface AgentActionProposal {
   id: string;
   runId: string;
   actorUserId: string;
   institutionId: string;
   actionType: string;
-  payload: Record<string, unknown>;
+  payload: JsonObject;
   reason: string;
   evidence: readonly EvidenceReference[];
   risk: "protected";

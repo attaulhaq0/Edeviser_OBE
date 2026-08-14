@@ -77,6 +77,17 @@ describe("typed read-tool registry", () => {
     await expect(
       executeRegisteredTool(
         "get_course_mastery",
+        { courseId: id("6") },
+        {
+          ...context("student"),
+          page: { route: "/test", studentId: id("4") },
+        },
+        dataSource
+      )
+    ).rejects.toMatchObject({ kind: "missing_context" });
+    await expect(
+      executeRegisteredTool(
+        "get_course_mastery",
         { courseId: id("6"), studentId: "not-a-uuid" },
         context("student"),
         dataSource

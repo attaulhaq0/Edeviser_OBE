@@ -4,7 +4,7 @@ import {
   AIProviderError,
   type AICompletionResponse,
 } from "../_shared/ai/provider.ts";
-import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
 import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1211,7 +1211,7 @@ serve(async (req) => {
 
   // ── 3.1.6: Canonical AIProvider generation via DeepSeek ────────────────
   const startTime = Date.now();
-  const provider = createDeepSeekProvider(agenticConfig, { env: Deno.env });
+  const provider = createAIProvider(agenticConfig, { env: Deno.env });
   let providerResult: AICompletionResponse;
   try {
     providerResult = await provider.complete({

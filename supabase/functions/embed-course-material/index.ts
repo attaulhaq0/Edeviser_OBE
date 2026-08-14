@@ -28,7 +28,7 @@ interface EmbedRequest {
   bloom_level?: string;
   material_type: MaterialType;
   source_filename: string;
-  source_material_id?: string;
+  source_material_id: string;
   institution_id?: string;
   reindex?: boolean;
 }
@@ -338,6 +338,13 @@ function validatePayload(
     };
   }
 
+  if (!req.source_material_id || typeof req.source_material_id !== "string") {
+    return {
+      valid: false,
+      error: "source_material_id is required and must be a string",
+    };
+  }
+
   if (req.clo_ids !== undefined) {
     if (
       !Array.isArray(req.clo_ids) ||
@@ -360,7 +367,7 @@ function validatePayload(
       bloom_level: req.bloom_level as string | undefined,
       material_type: req.material_type as MaterialType,
       source_filename: req.source_filename as string,
-      source_material_id: req.source_material_id as string | undefined,
+      source_material_id: req.source_material_id as string,
       institution_id: req.institution_id as string | undefined,
       reindex: req.reindex === true,
     },
@@ -611,6 +618,38 @@ async function validateCloScope(
   return null;
 }
 
+/**
+ * Resolve the requested storage object through its authoritative material row.
+ * The service-role client must never turn a caller-supplied path into a
+ * cross-course or cross-tenant read.
+ */
+async function authorizeSourceMaterial(
+  supabase: UntypedSupabaseClient,
+  sourceMaterialId: string,
+  courseId: string,
+  requestedFilePath: string
+): Promise<boolean> {
+  if (
+    !requestedFilePath.startsWith(`${courseId}/`) ||
+    requestedFilePath.includes("..") ||
+    requestedFilePath.includes("\\") ||
+    requestedFilePath.startsWith("/") ||
+    /^[a-z][a-z\d+.-]*:/i.test(requestedFilePath)
+  ) {
+    return false;
+  }
+
+  const { data, error } = await supabase
+    .from("course_materials")
+    .select("id, file_path, course_modules!inner(course_id)")
+    .eq("id", sourceMaterialId)
+    .eq("file_path", requestedFilePath)
+    .eq("course_modules.course_id", courseId)
+    .maybeSingle();
+
+  return !error && Boolean(data);
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -696,21 +735,6 @@ serve(async (req) => {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-      }
-
-      // Delete old chunks for re-indexing (always re-index for auto-indexed content)
-      if (autoReq.source_material_id) {
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_material_id", autoReq.source_material_id)
-          .eq("course_id", autoReq.course_id);
-      } else {
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_filename", autoReq.source_filename)
-          .eq("course_id", autoReq.course_id);
       }
 
       // Assemble text from assignment/rubric fields
@@ -804,18 +828,16 @@ serve(async (req) => {
         indexing_status: "indexed",
       }));
 
-      const AUTO_INSERT_BATCH_SIZE = 50;
-      for (let i = 0; i < autoInsertRows.length; i += AUTO_INSERT_BATCH_SIZE) {
-        const batch = autoInsertRows.slice(i, i + AUTO_INSERT_BATCH_SIZE);
-        const { error: insertError } = await supabase
-          .from("course_material_embeddings")
-          .insert(batch);
-
-        if (insertError) {
-          throw new Error(
-            `Failed to insert auto-index chunks: ${insertError.message}`
-          );
-        }
+      const { data: autoInsertedCount, error: autoReplaceError } =
+        await supabase.rpc("replace_course_material_embeddings_v2", {
+          p_institution_id: autoInstitutionId,
+          p_course_id: autoReq.course_id,
+          p_source_material_id: autoReq.source_material_id ?? null,
+          p_source_filename: autoReq.source_filename,
+          p_rows: autoInsertRows,
+        });
+      if (autoReplaceError || autoInsertedCount !== autoInsertRows.length) {
+        throw new Error("Failed to atomically replace auto-index chunks");
       }
 
       return new Response(
@@ -871,122 +893,41 @@ serve(async (req) => {
       });
     }
 
-    // ── Delete old chunks for re-indexing ────────────────────────────────
-    // (Task 3.2.7: Re-indexing — delete old chunks before inserting new ones)
-    // Always delete old chunks when source_material_id is provided or reindex is true
-    if (embedReq.reindex || embedReq.source_material_id) {
-      if (embedReq.source_material_id) {
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_material_id", embedReq.source_material_id)
-          .eq("course_id", embedReq.course_id);
-      } else {
-        // Fall back to matching by filename + course
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_filename", embedReq.source_filename)
-          .eq("course_id", embedReq.course_id);
-      }
-    } else {
-      // Default behavior: delete by filename + course to prevent duplicates
-      await supabase
-        .from("course_material_embeddings")
-        .delete()
-        .eq("source_filename", embedReq.source_filename)
-        .eq("course_id", embedReq.course_id);
+    const sourceMaterialAuthorized = await authorizeSourceMaterial(
+      supabase,
+      embedReq.source_material_id,
+      embedReq.course_id,
+      embedReq.file_url
+    );
+    if (!sourceMaterialAuthorized) {
+      return new Response(
+        JSON.stringify({
+          error: "Forbidden: material file is outside the requested course",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // ── Download file from Supabase Storage ─────────────────────────────
     // (Task 3.2.1: File download and text extraction)
     let fileBytes: Uint8Array;
 
-    if (embedReq.file_url.startsWith("http")) {
-      // ── SSRF Protection: validate URL against allowlist ────────────────
-      // Only allow fetching from the project's own Supabase Storage URL.
-      // Block private IP ranges, localhost, and cloud metadata endpoints.
-      const parsedUrl = new URL(embedReq.file_url);
-      const allowedHost = new URL(supabaseUrl).hostname;
-      const hostname = parsedUrl.hostname.toLowerCase();
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from("course-materials")
+      .download(embedReq.file_url);
 
-      // Block private/internal IP ranges and metadata endpoints
-      const blockedPatterns = [
-        /^localhost$/i,
-        /^127\./,
-        /^10\./,
-        /^172\.(1[6-9]|2\d|3[01])\./,
-        /^192\.168\./,
-        /^169\.254\./,
-        /^0\./,
-        /^\[::1\]$/,
-        /^metadata\.google\.internal$/i,
-      ];
-
-      const isBlocked = blockedPatterns.some((pattern) =>
-        pattern.test(hostname)
+    if (downloadError || !fileData) {
+      throw new Error(
+        `Failed to download file from storage: ${
+          downloadError?.message ?? "Unknown error"
+        }`
       );
-      if (isBlocked) {
-        return new Response(
-          JSON.stringify({
-            error: "Forbidden: URL points to a private or internal address",
-          }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Only allow the project's own Supabase domain
-      if (hostname !== allowedHost) {
-        return new Response(
-          JSON.stringify({
-            error: `Forbidden: only URLs from ${allowedHost} are allowed`,
-          }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Direct URL — fetch the file
-      const fileResponse = await fetch(embedReq.file_url);
-      if (!fileResponse.ok) {
-        throw new Error(`Failed to download file: HTTP ${fileResponse.status}`);
-      }
-      fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
-    } else {
-      // ── Path Traversal Protection for storage paths ───────────────────
-      if (embedReq.file_url.includes("..")) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Invalid file path: path traversal sequences are not allowed",
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Supabase Storage path — download via storage API
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from("course-materials")
-        .download(embedReq.file_url);
-
-      if (downloadError || !fileData) {
-        throw new Error(
-          `Failed to download file from storage: ${
-            downloadError?.message ?? "Unknown error"
-          }`
-        );
-      }
-
-      fileBytes = new Uint8Array(await fileData.arrayBuffer());
     }
+
+    fileBytes = new Uint8Array(await fileData.arrayBuffer());
 
     // ── Extract text ────────────────────────────────────────────────────
     let extractedText: string;
@@ -1177,17 +1118,18 @@ serve(async (req) => {
       indexing_status: "indexed",
     }));
 
-    // Insert in batches to avoid payload size limits
-    const INSERT_BATCH_SIZE = 50;
-    for (let i = 0; i < insertRows.length; i += INSERT_BATCH_SIZE) {
-      const batch = insertRows.slice(i, i + INSERT_BATCH_SIZE);
-      const { error: insertError } = await supabase
-        .from("course_material_embeddings")
-        .insert(batch);
-
-      if (insertError) {
-        throw new Error(`Failed to insert chunks: ${insertError.message}`);
+    const { data: insertedCount, error: replaceError } = await supabase.rpc(
+      "replace_course_material_embeddings_v2",
+      {
+        p_institution_id: institutionId,
+        p_course_id: embedReq.course_id,
+        p_source_material_id: embedReq.source_material_id ?? null,
+        p_source_filename: embedReq.source_filename,
+        p_rows: insertRows,
       }
+    );
+    if (replaceError || insertedCount !== insertRows.length) {
+      throw new Error("Failed to atomically replace material chunks");
     }
 
     // ── Notify teacher on completion for large documents ────────────────

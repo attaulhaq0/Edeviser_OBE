@@ -4,6 +4,7 @@ import type { AgentExecutionContext } from "../../../supabase/functions/_shared/
 import {
   assertMayDecideProposal,
   createHumanApprovalProposal,
+  parseProposalRequest,
   type ProposalStore,
 } from "../../../supabase/functions/_shared/ai/proposals";
 
@@ -78,6 +79,33 @@ describe("human-in-the-loop proposals", () => {
       )
     ).rejects.toMatchObject({ kind: "unauthorized_scope" });
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it("accepts only bounded JSON-safe typed proposal payloads", () => {
+    expect(
+      parseProposalRequest({
+        actionType: "create_goal",
+        payload: { title: "Review CLO 1", steps: ["read", "practice"] },
+        reason: "Student review required",
+        evidence: [],
+      }).payload
+    ).toEqual({ title: "Review CLO 1", steps: ["read", "practice"] });
+    expect(() =>
+      parseProposalRequest({
+        actionType: "create_goal",
+        payload: { value: Number.POSITIVE_INFINITY },
+        reason: "Student review required",
+        evidence: [],
+      })
+    ).toThrow(/finite/);
+    expect(() =>
+      parseProposalRequest({
+        actionType: "create_goal",
+        payload: { constructor: "unsafe" },
+        reason: "Student review required",
+        evidence: [],
+      })
+    ).toThrow(/invalid field name/);
   });
 
   it("rejects cross-institution, wrong-role, expired, and already-used approvals", () => {

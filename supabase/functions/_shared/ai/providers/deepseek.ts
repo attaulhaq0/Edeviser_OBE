@@ -56,7 +56,7 @@ const parseToolCalls = (value: unknown): AIToolCall[] => {
 };
 
 // Official prices verified 2026-08-14. Estimation is informational and never
-// authorizes spend; the server-side budget gate remains deterministic.
+// authorizes spend; feature enablement separately requires an explicit budget.
 const MODEL_PRICES = {
   "deepseek-v4-flash": { input: 0.14, cachedInput: 0.0028, output: 0.28 },
   "deepseek-v4-pro": { input: 0.435, cachedInput: 0.003625, output: 0.87 },

@@ -1,7 +1,7 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { getAgenticConfig } from "../_shared/ai/config.ts";
 import type { AIProvider } from "../_shared/ai/provider.ts";
-import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
 // =============================================================================
 // coordinator-ai-insights — AI attainment insights for coordinators
 // =============================================================================
@@ -372,7 +372,7 @@ serve(async (req) => {
 
     const agenticConfig = getAgenticConfig(Deno.env);
     if (agenticConfig.enabled) {
-      const provider = createDeepSeekProvider(agenticConfig, { env: Deno.env });
+      const provider = createAIProvider(agenticConfig, { env: Deno.env });
       try {
         const enhanced = await enhanceWithProvider(base, provider);
         if (enhanced) {

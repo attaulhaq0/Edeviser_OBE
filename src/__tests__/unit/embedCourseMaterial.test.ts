@@ -20,7 +20,7 @@ interface EmbedRequest {
   bloom_level?: string;
   material_type: MaterialType;
   source_filename: string;
-  source_material_id?: string;
+  source_material_id: string;
   institution_id?: string;
   reindex?: boolean;
 }
@@ -232,6 +232,13 @@ function validateRequest(
     };
   }
 
+  if (!req.source_material_id || typeof req.source_material_id !== "string") {
+    return {
+      valid: false,
+      error: "source_material_id is required and must be a string",
+    };
+  }
+
   if (req.clo_ids !== undefined) {
     if (
       !Array.isArray(req.clo_ids) ||
@@ -254,7 +261,7 @@ function validateRequest(
       bloom_level: req.bloom_level as string | undefined,
       material_type: req.material_type as MaterialType,
       source_filename: req.source_filename as string,
-      source_material_id: req.source_material_id as string | undefined,
+      source_material_id: req.source_material_id as string,
       institution_id: req.institution_id as string | undefined,
       reindex: req.reindex === true,
     },
@@ -498,6 +505,7 @@ describe("embed-course-material: Request Validation (3.2.1)", () => {
   const validRequest = {
     file_url: "https://example.com/file.pdf",
     course_id: "course-123",
+    source_material_id: "material-123",
     source_filename: "lecture.pdf",
     material_type: "lecture_notes",
   };
@@ -525,6 +533,14 @@ describe("embed-course-material: Request Validation (3.2.1)", () => {
     });
     expect(result.valid).toBe(false);
     if (!result.valid) expect(result.error).toContain("file_url");
+  });
+
+  it("rejects missing source_material_id", () => {
+    const { source_material_id, ...request } = validRequest;
+    void source_material_id;
+    const result = validateRequest(request);
+    expect(result.valid).toBe(false);
+    if (!result.valid) expect(result.error).toContain("source_material_id");
   });
 
   it("rejects missing course_id", () => {

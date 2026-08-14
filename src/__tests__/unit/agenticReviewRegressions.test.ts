@@ -77,4 +77,11 @@ describe("agentic review regressions", () => {
     expect(endpoint).toContain('.eq("institution_id", identity.institutionId)');
     expect(endpoint).toContain("decisionError.kind");
   });
+
+  it("maps typed provider outages to a safe application error", () => {
+    const endpoint = read("supabase/functions/agent-orchestrator/index.ts");
+    expect(endpoint).toContain("error instanceof AIProviderError");
+    expect(endpoint).toContain('? "provider_unavailable"');
+    expect(endpoint).not.toMatch(/error\.message[\s\S]*provider_unavailable/);
+  });
 });

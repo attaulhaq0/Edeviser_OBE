@@ -5,13 +5,15 @@ import {
   type AgentExecutionContext,
   type AgentIdentity,
   type EvidenceReference,
+  type JsonObject,
+  type JsonValue,
   type ProtectedActionType,
 } from "./contracts.ts";
 import { hashEvidence } from "./hash.ts";
 
 export interface ProposalRequest {
   actionType: ProtectedActionType;
-  payload: Record<string, unknown>;
+  payload: JsonObject;
   reason: string;
   evidence: EvidenceReference[];
   studentId?: string;
@@ -73,6 +75,91 @@ const optionalUuid = (value: unknown, field: string): string | undefined => {
   return value;
 };
 
+const parseJsonValue = (value: unknown, depth: number): JsonValue => {
+  if (depth > 6) {
+    throw new ProposalBoundaryError(
+      "invalid_proposal",
+      "Proposal payload exceeds the maximum nesting depth"
+    );
+  }
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
+    if (typeof value === "string" && value.length > 8000) {
+      throw new ProposalBoundaryError(
+        "invalid_proposal",
+        "Proposal payload string is too long"
+      );
+    }
+    return value;
+  }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new ProposalBoundaryError(
+        "invalid_proposal",
+        "Proposal payload numbers must be finite"
+      );
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    if (value.length > 100) {
+      throw new ProposalBoundaryError(
+        "invalid_proposal",
+        "Proposal payload arrays may contain at most 100 items"
+      );
+    }
+    return value.map((entry) => parseJsonValue(entry, depth + 1));
+  }
+  if (!value || typeof value !== "object") {
+    throw new ProposalBoundaryError(
+      "invalid_proposal",
+      "Proposal payload must contain JSON values only"
+    );
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length > 50) {
+    throw new ProposalBoundaryError(
+      "invalid_proposal",
+      "Proposal payload objects may contain at most 50 fields"
+    );
+  }
+  const result: Record<string, JsonValue> = {};
+  for (const [key, entry] of entries) {
+    if (
+      key.length === 0 ||
+      key.length > 100 ||
+      ["__proto__", "prototype", "constructor"].includes(key)
+    ) {
+      throw new ProposalBoundaryError(
+        "invalid_proposal",
+        "Proposal payload contains an invalid field name"
+      );
+    }
+    result[key] = parseJsonValue(entry, depth + 1);
+  }
+  return result;
+};
+
+const parsePayload = (value: unknown): JsonObject => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new ProposalBoundaryError(
+      "invalid_proposal",
+      "Proposal payload must be a JSON object"
+    );
+  }
+  const payload = parseJsonValue(value, 0) as JsonObject;
+  if (JSON.stringify(payload).length > 32_000) {
+    throw new ProposalBoundaryError(
+      "invalid_proposal",
+      "Proposal payload exceeds 32000 serialized characters"
+    );
+  }
+  return payload;
+};
+
 const parseEvidence = (value: unknown): EvidenceReference[] => {
   if (!Array.isArray(value) || value.length > 20) {
     throw new ProposalBoundaryError(
@@ -128,16 +215,6 @@ export const parseProposalRequest = (value: unknown): ProposalRequest => {
     );
   }
   if (
-    !row.payload ||
-    typeof row.payload !== "object" ||
-    Array.isArray(row.payload)
-  ) {
-    throw new ProposalBoundaryError(
-      "invalid_proposal",
-      "Proposal payload must be a JSON object"
-    );
-  }
-  if (
     typeof row.reason !== "string" ||
     row.reason.trim().length === 0 ||
     row.reason.length > 4000
@@ -149,7 +226,7 @@ export const parseProposalRequest = (value: unknown): ProposalRequest => {
   }
   return {
     actionType: row.actionType,
-    payload: row.payload as Record<string, unknown>,
+    payload: parsePayload(row.payload),
     reason: row.reason.trim(),
     evidence: parseEvidence(row.evidence ?? []),
     studentId: optionalUuid(row.studentId, "studentId"),

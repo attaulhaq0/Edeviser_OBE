@@ -6,9 +6,10 @@ import {
   AgentOrchestratorError,
   runAgentOrchestrator,
 } from "../../../supabase/functions/_shared/ai/orchestrator";
-import type {
-  AICompletionResponse,
-  AIProvider,
+import {
+  AIProviderError,
+  type AICompletionResponse,
+  type AIProvider,
 } from "../../../supabase/functions/_shared/ai/provider";
 import type { ProposalStore } from "../../../supabase/functions/_shared/ai/proposals";
 
@@ -74,6 +75,36 @@ const dependencies = (provider: AIProvider, configOverride = config()) => ({
 });
 
 describe("agent orchestrator execution boundary", () => {
+  it("fails closed before provider execution when the feature is disabled", async () => {
+    const complete = vi.fn();
+    await expect(
+      runAgentOrchestrator(
+        dependencies(
+          { name: "deepseek", complete },
+          config({ AI_FEATURE_ENABLED: "false" })
+        )
+      )
+    ).rejects.toMatchObject({ kind: "feature_disabled" });
+    expect(complete).not.toHaveBeenCalled();
+  });
+
+  it("preserves a typed provider outage for safe endpoint mapping", async () => {
+    const outage = new AIProviderError(
+      "transient",
+      "Generation provider is temporarily unavailable",
+      503,
+      true
+    );
+    await expect(
+      runAgentOrchestrator(
+        dependencies({
+          name: "deepseek",
+          complete: vi.fn().mockRejectedValue(outage),
+        })
+      )
+    ).rejects.toBe(outage);
+  });
+
   it("treats tool and RAG output as untrusted data", async () => {
     const complete = vi
       .fn()

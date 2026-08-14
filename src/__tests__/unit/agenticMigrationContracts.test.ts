@@ -17,6 +17,14 @@ const auditIndexMigration = readFileSync(
   "supabase/migrations/20260827000004_add_agent_tool_attempt_actor_index.sql",
   "utf8"
 );
+const atomicEmbeddingReplacementMigration = readFileSync(
+  "supabase/migrations/20260827000005_create_atomic_embedding_replacement.sql",
+  "utf8"
+);
+const embeddingSourceScopeMigration = readFileSync(
+  "supabase/migrations/20260827000006_harden_embedding_source_material_scope.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -65,5 +73,42 @@ describe("agentic migration contracts", () => {
     expect(embeddingConstraintMigration).toContain(
       "VALIDATE CONSTRAINT course_material_embeddings_vector_version_check"
     );
+  });
+
+  it("replaces re-indexed chunks atomically through a service-only RPC", () => {
+    expect(atomicEmbeddingReplacementMigration).toContain(
+      "replace_course_material_embeddings_v2"
+    );
+    expect(atomicEmbeddingReplacementMigration).toMatch(/SECURITY DEFINER/);
+    expect(atomicEmbeddingReplacementMigration).toContain(
+      "SET search_path = ''"
+    );
+    expect(atomicEmbeddingReplacementMigration).toMatch(
+      /REVOKE ALL[\s\S]*PUBLIC, anon, authenticated/
+    );
+    expect(atomicEmbeddingReplacementMigration).toMatch(
+      /GRANT EXECUTE[\s\S]*TO service_role/
+    );
+    expect(
+      atomicEmbeddingReplacementMigration.indexOf("DELETE FROM")
+    ).toBeLessThan(atomicEmbeddingReplacementMigration.indexOf("INSERT INTO"));
+    expect(atomicEmbeddingReplacementMigration).toMatch(
+      /course_materials[\s\S]*course_modules[\s\S]*module\.course_id = p_course_id/
+    );
+    expect(embeddingSourceScopeMigration).toMatch(
+      /NEW\.source_material_id[\s\S]*module\.course_id = NEW\.course_id/
+    );
+    expect(embeddingSourceScopeMigration).toMatch(
+      /UPDATE OF institution_id, course_id, source_material_id, clo_ids/
+    );
+    const embedFunction = readFileSync(
+      "supabase/functions/embed-course-material/index.ts",
+      "utf8"
+    );
+    expect(embedFunction).not.toContain(".delete()");
+    expect(
+      embedFunction.match(/replace_course_material_embeddings_v2/g)
+    ).toHaveLength(2);
+    expect(embedFunction).toContain("authorizeSourceMaterial");
   });
 });

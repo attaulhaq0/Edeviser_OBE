@@ -3,7 +3,9 @@
 ## Final provider architecture
 
 Production generation has one executable path: feature or orchestrator code
-calls the server-only `AIProvider`, whose only implementation is DeepSeek.
+calls the server-only `AIProvider` through the generic `createAIProvider`
+composition root, whose only implementation is DeepSeek. Production feature
+modules do not import or select a vendor implementation.
 Provider failure returns a typed unavailable error; there is no vendor fallback.
 The tutor remains text-only in this phase: attachments are disabled in its
 browser composer and rejected before usage accounting or retrieval if a client
@@ -77,6 +79,18 @@ it explicitly. This keeps the already Preview-applied versioned migration
 immutable while making constraint installation safe for a non-empty table and
 fully checked before the migration completes.
 
+Forward migration `20260827000005_create_atomic_embedding_replacement.sql`
+adds a service-only transactional replacement RPC. Both indexing paths finish
+text extraction, chunking, and native embedding generation before calling it;
+an invalid payload or insert failure rolls back the delete and preserves the
+last usable material index. File indexing also resolves the caller-supplied
+storage path through an authoritative `course_materials` row joined to its
+course module before the service-role client can download it. Forward migration
+`20260827000006_harden_embedding_source_material_scope.sql` applies the same
+course/material invariant to every privileged database writer and to updates of
+`source_material_id`, preventing cross-course material attachment even if a
+future server path bypasses the current Edge Function.
+
 The read-only Production audit on 2026-08-14 verified:
 
 - project `cdlgtbvxlxjpcddjazzx` is `ACTIVE_HEALTHY`;
@@ -107,6 +121,9 @@ Proposal creation also authorizes and normalizes request/page targets against
 current server-side institution, course, student, and program relationships,
 then pins a specific eligible approver user. Missing, ambiguous, or unauthorized
 scope fails closed before a proposal is stored.
+Proposal payloads are recursively validated as bounded JSON values with depth,
+field-count, array-size, string-size, serialized-size, finite-number, and unsafe
+property-name guards before hashing or persistence.
 Decision reads are institution-scoped before authorization, and typed decision
 errors distinguish expiry, prior decisions, and unauthorized approvers without
 disclosing cross-tenant proposal existence. Forward migration

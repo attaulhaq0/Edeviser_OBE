@@ -13,6 +13,10 @@ const ids = {
   course: "66666666-6666-4666-8666-666666666666",
   foreignCourse: "77777777-7777-4777-8777-777777777777",
   program: "88888888-8888-4888-8888-888888888888",
+  foreignProgram: "99999999-9999-4999-8999-999999999999",
+  parent: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  coordinator: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  admin: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
 };
 
 type Row = Record<string, unknown>;
@@ -54,7 +58,7 @@ class FakeClient {
             program_id: ids.program,
             programs: {
               institution_id: ids.institution,
-              coordinator_id: null,
+              coordinator_id: ids.coordinator,
             },
           };
         }
@@ -77,6 +81,33 @@ class FakeClient {
         filters.get("status") === "active"
       ) {
         return { student_id: ids.student };
+      }
+      if (
+        name === "parent_student_links" &&
+        filters.get("parent_id") === ids.parent &&
+        filters.get("student_id") === ids.student &&
+        filters.get("verified") === true
+      ) {
+        return { student_id: ids.student };
+      }
+      if (
+        name === "profiles" &&
+        filters.get("id") === ids.student &&
+        filters.get("institution_id") === ids.institution &&
+        filters.get("status") === "active"
+      ) {
+        return { id: ids.student };
+      }
+      if (
+        name === "programs" &&
+        filters.get("id") === ids.program &&
+        filters.get("institution_id") === ids.institution
+      ) {
+        return {
+          id: ids.program,
+          institution_id: ids.institution,
+          coordinator_id: ids.coordinator,
+        };
       }
       return null;
     });
@@ -117,6 +148,18 @@ const teacherContext = (courseId?: string): AgentExecutionContext => ({
     studentId: ids.student,
     courseId,
   },
+});
+
+const roleContext = (
+  role: AgentExecutionContext["identity"]["role"],
+  userId: string,
+  page: AgentExecutionContext["page"] = { route: `/${role}` }
+): AgentExecutionContext => ({
+  ...teacherContext(),
+  specialist:
+    role === "student" ? "tutor" : role === "teacher" ? "teacher" : role,
+  identity: { userId, role, institutionId: ids.institution },
+  page,
 });
 
 describe("Supabase agent scope authorization", () => {
@@ -170,20 +213,85 @@ describe("Supabase agent scope authorization", () => {
   });
 
   it("authorizes a student's own learning context without a course", async () => {
-    const studentContext: AgentExecutionContext = {
-      ...teacherContext(),
-      specialist: "tutor",
-      identity: {
-        userId: ids.student,
-        role: "student",
-        institutionId: ids.institution,
-      },
-    };
+    const studentContext = roleContext("student", ids.student, {
+      route: "/student",
+      studentId: ids.student,
+    });
     await expect(
       dataSource.authorizeScope(
         "get_student_learning_context",
         { studentId: ids.student },
         studentContext
+      )
+    ).resolves.toBe(true);
+  });
+
+  it("enforces the complete five-role authorization matrix", async () => {
+    await expect(
+      dataSource.authorizeScope(
+        "get_course_mastery",
+        { courseId: ids.course, studentId: ids.student },
+        roleContext("student", ids.student, {
+          route: "/student/course",
+          courseId: ids.course,
+          studentId: ids.student,
+        })
+      )
+    ).resolves.toBe(true);
+
+    await expect(
+      dataSource.authorizeScope(
+        "get_teacher_course_context",
+        { courseId: ids.course },
+        roleContext("teacher", ids.teacher, {
+          route: "/teacher/course",
+          courseId: ids.course,
+        })
+      )
+    ).resolves.toBe(true);
+
+    const parentContext = roleContext("parent", ids.parent, {
+      route: "/parent/child",
+      studentId: ids.student,
+    });
+    await expect(
+      dataSource.authorizeScope(
+        "get_parent_child_progress",
+        { studentId: ids.student },
+        parentContext
+      )
+    ).resolves.toBe(true);
+    await expect(
+      dataSource.authorizeScope(
+        "search_course_materials",
+        { courseId: ids.course, query: "private" },
+        parentContext
+      )
+    ).resolves.toBe(false);
+
+    await expect(
+      dataSource.authorizeScope(
+        "get_coordinator_outcome_context",
+        { programId: ids.program },
+        roleContext("coordinator", ids.coordinator, {
+          route: "/coordinator/program",
+          programId: ids.program,
+        })
+      )
+    ).resolves.toBe(true);
+    await expect(
+      dataSource.authorizeScope(
+        "get_coordinator_outcome_context",
+        { programId: ids.foreignProgram },
+        roleContext("coordinator", ids.coordinator)
+      )
+    ).resolves.toBe(false);
+
+    await expect(
+      dataSource.authorizeScope(
+        "get_admin_institution_context",
+        {},
+        roleContext("admin", ids.admin)
       )
     ).resolves.toBe(true);
   });

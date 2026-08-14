@@ -18,12 +18,12 @@ import {
   type AgentAuditSink,
 } from "../_shared/ai/orchestrator.ts";
 import { AIProviderError } from "../_shared/ai/provider.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
 import {
   assertMayDecideProposal,
   ProposalBoundaryError,
   type ProposalStore,
 } from "../_shared/ai/proposals.ts";
-import { createDeepSeekProvider } from "../_shared/ai/providers/deepseek.ts";
 import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
 import { SupabaseToolDataSource } from "./data-source.ts";
 
@@ -345,7 +345,7 @@ serve(async (req) => {
   };
 
   try {
-    const provider = createDeepSeekProvider(config, { env: Deno.env });
+    const provider = createAIProvider(config, { env: Deno.env });
     const dataSource = new SupabaseToolDataSource(
       admin,
       createSupabaseEmbeddingProvider(),
