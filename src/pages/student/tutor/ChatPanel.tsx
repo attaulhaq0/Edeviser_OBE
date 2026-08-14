@@ -75,6 +75,11 @@ interface ChatPanelProps {
   onAutonomyChange?: (level: "L1" | "L3" | null) => void;
 }
 
+interface ImageAttachment {
+  file: File;
+  previewUrl: string;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const ChatPanel = ({
@@ -93,7 +98,7 @@ const ChatPanel = ({
 }: ChatPanelProps) => {
   const { t } = useTranslation("ai");
   const [inputValue, setInputValue] = useState("");
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageFiles, setImageFiles] = useState<ImageAttachment[]>([]);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [streamingContent, setStreamingContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -105,6 +110,7 @@ const ChatPanel = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const imageFilesRef = useRef<ImageAttachment[]>([]);
 
   const isLimitReached = usage ? usage.remaining_messages <= 0 : false;
   const isTokenBudgetExceeded = usage
@@ -127,6 +133,15 @@ const ChatPanel = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingContent]);
+
+  useEffect(
+    () => () => {
+      for (const attachment of imageFilesRef.current) {
+        URL.revokeObjectURL(attachment.previewUrl);
+      }
+    },
+    []
+  );
 
   // Auto-resize textarea
   useEffect(() => {
@@ -156,18 +171,22 @@ const ChatPanel = ({
         validFiles.push(file);
       }
 
-      setImageFiles((prev) => {
-        const combined = [...prev, ...validFiles].slice(0, MAX_IMAGES);
-        if (prev.length + validFiles.length > MAX_IMAGES) {
-          toast.error(t("tutor.chat.errors.maxImages", { count: MAX_IMAGES }));
-        }
-        return combined;
-      });
+      const availableSlots = Math.max(0, MAX_IMAGES - imageFiles.length);
+      const additions = validFiles.slice(0, availableSlots).map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+      if (validFiles.length > availableSlots) {
+        toast.error(t("tutor.chat.errors.maxImages", { count: MAX_IMAGES }));
+      }
+      const nextAttachments = [...imageFiles, ...additions];
+      imageFilesRef.current = nextAttachments;
+      setImageFiles(nextAttachments);
 
       // Reset input so the same file can be re-selected
       e.target.value = "";
     },
-    [t]
+    [imageFiles, t]
   );
 
   const handleDocSelect = useCallback(
@@ -193,7 +212,13 @@ const ChatPanel = ({
   );
 
   const removeImage = useCallback((index: number) => {
-    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImageFiles((prev) => {
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      const next = prev.filter((_, i) => i !== index);
+      imageFilesRef.current = next;
+      return next;
+    });
   }, []);
 
   const removeDocument = useCallback(() => {
@@ -227,7 +252,7 @@ const ChatPanel = ({
       setIsUploading(true);
       try {
         imageUrls = await Promise.all(
-          imagesToUpload.map((file) => uploadAttachment(file))
+          imagesToUpload.map(({ file }) => uploadAttachment(file))
         );
         if (docToUpload) {
           documentUrl = await uploadAttachment(docToUpload);
@@ -246,6 +271,10 @@ const ChatPanel = ({
 
     // Only clear the composer once any uploads have succeeded.
     setInputValue("");
+    for (const attachment of imagesToUpload) {
+      URL.revokeObjectURL(attachment.previewUrl);
+    }
+    imageFilesRef.current = [];
     setImageFiles([]);
     setDocumentFile(null);
     setStreamingContent("");
@@ -433,10 +462,10 @@ const ChatPanel = ({
         {supportsTutorAttachments() &&
           (imageFiles.length > 0 || documentFile) && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {imageFiles.map((file, i) => (
-                <div key={i} className="relative group">
+              {imageFiles.map((attachment, i) => (
+                <div key={attachment.previewUrl} className="relative group">
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={attachment.previewUrl}
                     alt={t("tutor.chat.attachmentAlt", { index: i + 1 })}
                     className="h-16 w-16 rounded-lg object-cover border border-gray-200"
                   />

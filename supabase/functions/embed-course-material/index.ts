@@ -647,7 +647,12 @@ async function authorizeSourceMaterial(
     .eq("course_modules.course_id", courseId)
     .maybeSingle();
 
-  return !error && Boolean(data);
+  if (error) {
+    throw new Error(
+      `Source-material authorization lookup failed: ${error.message}`
+    );
+  }
+  return Boolean(data);
 }
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
@@ -898,7 +903,16 @@ serve(async (req) => {
       embedReq.source_material_id,
       embedReq.course_id,
       embedReq.file_url
-    );
+    ).catch((error: unknown) => {
+      console.error("Source-material authorization lookup failed:", error);
+      return null;
+    });
+    if (sourceMaterialAuthorized === null) {
+      return new Response(JSON.stringify({ error: "Internal server error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!sourceMaterialAuthorized) {
       return new Response(
         JSON.stringify({

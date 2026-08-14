@@ -81,12 +81,31 @@ describe("RAG authorization contract", () => {
     expect(embedFunction).toMatch(/authorizeSourceMaterial\(/);
     expect(embedFunction).toMatch(/course_modules!inner\(course_id\)/);
     expect(embedFunction).toMatch(/\.eq\("file_path", requestedFilePath\)/);
-    expect(embedFunction.indexOf("authenticateRequest(req)")).toBeLessThan(
-      embedFunction.indexOf('rpc("replace_course_material_embeddings_v2"')
+    expect(embedFunction).toMatch(
+      /Source-material authorization lookup failed: \$\{error\.message\}/
     );
-    expect(
-      embedFunction.indexOf("const sourceMaterialAuthorized")
-    ).toBeLessThan(embedFunction.indexOf(".download(embedReq.file_url)"));
+    expect(embedFunction).toMatch(
+      /\.catch\(\(error: unknown\) => \{[\s\S]*Source-material authorization lookup failed:[\s\S]*sourceMaterialAuthorized === null[\s\S]*Internal server error[\s\S]*status: 500/
+    );
+    expect(embedFunction).toMatch(
+      /if \(!sourceMaterialAuthorized\)[\s\S]*status: 403/
+    );
+    const authenticationIndex = embedFunction.indexOf(
+      "authenticateRequest(req)"
+    );
+    const replacementIndex = embedFunction.indexOf(
+      'rpc("replace_course_material_embeddings_v2"'
+    );
+    const sourceAuthorizationIndex = embedFunction.indexOf(
+      "const sourceMaterialAuthorized"
+    );
+    const downloadIndex = embedFunction.indexOf(".download(embedReq.file_url)");
+    expect(authenticationIndex).toBeGreaterThanOrEqual(0);
+    expect(replacementIndex).toBeGreaterThanOrEqual(0);
+    expect(sourceAuthorizationIndex).toBeGreaterThanOrEqual(0);
+    expect(downloadIndex).toBeGreaterThanOrEqual(0);
+    expect(authenticationIndex).toBeLessThan(replacementIndex);
+    expect(sourceAuthorizationIndex).toBeLessThan(downloadIndex);
     expect(embedFunction).not.toMatch(
       /from\("course_material_embeddings"\)[\s\S]{0,120}\.delete\(\)/
     );

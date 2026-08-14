@@ -67,6 +67,9 @@ describe("agentic review regressions", () => {
     expect(composer).toContain(
       "const supportsTutorAttachments = (): boolean => false"
     );
+    expect(composer.match(/URL\.createObjectURL/g)).toHaveLength(1);
+    expect(composer).toContain("URL.revokeObjectURL");
+    expect(composer).toContain("src={attachment.previewUrl}");
   });
 
   it("authorizes tutor course and CLO scope before disclosing AI configuration", () => {

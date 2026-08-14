@@ -25,6 +25,10 @@ const embeddingSourceScopeMigration = readFileSync(
   "supabase/migrations/20260827000006_harden_embedding_source_material_scope.sql",
   "utf8"
 );
+const embeddingReplacementScopeMigration = readFileSync(
+  "supabase/migrations/20260827000007_harden_atomic_embedding_replacement_scope.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -89,9 +93,14 @@ describe("agentic migration contracts", () => {
     expect(atomicEmbeddingReplacementMigration).toMatch(
       /GRANT EXECUTE[\s\S]*TO service_role/
     );
-    expect(
-      atomicEmbeddingReplacementMigration.indexOf("DELETE FROM")
-    ).toBeLessThan(atomicEmbeddingReplacementMigration.indexOf("INSERT INTO"));
+    expect(atomicEmbeddingReplacementMigration).toMatch(/RETURNS integer/);
+    const deleteIndex =
+      atomicEmbeddingReplacementMigration.indexOf("DELETE FROM");
+    const insertIndex =
+      atomicEmbeddingReplacementMigration.indexOf("INSERT INTO");
+    expect(deleteIndex).toBeGreaterThanOrEqual(0);
+    expect(insertIndex).toBeGreaterThanOrEqual(0);
+    expect(deleteIndex).toBeLessThan(insertIndex);
     expect(atomicEmbeddingReplacementMigration).toMatch(
       /course_materials[\s\S]*course_modules[\s\S]*module\.course_id = p_course_id/
     );
@@ -101,6 +110,23 @@ describe("agentic migration contracts", () => {
     expect(embeddingSourceScopeMigration).toMatch(
       /UPDATE OF institution_id, course_id, source_material_id, clo_ids/
     );
+    expect(embeddingReplacementScopeMigration).toContain(
+      "CREATE OR REPLACE FUNCTION public.replace_course_material_embeddings_v2"
+    );
+    expect(embeddingReplacementScopeMigration).toMatch(/RETURNS integer/);
+    expect(embeddingReplacementScopeMigration).toMatch(
+      /course_id = p_course_id[\s\S]*institution_id = p_institution_id[\s\S]*source_filename = p_source_filename[\s\S]*OR[\s\S]*p_source_material_id IS NOT NULL[\s\S]*source_material_id = p_source_material_id/
+    );
+    expect(embeddingReplacementScopeMigration).not.toMatch(
+      /IF p_source_material_id IS NOT NULL THEN[\s\S]*DELETE FROM/
+    );
+    const hardenedDeleteIndex =
+      embeddingReplacementScopeMigration.indexOf("DELETE FROM");
+    const hardenedInsertIndex =
+      embeddingReplacementScopeMigration.indexOf("INSERT INTO");
+    expect(hardenedDeleteIndex).toBeGreaterThanOrEqual(0);
+    expect(hardenedInsertIndex).toBeGreaterThanOrEqual(0);
+    expect(hardenedDeleteIndex).toBeLessThan(hardenedInsertIndex);
     const embedFunction = readFileSync(
       "supabase/functions/embed-course-material/index.ts",
       "utf8"
@@ -109,6 +135,10 @@ describe("agentic migration contracts", () => {
     expect(
       embedFunction.match(/replace_course_material_embeddings_v2/g)
     ).toHaveLength(2);
+    expect(embedFunction).toContain(
+      "autoInsertedCount !== autoInsertRows.length"
+    );
+    expect(embedFunction).toContain("insertedCount !== insertRows.length");
     expect(embedFunction).toContain("authorizeSourceMaterial");
   });
 });
