@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { AgentExecutionContext } from "../../../supabase/functions/_shared/ai/contracts";
+import type {
+  AgentActionProposal,
+  AgentExecutionContext,
+} from "../../../supabase/functions/_shared/ai/contracts";
 import type { EmbeddingProvider } from "../../../supabase/functions/_shared/ai/embedding";
 import { SupabaseToolDataSource } from "../../../supabase/functions/agent-orchestrator/data-source";
 
@@ -94,7 +97,7 @@ class FakeClient {
         name === "profiles" &&
         filters.get("id") === ids.student &&
         filters.get("institution_id") === ids.institution &&
-        filters.get("status") === "active"
+        filters.get("is_active") === true
       ) {
         return { id: ids.student };
       }
@@ -294,6 +297,76 @@ describe("Supabase agent scope authorization", () => {
         roleContext("admin", ids.admin)
       )
     ).resolves.toBe(true);
+  });
+
+  it("binds a parent support proposal to the verified linked parent", async () => {
+    await expect(
+      dataSource.authorizeProposal(
+        {
+          actionType: "acknowledge_child_support_plan",
+          payload: { acknowledged: true },
+          reason: "Linked parent acknowledgement is required.",
+          evidence: [],
+          studentId: ids.student,
+        },
+        roleContext("parent", ids.parent, {
+          route: "/parent/child",
+          studentId: ids.student,
+        }),
+        "parent"
+      )
+    ).resolves.toEqual({
+      studentId: ids.student,
+      courseId: undefined,
+      programId: undefined,
+      requiredApproverUserId: ids.parent,
+    });
+  });
+
+  it("rechecks exact student, payload, enrollment, and institution before a write", async () => {
+    const proposal: AgentActionProposal = {
+      id: crypto.randomUUID(),
+      runId: crypto.randomUUID(),
+      actorUserId: ids.student,
+      institutionId: ids.institution,
+      studentId: ids.student,
+      courseId: ids.course,
+      actionType: "create_planner_session",
+      payload: { courseId: ids.course },
+      reason: "Approved plan",
+      evidence: [],
+      evidenceHash: "a".repeat(64),
+      risk: "protected",
+      requiredApproverRole: "student",
+      requiredApproverUserId: ids.student,
+      status: "approved",
+      idempotencyKey: "b".repeat(64),
+      createdAt: new Date().toISOString(),
+    };
+    await expect(
+      dataSource.authorizeCurrentScope(proposal, {
+        userId: ids.student,
+        role: "student",
+        institutionId: ids.institution,
+      })
+    ).resolves.toBe(true);
+    await expect(
+      dataSource.authorizeCurrentScope(
+        { ...proposal, payload: { courseId: ids.foreignCourse } },
+        {
+          userId: ids.student,
+          role: "student",
+          institutionId: ids.institution,
+        }
+      )
+    ).resolves.toBe(false);
+    await expect(
+      dataSource.authorizeCurrentScope(proposal, {
+        userId: ids.otherStudent,
+        role: "student",
+        institutionId: ids.institution,
+      })
+    ).resolves.toBe(false);
   });
 
   it("rejects an empty embedding result before vector search", async () => {

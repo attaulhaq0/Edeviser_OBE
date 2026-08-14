@@ -1,0 +1,519 @@
+\set ON_ERROR_STOP on
+BEGIN;
+SET LOCAL session_replication_role = replica;
+
+INSERT INTO public.institutions (id, name, slug)
+VALUES
+  (
+    '10000000-0000-4000-8000-000000000001',
+    'Agentic Integration Institution',
+    'agentic-integration-institution'
+  ),
+  (
+    '10000000-0000-4000-8000-000000000002',
+    'Foreign Integration Institution',
+    'foreign-integration-institution'
+  );
+
+INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
+VALUES
+  (
+    '20000000-0000-4000-8000-000000000001',
+    'authenticated',
+    'authenticated',
+    'student-one@agentic.test',
+    now(),
+    now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000002',
+    'authenticated',
+    'authenticated',
+    'student-two@agentic.test',
+    now(),
+    now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000003',
+    'authenticated', 'authenticated', 'teacher@agentic.test', now(), now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000004',
+    'authenticated', 'authenticated', 'parent@agentic.test', now(), now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000005',
+    'authenticated', 'authenticated', 'coordinator@agentic.test', now(), now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000006',
+    'authenticated', 'authenticated', 'admin@agentic.test', now(), now()
+  );
+
+INSERT INTO public.institution_settings (
+  institution_id, attainment_thresholds, success_threshold
+)
+VALUES (
+  '10000000-0000-4000-8000-000000000001',
+  '{"excellent":90,"satisfactory":65,"developing":45}'::jsonb,
+  60
+);
+
+INSERT INTO public.profiles (
+  id, institution_id, full_name, email, role, is_active
+)
+VALUES
+  (
+    '20000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000001',
+    'Student One',
+    'student-one@agentic.test',
+    'student',
+    true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000002',
+    '10000000-0000-4000-8000-000000000002',
+    'Student Two',
+    'student-two@agentic.test',
+    'student',
+    true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000003',
+    '10000000-0000-4000-8000-000000000001',
+    'Assigned Teacher', 'teacher@agentic.test', 'teacher', true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000004',
+    '10000000-0000-4000-8000-000000000001',
+    'Linked Parent', 'parent@agentic.test', 'parent', true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000005',
+    '10000000-0000-4000-8000-000000000001',
+    'Assigned Coordinator', 'coordinator@agentic.test', 'coordinator', true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000006',
+    '10000000-0000-4000-8000-000000000001',
+    'Institution Admin', 'admin@agentic.test', 'admin', true
+  );
+
+INSERT INTO public.programs (
+  id, institution_id, coordinator_id, name, code, is_active
+)
+VALUES (
+  '30000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000005',
+  'Agentic Program',
+  'AGP',
+  true
+);
+
+INSERT INTO public.courses (
+  id, program_id, teacher_id, name, code, semester, academic_year, is_active
+)
+VALUES (
+  '40000000-0000-4000-8000-000000000001',
+  '30000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000003',
+  'Agentic Course',
+  'AGC101',
+  'Fall',
+  '2026',
+  true
+);
+
+INSERT INTO public.student_courses (student_id, course_id, status)
+VALUES (
+  '20000000-0000-4000-8000-000000000001',
+  '40000000-0000-4000-8000-000000000001',
+  'active'
+);
+
+INSERT INTO public.parent_student_links (
+  parent_id, student_id, relationship, verified, institution_id, status,
+  verified_by, verified_at
+)
+VALUES (
+  '20000000-0000-4000-8000-000000000004',
+  '20000000-0000-4000-8000-000000000001',
+  'parent',
+  true,
+  '10000000-0000-4000-8000-000000000001',
+  'verified',
+  '20000000-0000-4000-8000-000000000006',
+  now()
+);
+
+INSERT INTO public.learning_outcomes (
+  id, institution_id, program_id, course_id, type, title, sort_order
+)
+VALUES (
+  '50000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  '30000000-0000-4000-8000-000000000001',
+  '40000000-0000-4000-8000-000000000001',
+  'CLO',
+  'Agentic CLO',
+  1
+);
+
+INSERT INTO public.outcome_attainment (
+  outcome_id, student_id, course_id, scope, attainment_percent,
+  sample_count, last_calculated_at
+)
+VALUES (
+  '50000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '40000000-0000-4000-8000-000000000001',
+  'student_course',
+  55,
+  4,
+  now()
+);
+
+INSERT INTO public.habit_logs (student_id, habit_type, date, completed_at)
+VALUES (
+  '20000000-0000-4000-8000-000000000001',
+  'read',
+  current_date,
+  now()
+);
+
+INSERT INTO public.agent_runs (
+  id, request_id, actor_user_id, actor_role, institution_id, session_id,
+  specialist, input_hash, status, completed_at
+)
+VALUES
+  (
+    '60000000-0000-4000-8000-000000000001',
+    '60000000-0000-4000-8000-000000000011',
+    '20000000-0000-4000-8000-000000000001',
+    'student',
+    '10000000-0000-4000-8000-000000000001',
+    '60000000-0000-4000-8000-000000000021',
+    'tutor',
+    repeat('1', 64),
+    'completed',
+    now()
+  ),
+  (
+    '60000000-0000-4000-8000-000000000002',
+    '60000000-0000-4000-8000-000000000012',
+    '20000000-0000-4000-8000-000000000001',
+    'student',
+    '10000000-0000-4000-8000-000000000001',
+    '60000000-0000-4000-8000-000000000022',
+    'tutor',
+    repeat('2', 64),
+    'completed',
+    now()
+  );
+
+INSERT INTO public.agent_action_proposals (
+  id, run_id, actor_user_id, institution_id, student_id, course_id,
+  action_type, payload, reason, evidence_references, evidence_hash,
+  required_approver_role, required_approver_user_id, status,
+  idempotency_key, expires_at, decided_at, decided_by
+)
+VALUES
+  (
+    '70000000-0000-4000-8000-000000000001',
+    '60000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    NULL,
+    'create_goal',
+    jsonb_build_object(
+      'title', 'Raise CLO mastery',
+      'goalType', 'mastery',
+      'targetValue', 80
+    ),
+    'Deterministic mastery is below threshold.',
+    jsonb_build_array(jsonb_build_object(
+      'kind', 'outcome',
+      'id', '50000000-0000-4000-8000-000000000001'
+    )),
+    repeat('a', 64),
+    'student',
+    '20000000-0000-4000-8000-000000000001',
+    'approved',
+    repeat('b', 64),
+    now() + interval '1 day',
+    now(),
+    '20000000-0000-4000-8000-000000000001'
+  ),
+  (
+    '70000000-0000-4000-8000-000000000002',
+    '60000000-0000-4000-8000-000000000002',
+    '20000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    '40000000-0000-4000-8000-000000000001',
+    'create_planner_session',
+    jsonb_build_object(
+      'title', 'Review Agentic CLO',
+      'courseId', '40000000-0000-4000-8000-000000000001',
+      'plannedDate', (current_date + 1)::text,
+      'startTime', '09:30',
+      'durationMinutes', 45,
+      'sessionType', 'review'
+    ),
+    'A bounded study session supports the approved goal.',
+    '[]'::jsonb,
+    repeat('c', 64),
+    'student',
+    '20000000-0000-4000-8000-000000000001',
+    'approved',
+    repeat('d', 64),
+    now() + interval '1 day',
+    now(),
+    '20000000-0000-4000-8000-000000000001'
+  );
+
+SET LOCAL session_replication_role = origin;
+
+DO $verify$
+DECLARE
+  first_goal jsonb;
+  retried_goal jsonb;
+  planner jsonb;
+  denied boolean := false;
+  state_row public.student_learning_states;
+BEGIN
+  BEGIN
+    PERFORM public.execute_approved_agent_personal_action_v1(
+      '70000000-0000-4000-8000-000000000001',
+      '20000000-0000-4000-8000-000000000002'
+    );
+  EXCEPTION WHEN insufficient_privilege OR no_data_found THEN
+    denied := true;
+  END;
+  IF NOT denied THEN
+    RAISE EXCEPTION 'Wrong exact approver was not rejected';
+  END IF;
+
+  first_goal := public.execute_approved_agent_personal_action_v1(
+    '70000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001'
+  );
+  retried_goal := public.execute_approved_agent_personal_action_v1(
+    '70000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001'
+  );
+  planner := public.execute_approved_agent_personal_action_v1(
+    '70000000-0000-4000-8000-000000000002',
+    '20000000-0000-4000-8000-000000000001'
+  );
+
+  IF first_goal->>'alreadyExecuted' <> 'false'
+    OR retried_goal->>'alreadyExecuted' <> 'true'
+    OR planner->>'alreadyExecuted' <> 'false'
+  THEN
+    RAISE EXCEPTION 'Execution receipts do not preserve idempotency';
+  END IF;
+  IF (SELECT count(*) FROM public.weekly_goals
+      WHERE student_id = '20000000-0000-4000-8000-000000000001') <> 1
+    OR (SELECT count(*) FROM public.study_sessions
+      WHERE student_id = '20000000-0000-4000-8000-000000000001') <> 1
+    OR (SELECT count(*) FROM public.agent_action_executions) <> 2
+    OR (SELECT count(*) FROM public.agent_tool_attempts
+      WHERE approval_state = 'executed') <> 2
+  THEN
+    RAISE EXCEPTION 'Exactly-once side effect or audit assertion failed';
+  END IF;
+
+  SELECT * INTO state_row
+  FROM public.student_learning_states
+  WHERE student_id = '20000000-0000-4000-8000-000000000001';
+  IF NOT FOUND
+    OR state_row.version <> 2
+    OR jsonb_array_length(state_row.risk_signals) <> 1
+    OR jsonb_array_length(state_row.goals) <> 1
+    OR jsonb_array_length(state_row.approved_executed_actions) <> 2
+    OR state_row.risk_signals->0->>'threshold' <> '60'
+    OR state_row.mastery->'outcomes'->0->>'attainmentPercent' <> '55'
+  THEN
+    RAISE EXCEPTION 'Deterministic Student Learning State assertion failed';
+  END IF;
+END;
+$verify$;
+
+DO $privileges$
+BEGIN
+  IF has_function_privilege(
+    'authenticated',
+    'public.execute_approved_agent_personal_action_v1(uuid,uuid)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'Authenticated callers can invoke the service-only executor';
+  END IF;
+  IF has_table_privilege(
+    'authenticated', 'public.student_learning_states', 'INSERT'
+  ) THEN
+    RAISE EXCEPTION 'Authenticated callers can forge Student Learning State';
+  END IF;
+END;
+$privileges$;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000001',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $student_rls$
+BEGIN
+  IF (SELECT count(*) FROM public.student_learning_states) <> 1 THEN
+    RAISE EXCEPTION 'Student cannot read own Learning State';
+  END IF;
+END;
+$student_rls$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000002',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $foreign_rls$
+BEGIN
+  IF (SELECT count(*) FROM public.student_learning_states) <> 0 THEN
+    RAISE EXCEPTION 'Cross-institution Learning State read was not denied';
+  END IF;
+END;
+$foreign_rls$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000003',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $teacher_rls$
+DECLARE
+  projected jsonb;
+  denied boolean := false;
+BEGIN
+  IF (SELECT count(*) FROM public.student_learning_states) <> 0 THEN
+    RAISE EXCEPTION 'Teacher received an unfiltered global Learning State row';
+  END IF;
+  projected := public.get_student_learning_state_v1(
+    '20000000-0000-4000-8000-000000000001',
+    '40000000-0000-4000-8000-000000000001',
+    NULL
+  );
+  IF jsonb_array_length(projected->'mastery'->'outcomes') <> 1
+    OR jsonb_array_length(projected->'goals') <> 0
+  THEN
+    RAISE EXCEPTION 'Assigned teacher projection is not course-minimized';
+  END IF;
+  BEGIN
+    PERFORM public.get_student_learning_state_v1(
+      '20000000-0000-4000-8000-000000000001',
+      '40000000-0000-4000-8000-000000000099',
+      NULL
+    );
+  EXCEPTION WHEN insufficient_privilege THEN
+    denied := true;
+  END;
+  IF NOT denied THEN
+    RAISE EXCEPTION 'Unassigned teacher course projection was not denied';
+  END IF;
+END;
+$teacher_rls$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000004',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $parent_rls$
+BEGIN
+  IF (SELECT count(*) FROM public.student_learning_states) <> 1 THEN
+    RAISE EXCEPTION 'Verified parent cannot read linked Learning State';
+  END IF;
+END;
+$parent_rls$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000005',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $coordinator_rls$
+DECLARE
+  projected jsonb;
+  denied boolean := false;
+BEGIN
+  IF (SELECT count(*) FROM public.student_learning_states) <> 0 THEN
+    RAISE EXCEPTION 'Coordinator received an unfiltered global Learning State row';
+  END IF;
+  projected := public.get_student_learning_state_v1(
+    '20000000-0000-4000-8000-000000000001',
+    NULL,
+    '30000000-0000-4000-8000-000000000001'
+  );
+  IF jsonb_array_length(projected->'mastery'->'outcomes') <> 1
+    OR jsonb_array_length(projected->'goals') <> 0
+  THEN
+    RAISE EXCEPTION 'Assigned coordinator projection is not program-minimized';
+  END IF;
+  BEGIN
+    PERFORM public.get_student_learning_state_v1(
+      '20000000-0000-4000-8000-000000000001',
+      NULL,
+      '30000000-0000-4000-8000-000000000099'
+    );
+  EXCEPTION WHEN insufficient_privilege THEN
+    denied := true;
+  END;
+  IF NOT denied THEN
+    RAISE EXCEPTION 'Unassigned coordinator program projection was not denied';
+  END IF;
+END;
+$coordinator_rls$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000006',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $admin_rls$
+BEGIN
+  IF (SELECT count(*) FROM public.student_learning_states) <> 1 THEN
+    RAISE EXCEPTION 'Institution admin cannot read Learning State';
+  END IF;
+END;
+$admin_rls$;
+RESET ROLE;
+
+SELECT json_build_object(
+  'valid', true,
+  'executions', (SELECT count(*) FROM public.agent_action_executions),
+  'learning_state_version', (
+    SELECT version FROM public.student_learning_states
+    WHERE student_id = '20000000-0000-4000-8000-000000000001'
+  )
+) AS protected_write_verification;
+
+ROLLBACK;
+
+SELECT json_build_object(
+  'rollback_rows', (
+    SELECT count(*) FROM public.institutions
+    WHERE id = '10000000-0000-4000-8000-000000000001'
+  )
+) AS rollback_verification;

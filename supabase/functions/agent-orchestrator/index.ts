@@ -26,6 +26,10 @@ import {
 } from "../_shared/ai/proposals.ts";
 import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
 import { SupabaseToolDataSource } from "./data-source.ts";
+import {
+  executeApprovedProposal,
+  ProtectedWriteBoundaryError,
+} from "../_shared/ai/write-tools/execution.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,6 +69,8 @@ const proposalFromRow = (
   evidence: Array.isArray(row.evidence_references)
     ? (row.evidence_references as AgentActionProposal["evidence"])
     : [],
+  evidenceHash:
+    typeof row.evidence_hash === "string" ? row.evidence_hash : undefined,
   risk: "protected",
   requiredApproverRole: String(
     row.required_approver_role
@@ -77,6 +83,9 @@ const proposalFromRow = (
   idempotencyKey: String(row.idempotency_key),
   createdAt: String(row.created_at),
   expiresAt: typeof row.expires_at === "string" ? row.expires_at : undefined,
+  studentId: typeof row.student_id === "string" ? row.student_id : undefined,
+  courseId: typeof row.course_id === "string" ? row.course_id : undefined,
+  programId: typeof row.program_id === "string" ? row.program_id : undefined,
 });
 
 serve(async (req) => {
@@ -217,6 +226,71 @@ serve(async (req) => {
       proposal: decided,
       protectedActionExecuted: false,
     });
+  }
+
+  if (body.action === "execute_proposal") {
+    const proposalId = uuid(body.proposalId);
+    if (!proposalId) {
+      return json(400, { error: { code: "invalid_proposal_id" } });
+    }
+    const { data, error } = await admin
+      .from("agent_action_proposals")
+      .select("*")
+      .eq("id", proposalId)
+      .eq("institution_id", identity.institutionId)
+      .maybeSingle();
+    if (error || !data) {
+      return json(404, { error: { code: "proposal_not_found" } });
+    }
+    const config = getAgenticConfig(Deno.env);
+    const dataSource = new SupabaseToolDataSource(
+      admin,
+      createSupabaseEmbeddingProvider(),
+      reader
+    );
+    try {
+      const receipt = await executeApprovedProposal(
+        proposalFromRow(data as Record<string, unknown>),
+        identity,
+        {
+          featureEnabled: config.enabled,
+          protectedWritesEnabled: config.protectedWritesEnabled,
+        },
+        dataSource,
+        {
+          async executeApprovedPersonalAction(targetProposalId) {
+            const { data: result, error: executionError } = await admin.rpc(
+              "execute_approved_agent_personal_action_v1",
+              {
+                p_proposal_id: targetProposalId,
+                p_actor_id: identity.userId,
+              }
+            );
+            if (executionError || !result) {
+              throw new Error("Protected write RPC failed");
+            }
+            return result;
+          },
+        }
+      );
+      return json(200, { receipt });
+    } catch (executionError) {
+      const code =
+        executionError instanceof ProtectedWriteBoundaryError
+          ? executionError.kind
+          : "execution_failed";
+      const status =
+        code === "feature_disabled"
+          ? 503
+          : code === "execution_failed"
+          ? 500
+          : code === "not_approved" || code === "expired"
+          ? 409
+          : code === "invalid_input" || code === "invalid_evidence"
+          ? 400
+          : 403;
+      return json(status, { error: { code } });
+    }
   }
 
   const config = getAgenticConfig(Deno.env);

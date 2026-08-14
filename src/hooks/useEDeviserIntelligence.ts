@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import {
   decideIntelligenceProposal,
+  executeIntelligenceProposal,
   requestEDeviserIntelligence,
 } from "@/lib/edeviserIntelligence";
 
@@ -10,3 +11,6 @@ export const useEDeviserIntelligence = () =>
 
 export const useIntelligenceProposalDecision = () =>
   useMutation({ mutationFn: decideIntelligenceProposal });
+
+export const useIntelligenceProposalExecution = () =>
+  useMutation({ mutationFn: executeIntelligenceProposal });

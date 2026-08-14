@@ -2,7 +2,9 @@ import type { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import type { EmbeddingProvider } from "../_shared/ai/embedding.ts";
 import type {
+  AgentActionProposal,
   AgentExecutionContext,
+  AgentIdentity,
   AuthenticatedRole,
 } from "../_shared/ai/contracts.ts";
 import type {
@@ -14,6 +16,7 @@ import type {
   ReadToolName,
   ToolDataSource,
 } from "../_shared/ai/tools/registry.ts";
+import type { CurrentExecutionAuthorizer } from "../_shared/ai/write-tools/execution.ts";
 
 type LooseTable = {
   Row: Record<string, unknown>;
@@ -55,7 +58,7 @@ interface AuthorizedProgram {
 }
 
 export class SupabaseToolDataSource
-  implements ToolDataSource, ProposalAuthorizer
+  implements ToolDataSource, ProposalAuthorizer, CurrentExecutionAuthorizer
 {
   constructor(
     private readonly admin: AdminClient,
@@ -156,7 +159,7 @@ export class SupabaseToolDataSource
         .select("id")
         .eq("id", studentId)
         .eq("institution_id", context.identity.institutionId)
-        .eq("status", "active")
+        .eq("is_active", true)
         .maybeSingle();
       return Boolean(student);
     }
@@ -259,8 +262,59 @@ export class SupabaseToolDataSource
             }
           : null;
       case "parent":
-        return null;
+        return context.identity.role === "parent" && studentId
+          ? {
+              studentId,
+              courseId,
+              programId,
+              requiredApproverUserId: context.identity.userId,
+            }
+          : null;
     }
+  }
+
+  async authorizeCurrentScope(
+    proposal: AgentActionProposal,
+    approver: AgentIdentity
+  ): Promise<boolean> {
+    if (
+      approver.userId !== proposal.requiredApproverUserId ||
+      approver.role !== proposal.requiredApproverRole ||
+      approver.institutionId !== proposal.institutionId ||
+      approver.role !== "student" ||
+      proposal.studentId !== approver.userId
+    ) {
+      return false;
+    }
+    if (proposal.actionType === "create_goal") return true;
+    if (
+      proposal.actionType !== "create_planner_session" ||
+      !proposal.courseId ||
+      proposal.payload.courseId !== proposal.courseId
+    ) {
+      return false;
+    }
+    const { data: enrollment, error: enrollmentError } = await this.admin
+      .from("student_courses")
+      .select("course_id")
+      .eq("student_id", approver.userId)
+      .eq("course_id", proposal.courseId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (enrollmentError) {
+      throw new Error("Current execution authorization failed");
+    }
+    if (!enrollment) return false;
+    const { data: course, error: courseError } = await this.admin
+      .from("courses")
+      .select("id,programs!inner(institution_id)")
+      .eq("id", proposal.courseId)
+      .eq("programs.institution_id", approver.institutionId)
+      .maybeSingle();
+    if (courseError) {
+      throw new Error("Current execution authorization failed");
+    }
+    return Boolean(course);
   }
 
   async authorizeScope(
@@ -307,18 +361,25 @@ export class SupabaseToolDataSource
     const programId = stringInput(input, "programId") ?? context.page.programId;
     switch (tool) {
       case "get_student_learning_context": {
-        let query = this.reader
-          .from("outcome_attainment")
-          .select("outcome_id,course_id,attainment_percent,last_calculated_at")
-          .eq("student_id", studentId!)
-          .order("last_calculated_at", { ascending: false })
-          .limit(50);
-        if (courseId) query = query.eq("course_id", courseId);
-        const { data, error } = await query;
+        const { error: refreshError } = await this.admin.rpc(
+          "refresh_student_learning_state_v1",
+          { p_student_id: studentId! }
+        );
+        if (refreshError) {
+          throw new Error("Learning State refresh failed");
+        }
+        const { data, error } = await this.reader.rpc(
+          "get_student_learning_state_v1",
+          {
+            p_student_id: studentId!,
+            p_course_id: courseId ?? null,
+            p_program_id: programId ?? null,
+          }
+        );
         return {
           studentId,
           courseId: courseId ?? null,
-          attainment: safeData(data ?? [], error),
+          learningState: safeData(data, error),
         };
       }
       case "get_course_mastery": {

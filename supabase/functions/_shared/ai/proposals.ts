@@ -274,6 +274,7 @@ export const createHumanApprovalProposal = async (
     payload: request.payload,
     reason: request.reason,
     evidence: request.evidence,
+    evidenceHash,
     risk: "protected",
     requiredApproverRole: approverRole,
     requiredApproverUserId: authorizedScope.requiredApproverUserId,

@@ -29,6 +29,10 @@ const embeddingReplacementScopeMigration = readFileSync(
   "supabase/migrations/20260827000007_harden_atomic_embedding_replacement_scope.sql",
   "utf8"
 );
+const learningStateMigration = readFileSync(
+  "supabase/migrations/20260828000001_create_student_learning_state_and_protected_execution.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -140,5 +144,104 @@ describe("agentic migration contracts", () => {
     );
     expect(embedFunction).toContain("insertedCount !== insertRows.length");
     expect(embedFunction).toContain("authorizeSourceMaterial");
+  });
+
+  it("materializes deterministic Student Learning State with five-role read scope", () => {
+    expect(learningStateMigration).toContain(
+      "CREATE TABLE public.student_learning_states"
+    );
+    for (const field of [
+      "mastery",
+      "habits",
+      "risk_signals",
+      "strengths",
+      "opportunities",
+      "goals",
+      "active_interventions",
+      "recent_evidence",
+      "recommendation_history",
+      "approved_executed_actions",
+      "measured_intervention_effects",
+      "fresh_until",
+      "state_hash",
+    ]) {
+      expect(learningStateMigration).toContain(field);
+    }
+    for (const role of ["student", "parent", "admin"]) {
+      expect(learningStateMigration).toContain(
+        `student_learning_states_${role}_read`
+      );
+    }
+    expect(learningStateMigration).not.toContain(
+      "student_learning_states_teacher_read"
+    );
+    expect(learningStateMigration).not.toContain(
+      "student_learning_states_coordinator_read"
+    );
+    expect(learningStateMigration).toContain(
+      "CREATE OR REPLACE FUNCTION public.get_student_learning_state_v1"
+    );
+    expect(learningStateMigration).toMatch(
+      /v_actor_role = 'teacher'[\s\S]*c\.teacher_id = v_actor_id/
+    );
+    expect(learningStateMigration).toMatch(
+      /v_actor_role = 'coordinator'[\s\S]*p\.coordinator_id = v_actor_id/
+    );
+    expect(learningStateMigration).toMatch(
+      /get_student_learning_state_v1\(uuid, uuid, uuid\)[\s\S]*TO authenticated, service_role/
+    );
+    expect(learningStateMigration).toMatch(
+      /REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER[\s\S]*FROM authenticated/
+    );
+    expect(learningStateMigration).toContain(
+      "public.parent_has_verified_link(student_id)"
+    );
+    expect(learningStateMigration).toContain(
+      "'calculation', 'outcome_attainment_below_success_threshold'"
+    );
+    expect(learningStateMigration).toContain(
+      "FROM public.institution_settings s"
+    );
+    expect(learningStateMigration).toContain(
+      "'status', 'awaiting_direct_evidence'"
+    );
+  });
+
+  it("executes registered personal writes atomically and service-only", () => {
+    const createGoalIndex = learningStateMigration.indexOf(
+      "IF v_proposal.action_type = 'create_goal'"
+    );
+    const executionReceiptIndex = learningStateMigration.indexOf(
+      "INSERT INTO public.agent_action_executions"
+    );
+    const auditIndex = learningStateMigration.indexOf(
+      "INSERT INTO public.agent_tool_attempts"
+    );
+    const proposalUpdateIndex = learningStateMigration.indexOf(
+      "UPDATE public.agent_action_proposals"
+    );
+    const stateRefreshIndex = learningStateMigration.indexOf(
+      "v_state := public.refresh_student_learning_state_v1"
+    );
+    for (const marker of [
+      createGoalIndex,
+      executionReceiptIndex,
+      auditIndex,
+      proposalUpdateIndex,
+      stateRefreshIndex,
+    ]) {
+      expect(marker).toBeGreaterThanOrEqual(0);
+    }
+    expect(createGoalIndex).toBeLessThan(executionReceiptIndex);
+    expect(executionReceiptIndex).toBeLessThan(auditIndex);
+    expect(auditIndex).toBeLessThan(proposalUpdateIndex);
+    expect(proposalUpdateIndex).toBeLessThan(stateRefreshIndex);
+    expect(learningStateMigration).toMatch(/UNIQUE \(proposal_id\)/);
+    expect(learningStateMigration).toMatch(
+      /execute_approved_agent_personal_action_v1\(uuid, uuid\)[\s\S]*FROM PUBLIC, anon, authenticated[\s\S]*TO service_role/
+    );
+    expect(learningStateMigration).not.toMatch(
+      /EXECUTE\s+format|p_rpc|p_table|raw_sql/i
+    );
   });
 });
