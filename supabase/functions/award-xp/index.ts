@@ -1,4 +1,8 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import {
+  fixedStudentSelfXp,
+  hasManagedServerAuthorization,
+} from "../_shared/runtimeAuthorization.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -592,23 +596,14 @@ serve(async (req) => {
     //      edge-function callers therefore send the anon JWT as the bearer (to
     //      satisfy the gateway) and the service-role secret in `x-internal-auth`.
     const internalAuthHeader = req.headers.get("x-internal-auth") ?? "";
-    const isServiceRole =
-      (serviceRoleKey.length > 0 && authHeader.includes(serviceRoleKey)) ||
-      (serviceRoleKey.length > 0 && internalAuthHeader === serviceRoleKey);
+    const isServiceRole = hasManagedServerAuthorization({
+      authorization: authHeader,
+      internalAuthorization: internalAuthHeader,
+      managedServerKey: serviceRoleKey,
+    });
 
-    // Server-side canonical XP amounts for self-triggered sources.
-    // Students cannot choose their own XP — the server enforces these values.
-    // Submission is handled separately to derive late/on-time XP from trusted data.
-    const SELF_TRIGGERED_XP: Partial<Record<XPSource, number>> = {
-      login: 10,
-      journal: 20,
-    };
-    // Self-triggered allow-list: sources a student may award with their own JWT.
-    // The legacy trio (login/submission/journal) plus the engagement sources whose
-    // canonical amount is enforced server-side below (study_session clamp 0–60,
-    // wellness_habit institution-configured, planner_task 10, weekly_goal 25,
-    // review_session 15, review_cycle_complete 25). The student-supplied xp_amount
-    // is ignored for all of these — the server value wins.
+    // Auditable allow-list for student-owned XP actions. The property suite
+    // treats this in-handler marker as a security/governance contract.
     const selfTriggeredSources: XPSource[] = [
       "login",
       "submission",
@@ -687,9 +682,9 @@ serve(async (req) => {
         validation.data.xp_amount = isLate ? LATE_SUBMISSION_XP : SUBMISSION_XP;
         // Keep the assignment_id as reference_id for submission idempotency
         // (one XP award per student per assignment)
-      } else if (source === "login" || source === "journal") {
+      } else if (fixedStudentSelfXp(source) !== null) {
         // Fixed-amount sources (login, journal)
-        validation.data.xp_amount = SELF_TRIGGERED_XP[source]!;
+        validation.data.xp_amount = fixedStudentSelfXp(source)!;
 
         // Generate a deterministic reference_id for idempotency.
         // Format: {source}:{student_id}:{UTC date} — one award per source per day.

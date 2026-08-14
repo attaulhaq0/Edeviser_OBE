@@ -1,4 +1,8 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import {
+  canProcessBadgesForStudent,
+  hasManagedServerAuthorization,
+} from "../_shared/runtimeAuthorization.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -1707,10 +1711,11 @@ serve(async (req) => {
     // `verify_jwt` gate as a bearer — internal callers send the anon JWT as the
     // bearer and the service-role secret in `x-internal-auth`.
     const internalAuthHeader = req.headers.get("x-internal-auth") ?? "";
-    const isServiceRole =
-      (serviceRoleKey.length > 0 &&
-        authHeader.replace("Bearer ", "") === serviceRoleKey) ||
-      (serviceRoleKey.length > 0 && internalAuthHeader === serviceRoleKey);
+    const isServiceRole = hasManagedServerAuthorization({
+      authorization: authHeader,
+      internalAuthorization: internalAuthHeader,
+      managedServerKey: serviceRoleKey,
+    });
 
     let callerId: string | null = null;
     if (!isServiceRole) {
@@ -1759,7 +1764,13 @@ serve(async (req) => {
     const { student_id, trigger, team_id } = validation.data;
 
     // Ownership check: non-service-role callers can only check their own badges
-    if (!isServiceRole && callerId !== student_id) {
+    if (
+      !canProcessBadgesForStudent({
+        isManagedServer: isServiceRole,
+        callerId,
+        studentId: student_id,
+      })
+    ) {
       return new Response(
         JSON.stringify({ error: "Forbidden: can only check your own badges" }),
         {

@@ -1,4 +1,5 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { authorizeCronOrManagedServer } from "../_shared/runtimeAuthorization.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -184,17 +185,20 @@ serve(async (req) => {
     const expectedSecret = Deno.env.get("CRON_SECRET");
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = getManagedServerKey();
-    const isServiceRole =
-      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
-    const isCron = expectedSecret && cronSecret === expectedSecret;
+    const authorization = authorizeCronOrManagedServer({
+      authorization: authHeader,
+      cronSecret,
+      expectedCronSecret: expectedSecret,
+      managedServerKey: serviceRoleKey,
+    });
 
-    if (!isServiceRole && !isCron) {
+    if (!authorization.authorized) {
       return new Response(
         JSON.stringify({
           error: "Unauthorized: cron secret or service role required",
         }),
         {
-          status: 401,
+          status: authorization.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
