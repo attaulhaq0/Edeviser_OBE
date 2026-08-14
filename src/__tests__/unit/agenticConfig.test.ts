@@ -15,11 +15,23 @@ describe("agentic configuration", () => {
     expect(config.enabled).toBe(false);
     expect(config.proactiveEnabled).toBe(false);
     expect(config.autoLowRiskEnabled).toBe(false);
+    expect(config.protectedWritesEnabled).toBe(false);
     expect(config.provider).toBe("deepseek");
     expect(config.embeddingProvider).toBe("supabase_gte_small");
     expect(config.deepSeek.primaryModel).toBe("deepseek-v4-flash");
     expect(config.deepSeek.complexModel).toBe("deepseek-v4-pro");
     expect(config.maximumAutonomy).toBe("A2");
+  });
+
+  it("requires an explicit flag for human-approved protected writes", () => {
+    expect(
+      getAgenticConfig(reader({ AI_PROTECTED_WRITES_ENABLED: "true" }))
+        .protectedWritesEnabled
+    ).toBe(true);
+    expect(
+      getAgenticConfig(reader({ AI_PROTECTED_WRITES_ENABLED: "yes" }))
+        .protectedWritesEnabled
+    ).toBe(false);
   });
 
   it("rejects retired models, non-canonical providers, and unofficial origins", () => {

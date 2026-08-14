@@ -69,9 +69,11 @@ export interface AgentActionProposal {
   actorUserId: string;
   institutionId: string;
   actionType: string;
+  toolVersion?: string;
   payload: JsonObject;
   reason: string;
   evidence: readonly EvidenceReference[];
+  evidenceHash?: string;
   risk: "protected";
   requiredApproverRole: AuthenticatedRole;
   requiredApproverUserId?: string;
@@ -79,25 +81,36 @@ export interface AgentActionProposal {
   idempotencyKey: string;
   createdAt: string;
   expiresAt?: string;
+  studentId?: string;
+  courseId?: string;
+  programId?: string;
 }
 
 export interface StudentLearningStateContract {
-  version: 1;
+  version: number;
   studentId: string;
   institutionId: string;
   calculatedAt: string;
-  mastery: Readonly<Record<string, number>>;
-  outcomeAttainment: Readonly<Record<string, number>>;
-  habitSignals: readonly EvidenceReference[];
-  riskSignals: readonly EvidenceReference[];
-  strengths: readonly string[];
-  interventions: readonly string[];
-  goals: readonly string[];
-  recentEvidence: readonly EvidenceReference[];
-  engagement: Readonly<Record<string, number | string>>;
-  recommendationHistory: readonly string[];
-  approvedActions: readonly string[];
-  measuredEffects: readonly string[];
+  freshUntil: string;
+  freshness: JsonObject;
+  mastery: {
+    outcomes: readonly JsonObject[];
+    subClos: readonly JsonObject[];
+  };
+  habits: {
+    windowDays: number;
+    signals: JsonObject;
+  };
+  riskSignals: readonly JsonObject[];
+  strengths: readonly JsonObject[];
+  opportunities: readonly JsonObject[];
+  goals: readonly JsonObject[];
+  activeInterventions: readonly JsonObject[];
+  recentEvidence: readonly JsonObject[];
+  recommendationHistory: readonly JsonObject[];
+  approvedExecutedActions: readonly JsonObject[];
+  measuredInterventionEffects: readonly JsonObject[];
+  stateHash: string;
 }
 
 export const isAuthenticatedRole = (
@@ -134,6 +147,7 @@ export const PROTECTED_ACTIONS = [
   "change_institution_policy",
   "financial_action",
   "institution_communication",
+  "acknowledge_child_support_plan",
 ] as const;
 
 export type ProtectedActionType = (typeof PROTECTED_ACTIONS)[number];
@@ -166,6 +180,9 @@ export const requiredApproverRole = (
   }
   if (["change_outcome_mapping", "create_cqi_action"].includes(action)) {
     return "coordinator";
+  }
+  if (action === "acknowledge_child_support_plan") {
+    return "parent";
   }
   return "admin";
 };

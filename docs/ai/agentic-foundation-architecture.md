@@ -129,19 +129,24 @@ errors distinguish expiry, prior decisions, and unauthorized approvers without
 disclosing cross-tenant proposal existence. Forward migration
 `20260827000004_add_agent_tool_attempt_actor_index.sql` adds the
 institution/actor/time index used for bounded audit review.
-Approval changes proposal state only; this phase contains no general protected
-execution endpoint. A3 cannot make a protected action executable.
+Approval changes proposal state only. The follow-up protected-write boundary
+supports only explicitly registered, typed tools after a separate execution
+request and current-authorization recheck; see
+[`student-learning-state-and-protected-writes.md`](./student-learning-state-and-protected-writes.md).
+A3 cannot make a protected action executable.
 
 Default bounds are four tool steps, six calls, and two specialist transfers.
-`AI_FEATURE_ENABLED`, proactive agents, and low-risk automation all default to
-false. Enabling AI without a positive `AI_DAILY_BUDGET_USD` is rejected during
-configuration validation. No paid provider call is made by tests or migrations.
+`AI_FEATURE_ENABLED`, protected writes, proactive agents, and low-risk
+automation all default to false. Enabling AI without a positive
+`AI_DAILY_BUDGET_USD` is rejected during configuration validation. No paid
+provider call is made by tests or migrations.
 
 ## External configuration
 
 Required server-only generation configuration:
 
 - `AI_FEATURE_ENABLED=true` only after Preview verification
+- `AI_PROTECTED_WRITES_ENABLED=true` only after protected-write Preview verification
 - `AI_PROVIDER=deepseek`
 - `DEEPSEEK_API_KEY`
 - `DEEPSEEK_BASE_URL=https://api.deepseek.com`

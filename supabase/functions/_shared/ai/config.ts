@@ -12,6 +12,7 @@ export interface AgenticConfig {
   enabled: boolean;
   proactiveEnabled: boolean;
   autoLowRiskEnabled: boolean;
+  protectedWritesEnabled: boolean;
   provider: AIProviderName;
   embeddingProvider: EmbeddingProviderName;
   deepSeek: {
@@ -132,6 +133,7 @@ export const getAgenticConfig = (env: EnvironmentReader): AgenticConfig => {
     enabled: featureEnabled,
     proactiveEnabled: enabled(env, "AI_PROACTIVE_AGENTS_ENABLED"),
     autoLowRiskEnabled: enabled(env, "AI_AUTO_LOW_RISK_ENABLED"),
+    protectedWritesEnabled: enabled(env, "AI_PROTECTED_WRITES_ENABLED"),
     provider,
     embeddingProvider,
     deepSeek: {

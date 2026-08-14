@@ -7,6 +7,10 @@ import {
   parseProposalRequest,
   type ProposalStore,
 } from "../../../supabase/functions/_shared/ai/proposals";
+import {
+  PROTECTED_ACTIONS,
+  requiredApproverRole,
+} from "../../../supabase/functions/_shared/ai/contracts";
 
 const ids = {
   request: "11111111-1111-4111-8111-111111111111",
@@ -30,6 +34,16 @@ const context: AgentExecutionContext = {
 };
 
 describe("human-in-the-loop proposals", () => {
+  it("uses the deterministic five-role approval matrix", () => {
+    expect(requiredApproverRole("create_goal")).toBe("student");
+    expect(requiredApproverRole("notify_parent")).toBe("teacher");
+    expect(requiredApproverRole("create_cqi_action")).toBe("coordinator");
+    expect(requiredApproverRole("change_institution_policy")).toBe("admin");
+    expect(requiredApproverRole("acknowledge_child_support_plan")).toBe(
+      "parent"
+    );
+    expect(new Set(PROTECTED_ACTIONS).size).toBe(PROTECTED_ACTIONS.length);
+  });
   it("stores a protected proposal instead of executing the action", async () => {
     const create = vi.fn<ProposalStore["create"]>(async (proposal) => ({
       ...proposal,
