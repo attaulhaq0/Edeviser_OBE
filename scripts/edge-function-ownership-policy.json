@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "requiredSourceAndDeployment": [
+    "accept-invitation",
+    "agent-worker",
+    "bootstrap-first-admin",
+    "chat-with-tutor",
+    "embed-course-material",
+    "invitation-preview",
+    "resend-webhook",
+    "send-invitation-email"
+  ],
+  "allowedDrift": {
+    "sourceOnly": ["coordinator-ai-insights"],
+    "deployedOnly": ["fee-overdue-check"]
+  },
+  "legacy": {
+    "coordinator-ai-insights": "Frontend consumers are fail-soft and gated by VITE_COORDINATOR_AI_INSIGHTS_ENABLED, which is absent from the Production Vercel environment. Keep the legacy Gemini-backed source undeployed until the provider-cleanup phase.",
+    "fee-overdue-check": "Deployed without repository source; the current repository retains only the database-scheduled overdue-fee path. Do not redeploy from an unknown source."
+  }
+}

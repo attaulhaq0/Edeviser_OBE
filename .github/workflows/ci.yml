@@ -119,6 +119,32 @@ jobs:
           path: dist/
           retention-days: 7
 
+  prototype-boundary:
+    name: Prototype Boundary
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download production build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Enforce prototype diff, import, and artifact boundaries
+        env:
+          PROTOTYPE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PROTOTYPE_HEAD_REF: ${{ github.head_ref }}
+        run: >-
+          node scripts/check-prototype-boundary.mjs
+          --base-sha "$PROTOTYPE_BASE_SHA"
+          --head-ref "$PROTOTYPE_HEAD_REF"
+          --dist dist
+
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
@@ -419,7 +445,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Resolve isolated Supabase Preview credentials
+      - name: Wait for isolated Supabase Preview deployment and resolve credentials
         shell: bash
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -434,7 +460,8 @@ jobs:
           fi
 
           preview_ref=""
-          for attempt in $(seq 1 30); do
+          preview_status=""
+          for attempt in $(seq 1 60); do
             if ! branches=$(curl --fail --silent --show-error \
               --connect-timeout 5 --max-time 20 \
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
@@ -442,18 +469,22 @@ jobs:
               echo "::warning::Supabase Preview branch lookup attempt $attempt failed; retrying"
               branches='[]'
             fi
-            preview_ref=$(jq -r \
+            preview=$(jq -c \
               --arg branch "$SUPABASE_PREVIEW_BRANCH" \
               --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
-              '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | .project_ref][0] // empty' \
+              '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | {project_ref, status}][0] // {}' \
               <<< "$branches")
-            if [[ -n "$preview_ref" && "$preview_ref" != "null" ]]; then
+            preview_ref=$(jq -r '.project_ref // empty' <<< "$preview")
+            preview_status=$(jq -r '.status // empty' <<< "$preview")
+            if [[ -n "$preview_ref" && "$preview_status" == "FUNCTIONS_DEPLOYED" ]]; then
+              echo "Supabase Preview deployment is complete"
               break
             fi
-            if [[ "$attempt" -eq 30 ]]; then
-              echo "::error::No isolated Supabase Preview branch was available for this PR"
+            if [[ "$attempt" -eq 60 ]]; then
+              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED (last status: ${preview_status:-not-found})"
               exit 1
             fi
+            echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
             sleep 10
           done
 
@@ -522,3 +553,6 @@ jobs:
 
       - name: Run RLS insert/update smoke tests against the preview branch
         run: npm run test:rls
+
+      - name: Run HTTP runtime authorization smoke tests against the preview branch
+        run: npm run test:preview-runtime-auth

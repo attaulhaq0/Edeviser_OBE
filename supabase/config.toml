@@ -391,6 +391,12 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 # Public invitation endpoints validate their own short-lived token in-handler.
 # Keep authenticated admin/parent endpoints behind the Supabase JWT gateway.
+[functions.award-xp]
+verify_jwt = false
+
+[functions.check-badges]
+verify_jwt = false
+
 [functions.invitation-preview]
 verify_jwt = false
 
@@ -412,6 +418,9 @@ verify_jwt = true
 # Cron targets are invoked server-to-server with a managed Supabase secret key
 # and enforce that key/CRON_SECRET in-handler. The health probe retains gateway
 # JWT verification to match the current Production function configuration.
+[functions.ai-at-risk-prediction]
+verify_jwt = false
+
 [functions.agent-worker]
 verify_jwt = false
 
