@@ -27,6 +27,7 @@ export interface OutcomeScope {
   courseId?: string;
   outcomeId: string;
   outcomeType: CqiOutcomeType;
+  policyVersion: string;
   windowStart: string;
   windowEnd: string;
 }
@@ -64,6 +65,9 @@ const patternIdentity = (scope: OutcomeScope): string =>
     scope.courseId ?? "program",
     scope.outcomeType,
     scope.outcomeId,
+    scope.policyVersion,
+    scope.windowStart,
+    scope.windowEnd,
   ].join(":");
 
 const isValidTimestamp = (value: string): boolean =>
@@ -117,7 +121,7 @@ export const detectSystemicOutcomePattern = (
     throw new Error("Invalid systemic CQI detection configuration");
   }
 
-  const normalized = evidence.filter(
+  const eligible = evidence.filter(
     (point) =>
       Number.isFinite(point.attainment) &&
       point.attainment >= 0 &&
@@ -126,20 +130,37 @@ export const detectSystemicOutcomePattern = (
       point.studentId.trim().length > 0 &&
       inWindow(point.observedAt, scope.windowStart, scope.windowEnd)
   );
-  const students = new Set(normalized.map((point) => point.studentId));
+  const uniqueEvidence = new Map<string, OutcomeEvidencePoint>();
+  for (const point of eligible) {
+    if (!uniqueEvidence.has(point.evidenceId))
+      uniqueEvidence.set(point.evidenceId, point);
+  }
+  const normalized = [...uniqueEvidence.values()];
+  const byStudent = new Map<string, OutcomeEvidencePoint>();
+  for (const point of normalized) {
+    const existing = byStudent.get(point.studentId);
+    if (
+      !existing ||
+      Date.parse(point.observedAt) > Date.parse(existing.observedAt) ||
+      (point.observedAt === existing.observedAt &&
+        point.evidenceId.localeCompare(existing.evidenceId) < 0)
+    ) {
+      byStudent.set(point.studentId, point);
+    }
+  }
+  const cohort = [...byStudent.values()];
   if (
-    normalized.length < config.minimumSampleSize ||
-    students.size < config.minimumAffectedStudents
+    cohort.length < config.minimumSampleSize ||
+    cohort.length < config.minimumAffectedStudents
   ) {
     return null;
   }
 
   const currentValue = rounded(
-    normalized.reduce((sum, point) => sum + point.attainment, 0) /
-      normalized.length
+    cohort.reduce((sum, point) => sum + point.attainment, 0) / cohort.length
   );
   const affectedStudents = new Set(
-    normalized
+    cohort
       .filter((point) => point.attainment < config.attainmentThreshold)
       .map((point) => point.studentId)
   );
@@ -152,7 +173,7 @@ export const detectSystemicOutcomePattern = (
 
   const gap = config.attainmentThreshold - currentValue;
   const evidenceReferences = [
-    ...new Set(normalized.map((point) => point.evidenceId)),
+    ...new Set(cohort.map((point) => point.evidenceId)),
   ].sort();
   return {
     ...scope,
@@ -162,7 +183,7 @@ export const detectSystemicOutcomePattern = (
     baseline: config.baselineAttainment ?? currentValue,
     currentValue,
     targetThreshold: config.attainmentThreshold,
-    sampleSize: normalized.length,
+    sampleSize: cohort.length,
     affectedPopulation: affectedStudents.size,
     severity: gap >= config.severityGap.high ? "high" : "moderate",
     evidenceReferences,
@@ -220,6 +241,46 @@ export interface CqiMeasurementResult {
   delta: number | null;
   state: CqiMeasurementState;
 }
+
+export interface CqiMeasurementContext {
+  institutionId: string;
+  programId: string;
+  courseId?: string;
+  outcomeId: string;
+  measurementMethodVersion: string;
+  cohortSemantics: string;
+  denominatorSemantics: string;
+  evidenceCount: number;
+  minimumEvidenceCount: number;
+}
+
+const sameScope = (
+  before: CqiMeasurementContext,
+  after: CqiMeasurementContext
+): boolean =>
+  before.institutionId === after.institutionId &&
+  before.programId === after.programId &&
+  before.courseId === after.courseId &&
+  before.outcomeId === after.outcomeId &&
+  before.measurementMethodVersion === after.measurementMethodVersion &&
+  before.cohortSemantics === after.cohortSemantics &&
+  before.denominatorSemantics === after.denominatorSemantics;
+
+/** Rejects an official CQI comparison unless its scope and evidence are compatible. */
+export const measureComparableCqiEffect = (
+  input: CqiMeasurementInput,
+  before: CqiMeasurementContext,
+  after: CqiMeasurementContext
+): CqiMeasurementResult => {
+  if (
+    !sameScope(before, after) ||
+    before.evidenceCount < before.minimumEvidenceCount ||
+    after.evidenceCount < after.minimumEvidenceCount
+  ) {
+    return { delta: null, state: "INSUFFICIENT_EVIDENCE" };
+  }
+  return measureCqiEffect({ ...input, evidenceCount: after.evidenceCount });
+};
 
 /** Official CQI effect: numbers are deterministic; AI may only explain it. */
 export const measureCqiEffect = (

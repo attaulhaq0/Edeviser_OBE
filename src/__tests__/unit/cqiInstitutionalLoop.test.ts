@@ -5,6 +5,7 @@ import {
   detectSystemicOutcomePattern,
   mayCreateCqiProposal,
   measureCqiEffect,
+  measureComparableCqiEffect,
   parseAuthorizedCqiDraft,
   type OutcomeEvidencePoint,
   type OutcomeScope,
@@ -16,6 +17,7 @@ const scope: OutcomeScope = {
   courseId: "course-a",
   outcomeId: "clo-data-modelling",
   outcomeType: "CLO",
+  policyVersion: "attainment-v1",
   windowStart: "2026-08-01T00:00:00.000Z",
   windowEnd: "2026-08-31T23:59:59.999Z",
 };
@@ -90,7 +92,8 @@ describe("CQI institutional closed loop", () => {
     expect(ploPattern?.identity).not.toBe(iloPattern?.identity);
     expect(ploPattern?.outcomeType).toBe("PLO");
     expect(iloPattern?.outcomeType).toBe("ILO");
-    expect(ploPattern?.identity).not.toContain(scope.windowStart);
+    expect(ploPattern?.identity).toContain(scope.windowStart);
+    expect(ploPattern?.identity).toContain(scope.policyVersion);
     expect(ploPattern?.occurrenceVersion).toContain(scope.windowStart);
   });
 
@@ -175,6 +178,52 @@ describe("CQI institutional closed loop", () => {
         evidenceCount: 0,
         materialChange: 5,
       }).state
+    ).toBe("INSUFFICIENT_EVIDENCE");
+  });
+
+  it("requires comparable outcome, tenant, cohort, denominator, method, and evidence", () => {
+    const before = {
+      institutionId: "institution-a",
+      programId: "program-a",
+      courseId: "course-a",
+      outcomeId: "clo-data-modelling",
+      measurementMethodVersion: "attainment-v1",
+      cohortSemantics: "enrolled-students",
+      denominatorSemantics: "students-with-evidence",
+      evidenceCount: 5,
+      minimumEvidenceCount: 5,
+    };
+    const input = {
+      baselineMetric: 58.6,
+      postActionMetric: 67,
+      evidenceCount: 5,
+      materialChange: 5,
+    };
+    expect(
+      measureComparableCqiEffect(input, before, { ...before, evidenceCount: 6 })
+        .state
+    ).toBe("IMPROVED");
+    expect(
+      measureComparableCqiEffect(input, before, {
+        ...before,
+        outcomeId: "other",
+      }).state
+    ).toBe("INSUFFICIENT_EVIDENCE");
+    expect(
+      measureComparableCqiEffect(input, before, {
+        ...before,
+        institutionId: "institution-b",
+      }).state
+    ).toBe("INSUFFICIENT_EVIDENCE");
+    expect(
+      measureComparableCqiEffect(input, before, {
+        ...before,
+        denominatorSemantics: "all-enrolled",
+      }).state
+    ).toBe("INSUFFICIENT_EVIDENCE");
+    expect(
+      measureComparableCqiEffect(input, before, { ...before, evidenceCount: 4 })
+        .state
     ).toBe("INSUFFICIENT_EVIDENCE");
   });
 
