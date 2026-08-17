@@ -6,6 +6,10 @@ import {
   type AgentSpecialist,
 } from "./contracts.ts";
 import { hashEvidence } from "./hash.ts";
+import {
+  parseEvaluatorAssessment,
+  type EvaluatorAssessment,
+} from "./evaluator.ts";
 import type {
   AICompletionResponse,
   AIMessage,
@@ -54,6 +58,7 @@ export interface OrchestratorResponse {
   provider: string;
   model: string;
   usage?: AICompletionResponse["usage"];
+  evaluatorAssessment?: EvaluatorAssessment;
 }
 
 export class AgentOrchestratorError extends Error {
@@ -119,6 +124,7 @@ const systemPrompt = (context: AgentExecutionContext): string =>
           "Evaluator protocol: use only authorized BEFORE, ACTION, and AFTER evidence supplied by deterministic tools.",
           "Official baseline, post-action metric, delta, sufficiency, and evaluation state are calculated by server SQL; never calculate, overwrite, or invent them.",
           "You may explain the measured effect, cite evidence, and recommend continue, change, stop, or human review.",
+          'Return only JSON matching this shape: {"beforeEvidence":[],"actionEvidence":[],"afterEvidence":[],"effectExplanation":"...","recommendation":"continue|change|stop|review","nextInterventionDraft":"..."}.',
         ]
       : []),
   ].join("\n");
@@ -222,6 +228,12 @@ export const runAgentOrchestrator = async (dependencies: {
         provider: provider.name,
         model: lastResponse.model,
         usage: lastResponse.usage,
+        ...(specialist === "evaluator"
+          ? (() => {
+              const assessment = parseEvaluatorAssessment(lastResponse.content);
+              return assessment ? { evaluatorAssessment: assessment } : {};
+            })()
+          : {}),
       };
     }
     if (step === config.limits.maxToolSteps) {
