@@ -44,6 +44,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
 import { usePLOs } from "@/hooks/usePLOs";
+import { useEDeviserIntelligence } from "@/hooks/useEDeviserIntelligence";
+import type { CqiCoordinatorDraft } from "@/lib/edeviserIntelligence";
 import {
   Plus,
   Pencil,
@@ -51,6 +53,7 @@ import {
   ClipboardCheck,
   Loader2,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
@@ -529,6 +532,92 @@ const EvaluateDialog = ({ open, onOpenChange, plan }: EvaluateDialogProps) => {
   );
 };
 
+// ─── Coordinator Intelligence ──────────────────────────────────────────────
+
+const CqiIntelligencePanel = () => {
+  const { data: paginatedPrograms } = usePrograms();
+  const programs = paginatedPrograms?.data ?? [];
+  const intelligence = useEDeviserIntelligence();
+  const [programId, setProgramId] = useState("");
+  const [draft, setDraft] = useState<CqiCoordinatorDraft | null>(null);
+
+  const requestDraft = async () => {
+    if (!programId) return;
+    try {
+      const result = await intelligence.mutateAsync({
+        message:
+          "Review the authorised program evidence and prepare a CQI draft. Use only returned evidence IDs as citations.",
+        specialist: "coordinator",
+        context: {
+          route: "/coordinator/cqi",
+          programId,
+        },
+      });
+      if (!result.cqiDraft) {
+        toast.error(
+          "No valid CQI draft was returned from authorised evidence."
+        );
+        return;
+      }
+      setDraft(result.cqiDraft);
+    } catch {
+      toast.error("CQI Intelligence is unavailable right now.");
+    }
+  };
+
+  return (
+    <PCard className="space-y-4">
+      <AdminCardHeader icon={Sparkles} title="Coordinator Intelligence" />
+      <p className="text-sm text-muted-foreground">
+        Drafts are advisory only. Official attainment, targets, approval, and
+        publication remain human-controlled.
+      </p>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Select value={programId} onValueChange={setProgramId}>
+          <SelectTrigger className="sm:max-w-sm">
+            <SelectValue placeholder="Select an authorised program" />
+          </SelectTrigger>
+          <SelectContent>
+            {programs.map((program) => (
+              <SelectItem key={program.id} value={program.id}>
+                {program.code} — {program.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          variant="outline"
+          onClick={() => void requestDraft()}
+          disabled={!programId || intelligence.isPending}
+        >
+          {intelligence.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          Draft from evidence
+        </Button>
+      </div>
+      {draft && (
+        <div className="space-y-3 rounded-xl border border-slate-200/60 p-4 text-sm">
+          <p className="font-medium">{draft.problemStatement}</p>
+          <p className="text-muted-foreground">{draft.outcomeContext}</p>
+          <p>
+            Proposed baseline/target: {draft.baseline}% → {draft.target}%
+          </p>
+          <p>{draft.proposedImprovement}</p>
+          <p className="text-muted-foreground">
+            Measurement: {draft.measurementPlan} ({draft.measurementWindow})
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Authorised evidence: {draft.citations.join(", ")}
+          </p>
+        </div>
+      )}
+    </PCard>
+  );
+};
+
 // ─── Plan Row ────────────────────────────────────────────────────────────────
 
 interface PlanRowProps {
@@ -712,6 +801,8 @@ const CQIManager = () => {
           )}
         </div>
       </PCard>
+
+      <CqiIntelligencePanel />
 
       {/* Form Dialog */}
       <CQIPlanFormDialog
