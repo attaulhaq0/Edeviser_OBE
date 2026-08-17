@@ -52,6 +52,9 @@ export const intelligenceResponseSchema = z.object({
 export type IntelligenceRequest = z.infer<typeof intelligenceRequestSchema>;
 export type IntelligenceResponse = z.infer<typeof intelligenceResponseSchema>;
 
+export const isExecutableIntelligenceAction = (actionType: string): boolean =>
+  actionType === "create_goal" || actionType === "create_planner_session";
+
 export const protectedWriteReceiptSchema = z.object({
   executionId: z.uuid(),
   targetId: z.uuid(),

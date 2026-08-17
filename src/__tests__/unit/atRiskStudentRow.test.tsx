@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import AtRiskStudentRow from "@/components/shared/AtRiskStudentRow";
 import type { ProactiveContributingEvidence } from "@/hooks/useAtRiskPredictions";
@@ -31,9 +31,6 @@ const renderRow = (
     triggerVersion: "needs-attention/low-mastery-compounding-evidence/v1.0.0",
     recommendedNextAction: "Review cited evidence and the recovery draft.",
     triggeredAt: "2026-08-10T08:00:00.000Z",
-    approvalAvailable: true,
-    onReviewDraft: vi.fn(),
-    isApproving: false,
     ...overrides,
   };
   return { ...render(<AtRiskStudentRow {...props} />), props };
@@ -72,25 +69,10 @@ describe("AtRiskStudentRow", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the draft review from the approval action", () => {
-    const { props } = renderRow();
+  it("does not offer the retired legacy approval action", () => {
+    renderRow();
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Review intervention draft for Alice Johnson",
-      })
-    );
-    expect(props.onReviewDraft).toHaveBeenCalledOnce();
-  });
-
-  it("does not offer approval for an unversioned legacy record", () => {
-    renderRow({ approvalAvailable: false });
-
-    expect(
-      screen.getByRole("button", {
-        name: "Review intervention draft for Alice Johnson",
-      })
-    ).toBeDisabled();
-    expect(screen.getByText("Legacy evidence")).toBeInTheDocument();
+    expect(screen.getByText("Evidence only")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

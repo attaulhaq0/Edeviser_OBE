@@ -1,12 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "@/hooks/useAuth";
 import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  proactiveInterventionApprovalSchema,
-  type ProactiveInterventionApprovalInput,
-} from "@/lib/schemas/proactiveIntervention";
 import { supabase } from "@/lib/supabase";
 
 export interface ContributingSignals {
@@ -226,35 +222,5 @@ export const useAtRiskPredictions = () => {
     },
     enabled: Boolean(user?.id),
     staleTime: DASHBOARD_STALE_TIME_MS,
-  });
-};
-
-export const useApproveProactiveIntervention = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: ProactiveInterventionApprovalInput) => {
-      const payload = proactiveInterventionApprovalSchema.parse(input);
-      const { data, error } = await supabase.functions.invoke("agent-worker", {
-        body: {
-          action: "approve_protected_action",
-          proposalAuditId: payload.proposalAuditId,
-          approvedMessage: payload.approvedMessage,
-        },
-      });
-      if (error) throw error;
-      return data as {
-        success: boolean;
-        status: "completed";
-        proposalAuditId: string;
-        executionAuditId: string;
-        followUpDueAt: string;
-      };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.atRiskPredictions.lists(),
-      });
-    },
   });
 };
