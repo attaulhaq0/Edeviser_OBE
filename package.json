@@ -17,6 +17,7 @@
     "seed": "supabase db reset",
     "db:check-replay": "node scripts/check-migration-replay-order.mjs",
     "db:check-dup-names": "node scripts/check-migration-duplicate-names.mjs",
+    "migration:new": "node scripts/new-monotonic-migration.mjs",
     "db:check-edge-schema": "node scripts/check-edge-fn-schema.mjs",
     "check:prototype-boundary": "node scripts/check-prototype-boundary.mjs --skip-diff",
     "check:edge-function-ownership": "node scripts/check-edge-function-ownership.mjs",
