@@ -16,7 +16,8 @@ export type ReadToolName =
   | "get_teacher_course_context"
   | "get_parent_child_progress"
   | "get_coordinator_outcome_context"
-  | "get_admin_institution_context";
+  | "get_admin_institution_context"
+  | "get_intervention_effects";
 
 export interface ToolDefinition extends AIToolDefinition {
   name: ReadToolName;
@@ -240,6 +241,14 @@ export const READ_TOOL_REGISTRY: Readonly<
     ["admin"],
     [],
     {},
+    []
+  ),
+  get_intervention_effects: define(
+    "get_intervention_effects",
+    "Return authorized deterministic before/action/after intervention effects. Official metrics are server-calculated.",
+    ["student", "teacher", "parent", "coordinator", "admin"],
+    [],
+    { studentId: uuid, courseId: uuid, programId: uuid },
     []
   ),
 };
