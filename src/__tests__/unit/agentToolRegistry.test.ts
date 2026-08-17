@@ -49,6 +49,7 @@ describe("typed read-tool registry", () => {
       expect(registeredToolsForRole(role).length).toBeGreaterThan(0);
     expect(registeredToolsForRole("parent").map((tool) => tool.name)).toEqual([
       "get_parent_child_progress",
+      "get_intervention_effects",
     ]);
     expect(
       registeredToolsForRole("student").map((tool) => tool.name)

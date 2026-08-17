@@ -328,6 +328,20 @@ export class SupabaseToolDataSource
     if (tool === "get_admin_institution_context") {
       return context.identity.role === "admin";
     }
+    if (tool === "get_intervention_effects") {
+      if (context.identity.role === "admin") return true;
+      if (context.identity.role === "coordinator") {
+        return Boolean(
+          programId && (await this.programScope(programId, context))
+        );
+      }
+      if (context.identity.role === "teacher") {
+        return Boolean(courseId && (await this.courseScope(courseId, context)));
+      }
+      return Boolean(
+        studentId && (await this.studentScope(studentId, context, courseId))
+      );
+    }
     if (tool === "get_parent_child_progress") {
       return Boolean(
         studentId && (await this.studentScope(studentId, context))
@@ -566,6 +580,20 @@ export class SupabaseToolDataSource
           institutionId: context.identity.institutionId,
           activeProfileCount: profiles ?? 0,
           programCount: programs ?? 0,
+        };
+      }
+      case "get_intervention_effects": {
+        const { data, error } = await this.reader.rpc(
+          "get_intervention_effects_v1",
+          {
+            p_student_id: studentId ?? null,
+            p_course_id: courseId ?? null,
+            p_program_id: programId ?? null,
+          }
+        );
+        return {
+          studentId: studentId ?? null,
+          effects: safeData(data ?? [], error),
         };
       }
     }

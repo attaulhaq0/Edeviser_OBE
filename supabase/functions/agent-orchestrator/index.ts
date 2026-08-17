@@ -251,8 +251,9 @@ serve(async (req) => {
       reader
     );
     try {
+      const targetProposal = proposalFromRow(data as Record<string, unknown>);
       const receipt = await executeApprovedProposal(
-        proposalFromRow(data as Record<string, unknown>),
+        targetProposal,
         identity,
         {
           featureEnabled: config.enabled,
@@ -311,6 +312,34 @@ serve(async (req) => {
           },
         }
       );
+      const baselineMetric = targetProposal.payload.baselineMetric;
+      const executionId = object(receipt)?.id;
+      if (
+        typeof baselineMetric === "number" &&
+        typeof executionId === "string" &&
+        targetProposal.studentId
+      ) {
+        const baselineEvidence = targetProposal.payload.baselineEvidence;
+        await admin.rpc("register_intervention_measurement_v1", {
+          p_proposal_id: targetProposal.id,
+          p_execution_id: executionId,
+          p_baseline_evidence: Array.isArray(baselineEvidence)
+            ? baselineEvidence
+            : [],
+          p_baseline_metric: baselineMetric,
+          p_window_start: targetProposal.createdAt,
+          p_window_end:
+            targetProposal.expiresAt ??
+            new Date(Date.now() + 7 * 86_400_000).toISOString(),
+          p_student_id: targetProposal.studentId,
+          p_course_id: targetProposal.courseId ?? null,
+          p_program_id: targetProposal.programId ?? null,
+          p_outcome_id:
+            typeof targetProposal.payload.outcomeId === "string"
+              ? targetProposal.payload.outcomeId
+              : null,
+        });
+      }
       return json(200, { receipt });
     } catch (executionError) {
       const code =
