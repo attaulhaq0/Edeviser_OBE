@@ -45,6 +45,7 @@ import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
 import { usePLOs } from "@/hooks/usePLOs";
 import { useEDeviserIntelligence } from "@/hooks/useEDeviserIntelligence";
+import { useCoordinatorCqiPatterns } from "@/hooks/useCqiInstitutionalIntelligence";
 import type { CqiCoordinatorDraft } from "@/lib/edeviserIntelligence";
 import {
   Plus,
@@ -540,6 +541,7 @@ const CqiIntelligencePanel = () => {
   const intelligence = useEDeviserIntelligence();
   const [programId, setProgramId] = useState("");
   const [draft, setDraft] = useState<CqiCoordinatorDraft | null>(null);
+  const patternsQuery = useCoordinatorCqiPatterns(programId);
 
   const requestDraft = async () => {
     if (!programId) return;
@@ -598,6 +600,46 @@ const CqiIntelligencePanel = () => {
           Draft from evidence
         </Button>
       </div>
+      {programId && (
+        <div className="rounded-xl border border-slate-200/60 p-4 text-sm">
+          <p className="font-medium">Authorised systemic patterns</p>
+          {patternsQuery.isLoading && (
+            <p className="mt-2 text-muted-foreground">Loading current CQI evidence…</p>
+          )}
+          {patternsQuery.isError && (
+            <p className="mt-2 text-muted-foreground">
+              Current pattern evidence could not be loaded.
+            </p>
+          )}
+          {patternsQuery.data?.length === 0 && (
+            <p className="mt-2 text-muted-foreground">
+              No active or historical systemic patterns are available for this program.
+            </p>
+          )}
+          {patternsQuery.data && patternsQuery.data.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {patternsQuery.data.map((pattern) => (
+                <div key={pattern.id} className="rounded-lg border border-slate-100 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-medium">
+                      {pattern.outcome_type} attainment: {pattern.current_attainment}%
+                    </span>
+                    <span className="text-xs uppercase text-muted-foreground">
+                      {pattern.status.replace("_", " ")}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Baseline {pattern.baseline_attainment}% · target {pattern.target_threshold}% · {pattern.sample_count} students
+                    {pattern.last_measurement_state
+                      ? ` · ${pattern.last_measurement_state.replace(/_/g, " ")}`
+                      : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       {draft && (
         <div className="space-y-3 rounded-xl border border-slate-200/60 p-4 text-sm">
           <p className="font-medium">{draft.problemStatement}</p>

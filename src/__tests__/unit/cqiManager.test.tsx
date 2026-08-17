@@ -103,6 +103,14 @@ vi.mock("@/hooks/useEDeviserIntelligence", () => ({
   })),
 }));
 
+vi.mock("@/hooks/useCqiInstitutionalIntelligence", () => ({
+  useCoordinatorCqiPatterns: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  })),
+}));
+
 import CQIManager from "@/pages/coordinator/cqi/CQIManager";
 
 const createWrapper = () => {
