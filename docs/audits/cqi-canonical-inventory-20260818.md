@@ -25,13 +25,15 @@ AI drafts, approval, execution, and measurement onto a controlled path.
 
 ### Preview replay boundary
 
-The disposable Preview branch `nncifchkzasxrllroxzk` cannot currently be used
-for a CQI migration replay. Its history stops at `20260504032900` because the
-existing, Production-applied `20260504032936_fix_mutable_search_paths` migration
-fails on a clean replay while altering `public.validate_sub_clo_weights()` before
-that function exists. This is an unrelated historical replay defect; it must be
-remediated independently rather than by editing a historical migration or using
-Production as a test environment.
+The disposable Preview branch `nncifchkzasxrllroxzk` remains stale and failed:
+its migration ledger stops at `20260504032900`. Current `origin/main` contains
+the repository-precedent replay-safe guard in the historical
+`20260504032936_fix_mutable_search_paths` migration. A local, Docker-backed
+reset from zero on 2026-08-18 applied all 402 migrations through
+`20260830000002` successfully; the static replay-order and duplicate-name
+guards are also clean. No new replay-repair migration or Production mutation is
+required. A fresh Preview must be created from the clean CQI branch before any
+schema-bearing CQI work is reviewed.
 
 ## Current canonical
 
