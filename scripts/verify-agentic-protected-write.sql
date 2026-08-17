@@ -48,6 +48,10 @@ VALUES
   (
     '20000000-0000-4000-8000-000000000006',
     'authenticated', 'authenticated', 'admin@agentic.test', now(), now()
+  ),
+  (
+    '20000000-0000-4000-8000-000000000007',
+    'authenticated', 'authenticated', 'admin-two@agentic.test', now(), now()
   );
 
 INSERT INTO public.institution_settings (
@@ -98,6 +102,11 @@ VALUES
     '20000000-0000-4000-8000-000000000006',
     '10000000-0000-4000-8000-000000000001',
     'Institution Admin', 'admin@agentic.test', 'admin', true
+  ),
+  (
+    '20000000-0000-4000-8000-000000000007',
+    '10000000-0000-4000-8000-000000000001',
+    'Institution Admin Two', 'admin-two@agentic.test', 'admin', true
   );
 
 INSERT INTO public.programs (
@@ -528,9 +537,188 @@ END;
 $admin_rls$;
 RESET ROLE;
 
+DO $proactive_queue$
+DECLARE
+  v_enqueued integer;
+  v_duplicate integer;
+  v_worker uuid := '70000000-0000-4000-8000-000000000001';
+  v_student_job public.proactive_agent_jobs;
+  v_parent_job public.proactive_agent_jobs;
+  v_teacher_job public.proactive_agent_jobs;
+  v_claimed integer;
+  v_status text;
+BEGIN
+  UPDATE public.student_learning_states
+  SET risk_signals = risk_signals || jsonb_build_array(jsonb_build_object(
+    'kind', 'low_mastery',
+    'courseId', 'malformed-course-id',
+    'programId', 'malformed-program-id',
+    'outcomeId', 'malformed-outcome-id'
+  ))
+  WHERE student_id = '20000000-0000-4000-8000-000000000001';
+
+  v_enqueued := 0;
+  FOR v_iteration IN 1..5 LOOP
+    v_enqueued := v_enqueued + public.enqueue_proactive_agent_jobs_v1(
+      '10000000-0000-4000-8000-000000000001',
+      '20000000-0000-4000-8000-000000000001',
+      1,
+      'schedule'
+    );
+  END LOOP;
+  IF v_enqueued <> 5 OR (
+    SELECT count(DISTINCT recipient_role)
+    FROM public.proactive_agent_jobs
+  ) <> 5 THEN
+    RAISE EXCEPTION 'Proactive routing did not produce exactly five role jobs';
+  END IF;
+
+  v_duplicate := public.enqueue_proactive_agent_jobs_v1(
+    '10000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    10,
+    'schedule'
+  );
+  IF v_duplicate <> 0 THEN
+    RAISE EXCEPTION 'Proactive idempotency did not suppress duplicate jobs';
+  END IF;
+
+  UPDATE public.proactive_agent_jobs
+  SET max_attempts = 1
+  WHERE recipient_role = 'parent';
+
+  SELECT count(*) INTO v_claimed
+  FROM public.claim_proactive_agent_jobs_v1(v_worker, 10, 120);
+  IF v_claimed <> 5 THEN
+    RAISE EXCEPTION 'Bounded proactive claim did not return five jobs';
+  END IF;
+
+  SELECT * INTO v_student_job FROM public.proactive_agent_jobs
+  WHERE recipient_role = 'student';
+  SELECT * INTO v_parent_job FROM public.proactive_agent_jobs
+  WHERE recipient_role = 'parent';
+  SELECT * INTO v_teacher_job FROM public.proactive_agent_jobs
+  WHERE recipient_role = 'teacher';
+
+  BEGIN
+    PERFORM public.complete_proactive_agent_job_v1(
+      v_student_job.id, v_worker,
+      '71000000-0000-4000-8000-000000000001',
+      NULL, NULL, 'deepseek', 'deepseek-v4-flash'
+    );
+    RAISE EXCEPTION 'Null proactive completion payload was accepted';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    NULL;
+  END;
+
+  INSERT INTO public.agent_runs (
+    id, request_id, actor_user_id, actor_role, institution_id, session_id,
+    specialist, input_hash, status, provider
+  ) VALUES (
+    '71000000-0000-4000-8000-000000000001',
+    '72000000-0000-4000-8000-000000000001',
+    v_student_job.recipient_user_id,
+    v_student_job.recipient_role,
+    v_student_job.institution_id,
+    '73000000-0000-4000-8000-000000000001',
+    v_student_job.specialist,
+    repeat('a', 64),
+    'completed',
+    'deepseek'
+  );
+
+  IF NOT public.complete_proactive_agent_job_v1(
+    v_student_job.id, v_worker,
+    '71000000-0000-4000-8000-000000000001',
+    'Review the cited outcome evidence and complete one focused practice step.',
+    '[]'::jsonb, 'deepseek', 'deepseek-v4-flash'
+  ) THEN
+    RAISE EXCEPTION 'Proactive completion transition failed';
+  END IF;
+
+  v_status := public.fail_proactive_agent_job_v1(
+    v_parent_job.id, v_worker, 'provider_unavailable'
+  );
+  IF v_status <> 'dead_letter' THEN
+    RAISE EXCEPTION 'Terminal proactive failure did not dead-letter';
+  END IF;
+
+  v_status := public.fail_proactive_agent_job_v1(
+    v_teacher_job.id, v_worker, 'provider_unavailable'
+  );
+  IF v_status <> 'retry' THEN
+    RAISE EXCEPTION 'Recoverable proactive failure did not enter retry';
+  END IF;
+
+  SELECT * INTO v_teacher_job FROM public.proactive_agent_jobs
+  WHERE recipient_role = 'coordinator';
+  v_status := public.fail_proactive_agent_job_v1(
+    v_teacher_job.id, v_worker, 'max_tool_steps', false
+  );
+  IF v_status <> 'dead_letter' THEN
+    RAISE EXCEPTION 'Deterministic proactive failure was retried';
+  END IF;
+
+  UPDATE public.proactive_agent_jobs
+  SET max_attempts = attempt_count,
+      lease_until = now() - interval '1 second'
+  WHERE recipient_role = 'admin';
+  PERFORM * FROM public.claim_proactive_agent_jobs_v1(
+    '70000000-0000-4000-8000-000000000002', 10, 120
+  );
+  IF NOT EXISTS (
+    SELECT 1 FROM public.proactive_agent_jobs
+    WHERE recipient_role = 'admin'
+      AND status = 'dead_letter'
+      AND error_classification = 'lease_expired_after_max_attempts'
+  ) THEN
+    RAISE EXCEPTION 'Expired maximum-attempt lease was not dead-lettered';
+  END IF;
+END;
+$proactive_queue$;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000001',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $proactive_feed$
+BEGIN
+  IF (SELECT count(*) FROM public.get_my_proactive_intelligence_v1(20)) <> 1 THEN
+    RAISE EXCEPTION 'Student proactive feed did not return completed scoped guidance';
+  END IF;
+END;
+$proactive_feed$;
+RESET ROLE;
+
+SELECT set_config(
+  'request.jwt.claim.sub',
+  '20000000-0000-4000-8000-000000000002',
+  true
+);
+SET LOCAL ROLE authenticated;
+DO $proactive_feed_denied$
+BEGIN
+  IF (SELECT count(*) FROM public.get_my_proactive_intelligence_v1(20)) <> 0 THEN
+    RAISE EXCEPTION 'Non-recipient received proactive guidance';
+  END IF;
+END;
+$proactive_feed_denied$;
+RESET ROLE;
+
 SELECT json_build_object(
   'valid', true,
   'executions', (SELECT count(*) FROM public.agent_action_executions),
+  'proactive_completed', (
+    SELECT count(*) FROM public.proactive_agent_jobs WHERE status = 'completed'
+  ),
+  'proactive_retry', (
+    SELECT count(*) FROM public.proactive_agent_jobs WHERE status = 'retry'
+  ),
+  'proactive_dead_letter', (
+    SELECT count(*) FROM public.proactive_agent_jobs WHERE status = 'dead_letter'
+  ),
   'learning_state_version', (
     SELECT version FROM public.student_learning_states
     WHERE student_id = '20000000-0000-4000-8000-000000000001'

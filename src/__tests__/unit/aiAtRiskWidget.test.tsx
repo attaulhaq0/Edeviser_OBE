@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -45,14 +45,8 @@ const mockPredictions: AIAtRiskPrediction[] = [
   },
 ];
 
-const mockMutate = vi.fn();
-
 vi.mock("@/hooks/useAtRiskPredictions", () => ({
   useAtRiskPredictions: vi.fn(),
-  useApproveProactiveIntervention: vi.fn(() => ({
-    mutate: mockMutate,
-    isPending: false,
-  })),
 }));
 
 import { useAtRiskPredictions } from "@/hooks/useAtRiskPredictions";
@@ -113,55 +107,14 @@ describe("AIAtRiskWidget", () => {
     expect(screen.queryByText(/% risk/i)).not.toBeInTheDocument();
   });
 
-  it("opens a protected-action approval dialog with the intervention draft", () => {
+  it("keeps legacy prediction records evidence-only", () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
     } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Review intervention draft for Alice Johnson",
-      })
-    );
-
-    expect(
-      screen.getByText("Approve next action for Alice Johnson")
-    ).toBeInTheDocument();
-    expect(
-      (
-        screen.getByPlaceholderText(
-          /Review or revise the intervention draft/
-        ) as HTMLTextAreaElement
-      ).value
-    ).toContain("15-minute review");
-  });
-
-  it("submits the immutable proposal id and teacher-approved message", async () => {
-    mockUseAtRiskPredictions.mockReturnValue({
-      data: mockPredictions,
-      isLoading: false,
-    } as unknown as ReturnType<typeof useAtRiskPredictions>);
-
-    render(<AIAtRiskWidget />, { wrapper: createWrapper() });
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Review intervention draft for Alice Johnson",
-      })
-    );
-    fireEvent.click(
-      screen.getByRole("button", { name: "Approve and send in app" })
-    );
-
-    await waitFor(() => {
-      expect(mockMutate).toHaveBeenCalledWith(
-        {
-          proposalAuditId: "11111111-1111-4111-8111-111111111111",
-          approvedMessage: expect.stringContaining("15-minute review"),
-        },
-        expect.any(Object)
-      );
-    });
+    expect(screen.getByText("Evidence only")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
