@@ -262,8 +262,12 @@ serve(async (req) => {
         dataSource,
         {
           async executeApprovedPersonalAction(targetProposalId) {
+            const executionFunction =
+              targetProposal.actionType === "create_cqi_action"
+                ? "execute_approved_cqi_action_v1"
+                : "execute_approved_agent_personal_action_v1";
             const { data: result, error: executionError } = await admin.rpc(
-              "execute_approved_agent_personal_action_v1",
+              executionFunction,
               {
                 p_proposal_id: targetProposalId,
                 p_actor_id: identity.userId,
