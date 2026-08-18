@@ -1,0 +1,67 @@
+name: Deploy Phase 2 Edge Functions (production)
+
+# Production migrations and Edge Functions have separate deployment paths.
+# Keep this workflow protected by the production GitHub environment: a merge
+# may request the deployment, but an approved reviewer must authorize it.
+#
+# The path set is deliberately a dependency closure. Any change to a Phase 2
+# entrypoint or the shared AI/provider/embedding layer redeploys every affected
+# function, so a shared-provider change cannot leave one production function
+# silently stale.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/config.toml"
+      - "supabase/functions/chat-with-tutor/**"
+      - "supabase/functions/embed-course-material/**"
+      - "supabase/functions/agent-worker/**"
+      - "supabase/functions/agent-orchestrator/**"
+      - "supabase/functions/_shared/ai/**"
+      - ".github/workflows/deploy-phase2-edge-functions.yml"
+
+concurrency:
+  group: deploy-phase2-edge-functions-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy reviewed Phase 2 function closure
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: cdlgtbvxlxjpcddjazzx
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify deployment credentials are configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_ACCESS_TOKEN" ]]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN is not configured for the production environment"
+            exit 1
+          fi
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.114.0
+
+      - name: Deploy the complete Phase 2 function closure
+        run: >-
+          supabase functions deploy
+          chat-with-tutor embed-course-material agent-worker agent-orchestrator
+          --project-ref "$SUPABASE_PROJECT_REF" --use-api --yes
+
+      - name: Confirm deployed function inventory is active
+        run: |
+          set -euo pipefail
+          supabase functions list \
+            --project-ref "$SUPABASE_PROJECT_REF" \
+            --output-format json > deployed-functions.json
+          node scripts/check-edge-function-ownership.mjs \
+            --deployed-json deployed-functions.json
