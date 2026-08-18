@@ -380,7 +380,7 @@ jobs:
               break
             fi
             if [[ "$attempt" -eq 60 ]]; then
-              echo "::error::No valid Git-linked Supabase Preview (git_branch + pr_number) reached FUNCTIONS_DEPLOYED for Cron Health; direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
+              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED for Cron Health: no valid Git-linked branch (git_branch + pr_number); direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
               exit 1
             fi
             echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
