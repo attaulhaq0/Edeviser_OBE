@@ -100,6 +100,10 @@ declare module "*download-managed-runtime-source.mjs" {
   ): string;
 }
 
+declare module "*check-pinned-supabase-cli.mjs" {
+  export function normalizeYamlScalar(value: string): string;
+}
+
 declare module "*runtime-attestation-snapshot.mjs" {
   export function assertCumulativeCoverage(
     attestation: {

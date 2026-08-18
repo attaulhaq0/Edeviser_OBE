@@ -37,6 +37,7 @@ import {
   managedRuntimeSlugs,
   prepareFunctionDownloadWorkdir,
 } from "../../../scripts/download-managed-runtime-source.mjs";
+import { normalizeYamlScalar } from "../../../scripts/check-pinned-supabase-cli.mjs";
 
 const root = join(__dirname, "..", "..", "..");
 const manifest = readManifest();
@@ -271,6 +272,12 @@ describe("migration and workflow release safeguards", () => {
     expect(pinnedCli).toContain("supabase/setup-cli");
     expect(pinnedCli).toContain("explicit version");
     expect(pinnedCli).toContain("version: latest");
+  });
+
+  it("accepts quoted YAML scalar values for the pinned CLI version", () => {
+    expect(normalizeYamlScalar('"2.114.0"')).toBe("2.114.0");
+    expect(normalizeYamlScalar("'2.114.0'")).toBe("2.114.0");
+    expect(normalizeYamlScalar("2.114.0")).toBe("2.114.0");
   });
 
   it("uses a JSON-producing linked database query for the migration ledger", () => {
