@@ -1,7 +1,7 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { getAgenticConfig } from "../_shared/ai/config.ts";
 import { createAIProvider } from "../_shared/ai/provider-factory.ts";
-import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -170,13 +170,29 @@ serve(async (req) => {
 
     const queryText = `Study materials for ${cloTitle} at ${bloomLevel} level`;
     try {
-      const embedded = await createSupabaseEmbeddingProvider().embed({
+      const embeddingProvider = createConfiguredEmbeddingProvider();
+      const embedded = await embeddingProvider.embed({
         inputs: [queryText],
       });
+      const queryEmbedding = embedded.vectors[0];
+      if (!queryEmbedding) {
+        throw new Error("Embedding provider returned no query vector");
+      }
+      const searchRpc =
+        embeddingProvider.metadata.version === 3
+          ? "search_course_materials_v3"
+          : embeddingProvider.metadata.version === 2
+            ? "search_course_materials_v2"
+            : null;
+      if (!searchRpc) {
+        throw new Error(
+          `Unsupported embedding version: ${embeddingProvider.metadata.version}`
+        );
+      }
       const { data: chunks } = await supabase.rpc(
-        "search_course_materials_v2",
+        searchRpc,
         {
-          query_embedding: JSON.stringify(embedded.vectors[0]),
+          query_embedding: JSON.stringify(queryEmbedding),
           match_course_ids: [course_id],
           match_clo_ids: [clo_id],
           match_threshold: 0.6,
