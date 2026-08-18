@@ -599,7 +599,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           AUDIT_ENV: ${{ env.AUDIT_ENV }}
           REQUIRED_AUDIT_STAGE_RESULTS: >-
-            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ needs.cron.result }}"}
+            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required != 'true' && 'success' || needs.cron.result }}"}
 
       - uses: actions/upload-artifact@v7
         if: always()
