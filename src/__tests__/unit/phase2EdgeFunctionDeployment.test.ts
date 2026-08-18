@@ -10,6 +10,7 @@ const workflow = readFileSync(
 const affectedFunctions = [
   "chat-with-tutor",
   "embed-course-material",
+  "generate-plan-update",
   "agent-worker",
   "agent-orchestrator",
 ] as const;
@@ -28,14 +29,19 @@ describe("Phase 2 production Edge Function deployment scope", () => {
 
   it("redeploys all affected functions when shared AI code changes", () => {
     expect(workflow).toContain('supabase/functions/_shared/ai/**');
-    const deployLine = workflow
-      .split("\n")
-      .find((line) => line.includes("supabase functions deploy"));
-
-    expect(deployLine).toBeDefined();
+    expect(workflow).toContain(
+      "chat-with-tutor embed-course-material generate-plan-update agent-worker agent-orchestrator"
+    );
     for (const functionName of affectedFunctions) {
-      expect(workflow).toContain(`chat-with-tutor embed-course-material agent-worker agent-orchestrator`);
       expect(workflow).toContain(functionName);
     }
+  });
+
+  it("does not treat frontend-only changes as a production function trigger", () => {
+    expect(workflow).not.toMatch(/-\s*["']?(?:src|api)\/\*\*["']?\s*$/m);
+    expect(workflow).not.toMatch(
+      /paths:\s*\[[^\]]*(?:["']?\*\*["']?)[^\]]*\]/s
+    );
+    expect(workflow).not.toMatch(/^\s*-\s*["']?\*\*["']?\s*$/m);
   });
 });
