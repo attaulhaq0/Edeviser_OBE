@@ -6,11 +6,12 @@ Phase 2 multilingual retrieval foundation is implemented and locally verified. T
 
 ## Reconciliation boundary
 
-- Authoritative local `origin/main`: `facbc17bdcd02ac5e0c22ad47a4e56b27be41556` (`fix(cqi): require comparable measurement cohorts (#263)`).
+- The Phase 2 PR was merged only after its final exact reviewed head passed the required CI, Preview RLS/runtime, Pre-Deployment, and valid-review gates: PR #265 final head `91a6c2316376a325f6b2557db79781a01a7784da`, merge commit `0a065f9730ef2c02dce73f168acd3e8a133a560`.
+- Authoritative local `origin/main` is now `0a065f9730ef2c02dce73f168acd3e8a133a560` (merge of PR #265).
 - Production Supabase was inspected read-only. No production rows were created or modified.
 - Phase 2 was re-applied in the clean writable checkout `C:\\tmp\\edeviser-phase2-multilingual-rag` on branch `feat/phase2-multilingual-rag`, created from that exact SHA. The stale user checkout was not used for further implementation work; its unrelated changes were not copied into this branch.
 - An untouched comparison checkout at `C:\\tmp\\edeviser-phase2-baseline` was detached at the same SHA and remained clean for baseline verification.
-- PR #265 is open at `https://github.com/attaulhaq0/Edeviser_OBE/pull/265`; the current local hardening commit contains this audit and will be pushed for exact-head CI/Preview revalidation. There is no merge SHA or production deployment SHA.
+- The normal post-merge Release workflow completed successfully for the merge commit, but it found no changesets and performed no package or Supabase deployment. Production reconciliation therefore remains a required human-gated release step.
 - Git-linked Supabase Preview project `ohzwlxbobbxtsanouawl` has passed the Preview deployment, RLS, and HTTP runtime-auth checks for the prior PR head. Direct MCP preview access is not treated as release evidence.
 
 ## Implemented foundation
@@ -50,7 +51,30 @@ Phase 2 multilingual retrieval foundation is implemented and locally verified. T
 
 ## Production observations and safety boundary
 
-Production was read-only and currently has zero course-material embeddings, agent runs/jobs/proposals/executions, and intervention measurements. Existing production feature flags remain false. No embedding endpoint is configured in this checkout, so Arabic/cross-language retrieval quality has not been claimed from live model output; the benchmark is a deterministic fixture harness awaiting a controlled endpoint evaluation. This does not mark Phase 2 complete: ingestion, live cross-language retrieval quality, negative controls, prompt-injection resistance, latency, and cost evidence remain required.
+Production was read-only and currently has zero course-material embeddings, agent runs/jobs/proposals/executions, and intervention measurements. The queried `public.ai_governance_policies` table is empty; there is no `public.feature_flags` relation in the current production schema, so no feature-flag state is inferred from that name. No embedding endpoint is configured in this checkout, so Arabic/cross-language retrieval quality has not been claimed from live model output; the benchmark is a deterministic fixture harness awaiting a controlled endpoint evaluation. This does not mark Phase 2 complete: ingestion, live cross-language retrieval quality, negative controls, prompt-injection resistance, latency, and cost evidence remain required.
+
+## Post-merge production reconciliation
+
+This is a read-only evidence snapshot after merge. Production project `cdlgtbvxlxjpcddjazzx` is `ACTIVE_HEALTHY`, and its migration ledger includes `20260830000009` and `20260830000010`. Production `chat-with-tutor` and `embed-course-material` are still version 16 and their deployed sources retain executable legacy Gemini/OpenAI embedding paths. The provider registry, v3 RPC, and fail-closed tutor guard are not active in those deployed versions. No production Edge Function deployment, embedding backfill, AI enablement, or paid endpoint call was performed.
+
+The normal repository release path did not reconcile this state: `deploy-migrations.yml` is manual-only and `release.yml` performs no Edge Function deployment, while the Preview workflow targets only the isolated Preview project. A focused follow-up workflow now declares the Phase 2 dependency closure and deploys all four affected functions behind the `production` environment. A read-only GitHub environment inspection found no protection rules or deployment branch policy configured yet; the repository owner must configure required reviewers and permitted deployment branches before this workflow can be considered a safe production path. After that release, verify that the deployed Edge Functions use the provider-independent registry path and that no active legacy OpenAI embedding URL/key dependency remains. Do not use this audit as authorization to dispatch the workflow.
+
+## Phase 2 gate ledger carried forward
+
+1. Real BGE-M3 Arabic → Arabic retrieval: pending an approved isolated endpoint and test budget.
+2. English → Arabic and Arabic → English retrieval: pending the same controlled endpoint evaluation.
+3. Real relevance/ranking/citation quality: pending live corpus evaluation; deterministic fixtures are not evidence of model quality.
+4. Endpoint latency, memory, and bounded cost: pending live measurement under an approved budget. The request/timeout bounds are locally enforced, but no spend or live endpoint was used.
+5. Rollback/re-index behavior: rollback and atomic replacement behavior are locally proven; a controlled re-index rehearsal remains pending before any non-production backfill.
+6. Hybrid semantic + keyword retrieval and approved-source handling: review found the Phase 2 course-material path is semantic-only by design. Existing full-text indexes are on other entities; no combined course-material hybrid RPC or approved-source retrieval policy was found. No duplicate architecture was added. A master-spec decision is still required before expanding retrieval semantics.
+7. Production provider-independent path: not yet green; it remains pending the human-approved normal release and read-only post-release verification described above.
+8. Git-linked Preview deletion: pending until its evidence is no longer required; delete only after the production/release evidence has been captured.
+
+The live gates are intentionally not waived by the green PR checks. Production AI, production embedding backfill, paid endpoint use, and A3 remain disabled pending explicit human approval.
+
+## Controlled pilot/browser carry-forward
+
+The existing Pre-Deployment Playwright configuration already exercises the shared frontend surfaces through five role projects: admin, coordinator, teacher, student, and parent, with cross-role flows, Arabic/RTL checks, accessibility checks, and per-role TTI coverage. The merged-head E2E/Pre-Deployment checks were green where enabled by CI; this confirms browser-path coverage, not live pilot authorization. A0/A1/A2 remains the controlled ceiling for the five-role pilot, while A3 and production AI remain out of scope until the gates above and the required human approval are complete.
 
 The CodeRabbit review identified five merge-risk areas, followed by two narrower review findings. The branch now has explicit safeguards and local evidence for each: atomic replacement rollback remains transaction-safe (including failures during the insert after deletion), only HTTPS or loopback HTTP is accepted (other schemes fail closed), endpoint calls are bounded, embedding metadata is validated, benchmark ranking/citation scoring is fail-closed for unauthorized results, and tutor generation is blocked without authorized evidence. These final review fixes require exact-head CI and Preview revalidation on the new PR revision.
 
