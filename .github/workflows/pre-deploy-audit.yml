@@ -358,18 +358,34 @@ jobs:
             exit 1
           fi
 
-          branches=$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches")
-          preview_ref=$(jq -r \
-            --arg branch "$SUPABASE_PREVIEW_BRANCH" \
-            --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
-            '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | .project_ref][0] // empty' \
-            <<< "$branches")
-          if [[ -z "$preview_ref" || "$preview_ref" == "null" ]]; then
-            echo "::error::No isolated Supabase Preview branch was found for Cron Health"
-            exit 1
-          fi
+          preview_ref=""
+          preview_status=""
+          for attempt in $(seq 1 60); do
+            if ! branches=$(curl --fail --silent --show-error \
+              --connect-timeout 5 --max-time 20 \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches"); then
+              echo "::warning::Supabase Preview branch lookup attempt $attempt failed; retrying"
+              branches='[]'
+            fi
+            preview=$(jq -c \
+              --arg branch "$SUPABASE_PREVIEW_BRANCH" \
+              --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
+              '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | {project_ref, status}][0] // {}' \
+              <<< "$branches")
+            preview_ref=$(jq -r '.project_ref // empty' <<< "$preview")
+            preview_status=$(jq -r '.status // empty' <<< "$preview")
+            if [[ -n "$preview_ref" && "$preview_status" == "FUNCTIONS_DEPLOYED" ]]; then
+              echo "Supabase Preview deployment is complete"
+              break
+            fi
+            if [[ "$attempt" -eq 60 ]]; then
+              echo "::error::No valid Git-linked Supabase Preview (git_branch + pr_number) reached FUNCTIONS_DEPLOYED for Cron Health; direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
+              exit 1
+            fi
+            echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
+            sleep 10
+          done
 
           npx supabase functions deploy \
             agent-worker compute-at-risk-signals exam-period-notify \

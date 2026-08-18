@@ -7,7 +7,7 @@ const packageJson = JSON.parse(
 );
 const cliVersion = packageJson.devDependencies?.supabase;
 
-if (!/^\d+\.\d+\.\d+$/.test(cliVersion ?? "")) {
+if (!/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(cliVersion ?? "")) {
   throw new Error("Supabase CLI must be an exact devDependency version");
 }
 
