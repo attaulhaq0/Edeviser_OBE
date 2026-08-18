@@ -429,6 +429,23 @@ jobs:
       - name: Verify no cross-institution RLS leaks in migrations
         run: npx vitest --run src/__tests__/properties/rlsInstitutionIsolation.property.test.ts
 
+  preview-validation-relevance:
+    name: Preview validation relevance
+    # A Git-linked Preview is mandatory evidence for schema-bearing changes, but
+    # documentation, dependency, and workflow-only PRs must not create a paid
+    # Preview solely to satisfy an irrelevant database integration gate.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.filter.outputs.required }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            required:
+              - 'supabase/**'
+
   rls-smoke:
     name: RLS Smoke (Supabase preview)
     # Part C — C3 RLS_Smoke_Test (Req 19, 21.2). Runs the isolated integration suite
@@ -438,8 +455,9 @@ jobs:
     # from the isolated Supabase Preview branch using SUPABASE_ACCESS_TOKEN. Missing preview
     # credentials fail this required gate; the RAG authorization suite must never pass by
     # silently skipping its cases.
+    needs: preview-validation-relevance
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required == 'true'
     steps:
       - uses: actions/checkout@v7
         with:
