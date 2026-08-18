@@ -38,7 +38,10 @@ describe("Phase 2 production Edge Function deployment scope", () => {
   });
 
   it("does not treat frontend-only changes as a production function trigger", () => {
-    expect(workflow).not.toMatch(/-\s+"(?:src|api)\//);
-    expect(workflow).not.toContain('paths: ["**"]');
+    expect(workflow).not.toMatch(/-\s*["']?(?:src|api)\/\*\*["']?\s*$/m);
+    expect(workflow).not.toMatch(
+      /paths:\s*\[[^\]]*(?:["']?\*\*["']?)[^\]]*\]/s
+    );
+    expect(workflow).not.toMatch(/^\s*-\s*["']?\*\*["']?\s*$/m);
   });
 });
