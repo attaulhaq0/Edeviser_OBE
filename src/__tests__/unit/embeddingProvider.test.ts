@@ -8,7 +8,10 @@ describe("Supabase-native EmbeddingProvider", () => {
   it("publishes explicit versioned metadata and normalized 384-d vectors", async () => {
     const run = vi
       .fn()
-      .mockResolvedValue(Array.from({ length: 384 }, () => 0.5));
+      .mockResolvedValue([
+        1,
+        ...Array.from({ length: 383 }, () => 0),
+      ]);
     const provider = createSupabaseEmbeddingProvider(() => ({ run }));
     const response = await provider.embed({
       inputs: ["authorized course text"],
@@ -44,8 +47,8 @@ describe("Supabase-native EmbeddingProvider", () => {
   it("supports the explicit multilingual HTTP contract without enabling it by default", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({ embeddings: [
-        Array.from({ length: 1024 }, () => 0.25),
-        Array.from({ length: 1024 }, () => 0.25),
+        [1, ...Array.from({ length: 1023 }, () => 0)],
+        [1, ...Array.from({ length: 1023 }, () => 0)],
       ] }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -84,6 +87,61 @@ describe("Supabase-native EmbeddingProvider", () => {
       endpoint: "https://embedding.internal/v1/embed",
       fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(
         new Response(JSON.stringify({ embeddings: [[1, 2, 3]] }), { status: 200 })
+      ),
+    });
+    await expect(provider.embed({ inputs: ["text"] })).rejects.toMatchObject({
+      kind: "invalid_output",
+    });
+  });
+
+  it("rejects insecure non-loopback endpoints", () => {
+    expect(() =>
+      createHttpEmbeddingProvider({ endpoint: "http://embedding.internal/v1" })
+    ).toThrow("must use HTTPS");
+  });
+
+  it("rejects oversized requests before contacting the endpoint", async () => {
+    const fetchImpl = vi.fn<typeof fetch>();
+    const provider = createHttpEmbeddingProvider({
+      endpoint: "https://embedding.internal/v1/embed",
+      fetchImpl,
+    });
+    await expect(
+      provider.embed({ inputs: Array.from({ length: 101 }, () => "text") })
+    ).rejects.toMatchObject({ kind: "invalid_input" });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("bounds endpoint calls with a timeout", async () => {
+    const fetchImpl = vi.fn<typeof fetch>((_input, init) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new Error("aborted")), {
+          once: true,
+        });
+      })
+    );
+    const provider = createHttpEmbeddingProvider({
+      endpoint: "https://embedding.internal/v1/embed",
+      timeoutMs: 1_000,
+      fetchImpl,
+    });
+
+    await expect(provider.embed({ inputs: ["text"] })).rejects.toMatchObject({
+      kind: "provider",
+      message: "Multilingual embedding endpoint timed out after 1000 milliseconds",
+    });
+  });
+
+  it("rejects a non-normalized vector even when its dimensions are correct", async () => {
+    const provider = createHttpEmbeddingProvider({
+      endpoint: "https://embedding.internal/v1/embed",
+      fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            embeddings: [Array.from({ length: 1024 }, () => 0.25)],
+          }),
+          { status: 200 }
+        )
       ),
     });
     await expect(provider.embed({ inputs: ["text"] })).rejects.toMatchObject({
