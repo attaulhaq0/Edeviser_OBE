@@ -10,6 +10,10 @@ import {
   parseEvaluatorAssessment,
   type EvaluatorAssessment,
 } from "./evaluator.ts";
+import {
+  parseAuthorizedCqiCoordinatorDraft,
+  type CqiCoordinatorDraft,
+} from "./cqi-draft.ts";
 import type {
   AICompletionResponse,
   AIMessage,
@@ -59,6 +63,7 @@ export interface OrchestratorResponse {
   model: string;
   usage?: AICompletionResponse["usage"];
   evaluatorAssessment?: EvaluatorAssessment;
+  cqiDraft?: CqiCoordinatorDraft;
 }
 
 export class AgentOrchestratorError extends Error {
@@ -127,7 +132,31 @@ const systemPrompt = (context: AgentExecutionContext): string =>
           'Return only JSON matching this shape: {"beforeEvidence":[],"actionEvidence":[],"afterEvidence":[],"effectExplanation":"...","recommendation":"continue|change|stop|review","nextInterventionDraft":"..."}.',
         ]
       : []),
+    ...(context.specialist === "coordinator" &&
+    context.page.route === "/coordinator/cqi"
+      ? [
+          "CQI protocol: explain and draft only; never change official outcomes, mappings, attainment, policy, targets, or publish a CQI action.",
+          "Before drafting, retrieve only authorized coordinator evidence. Every citation must exactly match an evidence ID supplied by a deterministic tool.",
+          "Return only JSON with exactly: problemStatement, outcomeContext, baseline, target, proposedImprovement, rationale, responsibleOwner, measurementPlan, measurementWindow, successCriterion, citations.",
+          "baseline and target are proposed draft values, not official metrics. Do not emit undeclared official metrics or extra fields.",
+        ]
+      : []),
   ].join("\n");
+
+const evidenceIds = (value: unknown, ids = new Set<string>()): Set<string> => {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => evidenceIds(entry, ids));
+  } else if (value && typeof value === "object") {
+    for (const [key, entry] of Object.entries(
+      value as Record<string, unknown>
+    )) {
+      if (key === "id" && typeof entry === "string" && entry.length > 0)
+        ids.add(entry);
+      else evidenceIds(entry, ids);
+    }
+  }
+  return ids;
+};
 
 const safeToolOutput = (value: Record<string, unknown>): string => {
   const serialized = JSON.stringify(value);
@@ -232,6 +261,16 @@ export const runAgentOrchestrator = async (dependencies: {
           ? (() => {
               const assessment = parseEvaluatorAssessment(lastResponse.content);
               return assessment ? { evaluatorAssessment: assessment } : {};
+            })()
+          : {}),
+        ...(specialist === "coordinator" &&
+        request.context.page.route === "/coordinator/cqi"
+          ? (() => {
+              const draft = parseAuthorizedCqiCoordinatorDraft(
+                lastResponse.content,
+                evidenceIds(evidence)
+              );
+              return draft ? { cqiDraft: draft } : {};
             })()
           : {}),
       };

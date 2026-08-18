@@ -68,6 +68,12 @@ const surveys = createKeys("surveys");
 const surveyQuestions = createKeys("surveyQuestions");
 const surveyResponses = createKeys("surveyResponses");
 const cqiPlans = createKeys("cqiPlans");
+const cqiInstitutional = {
+  all: ["cqiInstitutional"] as const,
+  patterns: (programId: string) =>
+    ["cqiInstitutional", "patterns", programId] as const,
+  effectiveness: () => ["cqiInstitutional", "effectiveness"] as const,
+};
 const institutionSettings = createKeys("institutionSettings");
 const programAccreditations = createKeys("programAccreditations");
 const announcements = createKeys("announcements");
@@ -299,6 +305,7 @@ export const queryKeys = {
   surveyQuestions,
   surveyResponses,
   cqiPlans,
+  cqiInstitutional,
   institutionSettings,
   programAccreditations,
   announcements,

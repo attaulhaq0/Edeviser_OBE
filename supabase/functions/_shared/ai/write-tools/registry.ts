@@ -1,6 +1,9 @@
 import type { AgentActionProposal, AuthenticatedRole } from "../contracts.ts";
 
-export type ProtectedWriteToolName = "create_goal" | "create_planner_session";
+export type ProtectedWriteToolName =
+  | "create_goal"
+  | "create_planner_session"
+  | "create_cqi_action";
 export type ProtectedWriteToolVersion = "1.0.0";
 export type ProtectedWriteToolIdentifier =
   `${ProtectedWriteToolName}@${ProtectedWriteToolVersion}`;
@@ -186,6 +189,39 @@ const validatePlannerSession = (value: unknown): Record<string, unknown> => {
   return input;
 };
 
+const validateCqiAction = (value: unknown): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, [
+    "systemicPatternId",
+    "semesterId",
+    "targetAttainment",
+    "actionDescription",
+    "responsiblePerson",
+  ]);
+  for (const field of ["systemicPatternId", "semesterId"]) {
+    if (typeof input[field] !== "string" || !uuidPattern.test(input[field])) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        `${field} must be a UUID`
+      );
+    }
+  }
+  if (
+    typeof input.targetAttainment !== "number" ||
+    !Number.isFinite(input.targetAttainment) ||
+    input.targetAttainment < 0 ||
+    input.targetAttainment > 100
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "targetAttainment is invalid"
+    );
+  }
+  textField(input, "actionDescription", 4000);
+  textField(input, "responsiblePerson", 500);
+  return input;
+};
+
 const validateOutput = (value: unknown): Record<string, unknown> => {
   const output = row(value, "invalid_output");
   if (
@@ -201,6 +237,23 @@ const validateOutput = (value: unknown): Record<string, unknown> => {
     throw new ProtectedWriteBoundaryError(
       "invalid_output",
       "Protected write returned an invalid receipt"
+    );
+  }
+  return output;
+};
+
+const validateCqiOutput = (value: unknown): Record<string, unknown> => {
+  const output = row(value, "invalid_output");
+  if (
+    typeof output.executionId !== "string" ||
+    !uuidPattern.test(output.executionId) ||
+    typeof output.targetId !== "string" ||
+    !uuidPattern.test(output.targetId) ||
+    typeof output.alreadyExecuted !== "boolean"
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_output",
+      "CQI execution returned an invalid receipt"
     );
   }
   return output;
@@ -227,12 +280,23 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
     validateInput: validatePlannerSession,
     validateOutput,
   },
+  "create_cqi_action@1.0.0": {
+    name: "create_cqi_action",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["coordinator"],
+    validateInput: validateCqiAction,
+    validateOutput: validateCqiOutput,
+  },
 };
 
 export const protectedWriteVersionForAction = (
   actionType: string
 ): ProtectedWriteToolVersion | undefined =>
-  actionType === "create_goal" || actionType === "create_planner_session"
+  actionType === "create_goal" ||
+  actionType === "create_planner_session" ||
+  actionType === "create_cqi_action"
     ? "1.0.0"
     : undefined;
 
