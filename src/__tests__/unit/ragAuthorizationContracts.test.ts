@@ -123,4 +123,15 @@ describe("RAG authorization contract", () => {
     expect(tutorFunction).not.toMatch(/user\.app_metadata\?\./);
     expect(tutorFunction).not.toMatch(/user\.user_metadata\?\./);
   });
+
+  it("fails closed instead of generating uncited course answers without evidence", () => {
+    expect(tutorFunction).toContain('code: unavailable ? "RAG_UNAVAILABLE"');
+    expect(tutorFunction).toContain('"NO_AUTHORIZED_EVIDENCE"');
+    expect(tutorFunction).toMatch(
+      /if \(courseId && retrievedChunks\.length === 0\)[\s\S]*return new Response/
+    );
+    expect(tutorFunction.indexOf("NO_AUTHORIZED_EVIDENCE")).toBeLessThan(
+      tutorFunction.indexOf("const provider = createAIProvider")
+    );
+  });
 });

@@ -983,6 +983,8 @@ serve(async (req) => {
   // embedding outage removes RAG context but never routes data to another vendor.
   let queryEmbedding: number[] | null = null;
   let embeddingVersion: number | null = null;
+  let retrievalFailure: "embedding_unavailable" | "search_failed" | null =
+    null;
   try {
     const embeddingResult = await createConfiguredEmbeddingProvider().embed({
       inputs: [chatReq.message],
@@ -990,6 +992,7 @@ serve(async (req) => {
     queryEmbedding = [...embeddingResult.vectors[0]!];
     embeddingVersion = embeddingResult.metadata.version;
   } catch {
+    retrievalFailure = "embedding_unavailable";
     console.error(
       "Supabase-native embedding unavailable; continuing without RAG context"
     );
@@ -1021,11 +1024,31 @@ serve(async (req) => {
     );
 
     if (searchErr) {
+      retrievalFailure = "search_failed";
       console.error("Similarity search failed:", searchErr.message);
-      // Non-fatal — continue without RAG context
     } else if (chunks) {
       retrievedChunks = chunks as RetrievedChunk[];
     }
+  }
+
+  // A course-scoped tutor response must never fall back to uncited model
+  // knowledge when the authorized evidence set is unavailable or empty.
+  // Return a structured error before the generation provider is called.
+  if (courseId && retrievedChunks.length === 0) {
+    const unavailable = retrievalFailure !== null;
+    return new Response(
+      JSON.stringify({
+        error: unavailable
+          ? "Authorized course evidence is temporarily unavailable"
+          : "No authorized course evidence was found for this question",
+        code: unavailable ? "RAG_UNAVAILABLE" : "NO_AUTHORIZED_EVIDENCE",
+        retryable: unavailable,
+      }),
+      {
+        status: unavailable ? 503 : 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   // ── 3.1.5: CLO Attainment Fetch and System Prompt Assembly ────────────
