@@ -43,5 +43,43 @@ declare module "*resolve-runtime-deployment-impact.mjs" {
 }
 
 declare module "*check-migration-ledger.mjs" {
-  export function remoteMigrationHead(payload: unknown): string | undefined;
+  export interface MigrationLedger {
+    versions: string[];
+    malformed: string[];
+    duplicates: string[];
+  }
+  export function repositoryMigrationLedger(files: string[]): MigrationLedger;
+  export function remoteMigrationLedger(payload: unknown): MigrationLedger;
+  export function compareMigrationLedgers(
+    expected: MigrationLedger,
+    actual: MigrationLedger
+  ): {
+    failures: string[];
+    expectedHead?: string;
+    actualHead?: string;
+    missing: string[];
+    unexpected: string[];
+  };
+}
+
+declare module "*runtime-source-parity.mjs" {
+  export function declaredLocalSourceClosure(
+    slug: string,
+    declaredSharedPaths: string[]
+  ): Map<string, string>;
+  export function assertSourceParity(input: {
+    slug: string;
+    declaredSharedPaths: string[];
+    remoteSourceRoot: string;
+  }): { fingerprint: string; files: string[] };
+}
+
+declare module "*runtime-attestation-snapshot.mjs" {
+  export function assertCumulativeCoverage(
+    attestation: {
+      governedFunctions?: string[];
+      records?: Array<{ functionSlug: string }>;
+    },
+    expectedSlugs: string[]
+  ): void;
 }

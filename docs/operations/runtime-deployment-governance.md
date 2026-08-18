@@ -4,7 +4,9 @@
 
 Shared-code changes fail closed when no declared consumer covers the changed `_shared` path. The current deliberately narrow scope is the Tutor Intelligence and policy-required identity-runtime closures. A new policy-required Edge Function must be declared in the manifest before its change can pass CI.
 
-Production deployment remains merge-to-main plus protected-environment approval. The workflow deploys only the resolver output and writes a machine-readable attestation containing the reviewed SHA, function version, JWT policy, Supabase bundle fingerprint, local source-tree fingerprint, downloaded deployed-source fingerprint, and timestamp. `ACTIVE` is not source parity; the scheduled sentinel downloads the live function source, compares its fingerprint and configuration with the latest attestation, and fails if source changed after the attested SHA.
+Production deployment remains merge-to-main plus protected-environment approval. The workflow deploys only the resolver output, then writes one cumulative snapshot for every governed function. Each function's downloaded source is normalized to its logical `functions/**` path, compared byte-for-byte with the reviewed entrypoint and its transitively imported, manifest-declared shared dependencies, and fingerprinted only after that comparison passes. `ACTIVE` is not source parity; a mismatch fails the deployment attestation.
+
+The snapshot is retained for 365 days and has the same explicit expiry. Scheduled health fails closed on missing, expired, incomplete, configuration-drifted, bundle-drifted, or source-drifted evidence. Renewal is never automatic: the protected, manual `bootstrap-runtime-attestation.yml` workflow runs only on reviewed `main`, downloads Production source read-only, and creates a new snapshot only if full parity already passes.
 
 Migration operation is intentionally separate:
 

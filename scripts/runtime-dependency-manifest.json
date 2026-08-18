@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Canonical deployment dependencies for source-controlled Edge runtime groups. Unlisted Edge Functions remain outside this targeted governance closure until explicitly declared.",
+  "description": "Canonical deployment dependencies for governed Edge runtime groups. Any direct change to an undeclared Edge Function fails closed until it is governed or explicitly classified as an exceptional legacy function.",
   "runtimeGroups": [
     {
       "name": "tutor-intelligence",
@@ -12,7 +12,12 @@
         { "slug": "agent-worker", "verifyJwt": false },
         { "slug": "agent-orchestrator", "verifyJwt": true }
       ],
-      "sharedDependencyPaths": ["supabase/functions/_shared/ai/**"]
+      "sharedDependencyPaths": [
+        "supabase/functions/_shared/ai/**",
+        "supabase/functions/_shared/auth.ts",
+        "supabase/functions/_shared/serverSecret.ts",
+        "supabase/functions/_shared/timing-safe-equal.ts"
+      ]
     },
     {
       "name": "identity-runtime",
@@ -24,7 +29,11 @@
         { "slug": "resend-webhook", "verifyJwt": false },
         { "slug": "send-invitation-email", "verifyJwt": true }
       ],
-      "sharedDependencyPaths": []
+      "sharedDependencyPaths": [
+        "supabase/functions/_shared/auth.ts",
+        "supabase/functions/_shared/invitation.ts",
+        "supabase/functions/_shared/serverSecret.ts"
+      ]
     }
   ]
 }
