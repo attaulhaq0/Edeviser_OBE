@@ -65,7 +65,7 @@ describe("monotonic migration version generator", () => {
     expect(await readdir(directory)).toContain(first.filename);
   });
 
-  it("fails safely for duplicate targets and invalid names", async () => {
+  it("creates distinct monotonic versions under concurrent requests", async () => {
     const directory = await fixtureDirectory();
     const now = new Date("2026-08-18T00:00:00Z");
     const attempts = await Promise.allSettled([
@@ -80,12 +80,16 @@ describe("monotonic migration version generator", () => {
         now,
       }),
     ]);
-    expect(
-      attempts.filter((attempt) => attempt.status === "fulfilled")
-    ).toHaveLength(1);
-    expect(
-      attempts.filter((attempt) => attempt.status === "rejected")
-    ).toHaveLength(1);
+    const successful = attempts.filter(
+      (attempt): attempt is PromiseFulfilledResult<{
+        version: string;
+        filename: string;
+        target: string;
+      }> => attempt.status === "fulfilled"
+    );
+    expect(successful).toHaveLength(2);
+    expect(new Set(successful.map((attempt) => attempt.value.filename)).size).toBe(2);
+    expect(new Set(successful.map((attempt) => attempt.value.version)).size).toBe(2);
     expect(() => assertMigrationName("Not valid")).toThrow(
       "lowercase snake_case"
     );
