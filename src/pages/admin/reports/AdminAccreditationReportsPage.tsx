@@ -38,6 +38,7 @@ import {
   getSignedReportDownloadUrl,
   type ReportTemplate,
 } from "@/hooks/useAdminAccreditationReports";
+import { useAdminCqiEffectiveness } from "@/hooks/useCqiInstitutionalIntelligence";
 
 export const AdminAccreditationReportsPage: React.FC = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
@@ -60,6 +61,7 @@ export const AdminAccreditationReportsPage: React.FC = () => {
   const stagesQuery = useAccreditationApprovalStages(effectiveProgramId);
   const cqiQuery = useAccreditationCQIPlans(effectiveProgramId);
   const historyQuery = useAccreditationReportHistory();
+  const cqiEffectivenessQuery = useAdminCqiEffectiveness();
   const generateMutation = useGenerateAdminAccreditationReport();
 
   const reportQueries = [
@@ -110,6 +112,7 @@ export const AdminAccreditationReportsPage: React.FC = () => {
   const cqiPlans = cqiQuery.data ?? [];
   const reportHistory = historyQuery.data ?? [];
   const currentStage = stages.find((stage) => stage.status === "current");
+  const cqiEffectiveness = cqiEffectivenessQuery.data;
 
   const packLabel = (label: string) => {
     const labels: Record<string, string> = {
@@ -225,6 +228,45 @@ export const AdminAccreditationReportsPage: React.FC = () => {
           </Select>
         </div>
       </div>
+
+      <PCard className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-slate-900">CQI effectiveness</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Institution-level closed-loop measurement from authorized CQI records.
+            </p>
+          </div>
+          {cqiEffectivenessQuery.isLoading && (
+            <span className="text-xs text-slate-500">Loading CQI aggregate…</span>
+          )}
+          {cqiEffectivenessQuery.isError && (
+            <span className="text-xs text-slate-500">CQI aggregate unavailable.</span>
+          )}
+        </div>
+        {cqiEffectiveness && (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-slate-200/60 p-3">
+              <p className="text-xs text-slate-500">Open / linked patterns</p>
+              <p className="mt-1 text-xl font-bold">{cqiEffectiveness.openPatterns}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200/60 p-3">
+              <p className="text-xs text-slate-500">Resolved patterns</p>
+              <p className="mt-1 text-xl font-bold">{cqiEffectiveness.resolvedPatterns}</p>
+            </div>
+            {Object.entries(cqiEffectiveness.measurementStates).map(
+              ([state, count]) => (
+                <div key={state} className="rounded-xl border border-slate-200/60 p-3">
+                  <p className="text-xs text-slate-500">
+                    {state.replace(/_/g, " ")}
+                  </p>
+                  <p className="mt-1 text-xl font-bold">{count}</p>
+                </div>
+              )
+            )}
+          </div>
+        )}
+      </PCard>
 
       {/* ─── Readiness Hero Card ──────────────────────────────────────────── */}
       <PCard className="p-5 bg-white border border-slate-200/80 shadow-xs rounded-2xl">
