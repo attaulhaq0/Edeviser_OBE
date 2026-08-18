@@ -17,6 +17,12 @@ const IMPORT_PATTERN =
 const DYNAMIC_IMPORT_PATTERN = /\bimport\s*\(\s*["']([^"']+)["']/g;
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 
+// Git may materialize tracked source with CRLF while the Functions API returns
+// LF. TypeScript semantics are unchanged, so compare the canonical LF form
+// without normalizing any other byte.
+export const normalizeRuntimeSource = (source) =>
+  source.replaceAll("\r\n", "\n");
+
 const stripComments = (source) =>
   source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, (comment) =>
     comment.replace(/[^\r\n]/g, " ")
@@ -89,7 +95,7 @@ export const declaredLocalSourceClosure = (slug, runtimeDependencyPaths) => {
   return new Map(
     [...files].map((file) => [
       localLogicalPath(file),
-      readFileSync(file, "utf8"),
+      normalizeRuntimeSource(readFileSync(file, "utf8")),
     ])
   );
 };
@@ -126,7 +132,10 @@ export const downloadedRemoteSourceClosure = (remoteSourceRoot, slug) => {
     [...closure].map((file) => {
       const normalized = relative(root, file).replaceAll("\\", "/");
       const marker = normalized.indexOf("functions/");
-      return [normalized.slice(marker), readFileSync(file, "utf8")];
+      return [
+        normalized.slice(marker),
+        normalizeRuntimeSource(readFileSync(file, "utf8")),
+      ];
     })
   );
 };

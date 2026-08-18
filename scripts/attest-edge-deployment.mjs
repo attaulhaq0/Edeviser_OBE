@@ -74,7 +74,7 @@ const records = slugs.map((slug) => {
   const parity = assertSourceParity({
     slug,
     runtimeDependencyPaths: definition.runtimeDependencyPaths,
-    remoteSourceRoot: resolve(remoteSourceRoot, slug),
+    remoteSourceRoot,
   });
   return {
     reviewedGitSha: reviewedSha,

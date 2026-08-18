@@ -63,7 +63,7 @@ for (const record of attestation.records) {
   const parity = assertSourceParity({
     slug: record.functionSlug,
     runtimeDependencyPaths: definition.runtimeDependencyPaths,
-    remoteSourceRoot: resolve(remoteSourceRoot, record.functionSlug),
+    remoteSourceRoot,
   });
   if (parity.fingerprint !== record.sourceClosureFingerprint)
     throw new Error(
