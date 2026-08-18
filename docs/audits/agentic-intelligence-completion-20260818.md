@@ -1,24 +1,57 @@
-# E Deviser Intelligence Completion Status
+# EDeviser Agentic Intelligence Completion Audit — 2026-08-18
 
-## Phase 1 — Measurement trigger privilege hardening
+## Status
 
-- Branch: `fix/measurement-trigger-privileges`
-- Base: `d8664449524cf2972cfdc6543922c96cd69eec11` (`origin/main` verified before branch creation)
-- PR / head / merge SHA: [#262](https://github.com/attaulhaq0/Edeviser_OBE/pull/262) / `d25022441481a0357d08edbfa830f5ff0684938c` / `636cd46f034067b483e5fbfce272c56f369ea6c9`.
-- Migration: `20260830000007_restrict_measurement_trigger_execute.sql` (created with `npm run migration:new -- restrict_measurement_trigger_execute`)
-- Change: revoke all direct `EXECUTE` privileges on `public.sync_learning_state_measurements_v1()` from `PUBLIC`, `anon`, `authenticated`, and `service_role`. PostgreSQL trigger invocation remains the only route.
-- Local verification: clean Docker `supabase db reset --local --yes`; migration duplicate-name and replay-order guards; rollback-only protected-write integration; focused migration contract test; lint; strict TypeScript; production build.
-- Runtime proof: direct invocation denied for `anon`, `authenticated`, and `service_role`; trigger-driven Learning State updates still succeed. Controlled service-only measurement writes prove `IMPROVED`, `NO_MATERIAL_CHANGE`, and `DECLINED` feedback changes the Learning State as specified; existing same-tenant and cross-tenant RLS/queue checks remain green.
-- Preview provenance: the direct MCP-created `measurement-trigger-privileges` Preview (`zcupiywktounqlmwnktr`) had no migration history and no `sync_learning_state_measurements_v1()` function, so applying the forward migration failed with `42883`. It was deleted, together with the already-merged failed CQI Preview. The repository's Git-linked PR Preview workflow then created `fix/measurement-trigger-privileges` (`zbatlqxoeadiwokmfies`) from parent Production ref `cdlgtbvxlxjpcddjazzx`; it hydrated the canonical migration history through `20260830000006` and applied `20260830000007` exactly once. Its Supabase deployment, migration, seed, functions, DB, and API jobs are green.
-- Production verification: the normal main Release workflow deployed the forward migration. Read-only inspection now confirms `SECURITY DEFINER` remains set while direct execution is denied to `PUBLIC`, `anon`, `authenticated`, and `service_role`; only `postgres=X/postgres` remains. No manual Production mutation or repair was made.
-- Flags / runtime evidence: AI flags unchanged and fail closed; no production runtime rows or feature enablement were created.
-- Preview verification: on the valid Git-linked Preview, `anon`, `authenticated`, and `service_role` have no direct `EXECUTE`; the protected-write script confirms direct calls fail while trigger-driven feedback succeeds for `IMPROVED`, `NO_MATERIAL_CHANGE`, and `DECLINED`, all within a rollback-only transaction. CI RLS/security/runtime gates are green.
-- Review status: all exact-head CI, Supabase Preview, Vercel, and CodeRabbit checks are green. CodeRabbit's migration-version suggestion was assessed as inapplicable: `20260830000007` is the repository's prescribed forward sequence following `20260830000006`; clean replay and the Git-linked Preview both prove its ordering and single application. No historical or Phase 1 migration was weakened or rewritten.
-- Preview cleanup: the Git-linked Preview was automatically removed on merge; Supabase lists only `main`, so no unneeded non-main Preview remains billable.
+Phase 2 multilingual retrieval foundation is implemented and locally verified. This is an engineering-ready, opt-in slice; it is not a production rollout and does not authorize a DeepSeek spend, an embedding backfill, or any agent enablement.
 
-## Phase 1B — CQI population comparability
+## Reconciliation boundary
 
-- Audit conclusion: CQI is longitudinal, not repeated cross-sectional. The original `unique_students` label and sample count did not preserve a cohort identity; later measurement could aggregate a different equal-sized population and falsely report a comparable outcome.
-- Correction: `20260830000008_cqi_measurement_cohort_comparability.sql` persists an ordered baseline student cohort and SHA-256 fingerprint when the approved CQI plan is executed. Later measurement uses only those members and requires exact sample-count/fingerprint equality; legacy rows without the contract fail closed as `INSUFFICIENT_EVIDENCE`.
-- Verification: clean Docker replay through `00008`; rollback-only CQI SQL proof for improved, unchanged, declined, insufficient, and a same-size later population with one replaced student. The longitudinal contract measures only stored baseline members, so incomplete baseline-member evidence is `INSUFFICIENT_EVIDENCE` with no official post-action metric, sample count, or delta. The replay executes `extensions.digest(...)` from `SECURITY DEFINER` functions with `search_path = ''` successfully.
-- Next step: run Phase 1B local/Preview gates and open the focused CQI measurement-hardening PR.
+- Authoritative local `origin/main`: `facbc17bdcd02ac5e0c22ad47a4e56b27be41556` (`fix(cqi): require comparable measurement cohorts (#263)`).
+- Production Supabase was inspected read-only. No production rows were created or modified.
+- Phase 2 was re-applied in the clean writable checkout `C:\\tmp\\edeviser-phase2-multilingual-rag` on branch `feat/phase2-multilingual-rag`, created from that exact SHA. The stale user checkout was not used for further implementation work; its unrelated changes were not copied into this branch.
+- An untouched comparison checkout at `C:\\tmp\\edeviser-phase2-baseline` was detached at the same SHA and remained clean for baseline verification.
+- PR #265 is open at `https://github.com/attaulhaq0/Edeviser_OBE/pull/265`; the current local hardening commit contains this audit and will be pushed for exact-head CI/Preview revalidation. There is no merge SHA or production deployment SHA.
+- Git-linked Supabase Preview project `ohzwlxbobbxtsanouawl` has passed the Preview deployment, RLS, and HTTP runtime-auth checks for the prior PR head. Direct MCP preview access is not treated as release evidence.
+
+## Implemented foundation
+
+- Added migrations `20260830000009_multilingual_embedding_version_3.sql` and `20260830000010_material_embedding_delete_cleanup.sql`.
+- Added isolated `embedding_v3 vector(1024)` storage, HNSW index, scoped retrieval RPC, and service-only atomic replacement RPC.
+- Preserved v1/v2 columns and contracts; no production backfill is included.
+- Added an explicit HTTP provider contract for self-hosted `BAAI/bge-m3`, with dimensions, normalization, output-shape, and failure validation.
+- Kept Supabase `gte-small` v2 as the default. v3 requires `EMBEDDING_PROVIDER=self_hosted_bge_m3` and `EMBEDDING_ENDPOINT_URL`; unsupported provider labels fail closed.
+- Routed ingestion, tutor retrieval, and agent retrieval through the version-selected provider/RPC pair.
+- Added citation-marker validation so model output cannot cite evidence outside the authorized ordered retrieval set.
+- Added material-delete cleanup so the historical `ON DELETE SET NULL` relationship cannot leave deleted material searchable.
+- Added bilingual retrieval fixtures and benchmark scoring helpers, plus provider, migration, citation, and authorization contract tests.
+- Added a tutor-RAG prompt-injection boundary: retrieved material is delimited as untrusted evidence and instruction-like text is explicitly non-authoritative.
+- Added the model decision record at `docs/ai/multilingual-embedding-decision-20260818.md`.
+- Updated provider-consolidation and attachment-order contracts to assert the provider-independent registry boundary rather than a direct vendor implementation.
+- Hardened the provider boundary with HTTPS-only non-loopback transport, bounded request size and timeout, caller cancellation, strict metadata/dimension/normalization validation, and fail-closed malformed-output handling.
+- Hardened the deterministic benchmark so authorized distractors, false positives, unauthorized rankings, and hallucinated citations cannot score as correct.
+- Hardened course-scoped tutor retrieval to return structured `RAG_UNAVAILABLE`/`NO_AUTHORIZED_EVIDENCE` responses before model generation when authorized evidence is unavailable or empty.
+
+## Verification evidence
+
+- `npm run lint`: PASS.
+- `npx tsc --noEmit`: PASS.
+- `npm run build`: PASS (existing Vite chunk-size and unset build-placeholder warnings only).
+- `npm run db:check-replay`: PASS.
+- `npm run db:check-dup-names`: PASS.
+- `npm run ci:check-supabase-cli`: PASS with pinned CLI 2.114.0.
+- `npm run db:check-edge-schema`: PASS with only grandfathered baseline drift.
+- Focused multilingual/RAG/provider/authorization contract tests: 5 files, 22 tests PASS after hardening.
+- Local pinned Supabase Docker reset: PASS through migration `20260830000010`.
+- Rolled-back local SQL proofs: same-filename sibling preservation, malformed replacement preserving the prior usable index, and material deletion removing searchable chunks all PASS.
+- Local read-only schema checks: v3 column, HNSW index, search/replacement RPCs, delete trigger, and migration records present; replacement execution is granted only to `service_role`.
+- `supabase db lint --local`: exit 0; the new migrations introduce no reported issue. The existing replayed schema still reports one unrelated `public.badge_auto_archive` error (`badges.updated_at` is absent) plus legacy warnings.
+- Full `npm test` with non-secret local placeholder Vite variables: 681/682 files passed and 6,287/6,287 tests passed; the sole failed suite is the pre-existing `prototypeBoundary.test.ts` parse error, which reproduces on untouched exact-main.
+- Untouched exact-main baseline: the three previously reported full-suite failures pass 44/44 tests; the provider/agentic contract files pass 12/12. They are not baseline failures. The remaining prototype-boundary parse error does reproduce on exact-main and is outside this Phase 2 slice.
+
+## Production observations and safety boundary
+
+Production was read-only and currently has zero course-material embeddings, agent runs/jobs/proposals/executions, and intervention measurements. Existing production feature flags remain false. No embedding endpoint is configured in this checkout, so Arabic/cross-language retrieval quality has not been claimed from live model output; the benchmark is a deterministic fixture harness awaiting a controlled endpoint evaluation. This does not mark Phase 2 complete: ingestion, live cross-language retrieval quality, negative controls, prompt-injection resistance, latency, and cost evidence remain required.
+
+The CodeRabbit review identified five merge-risk areas, followed by two narrower review findings. The branch now has explicit safeguards and local evidence for each: atomic replacement rollback remains transaction-safe (including failures during the insert after deletion), only HTTPS or loopback HTTP is accepted (other schemes fail closed), endpoint calls are bounded, embedding metadata is validated, benchmark ranking/citation scoring is fail-closed for unauthorized results, and tutor generation is blocked without authorized evidence. These final review fixes require exact-head CI and Preview revalidation on the new PR revision.
+
+The remaining human gate is explicit approval for a controlled multilingual endpoint/cost budget and, only after measured quality and tenant-isolation review, a non-production or canary backfill. DeepSeek, proactive agents, protected writes, and production configuration remain disabled.
