@@ -12,6 +12,8 @@ INSERT INTO public.profiles (id, institution_id, full_name, email, role, is_acti
   ('82000000-0000-4000-8000-000000000002', '81000000-0000-4000-8000-000000000001', 'CQI Admin', 'cqi-admin@test.invalid', 'admin', true),
   ('82000000-0000-4000-8000-000000000003', '81000000-0000-4000-8000-000000000001', 'CQI Student One', 'cqi-student-one@test.invalid', 'student', true),
   ('82000000-0000-4000-8000-000000000004', '81000000-0000-4000-8000-000000000001', 'CQI Student Two', 'cqi-student-two@test.invalid', 'student', true),
+  ('82000000-0000-4000-8000-000000000006', '81000000-0000-4000-8000-000000000001', 'CQI Replacement One', 'cqi-replacement-one@test.invalid', 'student', true),
+  ('82000000-0000-4000-8000-000000000007', '81000000-0000-4000-8000-000000000001', 'CQI Replacement Two', 'cqi-replacement-two@test.invalid', 'student', true),
   ('82000000-0000-4000-8000-000000000005', '81000000-0000-4000-8000-000000000002', 'Foreign Coordinator', 'cqi-foreign-coordinator@test.invalid', 'coordinator', true);
 
 INSERT INTO public.programs (id, institution_id, coordinator_id, name, code, is_active) VALUES
@@ -63,6 +65,10 @@ INSERT INTO public.agent_action_proposals (
 
 SET LOCAL session_replication_role = origin;
 
+INSERT INTO public.outcome_attainment (outcome_id, student_id, course_id, scope, attainment_percent, sample_count, last_calculated_at) VALUES
+  ('86000000-0000-4000-8000-000000000001', '82000000-0000-4000-8000-000000000003', '84000000-0000-4000-8000-000000000001', 'student_course', 50, 1, '2026-08-05T12:00:00Z'),
+  ('86000000-0000-4000-8000-000000000001', '82000000-0000-4000-8000-000000000004', '84000000-0000-4000-8000-000000000001', 'student_course', 50, 1, '2026-08-05T12:00:00Z');
+
 DO $execution$
 DECLARE
   v_first jsonb;
@@ -81,9 +87,9 @@ BEGIN
 END;
 $execution$;
 
-INSERT INTO public.outcome_attainment (outcome_id, student_id, course_id, scope, attainment_percent, sample_count, last_calculated_at) VALUES
-  ('86000000-0000-4000-8000-000000000001', '82000000-0000-4000-8000-000000000003', '84000000-0000-4000-8000-000000000001', 'student_course', 60, 1, '2026-08-20T12:00:00Z'),
-  ('86000000-0000-4000-8000-000000000001', '82000000-0000-4000-8000-000000000004', '84000000-0000-4000-8000-000000000001', 'student_course', 60, 1, '2026-08-20T12:00:00Z');
+UPDATE public.outcome_attainment
+SET attainment_percent = 60, last_calculated_at = '2026-08-20T12:00:00Z'
+WHERE outcome_id = '86000000-0000-4000-8000-000000000001';
 
 DO $measurement$
 DECLARE v_result jsonb;
@@ -127,6 +133,28 @@ BEGIN
   THEN RAISE EXCEPTION 'CQI insufficient evidence did not preserve the reopened pattern'; END IF;
 END;
 $insufficient$;
+
+UPDATE public.outcome_attainment
+SET student_id = CASE student_id
+  WHEN '82000000-0000-4000-8000-000000000003'::uuid THEN '82000000-0000-4000-8000-000000000006'::uuid
+  WHEN '82000000-0000-4000-8000-000000000004'::uuid THEN '82000000-0000-4000-8000-000000000007'::uuid
+END,
+    attainment_percent = 90,
+    last_calculated_at = '2026-08-26T12:00:00Z'
+WHERE outcome_id = '86000000-0000-4000-8000-000000000001';
+
+DO $incompatible_population$
+DECLARE v_result jsonb;
+BEGIN
+  v_result := public.measure_cqi_action_plan_v1(
+    (SELECT id FROM public.cqi_action_plan_measurements WHERE systemic_pattern_id = '87000000-0000-4000-8000-000000000001'),
+    '2026-08-26T00:00:00Z', '2026-08-27T00:00:00Z', '82000000-0000-4000-8000-000000000001'
+  );
+  IF v_result->>'evaluationState' <> 'INSUFFICIENT_EVIDENCE'
+    OR v_result->>'delta' IS NOT NULL
+  THEN RAISE EXCEPTION 'An equal-sized but incompatible CQI population produced a comparable outcome'; END IF;
+END;
+$incompatible_population$;
 
 DO $privileges$
 BEGIN
