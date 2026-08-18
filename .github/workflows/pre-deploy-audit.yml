@@ -318,6 +318,12 @@ jobs:
     if: needs.preflight.outputs.supabase_available == 'true'
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      # Use the project-pinned CLI for reproducible Preview deployments.
+      - run: npm ci
       - name: Resolve Supabase Preview branch and deploy Cron dependencies
         if: github.event_name == 'pull_request'
         shell: bash
@@ -346,16 +352,11 @@ jobs:
             exit 1
           fi
 
-          npx supabase@latest functions deploy \
+          npx supabase functions deploy \
             agent-worker compute-at-risk-signals exam-period-notify \
             leaderboard-refresh notification-digest perfect-day-prompt \
             process-streak streak-risk-cron health weekly-summary-cron \
             --project-ref "$preview_ref" --use-api --yes
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: ${{ env.NODE_VERSION_FILE }}
-          cache: npm
-      - run: npm ci
       - name: Resolve current Vercel Preview for pull request
         if: github.event_name == 'pull_request'
         shell: bash

@@ -445,6 +445,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # Release-critical Preview validation uses the exact CLI recorded in
+      # package-lock.json. Latest-at-runtime is not reproducible.
+      - run: npm ci
+
       - name: Wait for isolated Supabase Preview deployment and resolve credentials
         shell: bash
         env:
@@ -481,7 +490,7 @@ jobs:
               break
             fi
             if [[ "$attempt" -eq 60 ]]; then
-              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED (last status: ${preview_status:-not-found})"
+              echo "::error::No valid Git-linked Supabase Preview (git_branch + pr_number) reached FUNCTIONS_DEPLOYED; direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
               exit 1
             fi
             echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
@@ -537,19 +546,10 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          npx supabase@latest functions deploy \
+          npx supabase functions deploy \
             embed-course-material chat-with-tutor \
             --project-ref "$SUPABASE_PREVIEW_REF" \
             --use-api --yes
-
-      - uses: actions/setup-node@v7
-        with:
-          # Supabase Realtime requires native WebSocket support for the real
-          # integration clients used by this isolated smoke suite.
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
 
       - name: Run RLS insert/update smoke tests against the preview branch
         run: npm run test:rls
