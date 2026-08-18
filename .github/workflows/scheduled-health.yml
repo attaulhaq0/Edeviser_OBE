@@ -82,7 +82,7 @@ jobs:
           fi
           supabase functions list \
             --project-ref "$PROJECT_REF" \
-            --output-format json \
+            --output json \
             | node scripts/check-edge-function-ownership.mjs --deployed-json -
 
       - name: Check runtime/source deployment attestation drift
@@ -98,11 +98,9 @@ jobs:
           fi
           gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > attestation.zip
           unzip -q attestation.zip -d attestation
-          supabase functions list --project-ref "$PROJECT_REF" --output-format json > deployed-functions.json
-          mkdir -p remote-source
-          jq -r '.governedFunctions[]' attestation/edge-runtime-attestation.json | while read -r function_name; do
-            supabase functions download "$function_name" --project-ref "$PROJECT_REF" --use-api --workdir "remote-source/$function_name"
-          done
+          supabase functions list --project-ref "$PROJECT_REF" --output json > deployed-functions.json
+          node scripts/download-managed-runtime-source.mjs \
+            --project-ref "$PROJECT_REF" --output-root remote-source
           node scripts/check-runtime-attestation-drift.mjs attestation/edge-runtime-attestation.json deployed-functions.json remote-source
 
       - name: Check storage bucket migrations
@@ -232,5 +230,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN not set — migration ledger cannot be verified"; exit 1; }
-          supabase migration list --project-ref "$PROJECT_REF" --output json > remote-migrations.json
+          supabase link --project-ref "$PROJECT_REF"
+          supabase db query --linked --output json \
+            "select version from supabase_migrations.schema_migrations order by version" \
+            > remote-migrations.json
           node scripts/check-migration-ledger.mjs remote-migrations.json

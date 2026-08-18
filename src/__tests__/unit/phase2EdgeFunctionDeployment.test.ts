@@ -28,13 +28,11 @@ describe("Phase 2 production Edge Function deployment scope", () => {
     expect(workflow).toContain("$DEPLOYMENT_CLOSURE");
     expect(
       tutorFunctions.map((functionDefinition) => functionDefinition.slug)
-    ).toEqual([
-      "chat-with-tutor",
-      "embed-course-material",
-      "generate-plan-update",
-      "agent-worker",
-      "agent-orchestrator",
-    ]);
+    ).toEqual(
+      manifest.runtimeGroups
+        .find((group) => group.name === "tutor-intelligence")
+        ?.functions.map((functionDefinition) => functionDefinition.slug)
+    );
   });
 
   it("redeploys all affected functions when shared AI code changes", () => {

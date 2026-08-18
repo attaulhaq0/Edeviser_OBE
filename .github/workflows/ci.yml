@@ -450,6 +450,8 @@ jobs:
     name: Runtime deployment impact
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       deployment_required: ${{ steps.impact.outputs.deployment_required }}
       deployment_closure: ${{ steps.impact.outputs.deployment_closure }}
@@ -585,9 +587,15 @@ jobs:
         if: needs.runtime-deployment-impact.outputs.deployment_required == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DEPLOYMENT_CLOSURE: ${{ needs.runtime-deployment-impact.outputs.deployment_closure }}
         run: |
-          npx supabase functions deploy \
-            ${{ needs.runtime-deployment-impact.outputs.deployment_closure }} \
+          set -euo pipefail
+          test -n "$DEPLOYMENT_CLOSURE" || { echo "::error::runtime resolver selected an empty closure"; exit 1; }
+          read -r -a closure <<< "$DEPLOYMENT_CLOSURE"
+          for function_name in "${closure[@]}"; do
+            [[ "$function_name" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::unsafe function slug from resolver"; exit 1; }
+          done
+          npx supabase functions deploy "${closure[@]}" \
             --project-ref "$SUPABASE_PREVIEW_REF" \
             --use-api --yes
 

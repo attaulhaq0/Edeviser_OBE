@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  isRuntimeDependencyPath,
+  matchesRuntimeDependencyPath,
+} from "./runtime-dependency-paths.mjs";
 const ROOT = resolve(process.cwd());
 const MANIFEST_PATH = resolve(ROOT, "scripts/runtime-dependency-manifest.json");
 const CONFIG_PATH = resolve(ROOT, "supabase/config.toml");
@@ -87,10 +91,43 @@ export const validateManifest = (manifest = readManifest()) => {
         );
       }
     }
-    for (const sharedPath of group.sharedDependencyPaths ?? []) {
-      if (!sharedPath.startsWith("supabase/functions/_shared/")) {
+    if (!Array.isArray(group.runtimeDependencyPaths)) {
+      failures.push(`${group.name} must declare runtimeDependencyPaths`);
+      continue;
+    }
+    for (const dependencyPath of group.runtimeDependencyPaths) {
+      if (!isRuntimeDependencyPath(dependencyPath)) {
         failures.push(
-          `${group.name} shared dependency is outside _shared: ${sharedPath}`
+          `${group.name} has an invalid runtime dependency path: ${dependencyPath}`
+        );
+        continue;
+      }
+      const isGlob = dependencyPath.endsWith("/**");
+      const dependencyRoot = resolve(
+        ROOT,
+        isGlob ? dependencyPath.slice(0, -3) : dependencyPath
+      );
+      if (
+        !existsSync(dependencyRoot) ||
+        (isGlob
+          ? !statSync(dependencyRoot).isDirectory()
+          : !statSync(dependencyRoot).isFile())
+      ) {
+        failures.push(
+          `${group.name} runtime dependency does not exist: ${dependencyPath}`
+        );
+        continue;
+      }
+      const relativeToFunctions = dependencyPath.slice(
+        "supabase/functions/".length
+      );
+      const owner = relativeToFunctions.split("/")[0];
+      if (
+        owner !== "_shared" &&
+        !group.functions.some((definition) => definition.slug === owner)
+      ) {
+        failures.push(
+          `${group.name} cross-function dependency must belong to its governed group: ${dependencyPath}`
         );
       }
     }
@@ -107,11 +144,6 @@ export const validateManifest = (manifest = readManifest()) => {
       );
   }
   return { failures, declaredFunctions: uniqueSorted([...declared]) };
-};
-
-const matchesGlob = (path, pattern) => {
-  const prefix = pattern.endsWith("/**") ? pattern.slice(0, -3) : pattern;
-  return path === prefix || path.startsWith(`${prefix}/`);
 };
 
 export const resolveDeploymentImpact = (
@@ -149,8 +181,8 @@ export const resolveDeploymentImpact = (
     }
     if (path.startsWith("supabase/functions/_shared/")) {
       const consumers = [...groups.values()].filter((group) =>
-        (group.sharedDependencyPaths ?? []).some((dependency) =>
-          matchesGlob(path, dependency)
+        (group.runtimeDependencyPaths ?? []).some((dependency) =>
+          matchesRuntimeDependencyPath(path, dependency)
         )
       );
       if (consumers.length === 0)
@@ -212,7 +244,7 @@ const parseArguments = (argv) => {
 const changedPathsFromGit = (baseSha, headSha) =>
   execFileSync(
     "git",
-    ["diff", "--name-only", "--diff-filter=ACMRT", baseSha, headSha],
+    ["diff", "--name-only", "--diff-filter=ACDMRT", baseSha, headSha],
     { cwd: ROOT, encoding: "utf8" }
   )
     .split(/\r?\n/)

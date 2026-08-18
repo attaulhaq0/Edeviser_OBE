@@ -8,6 +8,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -24,8 +25,18 @@ import {
 import {
   assertSourceParity,
   declaredLocalSourceClosure,
+  relativeImportSpecifiers,
 } from "../../../scripts/runtime-source-parity.mjs";
 import { assertCumulativeCoverage } from "../../../scripts/runtime-attestation-snapshot.mjs";
+import {
+  isRuntimeDependencyPath,
+  matchesRuntimeDependencyPath,
+} from "../../../scripts/runtime-dependency-paths.mjs";
+import { selectProductionBaseSha } from "../../../scripts/resolve-production-base-sha.mjs";
+import {
+  managedRuntimeSlugs,
+  prepareFunctionDownloadWorkdir,
+} from "../../../scripts/download-managed-runtime-source.mjs";
 
 const root = join(__dirname, "..", "..", "..");
 const manifest = readManifest();
@@ -37,13 +48,9 @@ const tutorGroup = (value: typeof manifest) => {
   if (!group) throw new Error("Tutor Intelligence runtime group is required");
   return group;
 };
-const tutorClosure = [
-  "agent-orchestrator",
-  "agent-worker",
-  "chat-with-tutor",
-  "embed-course-material",
-  "generate-plan-update",
-];
+const tutorClosure = tutorGroup(manifest)
+  .functions.map((definition) => definition.slug)
+  .sort();
 
 describe("runtime dependency resolver", () => {
   it("resolves generate-plan-update to the complete Tutor Intelligence closure", () => {
@@ -71,7 +78,7 @@ describe("runtime dependency resolver", () => {
   it("declares the agent-worker cross-function source dependency", () => {
     const closure = declaredLocalSourceClosure(
       "agent-worker",
-      tutorGroup(manifest).sharedDependencyPaths
+      tutorGroup(manifest).runtimeDependencyPaths
     );
     expect([...closure.keys()]).toContain(
       "functions/agent-orchestrator/data-source.ts"
@@ -82,6 +89,48 @@ describe("runtime dependency resolver", () => {
     expect(resolve(["supabase/functions/_shared/cors.ts"]).errors).toContain(
       "unknown shared runtime dependency changed: supabase/functions/_shared/cors.ts"
     );
+  });
+
+  it("treats deleted managed and declared runtime paths as deployment impact", () => {
+    expect(
+      resolve(["supabase/functions/chat-with-tutor/index.ts"]).functions
+    ).toEqual(tutorClosure);
+    expect(
+      resolve(["supabase/functions/_shared/ai/provider.ts"]).functions
+    ).toEqual(tutorClosure);
+  });
+
+  it("fails closed for an unknown deleted shared runtime path", () => {
+    expect(resolve(["supabase/functions/_shared/removed.ts"]).errors).toContain(
+      "unknown shared runtime dependency changed: supabase/functions/_shared/removed.ts"
+    );
+  });
+
+  it("uses bounded runtime dependency paths rather than shared-path prefixes", () => {
+    expect(
+      matchesRuntimeDependencyPath(
+        "supabase/functions/_shared/ai/provider.ts",
+        "supabase/functions/_shared/ai/**"
+      )
+    ).toBe(true);
+    expect(
+      matchesRuntimeDependencyPath(
+        "supabase/functions/_shared/ai-legacy/provider.ts",
+        "supabase/functions/_shared/ai/**"
+      )
+    ).toBe(false);
+    expect(
+      matchesRuntimeDependencyPath(
+        "supabase/functions/_shared/auth.ts.bak",
+        "supabase/functions/_shared/auth.ts"
+      )
+    ).toBe(false);
+    expect(
+      isRuntimeDependencyPath(
+        "supabase/functions/agent-orchestrator/data-source.ts"
+      )
+    ).toBe(true);
+    expect(isRuntimeDependencyPath("../../outside-repository.ts")).toBe(false);
   });
 
   it("returns no deployment for frontend-only changes", () => {
@@ -147,6 +196,31 @@ describe("runtime dependency resolver", () => {
     );
   });
 
+  it("rejects runtime dependencies outside the governed functions tree", () => {
+    const invalid = structuredClone(manifest);
+    tutorGroup(invalid).runtimeDependencyPaths.push("src/not-runtime.ts");
+    expect(validateManifest(invalid).failures).toContain(
+      "tutor-intelligence has an invalid runtime dependency path: src/not-runtime.ts"
+    );
+  });
+
+  it("rejects missing and cross-group runtime dependency declarations", () => {
+    const missing = structuredClone(manifest);
+    tutorGroup(missing).runtimeDependencyPaths.push(
+      "supabase/functions/_shared/not-real.ts"
+    );
+    expect(validateManifest(missing).failures).toContain(
+      "tutor-intelligence runtime dependency does not exist: supabase/functions/_shared/not-real.ts"
+    );
+    const crossGroup = structuredClone(manifest);
+    tutorGroup(crossGroup).runtimeDependencyPaths.push(
+      "supabase/functions/accept-invitation/index.ts"
+    );
+    expect(validateManifest(crossGroup).failures).toContain(
+      "tutor-intelligence cross-function dependency must belong to its governed group: supabase/functions/accept-invitation/index.ts"
+    );
+  });
+
   it("fails deployed verify_jwt parity mismatch", () => {
     const ownershipChecker = readFileSync(
       join(root, "scripts/check-edge-function-ownership.mjs"),
@@ -193,9 +267,48 @@ describe("migration and workflow release safeguards", () => {
   });
 
   it("pins the Supabase CLI in every production-critical workflow", () => {
-    expect(pinnedCli).toContain('"scheduled-health.yml"');
-    expect(pinnedCli).toContain('"deploy-migrations.yml"');
+    expect(pinnedCli).toContain("readdir(workflowDirectory)");
+    expect(pinnedCli).toContain("supabase/setup-cli");
+    expect(pinnedCli).toContain("explicit version");
     expect(pinnedCli).toContain("version: latest");
+  });
+
+  it("uses a JSON-producing linked database query for the migration ledger", () => {
+    expect(scheduledHealth).toContain(
+      "supabase db query --linked --output json"
+    );
+    expect(scheduledHealth).toContain("supabase_migrations.schema_migrations");
+    expect(migrations).toContain("supabase db query --linked --output json");
+  });
+
+  it("accepts the pinned CLI database-query rows payload", () => {
+    expect(
+      remoteMigrationLedger({ rows: [{ version: "20260830000001" }] }).versions
+    ).toEqual(["20260830000001"]);
+  });
+
+  it("fails an empty remote migration ledger when the repository has migrations", () => {
+    const expected = repositoryMigrationLedger(["20260830000001_valid.sql"]);
+    const actual = remoteMigrationLedger({ rows: [] });
+    expect(compareMigrationLedgers(expected, actual).failures).toContain(
+      "remote ledger is missing: 20260830000001"
+    );
+  });
+
+  it("fails closed when the ledger command receives no input path", () => {
+    expect(() =>
+      execFileSync(process.execPath, [
+        join(root, "scripts/check-migration-ledger.mjs"),
+      ])
+    ).toThrow();
+  });
+
+  it("includes deleted paths when it reads a Git diff", () => {
+    const resolver = readFileSync(
+      join(root, "scripts/resolve-runtime-deployment-impact.mjs"),
+      "utf8"
+    );
+    expect(resolver).toContain("--diff-filter=ACDMRT");
   });
 
   it("fails same-head migration ledgers with a missing middle version", () => {
@@ -243,6 +356,16 @@ describe("migration and workflow release safeguards", () => {
     expect(production).toContain("environment: production");
   });
 
+  it("passes the preview closure through an environment variable and validates slugs", () => {
+    const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
+    expect(ci).toContain("DEPLOYMENT_CLOSURE:");
+    expect(ci).toContain("read -r -a closure");
+    expect(ci).toContain("unsafe function slug from resolver");
+    expect(ci).not.toContain(
+      "npx supabase functions deploy \\\n            ${{ needs.runtime-deployment-impact.outputs.deployment_closure }}"
+    );
+  });
+
   it("preserves the protected Production release gate", () => {
     expect(production).toContain("branches: [main]");
     expect(production).toContain("environment: production");
@@ -251,6 +374,42 @@ describe("migration and workflow release safeguards", () => {
     expect(production).toContain("version: 2.114.0");
     expect(production).toContain("SUPABASE_ACCESS_TOKEN");
     expect(production).toContain("attest-edge-deployment.mjs");
+    expect(production).toContain("resolve-production-base-sha.mjs");
+    expect(production).toContain("retention-days: 90");
+    const bootstrap = readFileSync(
+      join(root, ".github/workflows/bootstrap-runtime-attestation.yml"),
+      "utf8"
+    );
+    expect(bootstrap).toContain("contents: read");
+    expect(bootstrap).not.toContain("actions: write");
+  });
+
+  it("uses event.before only when it is a reachable non-zero commit", () => {
+    const head = "a".repeat(40);
+    const before = "b".repeat(40);
+    const parent = "c".repeat(40);
+    expect(
+      selectProductionBaseSha({
+        before,
+        head,
+        resolveCommit: (revision) =>
+          revision === before || revision === head || revision === `${head}^`
+            ? revision.replace("^", "")
+            : "",
+      })
+    ).toBe(before);
+    expect(
+      selectProductionBaseSha({
+        before: "0".repeat(40),
+        head,
+        resolveCommit: (revision) =>
+          revision === head || revision === `${head}^`
+            ? revision === `${head}^`
+              ? parent
+              : head
+            : "",
+      })
+    ).toBe(parent);
   });
 });
 
@@ -259,7 +418,7 @@ describe("reviewed/deployed source parity", () => {
     const group = tutorGroup(manifest);
     const local = declaredLocalSourceClosure(
       "chat-with-tutor",
-      group.sharedDependencyPaths
+      group.runtimeDependencyPaths
     );
     const remoteRoot = mkdtempSync(join(tmpdir(), "edeviser-runtime-source-"));
     try {
@@ -271,15 +430,27 @@ describe("reviewed/deployed source parity", () => {
       expect(
         assertSourceParity({
           slug: "chat-with-tutor",
-          declaredSharedPaths: group.sharedDependencyPaths,
+          runtimeDependencyPaths: group.runtimeDependencyPaths,
           remoteSourceRoot: remoteRoot,
         }).files
       ).toContain("functions/chat-with-tutor/index.ts");
+      mkdirSync(join(remoteRoot, "functions/generated"), { recursive: true });
+      writeFileSync(
+        join(remoteRoot, "functions/generated/ignored.ts"),
+        "export const generated = true;\n"
+      );
+      expect(() =>
+        assertSourceParity({
+          slug: "chat-with-tutor",
+          runtimeDependencyPaths: group.runtimeDependencyPaths,
+          remoteSourceRoot: remoteRoot,
+        })
+      ).not.toThrow();
       rmSync(join(remoteRoot, "functions/_shared/ai/config.ts"));
       expect(() =>
         assertSourceParity({
           slug: "chat-with-tutor",
-          declaredSharedPaths: group.sharedDependencyPaths,
+          runtimeDependencyPaths: group.runtimeDependencyPaths,
           remoteSourceRoot: remoteRoot,
         })
       ).toThrow("source imports missing dependency");
@@ -294,12 +465,107 @@ describe("reviewed/deployed source parity", () => {
       expect(() =>
         assertSourceParity({
           slug: "chat-with-tutor",
-          declaredSharedPaths: group.sharedDependencyPaths,
+          runtimeDependencyPaths: group.runtimeDependencyPaths,
           remoteSourceRoot: remoteRoot,
         })
       ).toThrow("reviewed/deployed source mismatch");
     } finally {
       rmSync(remoteRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("recognizes dynamic relative imports without treating comment text as code", () => {
+    expect(
+      relativeImportSpecifiers(
+        [
+          "// import './comment-only.ts'",
+          "/* export { value } from './also-comment-only.ts' */",
+          "const module = import('./dynamic.ts');",
+          "import { value } from './static.ts';",
+        ].join("\n")
+      )
+    ).toEqual(["./dynamic.ts", "./static.ts"]);
+  });
+
+  it("records exactly the functions it attests and rejects an invalid inventory", () => {
+    const group = tutorGroup(manifest);
+    const local = declaredLocalSourceClosure(
+      "chat-with-tutor",
+      group.runtimeDependencyPaths
+    );
+    const fixtureRoot = mkdtempSync(join(tmpdir(), "edeviser-attestation-"));
+    const sourceRoot = join(fixtureRoot, "remote-source");
+    const deployedPath = join(fixtureRoot, "deployed.json");
+    const outputPath = join(fixtureRoot, "attestation.json");
+    const run = (inventoryPath: string, destination: string) =>
+      execFileSync(
+        process.execPath,
+        [
+          join(root, "scripts/attest-edge-deployment.mjs"),
+          "--deployed-json",
+          inventoryPath,
+          "--functions",
+          "chat-with-tutor,chat-with-tutor",
+          "--reviewed-sha",
+          "a".repeat(40),
+          "--remote-source-root",
+          sourceRoot,
+          "--output",
+          destination,
+        ],
+        { cwd: root, stdio: "pipe" }
+      );
+    try {
+      for (const [logicalPath, source] of local) {
+        const destination = join(sourceRoot, "chat-with-tutor", logicalPath);
+        mkdirSync(dirname(destination), { recursive: true });
+        writeFileSync(destination, source);
+      }
+      writeFileSync(
+        deployedPath,
+        JSON.stringify([
+          {
+            slug: "chat-with-tutor",
+            status: "ACTIVE",
+            verify_jwt: true,
+            version: 18,
+            ezbr_sha256: "test-bundle",
+          },
+        ])
+      );
+      run(deployedPath, outputPath);
+      const attestation = JSON.parse(readFileSync(outputPath, "utf8"));
+      expect(attestation.governedFunctions).toEqual(["chat-with-tutor"]);
+      expect(attestation.records).toHaveLength(1);
+      writeFileSync(join(fixtureRoot, "invalid.json"), JSON.stringify({}));
+      expect(() =>
+        run(join(fixtureRoot, "invalid.json"), outputPath)
+      ).toThrow();
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("prepares the CLI's required per-function Supabase workdir layout", () => {
+    const root = mkdtempSync(join(tmpdir(), "edeviser-runtime-download-"));
+    try {
+      const workdir = prepareFunctionDownloadWorkdir(
+        root,
+        "cdlgtbvxlxjpcddjazzx",
+        "chat-with-tutor"
+      );
+      expect(
+        readFileSync(join(workdir, "supabase/config.toml"), "utf8")
+      ).toContain('project_id = "cdlgtbvxlxjpcddjazzx"');
+      expect(managedRuntimeSlugs()).toEqual(
+        manifest.runtimeGroups
+          .flatMap((group) =>
+            group.functions.map((definition) => definition.slug)
+          )
+          .sort()
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 
@@ -314,7 +580,7 @@ describe("reviewed/deployed source parity", () => {
     );
     expect(production).toContain("--all-managed");
     expect(production).toContain("edge-runtime-attestation-snapshot");
-    expect(scheduled).toContain(".governedFunctions[]");
+    expect(scheduled).toContain("download-managed-runtime-source.mjs");
   });
 
   it("keeps Tutor coverage after a later Identity deployment snapshot", () => {
