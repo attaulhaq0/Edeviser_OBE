@@ -11,9 +11,9 @@ if (!/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(cliVersion ?? "")) 
   throw new Error("Supabase CLI must be an exact devDependency version");
 }
 
-for (const workflow of ["ci.yml", "pre-deploy-audit.yml"]) {
+for (const workflow of ["ci.yml", "pre-deploy-audit.yml", "deploy-phase2-edge-functions.yml", "deploy-migrations.yml", "scheduled-health.yml"]) {
   const source = await readFile(resolve(root, ".github", "workflows", workflow), "utf8");
-  if (source.includes("supabase@latest")) {
+  if (source.includes("supabase@latest") || source.includes("version: latest")) {
     throw new Error(`${workflow} must use the project-pinned Supabase CLI`);
   }
 }

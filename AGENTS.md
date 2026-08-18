@@ -41,6 +41,22 @@ Run in order before any PR:
 - Required schema-bearing sequence: local Docker replay → push branch → open PR → wait for the Git-linked Preview → verify `FUNCTIONS_DEPLOYED` and migrations → Preview RLS/runtime validation → exact-head CI → merge → read-only Production verification.
 - After merge or closure, verify no unneeded non-main Supabase branches remain and delete stale branches to prevent cost. Never manually modify Production to make Preview validation pass.
 
+## Runtime Deployment Governance
+
+For every runtime-affecting task, include this review record:
+
+```text
+Deployment Impact: NONE | MIGRATIONS | EDGE_FUNCTIONS | BOTH | CONFIG
+Runtime feature(s): [derived from scripts/runtime-dependency-manifest.json]
+Affected functions: [derived from the runtime resolver]
+Shared runtime changed: YES | NO
+Production action required: YES | NO
+```
+
+Do not duplicate a declared Edge Function closure in workflow YAML, tests, scripts, or docs. Extend `scripts/runtime-dependency-manifest.json`, then use `scripts/resolve-runtime-deployment-impact.mjs` to derive the closure. Unknown shared runtime dependencies fail closed.
+
+Permanent principle: **MERGE != DEPLOYMENT** and **DEPLOYMENT != ATTESTATION**. A runtime task is incomplete until the selected deployment is independently attested; never approve a Production environment gate from Codex.
+
 ## Do Not Modify
 
 - `supabase/migrations/` — managed via Supabase MCP, not manually
