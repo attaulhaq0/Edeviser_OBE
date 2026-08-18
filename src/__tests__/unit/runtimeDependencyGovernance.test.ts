@@ -68,6 +68,16 @@ describe("runtime dependency resolver", () => {
     ]);
   });
 
+  it("declares the agent-worker cross-function source dependency", () => {
+    const closure = declaredLocalSourceClosure(
+      "agent-worker",
+      tutorGroup(manifest).sharedDependencyPaths
+    );
+    expect([...closure.keys()]).toContain(
+      "functions/agent-orchestrator/data-source.ts"
+    );
+  });
+
   it("fails closed for an unknown shared runtime dependency", () => {
     expect(resolve(["supabase/functions/_shared/cors.ts"]).errors).toContain(
       "unknown shared runtime dependency changed: supabase/functions/_shared/cors.ts"
@@ -265,6 +275,18 @@ describe("reviewed/deployed source parity", () => {
           remoteSourceRoot: remoteRoot,
         }).files
       ).toContain("functions/chat-with-tutor/index.ts");
+      rmSync(join(remoteRoot, "functions/_shared/ai/config.ts"));
+      expect(() =>
+        assertSourceParity({
+          slug: "chat-with-tutor",
+          declaredSharedPaths: group.sharedDependencyPaths,
+          remoteSourceRoot: remoteRoot,
+        })
+      ).toThrow("source imports missing dependency");
+      writeFileSync(
+        join(remoteRoot, "functions/_shared/ai/config.ts"),
+        local.get("functions/_shared/ai/config.ts") ?? ""
+      );
       writeFileSync(
         join(remoteRoot, "functions/chat-with-tutor/index.ts"),
         "export const drift = true;\n"

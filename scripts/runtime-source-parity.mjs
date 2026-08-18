@@ -72,23 +72,40 @@ export const declaredLocalSourceClosure = (slug, declaredSharedPaths) => {
 export const downloadedRemoteSourceClosure = (remoteSourceRoot, slug) => {
   const root = resolve(ROOT, remoteSourceRoot);
   const files = walkFiles(root);
-  const closure = new Map();
-  for (const file of files) {
-    const normalized = relative(root, file).replaceAll("\\", "/");
-    const marker = normalized.indexOf("functions/");
-    if (marker < 0) continue;
-    const logical = normalized.slice(marker);
-    if (
-      logical === `functions/${slug}/index.ts` ||
-      logical.startsWith(`functions/${slug}/`) ||
-      logical.startsWith("functions/_shared/")
-    ) {
-      closure.set(logical, readFileSync(file, "utf8"));
-    }
-  }
-  if (!closure.has(`functions/${slug}/index.ts`))
+  const logicalPaths = new Map(
+    files.flatMap((file) => {
+      const normalized = relative(root, file).replaceAll("\\", "/");
+      const marker = normalized.indexOf("functions/");
+      return marker < 0 ? [] : [[normalized.slice(marker), file]];
+    })
+  );
+  const entrypoint = logicalPaths.get(`functions/${slug}/index.ts`);
+  if (!entrypoint)
     throw new Error(`downloaded ${slug} source is missing its entrypoint`);
-  return closure;
+  const closure = new Set();
+  const visit = (file) => {
+    if (closure.has(file)) return;
+    closure.add(file);
+    const source = readFileSync(file, "utf8");
+    for (const match of source.matchAll(IMPORT_PATTERN)) {
+      const specifier = match[1];
+      if (!specifier?.startsWith(".")) continue;
+      const dependency = resolveRelativeImport(file, specifier);
+      if (!dependency)
+        throw new Error(
+          `downloaded ${slug} source imports missing dependency ${specifier}`
+        );
+      visit(dependency);
+    }
+  };
+  visit(entrypoint);
+  return new Map(
+    [...closure].map((file) => {
+      const normalized = relative(root, file).replaceAll("\\", "/");
+      const marker = normalized.indexOf("functions/");
+      return [normalized.slice(marker), readFileSync(file, "utf8")];
+    })
+  );
 };
 
 export const sourceClosureFingerprint = (closure) =>
