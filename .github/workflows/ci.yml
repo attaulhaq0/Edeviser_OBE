@@ -446,6 +446,27 @@ jobs:
             required:
               - 'supabase/**'
 
+  runtime-deployment-impact:
+    name: Runtime deployment impact
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      deployment_required: ${{ steps.impact.outputs.deployment_required }}
+      deployment_closure: ${{ steps.impact.outputs.deployment_closure }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate manifest and resolve the PR runtime closure
+        id: impact
+        run: |
+          node scripts/resolve-runtime-deployment-impact.mjs --validate
+          node scripts/resolve-runtime-deployment-impact.mjs \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --head-sha "${{ github.event.pull_request.head.sha }}" --format github \
+            >> "$GITHUB_OUTPUT"
+
   rls-smoke:
     name: RLS Smoke (Supabase preview)
     # Part C — C3 RLS_Smoke_Test (Req 19, 21.2). Runs the isolated integration suite
@@ -455,7 +476,7 @@ jobs:
     # from the isolated Supabase Preview branch using SUPABASE_ACCESS_TOKEN. Missing preview
     # credentials fail this required gate; the RAG authorization suite must never pass by
     # silently skipping its cases.
-    needs: preview-validation-relevance
+    needs: [preview-validation-relevance, runtime-deployment-impact]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required == 'true'
     steps:
@@ -560,12 +581,13 @@ jobs:
             sleep 10
           done
 
-      - name: Deploy reviewed RAG Edge Functions to isolated Preview
+      - name: Deploy exact manifest-derived Edge closure to isolated Preview
+        if: needs.runtime-deployment-impact.outputs.deployment_required == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           npx supabase functions deploy \
-            embed-course-material chat-with-tutor \
+            ${{ needs.runtime-deployment-impact.outputs.deployment_closure }} \
             --project-ref "$SUPABASE_PREVIEW_REF" \
             --use-api --yes
 

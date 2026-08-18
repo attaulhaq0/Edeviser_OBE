@@ -2,9 +2,13 @@ name: Scheduled Health Check
 
 on:
   schedule:
-    # Every 2 days at 6 AM UTC
-    - cron: "0 6 */2 * *"
+    # Daily: migration and runtime drift must become loud within 24 hours.
+    - cron: "0 6 * * *"
   workflow_dispatch: # Allow manual trigger
+
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   full-test-suite:
@@ -52,10 +56,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+
+      - run: npm ci --ignore-scripts
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.114.0
 
       - name: Check live Edge Function source/deployment ownership
         env:
@@ -67,10 +80,30 @@ jobs:
             echo "::error::SUPABASE_ACCESS_TOKEN not set — Edge Function ownership cannot be verified"
             exit 1
           fi
-          npx supabase@latest functions list \
+          supabase functions list \
             --project-ref "$PROJECT_REF" \
             --output-format json \
             | node scripts/check-edge-function-ownership.mjs --deployed-json -
+
+      - name: Check runtime/source deployment attestation drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROJECT_REF: cdlgtbvxlxjpcddjazzx
+        run: |
+          set -euo pipefail
+          artifact_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=edge-deployment-attestation&per_page=1" --jq '.artifacts[0].id // empty')"
+          if [[ -z "$artifact_id" ]]; then
+            echo "::error::No deployment attestation artifact is available; runtime/source parity is unproven"
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > attestation.zip
+          unzip -q attestation.zip -d attestation
+          supabase functions list --project-ref "$PROJECT_REF" --output-format json > deployed-functions.json
+          mkdir -p remote-source
+          jq -r '.records[].functionSlug' attestation/edge-deployment-attestation.json | while read -r function_name; do
+            supabase functions download "$function_name" --project-ref "$PROJECT_REF" --use-api --workdir remote-source
+          done
+          node scripts/check-runtime-attestation-drift.mjs attestation/edge-deployment-attestation.json deployed-functions.json remote-source
 
       - name: Check storage bucket migrations
         run: |
@@ -141,6 +174,20 @@ jobs:
     name: Supabase Branch Migration Health
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - run: npm ci --ignore-scripts
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.114.0
+
       - name: Alert if any Supabase branch is in MIGRATIONS_FAILED
         # Safety net for the failure mode that silently stranded weeks of merged
         # migrations: if Supabase Branching's production branch enters
@@ -149,8 +196,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
-            echo "::warning::SUPABASE_ACCESS_TOKEN not set — skipping branch health probe"
-            exit 0
+            echo "::error::SUPABASE_ACCESS_TOKEN not set — migration health cannot be verified"
+            exit 1
           fi
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT
@@ -177,3 +224,13 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           PROJECT_REF: cdlgtbvxlxjpcddjazzx
+
+      - name: Verify Production migration ledger equals repository head
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: cdlgtbvxlxjpcddjazzx
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN not set — migration ledger cannot be verified"; exit 1; }
+          supabase migration list --project-ref "$PROJECT_REF" --output json > remote-migrations.json
+          node scripts/check-migration-ledger.mjs remote-migrations.json
