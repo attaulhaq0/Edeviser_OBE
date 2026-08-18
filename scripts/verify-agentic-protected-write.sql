@@ -373,8 +373,95 @@ BEGIN
 END;
 $verify$;
 
+-- Add three independent low-attainment outcomes so every deterministic
+-- measurement feedback state can be observed without one outcome's historical
+-- evidence masking another outcome's risk projection.
+INSERT INTO public.learning_outcomes (
+  id, institution_id, program_id, course_id, type, title, sort_order
+)
+VALUES
+  ('50000000-0000-4000-8000-000000000011', '10000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'CLO', 'Improved feedback CLO', 11),
+  ('50000000-0000-4000-8000-000000000012', '10000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'CLO', 'No-change feedback CLO', 12),
+  ('50000000-0000-4000-8000-000000000013', '10000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'CLO', 'Declined feedback CLO', 13);
+
+INSERT INTO public.outcome_attainment (
+  outcome_id, student_id, course_id, scope, attainment_percent,
+  sample_count, last_calculated_at
+)
+VALUES
+  ('50000000-0000-4000-8000-000000000011', '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'student_course', 55, 3, now()),
+  ('50000000-0000-4000-8000-000000000012', '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'student_course', 55, 3, now()),
+  ('50000000-0000-4000-8000-000000000013', '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'student_course', 55, 3, now());
+
+INSERT INTO public.agent_action_proposals (
+  id, run_id, actor_user_id, institution_id, student_id, course_id,
+  action_type, tool_version, payload, reason, evidence_references, evidence_hash,
+  required_approver_role, required_approver_user_id, status,
+  idempotency_key, expires_at, decided_at, decided_by
+)
+SELECT
+  v.id, '60000000-0000-4000-8000-000000000001', actor_user_id, institution_id,
+  student_id, course_id, 'create_goal', '1.0.0', payload, reason,
+  evidence_references, evidence_hash, required_approver_role,
+  required_approver_user_id, 'executed', v.idempotency_key, expires_at,
+  now(), required_approver_user_id
+FROM public.agent_action_proposals p
+CROSS JOIN (VALUES
+  ('70000000-0000-4000-8000-000000000011'::uuid, 'measurement-improved'),
+  ('70000000-0000-4000-8000-000000000012'::uuid, 'measurement-no-change'),
+  ('70000000-0000-4000-8000-000000000013'::uuid, 'measurement-declined')
+) AS v(id, idempotency_key)
+WHERE p.id = '70000000-0000-4000-8000-000000000001';
+
+INSERT INTO public.agent_action_executions (
+  id, proposal_id, run_id, institution_id, student_id, executed_by, tool_name,
+  tool_version, idempotency_key, result, learning_state_version
+)
+SELECT
+  v.id, v.proposal_id, '60000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001', 'create_goal', '1.0.0',
+  v.idempotency_key, '{}'::jsonb, 2
+FROM (VALUES
+  ('80000000-0000-4000-8000-000000000011'::uuid, '70000000-0000-4000-8000-000000000011'::uuid, 'measurement-improved-execution'),
+  ('80000000-0000-4000-8000-000000000012'::uuid, '70000000-0000-4000-8000-000000000012'::uuid, 'measurement-no-change-execution'),
+  ('80000000-0000-4000-8000-000000000013'::uuid, '70000000-0000-4000-8000-000000000013'::uuid, 'measurement-declined-execution')
+) AS v(id, proposal_id, idempotency_key);
+
 DO $privileges$
+DECLARE
+  v_role text;
+  v_direct_call_denied boolean;
 BEGIN
+  IF has_function_privilege(
+    'anon',
+    'public.sync_learning_state_measurements_v1()',
+    'EXECUTE'
+  ) OR has_function_privilege(
+    'authenticated',
+    'public.sync_learning_state_measurements_v1()',
+    'EXECUTE'
+  ) OR has_function_privilege(
+    'service_role',
+    'public.sync_learning_state_measurements_v1()',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'A direct caller can invoke the internal measurement-state trigger';
+  END IF;
+  FOREACH v_role IN ARRAY ARRAY['anon', 'authenticated', 'service_role'] LOOP
+    EXECUTE format('SET LOCAL ROLE %I', v_role);
+    v_direct_call_denied := false;
+    BEGIN
+      PERFORM public.sync_learning_state_measurements_v1();
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_direct_call_denied := true;
+    END;
+    RESET ROLE;
+    IF NOT v_direct_call_denied THEN
+      RAISE EXCEPTION 'Direct invocation of the internal measurement-state trigger was not denied for %', v_role;
+    END IF;
+  END LOOP;
   IF has_function_privilege(
     'authenticated',
     'public.execute_approved_agent_personal_action_v1(uuid,uuid)',
@@ -705,6 +792,60 @@ BEGIN
   END IF;
 END;
 $proactive_feed_denied$;
+RESET ROLE;
+
+SET LOCAL ROLE service_role;
+DO $measurement_feedback$
+DECLARE
+  v_measurement public.intervention_measurements;
+BEGIN
+  v_measurement := public.register_intervention_measurement_v1(
+    '70000000-0000-4000-8000-000000000011', '80000000-0000-4000-8000-000000000011',
+    '[{"source":"controlled-fixture"}]'::jsonb, 50, now() - interval '1 day', now(),
+    '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001',
+    '30000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000011'
+  );
+  PERFORM public.measure_intervention_v1(v_measurement.id, '[{"source":"controlled-fixture"}]'::jsonb, 60);
+
+  v_measurement := public.register_intervention_measurement_v1(
+    '70000000-0000-4000-8000-000000000012', '80000000-0000-4000-8000-000000000012',
+    '[{"source":"controlled-fixture"}]'::jsonb, 50, now() - interval '1 day', now(),
+    '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001',
+    '30000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000012'
+  );
+  PERFORM public.measure_intervention_v1(v_measurement.id, '[{"source":"controlled-fixture"}]'::jsonb, 50);
+
+  v_measurement := public.register_intervention_measurement_v1(
+    '70000000-0000-4000-8000-000000000013', '80000000-0000-4000-8000-000000000013',
+    '[{"source":"controlled-fixture"}]'::jsonb, 60, now() - interval '1 day', now(),
+    '20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001',
+    '30000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000013'
+  );
+  PERFORM public.measure_intervention_v1(v_measurement.id, '[{"source":"controlled-fixture"}]'::jsonb, 50);
+
+  IF (SELECT count(*) FROM public.intervention_measurements WHERE evaluation_state = 'IMPROVED') <> 1
+    OR (SELECT count(*) FROM public.intervention_measurements WHERE evaluation_state = 'NO_MATERIAL_CHANGE') <> 1
+    OR (SELECT count(*) FROM public.intervention_measurements WHERE evaluation_state = 'DECLINED') <> 1
+    OR EXISTS (
+      SELECT 1 FROM public.student_learning_states s
+      WHERE s.student_id = '20000000-0000-4000-8000-000000000001'
+        AND s.risk_signals @> '[{"outcomeId":"50000000-0000-4000-8000-000000000011"}]'::jsonb
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM public.student_learning_states s
+      WHERE s.student_id = '20000000-0000-4000-8000-000000000001'
+        AND s.risk_signals @> '[{"outcomeId":"50000000-0000-4000-8000-000000000012","severity":"high"}]'::jsonb
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM public.student_learning_states s
+      WHERE s.student_id = '20000000-0000-4000-8000-000000000001'
+        AND s.risk_signals @> '[{"outcomeId":"50000000-0000-4000-8000-000000000013","severity":"high"}]'::jsonb
+    )
+  THEN
+    RAISE EXCEPTION 'Measurement feedback did not deterministically update the Learning State';
+  END IF;
+END;
+$measurement_feedback$;
 RESET ROLE;
 
 SELECT json_build_object(
