@@ -18,6 +18,12 @@ const workflows = (await readdir(workflowDirectory))
   .filter((name) => /\.ya?ml$/.test(name))
   .sort();
 
+export const normalizeYamlScalar = (value) => {
+  const normalized = value.trim();
+  const quoted = /^(['"])(.*)\1$/.exec(normalized);
+  return quoted ? quoted[2] : normalized;
+};
+
 for (const workflow of workflows) {
   const source = await readFile(resolve(workflowDirectory, workflow), "utf8");
   if (
@@ -39,7 +45,7 @@ for (const workflow of workflows) {
       `${workflow} must give every supabase/setup-cli step an explicit version`
     );
   for (const step of setupSteps) {
-    if (step[1] !== cliVersion)
+    if (normalizeYamlScalar(step[1]) !== cliVersion)
       throw new Error(
         `${workflow} must configure supabase/setup-cli with ${cliVersion}`
       );
