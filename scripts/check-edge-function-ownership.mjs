@@ -11,6 +11,14 @@ const POLICY_PATH = resolve(
   ROOT,
   "scripts/edge-function-ownership-policy.json"
 );
+const MANIFEST_PATH = resolve(ROOT, "scripts/runtime-dependency-manifest.json");
+
+const managedFunctions = () => {
+  const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
+  return manifest.runtimeGroups.flatMap((group) =>
+    group.functions.map((definition) => definition.slug)
+  );
+};
 
 const parseArguments = (argv) => {
   const options = { deployedJson: "", verbose: false };
@@ -135,7 +143,11 @@ export const buildEdgeFunctionInventory = (deployments, policy) => {
   });
 };
 
-export const checkEdgeFunctionInventory = (inventory, policy) => {
+export const checkEdgeFunctionInventory = (
+  inventory,
+  policy,
+  required = managedFunctions()
+) => {
   const failures = [];
   const sourceOnly = inventory
     .filter((entry) => entry.sourceControlled && !entry.deployed)
@@ -163,10 +175,12 @@ export const checkEdgeFunctionInventory = (inventory, policy) => {
     );
   }
 
-  for (const required of policy.requiredSourceAndDeployment) {
-    const entry = inventory.find((item) => item.name === required);
+  for (const requiredFunction of required) {
+    const entry = inventory.find((item) => item.name === requiredFunction);
     if (!entry?.sourceControlled || !entry.deployed) {
-      failures.push(`${required} must be both source controlled and deployed`);
+      failures.push(
+        `${requiredFunction} must be both source controlled and deployed`
+      );
     }
   }
 
@@ -200,7 +214,8 @@ const main = async () => {
   const deployments = normalizeDeploymentPayload(payload);
   const policy = JSON.parse(readFileSync(POLICY_PATH, "utf8"));
   const inventory = buildEdgeFunctionInventory(deployments, policy);
-  const result = checkEdgeFunctionInventory(inventory, policy);
+  const required = managedFunctions();
+  const result = checkEdgeFunctionInventory(inventory, policy, required);
 
   console.log("Edge Function Ownership Inventory");
   console.log(
@@ -219,7 +234,7 @@ const main = async () => {
   );
 
   const important = new Set([
-    ...policy.requiredSourceAndDeployment,
+    ...required,
     ...result.sourceOnly,
     ...result.deployedOnly,
   ]);

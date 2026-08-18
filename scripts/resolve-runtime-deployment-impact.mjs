@@ -11,6 +11,7 @@ const POLICY_PATH = resolve(
   "scripts/edge-function-ownership-policy.json"
 );
 const FUNCTIONS_PATH = resolve(ROOT, "supabase/functions");
+const SAFE_FUNCTION_SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
 const normalizePath = (value) =>
   value.replaceAll("\\", "/").replace(/^\.\//, "");
@@ -67,6 +68,10 @@ export const validateManifest = (manifest = readManifest()) => {
         failures.push(`${group.name} has an invalid function declaration`);
         continue;
       }
+      if (!SAFE_FUNCTION_SLUG.test(slug)) {
+        failures.push(`${slug} is not a safe Edge Function slug`);
+        continue;
+      }
       if (seenFunctions.has(slug))
         failures.push(`${slug} is declared in more than one runtime group`);
       seenFunctions.add(slug);
@@ -91,10 +96,14 @@ export const validateManifest = (manifest = readManifest()) => {
     }
   }
 
-  for (const slug of policy.requiredSourceAndDeployment ?? []) {
-    if (!declared.has(slug))
+  for (const slug of Object.keys(policy.exceptionalSourceFunctions ?? {})) {
+    if (!source.has(slug))
       failures.push(
-        `${slug} is required by ownership policy but missing from runtime manifest`
+        `${slug} is classified as an exceptional source function but has no source directory`
+      );
+    if (declared.has(slug))
+      failures.push(
+        `${slug} cannot be both runtime-managed and an exceptional source function`
       );
   }
   return { failures, declaredFunctions: uniqueSorted([...declared]) };
@@ -114,6 +123,7 @@ export const resolveDeploymentImpact = (
   const groups = new Map(
     (manifest.runtimeGroups ?? []).map((group) => [group.name, group])
   );
+  const policy = JSON.parse(readFileSync(POLICY_PATH, "utf8"));
   const affectedGroupNames = new Set();
   const directFunctions = new Set();
   const sharedRuntimePaths = [];
@@ -121,13 +131,19 @@ export const resolveDeploymentImpact = (
   for (const rawPath of changedPaths) {
     const path = normalizePath(rawPath);
     const functionMatch = path.match(/^supabase\/functions\/([^/]+)\//);
-    if (functionMatch && functionMatch[1] !== "_shared") {
+    if (
+      functionMatch &&
+      functionMatch[1] !== "_shared" &&
+      functionMatch[1] !== "audit-fixtures"
+    ) {
       const group = [...groups.values()].find((candidate) =>
         candidate.functions.some((item) => item.slug === functionMatch[1])
       );
       if (group) {
         affectedGroupNames.add(group.name);
         directFunctions.add(functionMatch[1]);
+      } else if (!policy.exceptionalSourceFunctions?.[functionMatch[1]]) {
+        errors.push(`unmanaged Edge Function changed: ${path}`);
       }
       continue;
     }

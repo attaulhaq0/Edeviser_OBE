@@ -67,19 +67,21 @@ jobs:
         run: |
           set -euo pipefail
           supabase functions list --project-ref "$SUPABASE_PROJECT_REF" --output-format json > deployed-functions.json
+          runtime_functions="$(node -e 'const m=require("./scripts/runtime-dependency-manifest.json"); console.log(m.runtimeGroups.flatMap(g => g.functions.map(f => f.slug)).sort().join(" "))')"
           mkdir -p remote-source
-          for function_name in $DEPLOYMENT_CLOSURE; do
-            supabase functions download "$function_name" --project-ref "$SUPABASE_PROJECT_REF" --use-api --workdir remote-source
+          for function_name in $runtime_functions; do
+            supabase functions download "$function_name" --project-ref "$SUPABASE_PROJECT_REF" --use-api --workdir "remote-source/$function_name"
           done
           node scripts/check-edge-function-ownership.mjs --deployed-json deployed-functions.json
           node scripts/attest-edge-deployment.mjs \
             --deployed-json deployed-functions.json \
-            --functions "${DEPLOYMENT_CLOSURE// /,}" \
+            --all-managed \
             --reviewed-sha "${{ github.sha }}" \
             --remote-source-root remote-source \
-            --output edge-deployment-attestation.json
+            --expires-after-days 365 \
+            --output edge-runtime-attestation.json
       - uses: actions/upload-artifact@v7
         with:
-          name: edge-deployment-attestation
-          path: edge-deployment-attestation.json
-          retention-days: 90
+          name: edge-runtime-attestation-snapshot
+          path: edge-runtime-attestation.json
+          retention-days: 365

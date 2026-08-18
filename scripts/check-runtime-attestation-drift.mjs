@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { readdirSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { resolve } from "node:path";
 import { readManifest } from "./resolve-runtime-deployment-impact.mjs";
+import { assertSourceParity } from "./runtime-source-parity.mjs";
+import { assertCumulativeCoverage } from "./runtime-attestation-snapshot.mjs";
 
 const ROOT = resolve(process.cwd());
 const [attestationPath, deploymentPath, remoteSourceRoot] =
@@ -14,62 +14,62 @@ if (!attestationPath || !deploymentPath || !remoteSourceRoot)
   throw new Error(
     "attestation, deployed-inventory, and remote-source paths are required"
   );
-const sha256 = (value) => createHash("sha256").update(value).digest("hex");
-const filesUnder = (path) =>
-  readdirSync(path, { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory()
-      ? filesUnder(join(path, entry.name))
-      : [join(path, entry.name)]
-  );
-const fingerprint = (path) =>
-  sha256(
-    filesUnder(path)
-      .sort()
-      .map((file) => `${relative(path, file)}\0${sha256(readFileSync(file))}`)
-      .join("\n")
-  );
 const attestation = JSON.parse(
   readFileSync(resolve(ROOT, attestationPath), "utf8")
 );
-const deployedPayload = JSON.parse(
+const deploymentsPayload = JSON.parse(
   readFileSync(resolve(ROOT, deploymentPath), "utf8")
 );
-const deployed = Array.isArray(deployedPayload)
-  ? deployedPayload
-  : deployedPayload.functions;
-const groups = new Map(
-  readManifest().runtimeGroups.map((group) => [group.name, group])
+const deployments = Array.isArray(deploymentsPayload)
+  ? deploymentsPayload
+  : deploymentsPayload.functions;
+const definitions = readManifest().runtimeGroups.flatMap((group) =>
+  group.functions.map((definition) => ({
+    ...definition,
+    group: group.name,
+    sharedDependencyPaths: group.sharedDependencyPaths,
+  }))
 );
-for (const record of attestation.records ?? []) {
-  const remote = deployed.find(
+const expectedSlugs = definitions.map((definition) => definition.slug).sort();
+assertCumulativeCoverage(attestation, expectedSlugs);
+if (
+  !attestation.expiresAt ||
+  Number.isNaN(Date.parse(attestation.expiresAt)) ||
+  Date.parse(attestation.expiresAt) <= Date.now()
+) {
+  throw new Error(
+    "attestation is expired or malformed; renew with the reviewed read-only bootstrap workflow"
+  );
+}
+for (const record of attestation.records) {
+  const definition = definitions.find(
+    (entry) => entry.slug === record.functionSlug
+  );
+  const remote = deployments.find(
     (entry) => (entry.slug ?? entry.name) === record.functionSlug
   );
-  if (!remote || remote.status !== "ACTIVE")
+  if (!definition || !remote || remote.status !== "ACTIVE")
     throw new Error(`${record.functionSlug} is missing or inactive`);
   if (
-    remote.verify_jwt !== record.actualVerifyJwt ||
+    remote.verify_jwt !== record.expectedVerifyJwt ||
     remote.ezbr_sha256 !== record.remoteBundleFingerprint
   ) {
     throw new Error(
-      `${record.functionSlug} runtime/source parity drifted from its deployment attestation`
+      `${record.functionSlug} configuration or bundle fingerprint drifted from attestation`
     );
   }
-  if (record.remoteSourceTreeFingerprint) {
-    const downloaded = resolve(
-      ROOT,
-      remoteSourceRoot,
-      "supabase/functions",
-      record.functionSlug
+  const parity = assertSourceParity({
+    slug: record.functionSlug,
+    declaredSharedPaths: definition.sharedDependencyPaths,
+    remoteSourceRoot: resolve(remoteSourceRoot, record.functionSlug),
+  });
+  if (parity.fingerprint !== record.sourceClosureFingerprint)
+    throw new Error(
+      `${record.functionSlug} deployed source differs from its attested reviewed source`
     );
-    if (fingerprint(downloaded) !== record.remoteSourceTreeFingerprint)
-      throw new Error(
-        `${record.functionSlug} deployed source changed after attestation`
-      );
-  }
-  const group = groups.get(record.runtimeGroup);
   const paths = [
     `supabase/functions/${record.functionSlug}`,
-    ...(group?.sharedDependencyPaths ?? []).map((path) =>
+    ...definition.sharedDependencyPaths.map((path) =>
       path.replace(/\/\*\*$/, "")
     ),
   ];
@@ -86,7 +86,5 @@ for (const record of attestation.records ?? []) {
   }
 }
 console.log(
-  `Runtime/source parity: PASS (${
-    attestation.records?.length ?? 0
-  } attested functions)`
+  `Runtime/source parity: PASS (${expectedSlugs.length} governed functions)`
 );

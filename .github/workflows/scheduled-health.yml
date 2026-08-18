@@ -91,7 +91,7 @@ jobs:
           PROJECT_REF: cdlgtbvxlxjpcddjazzx
         run: |
           set -euo pipefail
-          artifact_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=edge-deployment-attestation&per_page=1" --jq '.artifacts[0].id // empty')"
+          artifact_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=edge-runtime-attestation-snapshot&per_page=1" --jq '.artifacts[0].id // empty')"
           if [[ -z "$artifact_id" ]]; then
             echo "::error::No deployment attestation artifact is available; runtime/source parity is unproven"
             exit 1
@@ -100,10 +100,10 @@ jobs:
           unzip -q attestation.zip -d attestation
           supabase functions list --project-ref "$PROJECT_REF" --output-format json > deployed-functions.json
           mkdir -p remote-source
-          jq -r '.records[].functionSlug' attestation/edge-deployment-attestation.json | while read -r function_name; do
-            supabase functions download "$function_name" --project-ref "$PROJECT_REF" --use-api --workdir remote-source
+          jq -r '.governedFunctions[]' attestation/edge-runtime-attestation.json | while read -r function_name; do
+            supabase functions download "$function_name" --project-ref "$PROJECT_REF" --use-api --workdir "remote-source/$function_name"
           done
-          node scripts/check-runtime-attestation-drift.mjs attestation/edge-deployment-attestation.json deployed-functions.json remote-source
+          node scripts/check-runtime-attestation-drift.mjs attestation/edge-runtime-attestation.json deployed-functions.json remote-source
 
       - name: Check storage bucket migrations
         run: |
