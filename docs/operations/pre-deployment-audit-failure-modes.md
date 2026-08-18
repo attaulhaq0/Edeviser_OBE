@@ -8,6 +8,27 @@ For the overall audit how-to, see
 
 ---
 
+## Supabase Preview validation contract
+
+Schema-, migration-, Edge Function-, and RLS-bearing pull requests must be
+validated only against the Git-linked Supabase Preview for that pull request.
+The branch resolver must match both the PR head `git_branch` and its
+`pr_number`; an empty or direct MCP-created development branch is invalid
+evidence and must not be used to reject a forward migration.
+
+Required sequence: local Docker replay, push branch, open PR, wait for the
+Git-linked Preview to reach `FUNCTIONS_DEPLOYED` with migrations applied, run
+Preview RLS/runtime validation, pass exact-head CI, merge, then verify
+Production read-only. After merge or closure, remove unneeded non-main Preview
+branches so they do not accrue cost. Production is never manually modified to
+make Preview validation pass.
+
+Release-critical Preview validation uses the exact `supabase` CLI version in
+`package-lock.json`; `@latest` is not deterministic and must not be used by
+these workflows.
+
+---
+
 ## Stage: `lint`
 
 ### Symptom

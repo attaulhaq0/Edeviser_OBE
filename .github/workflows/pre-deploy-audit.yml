@@ -83,6 +83,23 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+  # Git-linked Previews are required for database-bearing PRs only. Keep
+  # platform/docs-only PRs from waiting for a Preview that Git integration does
+  # not create, while retaining full Preview validation for supabase/** changes.
+  preview-validation-relevance:
+    name: Preview validation relevance
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.filter.outputs.required }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            required:
+              - 'supabase/**'
+
   # ─── Static analysis (fail-fast) ──────────────────────────────────────────
   lint:
     name: Lint
@@ -314,10 +331,18 @@ jobs:
   cron:
     name: Cron Health
     runs-on: ubuntu-latest
-    needs: [build, preflight]
-    if: needs.preflight.outputs.supabase_available == 'true'
+    needs: [build, preflight, preview-validation-relevance]
+    if: >-
+      always() && needs.preflight.outputs.supabase_available == 'true' &&
+      (github.event_name != 'pull_request' || needs.preview-validation-relevance.outputs.required == 'true')
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      # Use the project-pinned CLI for reproducible Preview deployments.
+      - run: npm ci
       - name: Resolve Supabase Preview branch and deploy Cron dependencies
         if: github.event_name == 'pull_request'
         shell: bash
@@ -333,29 +358,40 @@ jobs:
             exit 1
           fi
 
-          branches=$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches")
-          preview_ref=$(jq -r \
-            --arg branch "$SUPABASE_PREVIEW_BRANCH" \
-            --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
-            '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | .project_ref][0] // empty' \
-            <<< "$branches")
-          if [[ -z "$preview_ref" || "$preview_ref" == "null" ]]; then
-            echo "::error::No isolated Supabase Preview branch was found for Cron Health"
-            exit 1
-          fi
+          preview_ref=""
+          preview_status=""
+          for attempt in $(seq 1 60); do
+            if ! branches=$(curl --fail --silent --show-error \
+              --connect-timeout 5 --max-time 20 \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches"); then
+              echo "::warning::Supabase Preview branch lookup attempt $attempt failed; retrying"
+              branches='[]'
+            fi
+            preview=$(jq -c \
+              --arg branch "$SUPABASE_PREVIEW_BRANCH" \
+              --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
+              '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | {project_ref, status}][0] // {}' \
+              <<< "$branches")
+            preview_ref=$(jq -r '.project_ref // empty' <<< "$preview")
+            preview_status=$(jq -r '.status // empty' <<< "$preview")
+            if [[ -n "$preview_ref" && "$preview_status" == "FUNCTIONS_DEPLOYED" ]]; then
+              echo "Supabase Preview deployment is complete"
+              break
+            fi
+            if [[ "$attempt" -eq 60 ]]; then
+              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED for Cron Health: no valid Git-linked branch (git_branch + pr_number); direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
+              exit 1
+            fi
+            echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
+            sleep 10
+          done
 
-          npx supabase@latest functions deploy \
+          npx supabase functions deploy \
             agent-worker compute-at-risk-signals exam-period-notify \
             leaderboard-refresh notification-digest perfect-day-prompt \
             process-streak streak-risk-cron health weekly-summary-cron \
             --project-ref "$preview_ref" --use-api --yes
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: ${{ env.NODE_VERSION_FILE }}
-          cache: npm
-      - run: npm ci
       - name: Resolve current Vercel Preview for pull request
         if: github.event_name == 'pull_request'
         shell: bash
@@ -563,7 +599,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           AUDIT_ENV: ${{ env.AUDIT_ENV }}
           REQUIRED_AUDIT_STAGE_RESULTS: >-
-            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ needs.cron.result }}"}
+            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required != 'true' && 'success' || needs.cron.result }}"}
 
       - uses: actions/upload-artifact@v7
         if: always()

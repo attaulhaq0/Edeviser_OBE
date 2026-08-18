@@ -33,6 +33,14 @@ Run in order before any PR:
 2. `npx tsc --noEmit` — TypeScript type checking
 3. `npm test` — Vitest test suite (runs `vitest --run`)
 
+## Supabase Preview Validation Contract
+
+- Schema, migration, Edge Function, and RLS PR validation uses only the Git-linked Supabase Preview created for the pull-request branch.
+- A valid Preview must match both `git_branch ==` the PR head branch and `pr_number ==` the current PR number.
+- Direct MCP-created development branches are never evidence for required PR schema validation unless explicitly authorized as a separate experiment. An empty direct Preview cannot invalidate a forward migration.
+- Required schema-bearing sequence: local Docker replay → push branch → open PR → wait for the Git-linked Preview → verify `FUNCTIONS_DEPLOYED` and migrations → Preview RLS/runtime validation → exact-head CI → merge → read-only Production verification.
+- After merge or closure, verify no unneeded non-main Supabase branches remain and delete stale branches to prevent cost. Never manually modify Production to make Preview validation pass.
+
 ## Do Not Modify
 
 - `supabase/migrations/` — managed via Supabase MCP, not manually
