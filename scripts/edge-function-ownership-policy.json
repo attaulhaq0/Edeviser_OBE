@@ -1,16 +1,5 @@
 {
-  "version": 1,
-  "requiredSourceAndDeployment": [
-    "accept-invitation",
-    "agent-worker",
-    "agent-orchestrator",
-    "bootstrap-first-admin",
-    "chat-with-tutor",
-    "embed-course-material",
-    "invitation-preview",
-    "resend-webhook",
-    "send-invitation-email"
-  ],
+  "version": 2,
   "allowedDrift": {
     "sourceOnly": ["coordinator-ai-insights"],
     "deployedOnly": ["fee-overdue-check"]
@@ -18,5 +7,8 @@
   "legacy": {
     "coordinator-ai-insights": "Frontend consumers are fail-soft and generation uses the canonical server-side DeepSeek AIProvider when enabled.",
     "fee-overdue-check": "Deployed without repository source; the current repository retains only the database-scheduled overdue-fee path. Do not redeploy from an unknown source."
+  },
+  "exceptionalSourceFunctions": {
+    "coordinator-ai-insights": "Source-only legacy exception: intentionally outside runtime deployment governance while its frontend consumers remain fail-soft."
   }
 }
