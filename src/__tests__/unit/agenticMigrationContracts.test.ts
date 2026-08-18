@@ -37,6 +37,10 @@ const interventionFeedbackMigration = readFileSync(
   "supabase/migrations/20260830000002_measured_intervention_learning_state_feedback.sql",
   "utf8"
 );
+const measurementTriggerPrivilegeMigration = readFileSync(
+  "supabase/migrations/20260830000007_restrict_measurement_trigger_execute.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -277,6 +281,15 @@ describe("agentic migration contracts", () => {
     );
     expect(interventionFeedbackMigration).toMatch(
       /REVOKE ALL[\s\S]*PUBLIC, anon, authenticated[\s\S]*GRANT EXECUTE[\s\S]*TO service_role/
+    );
+  });
+
+  it("keeps the internal measurement-state trigger off every direct RPC surface", () => {
+    expect(measurementTriggerPrivilegeMigration).toMatch(
+      /REVOKE ALL ON FUNCTION public\.sync_learning_state_measurements_v1\(\)[\s\S]*FROM PUBLIC, anon, authenticated, service_role/
+    );
+    expect(measurementTriggerPrivilegeMigration).not.toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.sync_learning_state_measurements_v1\(\)/
     );
   });
 });
