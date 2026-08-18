@@ -21,3 +21,25 @@ export const extractCitationMarkers = (text: string): number[] => {
 
   return Array.from(numbers).sort((a, b) => a - b);
 };
+
+export interface CitationValidation {
+  valid: boolean;
+  markers: number[];
+  invalidMarkers: number[];
+}
+
+/** Validate model markers against the server-authorized ordered evidence set. */
+export const validateCitationMarkers = (
+  text: string,
+  authorizedCitationCount: number
+): CitationValidation => {
+  const markers = extractCitationMarkers(text);
+  const invalidMarkers = markers.filter(
+    (marker) => marker > authorizedCitationCount
+  );
+  return {
+    valid: invalidMarkers.length === 0,
+    markers,
+    invalidMarkers,
+  };
+};

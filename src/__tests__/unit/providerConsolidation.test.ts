@@ -61,8 +61,8 @@ describe("strict provider consolidation", () => {
     );
     expect(functions).toMatch(/createAIProvider/);
     expect(tutor).toMatch(/createAIProvider/);
-    expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
-    expect(embed).toMatch(/createSupabaseEmbeddingProvider/);
+    expect(tutor).toMatch(/createConfiguredEmbeddingProvider/);
+    expect(embed).toMatch(/createConfiguredEmbeddingProvider/);
   });
 
   it("keeps vendor selection inside the canonical provider composition root", () => {
@@ -89,7 +89,7 @@ describe("strict provider consolidation", () => {
       "supabase/functions/chat-with-tutor/index.ts",
       "utf8"
     );
-    expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
+    expect(tutor).toMatch(/createConfiguredEmbeddingProvider/);
     expect(tutor).toMatch(/continuing without RAG context/i);
     expect(tutor).not.toMatch(/OPENAI_API_KEY/);
     expect(tutor).toMatch(/PERSONA_PROMPTS/);

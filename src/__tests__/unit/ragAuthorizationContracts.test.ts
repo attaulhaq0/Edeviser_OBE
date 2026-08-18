@@ -94,7 +94,7 @@ describe("RAG authorization contract", () => {
       "authenticateRequest(req)"
     );
     const replacementIndex = embedFunction.indexOf(
-      'rpc("replace_course_material_embeddings_v2"'
+      "await supabase.rpc(replacementRpc"
     );
     const sourceAuthorizationIndex = embedFunction.indexOf(
       "const sourceMaterialAuthorized"
@@ -106,6 +106,8 @@ describe("RAG authorization contract", () => {
     expect(downloadIndex).toBeGreaterThanOrEqual(0);
     expect(authenticationIndex).toBeLessThan(replacementIndex);
     expect(sourceAuthorizationIndex).toBeLessThan(downloadIndex);
+    expect(embedFunction).toContain("replace_course_material_embeddings_v2");
+    expect(embedFunction).toContain("replace_course_material_embeddings_v3");
     expect(embedFunction).not.toMatch(
       /from\("course_material_embeddings"\)[\s\S]{0,120}\.delete\(\)/
     );

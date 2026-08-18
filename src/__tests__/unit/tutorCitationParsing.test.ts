@@ -1,6 +1,9 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from "vitest";
-import { extractCitationMarkers } from "@/lib/tutorCitationParser";
+import {
+  extractCitationMarkers,
+  validateCitationMarkers,
+} from "@/lib/tutorCitationParser";
 
 describe("extractCitationMarkers", () => {
   it("returns empty array for text with no citations", () => {
@@ -78,5 +81,23 @@ describe("extractCitationMarkers", () => {
   it("handles adjacent citations without spaces", () => {
     const text = "Multiple sources[1][2][3] confirm this.";
     expect(extractCitationMarkers(text)).toEqual([1, 2, 3]);
+  });
+});
+
+describe("validateCitationMarkers", () => {
+  it("accepts only markers present in the authorized evidence set", () => {
+    expect(validateCitationMarkers("Use this [1] and that [2].", 2)).toEqual({
+      valid: true,
+      markers: [1, 2],
+      invalidMarkers: [],
+    });
+  });
+
+  it("rejects hallucinated citation indexes", () => {
+    expect(validateCitationMarkers("Unsupported claim [3].", 2)).toEqual({
+      valid: false,
+      markers: [3],
+      invalidMarkers: [3],
+    });
   });
 });

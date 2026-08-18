@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { EmbeddingProviderError } from "../../../supabase/functions/_shared/ai/embedding";
 import { createSupabaseEmbeddingProvider } from "../../../supabase/functions/_shared/ai/providers/supabase-embedding";
+import { createHttpEmbeddingProvider } from "../../../supabase/functions/_shared/ai/providers/http-embedding";
 
 describe("Supabase-native EmbeddingProvider", () => {
   it("publishes explicit versioned metadata and normalized 384-d vectors", async () => {
@@ -19,6 +20,7 @@ describe("Supabase-native EmbeddingProvider", () => {
       version: 2,
       maxInputTokens: 512,
       languageSupport: "english_only",
+      normalized: true,
     });
     expect(response.vectors[0]).toHaveLength(384);
     expect(run).toHaveBeenCalledWith("authorized course text", {
@@ -36,6 +38,56 @@ describe("Supabase-native EmbeddingProvider", () => {
     );
     await expect(provider.embed({ inputs: [" "] })).rejects.toMatchObject({
       kind: "invalid_input",
+    });
+  });
+
+  it("supports the explicit multilingual HTTP contract without enabling it by default", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ embeddings: [
+        Array.from({ length: 1024 }, () => 0.25),
+        Array.from({ length: 1024 }, () => 0.25),
+      ] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    const provider = createHttpEmbeddingProvider({
+      endpoint: "https://embedding.internal/v1/embed",
+      apiKey: "test-only",
+      fetchImpl,
+    });
+
+    const response = await provider.embed({ inputs: ["اختبار عربي", "English retrieval"] });
+
+    expect(response.metadata).toMatchObject({
+      provider: "self_hosted_http",
+      model: "BAAI/bge-m3",
+      dimensions: 1024,
+      version: 3,
+      maxInputTokens: 8192,
+      languageSupport: "multilingual",
+      normalized: true,
+    });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://embedding.internal/v1/embed",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer test-only" }),
+        body: JSON.stringify({ inputs: ["اختبار عربي", "English retrieval"] }),
+      })
+    );
+    expect(response.vectors).toHaveLength(2);
+  });
+
+  it("fails closed when the multilingual endpoint returns an incompatible shape", async () => {
+    const provider = createHttpEmbeddingProvider({
+      endpoint: "https://embedding.internal/v1/embed",
+      fetchImpl: vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify({ embeddings: [[1, 2, 3]] }), { status: 200 })
+      ),
+    });
+    await expect(provider.embed({ inputs: ["text"] })).rejects.toMatchObject({
+      kind: "invalid_output",
     });
   });
 });
