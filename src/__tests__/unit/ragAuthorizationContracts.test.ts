@@ -94,7 +94,7 @@ describe("RAG authorization contract", () => {
       "authenticateRequest(req)"
     );
     const replacementIndex = embedFunction.indexOf(
-      'rpc("replace_course_material_embeddings_v2"'
+      "await supabase.rpc(replacementRpc"
     );
     const sourceAuthorizationIndex = embedFunction.indexOf(
       "const sourceMaterialAuthorized"
@@ -106,6 +106,8 @@ describe("RAG authorization contract", () => {
     expect(downloadIndex).toBeGreaterThanOrEqual(0);
     expect(authenticationIndex).toBeLessThan(replacementIndex);
     expect(sourceAuthorizationIndex).toBeLessThan(downloadIndex);
+    expect(embedFunction).toContain("replace_course_material_embeddings_v2");
+    expect(embedFunction).toContain("replace_course_material_embeddings_v3");
     expect(embedFunction).not.toMatch(
       /from\("course_material_embeddings"\)[\s\S]{0,120}\.delete\(\)/
     );
@@ -120,5 +122,16 @@ describe("RAG authorization contract", () => {
     expect(tutorFunction).toMatch(/CLO scope is outside this course/);
     expect(tutorFunction).not.toMatch(/user\.app_metadata\?\./);
     expect(tutorFunction).not.toMatch(/user\.user_metadata\?\./);
+  });
+
+  it("fails closed instead of generating uncited course answers without evidence", () => {
+    expect(tutorFunction).toContain('code: unavailable ? "RAG_UNAVAILABLE"');
+    expect(tutorFunction).toContain('"NO_AUTHORIZED_EVIDENCE"');
+    expect(tutorFunction).toMatch(
+      /if \(courseId && retrievedChunks\.length === 0\)[\s\S]*return new Response/
+    );
+    expect(tutorFunction.indexOf("NO_AUTHORIZED_EVIDENCE")).toBeLessThan(
+      tutorFunction.indexOf("const provider = createAIProvider")
+    );
   });
 });
