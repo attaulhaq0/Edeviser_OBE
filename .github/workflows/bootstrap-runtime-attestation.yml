@@ -1,0 +1,56 @@
+name: Bootstrap Edge Runtime Attestation (read-only)
+
+# Safe, manual provenance bootstrap/renewal. This workflow never deploys a
+# function or changes Supabase data; it fails rather than blessing any drift.
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: bootstrap-edge-runtime-attestation-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  attest:
+    name: Read-only Production runtime attestation
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: cdlgtbvxlxjpcddjazzx
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Verify reviewed main and read-only credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main" || { echo "::error::bootstrap must run from reviewed main"; exit 1; }
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN is not configured for production"; exit 1; }
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.114.0
+      - name: Download and attest the complete governed runtime snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase functions list --project-ref "$SUPABASE_PROJECT_REF" --output json > deployed-functions.json
+          node scripts/check-edge-function-ownership.mjs --deployed-json deployed-functions.json
+          node scripts/download-managed-runtime-source.mjs \
+            --project-ref "$SUPABASE_PROJECT_REF" --output-root remote-source
+          node scripts/attest-edge-deployment.mjs \
+            --deployed-json deployed-functions.json \
+            --all-managed \
+            --reviewed-sha "${GITHUB_SHA}" \
+            --remote-source-root remote-source \
+            --expires-after-days 90 \
+            --output edge-runtime-attestation.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: edge-runtime-attestation-snapshot
+          path: edge-runtime-attestation.json
+          retention-days: 90
