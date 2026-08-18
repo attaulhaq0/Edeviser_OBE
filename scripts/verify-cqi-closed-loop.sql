@@ -63,6 +63,30 @@ INSERT INTO public.agent_action_proposals (
   repeat('c', 64), now() + interval '1 day', now(), '82000000-0000-4000-8000-000000000001'
 );
 
+INSERT INTO public.agent_action_proposals (
+  id, run_id, actor_user_id, institution_id, program_id, action_type, tool_version, payload,
+  reason, evidence_references, evidence_hash, required_approver_role, required_approver_user_id,
+  status, idempotency_key, expires_at, decided_at, decided_by
+)
+SELECT
+  '89000000-0000-4000-8000-000000000002', run_id, actor_user_id, institution_id, program_id,
+  action_type, tool_version, payload - 'responsiblePerson', reason, evidence_references,
+  evidence_hash, required_approver_role, required_approver_user_id, status, repeat('d', 64),
+  expires_at, decided_at, decided_by
+FROM public.agent_action_proposals
+WHERE id = '89000000-0000-4000-8000-000000000001';
+
+DO $missing_payload_key$
+BEGIN
+  PERFORM public.execute_approved_cqi_action_v1(
+    '89000000-0000-4000-8000-000000000002', '82000000-0000-4000-8000-000000000001'
+  );
+  RAISE EXCEPTION 'Missing CQI proposal payload key was accepted';
+EXCEPTION WHEN SQLSTATE '22023' THEN
+  IF SQLERRM <> 'Invalid CQI proposal contract' THEN RAISE; END IF;
+END;
+$missing_payload_key$;
+
 SET LOCAL session_replication_role = origin;
 
 INSERT INTO public.outcome_attainment (outcome_id, student_id, course_id, scope, attainment_percent, sample_count, last_calculated_at) VALUES
@@ -137,7 +161,6 @@ $insufficient$;
 UPDATE public.outcome_attainment
 SET student_id = CASE student_id
   WHEN '82000000-0000-4000-8000-000000000003'::uuid THEN '82000000-0000-4000-8000-000000000006'::uuid
-  WHEN '82000000-0000-4000-8000-000000000004'::uuid THEN '82000000-0000-4000-8000-000000000007'::uuid
 END,
     attainment_percent = 90,
     last_calculated_at = '2026-08-26T12:00:00Z'
@@ -152,6 +175,8 @@ BEGIN
   );
   IF v_result->>'evaluationState' <> 'INSUFFICIENT_EVIDENCE'
     OR v_result->>'delta' IS NOT NULL
+    OR v_result->>'postActionMetric' IS NOT NULL
+    OR v_result->>'postActionSampleCount' IS NOT NULL
   THEN RAISE EXCEPTION 'An equal-sized but incompatible CQI population produced a comparable outcome'; END IF;
 END;
 $incompatible_population$;

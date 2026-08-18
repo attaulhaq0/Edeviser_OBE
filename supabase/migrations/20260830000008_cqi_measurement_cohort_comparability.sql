@@ -70,6 +70,7 @@ BEGIN
   END IF;
   IF jsonb_typeof(v_proposal.payload) <> 'object'
     OR v_proposal.payload - ARRAY['systemicPatternId', 'semesterId', 'targetAttainment', 'actionDescription', 'responsiblePerson'] <> '{}'::jsonb
+    OR NOT (v_proposal.payload ?& ARRAY['systemicPatternId', 'semesterId', 'targetAttainment', 'actionDescription', 'responsiblePerson'])
     OR jsonb_typeof(v_proposal.payload->'systemicPatternId') <> 'string'
     OR jsonb_typeof(v_proposal.payload->'semesterId') <> 'string'
     OR jsonb_typeof(v_proposal.payload->'targetAttainment') <> 'number'
@@ -243,6 +244,7 @@ BEGIN
     OR v_post_fingerprint IS DISTINCT FROM v_measurement.cohort_fingerprint
     OR v_post_metric IS NULL THEN
     v_state := 'INSUFFICIENT_EVIDENCE'; v_delta := NULL;
+    v_post_metric := NULL; v_post_sample := NULL;
   ELSE
     v_delta := round(v_post_metric - v_measurement.baseline_metric, 2);
     IF v_delta >= v_measurement.material_change THEN v_state := 'IMPROVED';
