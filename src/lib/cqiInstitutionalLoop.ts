@@ -250,6 +250,8 @@ export interface CqiMeasurementContext {
   measurementMethodVersion: string;
   cohortSemantics: string;
   denominatorSemantics: string;
+  /** Deterministic identity of the eligible student population, not its size. */
+  populationFingerprint: string;
   evidenceCount: number;
   minimumEvidenceCount: number;
 }
@@ -264,7 +266,8 @@ const sameScope = (
   before.outcomeId === after.outcomeId &&
   before.measurementMethodVersion === after.measurementMethodVersion &&
   before.cohortSemantics === after.cohortSemantics &&
-  before.denominatorSemantics === after.denominatorSemantics;
+  before.denominatorSemantics === after.denominatorSemantics &&
+  before.populationFingerprint === after.populationFingerprint;
 
 /** Rejects an official CQI comparison unless its scope and evidence are compatible. */
 export const measureComparableCqiEffect = (

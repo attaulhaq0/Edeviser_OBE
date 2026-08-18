@@ -190,6 +190,7 @@ describe("CQI institutional closed loop", () => {
       measurementMethodVersion: "attainment-v1",
       cohortSemantics: "enrolled-students",
       denominatorSemantics: "students-with-evidence",
+      populationFingerprint: "sha256:cohort-a",
       evidenceCount: 5,
       minimumEvidenceCount: 5,
     };
@@ -219,6 +220,13 @@ describe("CQI institutional closed loop", () => {
       measureComparableCqiEffect(input, before, {
         ...before,
         denominatorSemantics: "all-enrolled",
+      }).state
+    ).toBe("INSUFFICIENT_EVIDENCE");
+    expect(
+      measureComparableCqiEffect(input, before, {
+        ...before,
+        // Equal counts are not comparable when the actual population changed.
+        populationFingerprint: "sha256:different-students",
       }).state
     ).toBe("INSUFFICIENT_EVIDENCE");
     expect(
