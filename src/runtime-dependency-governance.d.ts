@@ -8,7 +8,7 @@ declare module "*resolve-runtime-deployment-impact.mjs" {
     name: string;
     deploymentOwner: string;
     functions: RuntimeFunctionDeclaration[];
-    sharedDependencyPaths: string[];
+    runtimeDependencyPaths: string[];
   }
 
   export interface RuntimeManifest {
@@ -65,13 +65,39 @@ declare module "*check-migration-ledger.mjs" {
 declare module "*runtime-source-parity.mjs" {
   export function declaredLocalSourceClosure(
     slug: string,
-    declaredSharedPaths: string[]
+    runtimeDependencyPaths: string[]
   ): Map<string, string>;
   export function assertSourceParity(input: {
     slug: string;
-    declaredSharedPaths: string[];
+    runtimeDependencyPaths: string[];
     remoteSourceRoot: string;
   }): { fingerprint: string; files: string[] };
+  export function relativeImportSpecifiers(source: string): string[];
+}
+
+declare module "*runtime-dependency-paths.mjs" {
+  export function isRuntimeDependencyPath(path: string): boolean;
+  export function matchesRuntimeDependencyPath(
+    candidate: string,
+    declaration: string
+  ): boolean;
+}
+
+declare module "*resolve-production-base-sha.mjs" {
+  export function selectProductionBaseSha(input: {
+    before: string;
+    head: string;
+    resolveCommit: (revision: string) => string;
+  }): string;
+}
+
+declare module "*download-managed-runtime-source.mjs" {
+  export function managedRuntimeSlugs(): string[];
+  export function prepareFunctionDownloadWorkdir(
+    outputRoot: string,
+    projectRef: string,
+    slug: string
+  ): string;
 }
 
 declare module "*runtime-attestation-snapshot.mjs" {

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "description": "Canonical deployment dependencies for governed Edge runtime groups. Any direct change to an undeclared Edge Function fails closed until it is governed or explicitly classified as an exceptional legacy function.",
   "runtimeGroups": [
     {
@@ -12,7 +12,7 @@
         { "slug": "agent-worker", "verifyJwt": false },
         { "slug": "agent-orchestrator", "verifyJwt": true }
       ],
-      "sharedDependencyPaths": [
+      "runtimeDependencyPaths": [
         "supabase/functions/_shared/ai/**",
         "supabase/functions/_shared/auth.ts",
         "supabase/functions/_shared/serverSecret.ts",
@@ -30,7 +30,7 @@
         { "slug": "resend-webhook", "verifyJwt": false },
         { "slug": "send-invitation-email", "verifyJwt": true }
       ],
-      "sharedDependencyPaths": [
+      "runtimeDependencyPaths": [
         "supabase/functions/_shared/auth.ts",
         "supabase/functions/_shared/invitation.ts",
         "supabase/functions/_shared/serverSecret.ts"

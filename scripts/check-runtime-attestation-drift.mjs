@@ -23,11 +23,13 @@ const deploymentsPayload = JSON.parse(
 const deployments = Array.isArray(deploymentsPayload)
   ? deploymentsPayload
   : deploymentsPayload.functions;
+if (!Array.isArray(deployments))
+  throw new Error("deployed JSON has no functions array");
 const definitions = readManifest().runtimeGroups.flatMap((group) =>
   group.functions.map((definition) => ({
     ...definition,
     group: group.name,
-    sharedDependencyPaths: group.sharedDependencyPaths,
+    runtimeDependencyPaths: group.runtimeDependencyPaths ?? [],
   }))
 );
 const expectedSlugs = definitions.map((definition) => definition.slug).sort();
@@ -60,7 +62,7 @@ for (const record of attestation.records) {
   }
   const parity = assertSourceParity({
     slug: record.functionSlug,
-    declaredSharedPaths: definition.sharedDependencyPaths,
+    runtimeDependencyPaths: definition.runtimeDependencyPaths,
     remoteSourceRoot: resolve(remoteSourceRoot, record.functionSlug),
   });
   if (parity.fingerprint !== record.sourceClosureFingerprint)
@@ -69,7 +71,7 @@ for (const record of attestation.records) {
     );
   const paths = [
     `supabase/functions/${record.functionSlug}`,
-    ...definition.sharedDependencyPaths.map((path) =>
+    ...definition.runtimeDependencyPaths.map((path) =>
       path.replace(/\/\*\*$/, "")
     ),
   ];

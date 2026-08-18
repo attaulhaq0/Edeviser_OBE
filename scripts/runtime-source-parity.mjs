@@ -1,11 +1,35 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { matchesRuntimeDependencyPath } from "./runtime-dependency-paths.mjs";
 
-const ROOT = resolve(process.cwd());
+const ROOT = (() => {
+  try {
+    return resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  } catch {
+    return resolve(process.cwd());
+  }
+})();
 const FUNCTION_ROOT = resolve(ROOT, "supabase/functions");
-const IMPORT_PATTERN = /(?:from\s*|import\s*)["']([^"']+)["']/g;
+const IMPORT_PATTERN =
+  /^\s*(?:import\s*(?:type\s*)?(?:[\s\S]*?\sfrom\s*)?|export\s*(?:type\s*)?(?:[\s\S]*?\sfrom\s*)?)["']([^"']+)["']/gm;
+const DYNAMIC_IMPORT_PATTERN = /\bimport\s*\(\s*["']([^"']+)["']/g;
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+
+const stripComments = (source) =>
+  source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, (comment) =>
+    comment.replace(/[^\r\n]/g, " ")
+  );
+
+export const relativeImportSpecifiers = (source) =>
+  [
+    ...stripComments(source).matchAll(IMPORT_PATTERN),
+    ...stripComments(source).matchAll(DYNAMIC_IMPORT_PATTERN),
+  ]
+    .sort((a, b) => a.index - b.index)
+    .map((match) => match[1])
+    .filter((specifier) => specifier?.startsWith("."));
 
 const walkFiles = (path) =>
   readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
@@ -27,7 +51,7 @@ const resolveRelativeImport = (fromPath, specifier) => {
   );
 };
 
-export const declaredLocalSourceClosure = (slug, declaredSharedPaths) => {
+export const declaredLocalSourceClosure = (slug, runtimeDependencyPaths) => {
   const entrypoint = resolve(FUNCTION_ROOT, slug, "index.ts");
   if (!existsSync(entrypoint)) throw new Error(`${slug} entrypoint is missing`);
   const files = new Set();
@@ -35,9 +59,7 @@ export const declaredLocalSourceClosure = (slug, declaredSharedPaths) => {
     if (files.has(file)) return;
     files.add(file);
     const source = readFileSync(file, "utf8");
-    for (const match of source.matchAll(IMPORT_PATTERN)) {
-      const specifier = match[1];
-      if (!specifier?.startsWith(".")) continue;
+    for (const specifier of relativeImportSpecifiers(source)) {
       const dependency = resolveRelativeImport(file, specifier);
       if (!dependency)
         throw new Error(
@@ -47,12 +69,15 @@ export const declaredLocalSourceClosure = (slug, declaredSharedPaths) => {
         );
       if (
         !dependency.startsWith(resolve(FUNCTION_ROOT, slug)) &&
-        !declaredSharedPaths.some((path) =>
-          dependency.startsWith(resolve(ROOT, path.replace(/\/\*\*$/, "")))
+        !runtimeDependencyPaths.some((path) =>
+          matchesRuntimeDependencyPath(
+            `supabase/${localLogicalPath(dependency)}`,
+            path
+          )
         )
       ) {
         throw new Error(
-          `${slug} imports undeclared shared dependency ${localLogicalPath(
+          `${slug} imports undeclared runtime dependency ${localLogicalPath(
             dependency
           )}`
         );
@@ -87,9 +112,7 @@ export const downloadedRemoteSourceClosure = (remoteSourceRoot, slug) => {
     if (closure.has(file)) return;
     closure.add(file);
     const source = readFileSync(file, "utf8");
-    for (const match of source.matchAll(IMPORT_PATTERN)) {
-      const specifier = match[1];
-      if (!specifier?.startsWith(".")) continue;
+    for (const specifier of relativeImportSpecifiers(source)) {
       const dependency = resolveRelativeImport(file, specifier);
       if (!dependency)
         throw new Error(
@@ -111,17 +134,17 @@ export const downloadedRemoteSourceClosure = (remoteSourceRoot, slug) => {
 export const sourceClosureFingerprint = (closure) =>
   sha256(
     [...closure.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
       .map(([path, source]) => `${path}\0${sha256(source)}`)
       .join("\n")
   );
 
 export const assertSourceParity = ({
   slug,
-  declaredSharedPaths,
+  runtimeDependencyPaths,
   remoteSourceRoot,
 }) => {
-  const local = declaredLocalSourceClosure(slug, declaredSharedPaths);
+  const local = declaredLocalSourceClosure(slug, runtimeDependencyPaths);
   const remote = downloadedRemoteSourceClosure(remoteSourceRoot, slug);
   const missingRemote = [...local.keys()].filter((path) => !remote.has(path));
   const unexpectedRemote = [...remote.keys()].filter(

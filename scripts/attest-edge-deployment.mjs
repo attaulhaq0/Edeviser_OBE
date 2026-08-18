@@ -7,14 +7,19 @@ import { assertSourceParity } from "./runtime-source-parity.mjs";
 
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
-const value = (name) => args[args.indexOf(name) + 1] ?? "";
+const value = (name) => {
+  const index = args.indexOf(name);
+  return index === -1 ? "" : args[index + 1] ?? "";
+};
 const deployedPath = value("--deployed-json");
 const output = value("--output") || "edge-runtime-attestation.json";
 const reviewedSha = value("--reviewed-sha");
 const remoteSourceRoot = value("--remote-source-root");
-const expiresAfterDays = Number(value("--expires-after-days") || "365");
+const expiresAfterDays = Number(value("--expires-after-days") || "90");
 const allManaged = args.includes("--all-managed");
-const selected = value("--functions").split(",").filter(Boolean).sort();
+const selected = [
+  ...new Set(value("--functions").split(",").filter(Boolean)),
+].sort();
 if (
   !deployedPath ||
   !reviewedSha ||
@@ -28,16 +33,16 @@ if (
 if (
   !Number.isInteger(expiresAfterDays) ||
   expiresAfterDays < 1 ||
-  expiresAfterDays > 365
+  expiresAfterDays > 90
 ) {
-  throw new Error("--expires-after-days must be an integer from 1 to 365");
+  throw new Error("--expires-after-days must be an integer from 1 to 90");
 }
 const manifest = readManifest();
 const definitions = manifest.runtimeGroups.flatMap((group) =>
   group.functions.map((definition) => ({
     ...definition,
     group: group.name,
-    sharedDependencyPaths: group.sharedDependencyPaths,
+    runtimeDependencyPaths: group.runtimeDependencyPaths ?? [],
   }))
 );
 const slugs = allManaged
@@ -48,7 +53,9 @@ const inventoryPayload = JSON.parse(
 );
 const inventory = Array.isArray(inventoryPayload)
   ? inventoryPayload
-  : inventoryPayload.functions;
+  : inventoryPayload?.functions;
+if (!Array.isArray(inventory))
+  throw new Error("deployed JSON has no functions array");
 const records = slugs.map((slug) => {
   const definition = definitions.find((entry) => entry.slug === slug);
   const remote = inventory.find((entry) => (entry.slug ?? entry.name) === slug);
@@ -66,7 +73,7 @@ const records = slugs.map((slug) => {
   }
   const parity = assertSourceParity({
     slug,
-    declaredSharedPaths: definition.sharedDependencyPaths,
+    runtimeDependencyPaths: definition.runtimeDependencyPaths,
     remoteSourceRoot: resolve(remoteSourceRoot, slug),
   });
   return {
@@ -93,9 +100,7 @@ writeFileSync(
       schemaVersion: 2,
       attestedAt: attestedAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
-      governedFunctions: definitions
-        .map((definition) => definition.slug)
-        .sort(),
+      governedFunctions: records.map((record) => record.functionSlug).sort(),
       records,
     },
     null,

@@ -86,5 +86,7 @@ jobs:
 
       - name: Confirm local head == remote ledger after push
         run: |
-          supabase migration list --linked --output json > remote-migrations.json
+          supabase db query --linked --output json \
+            "select version from supabase_migrations.schema_migrations order by version" \
+            > remote-migrations.json
           node scripts/check-migration-ledger.mjs remote-migrations.json

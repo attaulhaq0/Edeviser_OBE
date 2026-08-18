@@ -28,7 +28,11 @@ export const repositoryMigrationLedger = (files) => {
 
 export const remoteMigrationLedger = (payload) => {
   const parsed = typeof payload === "string" ? JSON.parse(payload) : payload;
-  const entries = Array.isArray(parsed) ? parsed : parsed?.migrations;
+  const entries = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed?.migrations)
+    ? parsed.migrations
+    : parsed?.rows;
   if (!Array.isArray(entries))
     throw new Error("migration payload has no migrations array");
   const malformed = [];
@@ -95,8 +99,10 @@ export const compareMigrationLedgers = (expected, actual) => {
   return { failures, expectedHead, actualHead, missing, unexpected };
 };
 
-const path = process.argv[2];
-if (path) {
+const main = () => {
+  const path = process.argv[2];
+  if (!path)
+    throw new Error("a machine-readable migration ledger path is required");
   const expected = repositoryMigrationLedger(
     readdirSync(resolve(ROOT, "supabase/migrations"))
   );
@@ -110,4 +116,6 @@ if (path) {
     process.exit(1);
   }
   console.log(`Migration ledger parity: PASS (${result.expectedHead})`);
-}
+};
+
+if (process.argv[1]?.endsWith("check-migration-ledger.mjs")) main();
