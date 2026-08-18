@@ -83,6 +83,23 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+  # Git-linked Previews are required for database-bearing PRs only. Keep
+  # platform/docs-only PRs from waiting for a Preview that Git integration does
+  # not create, while retaining full Preview validation for supabase/** changes.
+  preview-validation-relevance:
+    name: Preview validation relevance
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.filter.outputs.required }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            required:
+              - 'supabase/**'
+
   # ─── Static analysis (fail-fast) ──────────────────────────────────────────
   lint:
     name: Lint
@@ -314,8 +331,10 @@ jobs:
   cron:
     name: Cron Health
     runs-on: ubuntu-latest
-    needs: [build, preflight]
-    if: needs.preflight.outputs.supabase_available == 'true'
+    needs: [build, preflight, preview-validation-relevance]
+    if: >-
+      always() && needs.preflight.outputs.supabase_available == 'true' &&
+      (github.event_name != 'pull_request' || needs.preview-validation-relevance.outputs.required == 'true')
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
