@@ -144,9 +144,8 @@ describe("agentic migration contracts", () => {
       "utf8"
     );
     expect(embedFunction).not.toContain(".delete()");
-    expect(
-      embedFunction.match(/replace_course_material_embeddings_v2/g)
-    ).toHaveLength(2);
+    expect(embedFunction).toContain("replace_course_material_embeddings_v2");
+    expect(embedFunction).toContain("replace_course_material_embeddings_v3");
     expect(embedFunction).toContain(
       "autoInsertedCount !== autoInsertRows.length"
     );

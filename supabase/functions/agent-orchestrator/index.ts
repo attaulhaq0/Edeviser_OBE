@@ -24,7 +24,7 @@ import {
   ProposalBoundaryError,
   type ProposalStore,
 } from "../_shared/ai/proposals.ts";
-import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { SupabaseToolDataSource } from "./data-source.ts";
 import {
   executeApprovedProposal,
@@ -247,7 +247,7 @@ serve(async (req) => {
     const config = getAgenticConfig(Deno.env);
     const dataSource = new SupabaseToolDataSource(
       admin,
-      createSupabaseEmbeddingProvider(),
+      createConfiguredEmbeddingProvider(),
       reader
     );
     try {
@@ -494,7 +494,7 @@ serve(async (req) => {
     const provider = createAIProvider(config, { env: Deno.env });
     const dataSource = new SupabaseToolDataSource(
       admin,
-      createSupabaseEmbeddingProvider(),
+      createConfiguredEmbeddingProvider(),
       reader
     );
     const result = await runAgentOrchestrator({

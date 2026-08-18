@@ -20,6 +20,7 @@ const METADATA = {
   version: 2,
   maxInputTokens: 512,
   languageSupport: "english_only",
+  normalized: true,
 } as const;
 
 const defaultFactory: SessionFactory = (model) => {

@@ -18,7 +18,7 @@ import {
 import { AIProviderError } from "../_shared/ai/provider.ts";
 import { createAIProvider } from "../_shared/ai/provider-factory.ts";
 import type { ProposalStore } from "../_shared/ai/proposals.ts";
-import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { SupabaseToolDataSource } from "../agent-orchestrator/data-source.ts";
 import {
   buildProactiveMessage,
@@ -294,7 +294,7 @@ const processJob = async (
   try {
     const dataSource = new SupabaseToolDataSource(
       admin,
-      createSupabaseEmbeddingProvider(),
+      createConfiguredEmbeddingProvider(),
       admin
     );
     const result = await runAgentOrchestrator({

@@ -62,7 +62,7 @@ describe("agentic review regressions", () => {
       endpoint.indexOf('from("tutor_usage_limits")')
     );
     expect(unsupportedIndex).toBeLessThan(
-      endpoint.indexOf("createSupabaseEmbeddingProvider().embed")
+      endpoint.indexOf("createConfiguredEmbeddingProvider().embed")
     );
     expect(composer).toContain(
       "const supportsTutorAttachments = (): boolean => false"

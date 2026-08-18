@@ -488,8 +488,12 @@ export class SupabaseToolDataSource
           throw new Error("Authorized embedding read returned invalid output");
         }
         const vector = `[${firstVector.join(",")}]`;
+        const searchRpc =
+          this.embeddings.metadata.version === 3
+            ? "search_course_materials_v3"
+            : "search_course_materials_v2";
         const { data, error } = await this.reader.rpc(
-          "search_course_materials_v2",
+          searchRpc,
           {
             query_embedding: vector,
             match_course_ids: [courseId!],

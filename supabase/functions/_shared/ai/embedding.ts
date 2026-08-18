@@ -5,6 +5,7 @@ export interface EmbeddingMetadata {
   version: number;
   maxInputTokens: number;
   languageSupport: "english_only" | "multilingual";
+  normalized: boolean;
 }
 
 export interface EmbeddingRequest {
