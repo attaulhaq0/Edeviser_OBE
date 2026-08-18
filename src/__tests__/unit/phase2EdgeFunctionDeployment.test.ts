@@ -17,6 +17,7 @@ const affectedFunctions = [
 describe("Phase 2 production Edge Function deployment scope", () => {
   it("deploys every affected entrypoint as one protected closure", () => {
     expect(workflow).toContain("environment: production");
+    expect(workflow).toContain("persist-credentials: false");
     expect(workflow).toContain('branches: [main]');
 
     for (const functionName of affectedFunctions) {
