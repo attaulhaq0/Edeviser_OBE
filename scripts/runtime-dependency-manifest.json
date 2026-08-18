@@ -16,7 +16,8 @@
         "supabase/functions/_shared/ai/**",
         "supabase/functions/_shared/auth.ts",
         "supabase/functions/_shared/serverSecret.ts",
-        "supabase/functions/_shared/timing-safe-equal.ts"
+        "supabase/functions/_shared/timing-safe-equal.ts",
+        "supabase/functions/agent-orchestrator/data-source.ts"
       ]
     },
     {
