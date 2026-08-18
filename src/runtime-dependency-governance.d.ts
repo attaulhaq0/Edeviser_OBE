@@ -63,6 +63,7 @@ declare module "*check-migration-ledger.mjs" {
 }
 
 declare module "*runtime-source-parity.mjs" {
+  export function normalizeRuntimeSource(source: string): string;
   export function declaredLocalSourceClosure(
     slug: string,
     runtimeDependencyPaths: string[]
@@ -93,11 +94,36 @@ declare module "*resolve-production-base-sha.mjs" {
 
 declare module "*download-managed-runtime-source.mjs" {
   export function managedRuntimeSlugs(): string[];
-  export function prepareFunctionDownloadWorkdir(
+  export function prepareManagedRuntimeDownloadWorkdir(
     outputRoot: string,
-    projectRef: string,
-    slug: string
+    projectRef: string
   ): string;
+  export function downloadManagedRuntimeSource(input: {
+    projectRef: string;
+    outputRoot: string;
+    execute?: (command: string, args: string[], options: unknown) => void;
+  }): string;
+}
+
+declare module "*resolve-runtime-reconciliation.mjs" {
+  export function resolveRuntimeReconciliation(
+    groupName: string,
+    manifest?: {
+      runtimeGroups: Array<{
+        name: string;
+        functions: Array<{ slug: string; verifyJwt: boolean }>;
+      }>;
+    }
+  ): { group: string; functions: string[] };
+}
+
+declare module "*verify-runtime-reconciliation-target.mjs" {
+  export function assertRuntimeReconciliationTarget(input: {
+    ref: string;
+    reviewedSha: string;
+    headSha: string;
+    mainSha: string;
+  }): string;
 }
 
 declare module "*check-pinned-supabase-cli.mjs" {

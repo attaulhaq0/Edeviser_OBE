@@ -13,12 +13,11 @@ export const managedRuntimeSlugs = (manifest = readManifest()) =>
     .flatMap((group) => group.functions.map((definition) => definition.slug))
     .sort();
 
-export const prepareFunctionDownloadWorkdir = (
+export const prepareManagedRuntimeDownloadWorkdir = (
   outputRoot,
-  projectRef,
-  slug
+  projectRef
 ) => {
-  const workdir = resolve(ROOT, outputRoot, slug);
+  const workdir = resolve(ROOT, outputRoot);
   const supabaseDir = join(workdir, "supabase");
   mkdirSync(supabaseDir, { recursive: true });
   writeFileSync(
@@ -35,29 +34,26 @@ export const downloadManagedRuntimeSource = ({
 }) => {
   if (!PROJECT_REF.test(projectRef)) throw new Error("project ref is invalid");
   if (!outputRoot) throw new Error("output root is required");
-  for (const slug of managedRuntimeSlugs()) {
-    const workdir = prepareFunctionDownloadWorkdir(
-      outputRoot,
+  const workdir = prepareManagedRuntimeDownloadWorkdir(outputRoot, projectRef);
+  execute(
+    "supabase",
+    [
+      "functions",
+      "download",
+      "--project-ref",
       projectRef,
-      slug
-    );
-    execute(
-      "supabase",
-      [
-        "functions",
-        "download",
-        slug,
-        "--project-ref",
-        projectRef,
-        "--use-api",
-        "--workdir",
-        workdir,
-      ],
-      { stdio: "inherit" }
-    );
-    if (!existsSync(join(workdir, "supabase", "functions", slug, "index.ts")))
+      "--use-api",
+      "--workdir",
+      workdir,
+    ],
+    { stdio: "inherit" }
+  );
+  for (const slug of managedRuntimeSlugs()) {
+    if (!existsSync(join(workdir, "supabase", "functions", slug, "index.ts"))) {
       throw new Error(`downloaded ${slug} source is missing its entrypoint`);
+    }
   }
+  return workdir;
 };
 
 const value = (args, name) => {

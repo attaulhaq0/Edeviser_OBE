@@ -25,6 +25,7 @@ import {
 import {
   assertSourceParity,
   declaredLocalSourceClosure,
+  normalizeRuntimeSource,
   relativeImportSpecifiers,
 } from "../../../scripts/runtime-source-parity.mjs";
 import { assertCumulativeCoverage } from "../../../scripts/runtime-attestation-snapshot.mjs";
@@ -34,10 +35,13 @@ import {
 } from "../../../scripts/runtime-dependency-paths.mjs";
 import { selectProductionBaseSha } from "../../../scripts/resolve-production-base-sha.mjs";
 import {
+  downloadManagedRuntimeSource,
   managedRuntimeSlugs,
-  prepareFunctionDownloadWorkdir,
+  prepareManagedRuntimeDownloadWorkdir,
 } from "../../../scripts/download-managed-runtime-source.mjs";
 import { normalizeYamlScalar } from "../../../scripts/check-pinned-supabase-cli.mjs";
+import { resolveRuntimeReconciliation } from "../../../scripts/resolve-runtime-reconciliation.mjs";
+import { assertRuntimeReconciliationTarget } from "../../../scripts/verify-runtime-reconciliation-target.mjs";
 
 const root = join(__dirname, "..", "..", "..");
 const manifest = readManifest();
@@ -422,6 +426,7 @@ describe("migration and workflow release safeguards", () => {
 
 describe("reviewed/deployed source parity", () => {
   it("fails attestation when downloaded source differs from the reviewed closure", () => {
+    expect(normalizeRuntimeSource("first\r\nsecond\n")).toBe("first\nsecond\n");
     const group = tutorGroup(manifest);
     const local = declaredLocalSourceClosure(
       "chat-with-tutor",
@@ -441,6 +446,19 @@ describe("reviewed/deployed source parity", () => {
           remoteSourceRoot: remoteRoot,
         }).files
       ).toContain("functions/chat-with-tutor/index.ts");
+      for (const [logicalPath, source] of local) {
+        writeFileSync(
+          join(remoteRoot, logicalPath),
+          normalizeRuntimeSource(source)
+        );
+      }
+      expect(() =>
+        assertSourceParity({
+          slug: "chat-with-tutor",
+          runtimeDependencyPaths: group.runtimeDependencyPaths,
+          remoteSourceRoot: remoteRoot,
+        })
+      ).not.toThrow();
       mkdirSync(join(remoteRoot, "functions/generated"), { recursive: true });
       writeFileSync(
         join(remoteRoot, "functions/generated/ignored.ts"),
@@ -463,7 +481,22 @@ describe("reviewed/deployed source parity", () => {
       ).toThrow("source imports missing dependency");
       writeFileSync(
         join(remoteRoot, "functions/_shared/ai/config.ts"),
-        local.get("functions/_shared/ai/config.ts") ?? ""
+        `${
+          local.get("functions/_shared/ai/config.ts") ?? ""
+        }\n// semantic drift\n`
+      );
+      expect(() =>
+        assertSourceParity({
+          slug: "chat-with-tutor",
+          runtimeDependencyPaths: group.runtimeDependencyPaths,
+          remoteSourceRoot: remoteRoot,
+        })
+      ).toThrow("reviewed/deployed source mismatch");
+      writeFileSync(
+        join(remoteRoot, "functions/_shared/ai/config.ts"),
+        normalizeRuntimeSource(
+          local.get("functions/_shared/ai/config.ts") ?? ""
+        )
       );
       writeFileSync(
         join(remoteRoot, "functions/chat-with-tutor/index.ts"),
@@ -476,6 +509,9 @@ describe("reviewed/deployed source parity", () => {
           remoteSourceRoot: remoteRoot,
         })
       ).toThrow("reviewed/deployed source mismatch");
+      expect(() => declaredLocalSourceClosure("chat-with-tutor", [])).toThrow(
+        "imports undeclared runtime dependency"
+      );
     } finally {
       rmSync(remoteRoot, { recursive: true, force: true });
     }
@@ -524,7 +560,7 @@ describe("reviewed/deployed source parity", () => {
       );
     try {
       for (const [logicalPath, source] of local) {
-        const destination = join(sourceRoot, "chat-with-tutor", logicalPath);
+        const destination = join(sourceRoot, logicalPath);
         mkdirSync(dirname(destination), { recursive: true });
         writeFileSync(destination, source);
       }
@@ -553,13 +589,12 @@ describe("reviewed/deployed source parity", () => {
     }
   });
 
-  it("prepares the CLI's required per-function Supabase workdir layout", () => {
+  it("downloads the complete managed source set in one Supabase workdir", () => {
     const root = mkdtempSync(join(tmpdir(), "edeviser-runtime-download-"));
     try {
-      const workdir = prepareFunctionDownloadWorkdir(
+      const workdir = prepareManagedRuntimeDownloadWorkdir(
         root,
-        "cdlgtbvxlxjpcddjazzx",
-        "chat-with-tutor"
+        "cdlgtbvxlxjpcddjazzx"
       );
       expect(
         readFileSync(join(workdir, "supabase/config.toml"), "utf8")
@@ -571,9 +606,100 @@ describe("reviewed/deployed source parity", () => {
           )
           .sort()
       );
+      const invocations: Array<{ command: string; args: string[] }> = [];
+      downloadManagedRuntimeSource({
+        projectRef: "cdlgtbvxlxjpcddjazzx",
+        outputRoot: root,
+        execute: (command, args) => {
+          invocations.push({ command, args });
+          for (const slug of managedRuntimeSlugs()) {
+            const entry = join(
+              workdir,
+              "supabase",
+              "functions",
+              slug,
+              "index.ts"
+            );
+            mkdirSync(dirname(entry), { recursive: true });
+            writeFileSync(entry, "export {};\n");
+          }
+        },
+      });
+      expect(invocations).toEqual([
+        {
+          command: "supabase",
+          args: [
+            "functions",
+            "download",
+            "--project-ref",
+            "cdlgtbvxlxjpcddjazzx",
+            "--use-api",
+            "--workdir",
+            workdir,
+          ],
+        },
+      ]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it("resolves only declared runtime groups for reconciliation", () => {
+    expect(
+      resolveRuntimeReconciliation("tutor-intelligence").functions
+    ).toEqual(tutorClosure);
+    expect(() => resolveRuntimeReconciliation("chat-with-tutor")).toThrow(
+      "runtime group is not declared"
+    );
+  });
+
+  it("rejects reconciliation requests outside current reviewed main", () => {
+    const sha = "a".repeat(40);
+    expect(() =>
+      assertRuntimeReconciliationTarget({
+        ref: "refs/heads/feature/unreviewed",
+        reviewedSha: sha,
+        headSha: sha,
+        mainSha: sha,
+      })
+    ).toThrow("must run from main");
+    expect(() =>
+      assertRuntimeReconciliationTarget({
+        ref: "refs/heads/main",
+        reviewedSha: sha,
+        headSha: "b".repeat(40),
+        mainSha: "b".repeat(40),
+      })
+    ).toThrow("does not match the dispatched main SHA");
+    expect(() =>
+      assertRuntimeReconciliationTarget({
+        ref: "refs/heads/main",
+        reviewedSha: sha,
+        headSha: sha,
+        mainSha: "b".repeat(40),
+      })
+    ).toThrow("stale relative to current main");
+  });
+
+  it("keeps reconciliation manual, protected, and free of automatic approval", () => {
+    const reconciliation = readFileSync(
+      join(root, ".github/workflows/reconcile-edge-runtime.yml"),
+      "utf8"
+    );
+    expect(reconciliation).toContain("workflow_dispatch:");
+    expect(reconciliation).toContain("environment: production");
+    expect(reconciliation).toContain("persist-credentials: false");
+    expect(reconciliation).toContain("cancel-in-progress: false");
+    expect(reconciliation).toContain("version: 2.114.0");
+    expect(reconciliation).toContain("resolve-runtime-reconciliation.mjs");
+    expect(reconciliation).toContain(
+      "verify-runtime-reconciliation-target.mjs"
+    );
+    expect(reconciliation).toContain("edge-runtime-attestation-snapshot");
+    expect(reconciliation).not.toMatch(/^\s*push:/m);
+    expect(reconciliation).not.toContain("actions: write");
+    expect(reconciliation).not.toContain("db push");
+    expect(reconciliation).not.toContain("migration");
   });
 
   it("requires a complete cumulative governed snapshot", () => {
