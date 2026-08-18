@@ -100,6 +100,12 @@ describe("Supabase-native EmbeddingProvider", () => {
     ).toThrow("must use HTTPS");
   });
 
+  it("rejects non-HTTP schemes even on loopback", () => {
+    expect(() =>
+      createHttpEmbeddingProvider({ endpoint: "ftp://localhost/v1" })
+    ).toThrow("must use HTTPS");
+  });
+
   it("rejects oversized requests before contacting the endpoint", async () => {
     const fetchImpl = vi.fn<typeof fetch>();
     const provider = createHttpEmbeddingProvider({

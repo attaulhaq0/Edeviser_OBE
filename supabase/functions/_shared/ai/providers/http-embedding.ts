@@ -64,7 +64,10 @@ export const createHttpEmbeddingProvider = (
     parsedEndpoint.hostname === "localhost" ||
     parsedEndpoint.hostname === "127.0.0.1" ||
     parsedEndpoint.hostname === "[::1]";
-  if (parsedEndpoint.protocol !== "https:" && !isLoopback) {
+  const secureTransport = parsedEndpoint.protocol === "https:";
+  const localHttpTransport =
+    parsedEndpoint.protocol === "http:" && isLoopback;
+  if (!secureTransport && !localHttpTransport) {
     throw new EmbeddingProviderError(
       "configuration",
       "The multilingual embedding endpoint must use HTTPS"

@@ -93,4 +93,23 @@ describe("multilingual retrieval benchmark fixtures", () => {
       unauthorizedLeak: true,
     });
   });
+
+  it("rejects an authorized ranking when any lower result is unauthorized", () => {
+    const fixture = MULTILINGUAL_RETRIEVAL_FIXTURES[0];
+    const authorized = fixture?.queries[0];
+    expect(authorized).toBeDefined();
+    expect(
+      evaluateRetrievalBenchmark({
+        query: authorized!,
+        rankedDocumentIds: ["en-course-a-outcome", "foreign-material-id"],
+        citedDocumentIds: ["en-course-a-outcome"],
+        authorizedDocumentIds: new Set(["en-course-a-outcome"]),
+      })
+    ).toMatchObject({
+      topResultCorrect: false,
+      reciprocalRank: 0,
+      citationCorrect: false,
+      unauthorizedLeak: true,
+    });
+  });
 });
