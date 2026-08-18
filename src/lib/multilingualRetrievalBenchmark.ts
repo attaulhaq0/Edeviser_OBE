@@ -60,6 +60,9 @@ export const evaluateRetrievalBenchmark = (input: {
 }): RetrievalBenchmarkResult => {
   const expected = new Set(input.query.expectedDocumentIds);
   const firstExpectedIndex = input.rankedDocumentIds.findIndex((id) => expected.has(id));
+  const rankedResultsAuthorized = input.rankedDocumentIds.every((id) =>
+    input.authorizedDocumentIds.has(id)
+  );
   const unauthorizedLeak = [
     ...input.rankedDocumentIds,
     ...input.citedDocumentIds,
@@ -76,8 +79,11 @@ export const evaluateRetrievalBenchmark = (input: {
     topResultCorrect:
       input.query.access !== "authorized"
         ? input.rankedDocumentIds.length === 0 && !unauthorizedLeak
-        : firstExpectedIndex === 0,
-    reciprocalRank: firstExpectedIndex === -1 ? 0 : 1 / (firstExpectedIndex + 1),
+        : rankedResultsAuthorized && firstExpectedIndex === 0,
+    reciprocalRank:
+      !rankedResultsAuthorized || firstExpectedIndex === -1
+        ? 0
+        : 1 / (firstExpectedIndex + 1),
     citationCorrect:
       input.query.access !== "authorized"
         ? input.citedDocumentIds.length === 0 && !unauthorizedLeak
