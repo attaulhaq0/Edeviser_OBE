@@ -31,6 +31,9 @@ export default defineConfig({
   // Top-level testDir is the repo root. Each project scopes its own testMatch
   // so the legacy ./e2e suite and the new ./tests/e2e audit suite coexist.
   testDir: "./",
+  // The repository root may contain preserved local scratch clones. Never let
+  // nested dependencies/configurations participate in product test discovery.
+  testIgnore: ["**/node_modules/**", "runtime-governance-scratch/**"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -61,6 +64,13 @@ export default defineConfig({
     {
       name: "legacy-smoke",
       testMatch: "e2e/**/*.spec.ts",
+      // The glob also matches the suffix of tests/e2e/** unless explicitly
+      // isolated, which would duplicate every role test under legacy-smoke.
+      testIgnore: [
+        "tests/e2e/**",
+        "**/node_modules/**",
+        "runtime-governance-scratch/**",
+      ],
       use: {
         ...devices["Desktop Chrome"],
       },

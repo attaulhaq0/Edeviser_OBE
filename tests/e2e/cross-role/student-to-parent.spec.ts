@@ -1,26 +1,18 @@
 // tests/e2e/cross-role/student-to-parent.spec.ts
 //
-// Task 6.2 / Req 3.2, 5.6: Student submits → parent sees update; unlinked parent denied.
+// Task 6.2 / Req 3.2, 5.6: Linked versus unlinked parent RLS scope.
 
 import { test, expect, chromium } from "@playwright/test";
-import { loadStorageState } from "../_helpers/auth.ts";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  assertLiveAuthenticatedUser,
+  authenticatedSupabaseGet,
+  loadStorageState,
+} from "../_helpers/auth.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 
-const storageStateExists = (role: string): boolean =>
-  existsSync(
-    resolve("tests", "e2e", "_fixtures", "storage-states", `${role}.json`)
-  );
-
-test.describe("Cross-role: student submission → parent visibility", () => {
-  test("6.2 — linked parent can see student progress; unlinked parent is denied", async () => {
-    if (!storageStateExists("parent")) {
-      test.skip(true, "Parent storage state not seeded");
-      return;
-    }
-
+test.describe("Parent linkage isolation", () => {
+  test("6.2 — linked parent sees one link and unlinked parent sees none", async () => {
     const browser = await chromium.launch();
     const parentCtx = await browser.newContext();
     await loadStorageState(parentCtx, "parent");
@@ -30,38 +22,37 @@ test.describe("Cross-role: student submission → parent visibility", () => {
       // Linked parent can access dashboard
       await parentPage.goto(`${BASE_URL}/parent/dashboard`);
       await parentPage.waitForLoadState("networkidle");
-      await expect(parentPage).toHaveURL(/parent/);
+      await assertLiveAuthenticatedUser(parentPage, {
+        role: "parent",
+        email: "audit+parent-linked@edeviser.test",
+        institutionId: "audit-inst",
+      });
 
-      // Unlinked parent should be denied access to seed student
       const unlinkedCtx = await browser.newContext();
-      const unlinkedPath = resolve(
-        "tests",
-        "e2e",
-        "_fixtures",
-        "storage-states",
-        "parent-unlinked.json"
-      );
-      if (existsSync(unlinkedPath)) {
-        await loadStorageState(unlinkedCtx, "parent"); // use linked state as fallback
-      }
-      const unlinkedPage = await unlinkedCtx.newPage();
-      await unlinkedPage.goto(`${BASE_URL}/parent/students/audit-student`);
-      await unlinkedPage.waitForLoadState("networkidle");
+      try {
+        await loadStorageState(unlinkedCtx, "parent", "unlinked");
+        const unlinkedPage = await unlinkedCtx.newPage();
+        await unlinkedPage.goto(`${BASE_URL}/parent/dashboard`);
+        await unlinkedPage.waitForLoadState("networkidle");
+        await assertLiveAuthenticatedUser(unlinkedPage, {
+          role: "parent",
+          email: "audit+parent-unlinked@edeviser.test",
+          institutionId: "audit-inst",
+        });
 
-      // Should not show student data
-      const url = unlinkedPage.url();
-      const isDenied =
-        url.includes("/login") ||
-        url.includes("/dashboard") ||
-        url.includes("/unauthorized");
-      // Advisory — log if not denied
-      if (!isDenied) {
-        console.log(
-          "[cross-role] Unlinked parent access not denied — RLS may need verification"
+        const query = "/rest/v1/parent_student_links?select=student_id";
+        const linkedRows = await authenticatedSupabaseGet(parentPage, query);
+        const unlinkedRows = await authenticatedSupabaseGet(
+          unlinkedPage,
+          query
         );
+        expect(linkedRows).toEqual([
+          expect.objectContaining({ student_id: expect.any(String) }),
+        ]);
+        expect(unlinkedRows).toEqual([]);
+      } finally {
+        await unlinkedCtx.close();
       }
-
-      await unlinkedCtx.close();
     } finally {
       await parentCtx.close();
       await browser.close();

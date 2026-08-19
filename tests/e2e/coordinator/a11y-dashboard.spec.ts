@@ -18,7 +18,7 @@ test.describe("Coordinator a11y", () => {
   });
 
   test("5.2.5 — curriculum matrix passes axe-core scan", async ({ page }) => {
-    await page.goto(`${BASE_URL}/coordinator/curriculum-matrix`);
+    await page.goto(`${BASE_URL}/coordinator/matrix`);
     await page.waitForLoadState("networkidle");
     await scanPage(page, { role: "coordinator", label: "curriculum-matrix" });
     await expect(page).toHaveURL(/coordinator/);

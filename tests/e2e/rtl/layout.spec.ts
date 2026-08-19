@@ -10,8 +10,9 @@
 // Subsequent runs enforce the baseline.
 
 import { test, expect } from "@playwright/test";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { loadStorageState, type AuditRole } from "../_helpers/auth.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 const BASELINES_DIR = resolve("audit", "baselines", "rtl-screens");
@@ -19,14 +20,14 @@ const MAX_DIFF_PERCENT = 0.3;
 
 // Roles and their dashboard paths
 const RTL_ROLES: Array<{
-  role: string;
+  role: AuditRole;
   path: string;
   taskId: string;
 }> = [
   { role: "admin", path: "/admin/dashboard", taskId: "11.3" },
   {
     role: "coordinator",
-    path: "/coordinator/curriculum-matrix",
+    path: "/coordinator/matrix",
     taskId: "11.4",
   },
   { role: "teacher", path: "/teacher/dashboard", taskId: "11.5" },
@@ -41,23 +42,7 @@ for (const { role, path, taskId } of RTL_ROLES) {
     test(`${taskId} — ${role} dashboard renders correctly in RTL Arabic locale`, async ({
       page,
     }) => {
-      // Load role storage state if available
-      const storageStatePath = resolve(
-        "tests",
-        "e2e",
-        "_fixtures",
-        "storage-states",
-        `${role}.json`
-      );
-      if (existsSync(storageStatePath)) {
-        await page.context().addCookies(
-          (
-            JSON.parse(readFileSync(storageStatePath, "utf8")) as {
-              cookies: Parameters<typeof page.context.prototype.addCookies>[0];
-            }
-          ).cookies
-        );
-      }
+      await loadStorageState(page.context(), role);
 
       // Navigate to the role's dashboard
       await page.goto(`${BASE_URL}${path}`);
@@ -68,12 +53,7 @@ for (const { role, path, taskId } of RTL_ROLES) {
         () =>
           document.documentElement.dir || document.documentElement.lang || "ltr"
       );
-      // RTL is set by the app when locale is ar — advisory check
-      if (dir !== "rtl" && !dir.startsWith("ar")) {
-        console.log(
-          `[rtl] ${role}: dir="${dir}" — app may not have applied RTL for ar locale`
-        );
-      }
+      expect(dir === "rtl" || dir.startsWith("ar")).toBe(true);
 
       // Take a full-page screenshot
       const screenshot = await page.screenshot({ fullPage: true });

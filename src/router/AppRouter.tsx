@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import RouteGuard from "@/router/RouteGuard";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { Button } from "@/components/ui/button";
+import { criticalRouteSegments, criticalRoutes } from "@/lib/criticalRoutes";
 
 // ---------------------------------------------------------------------------
 // Public pages (no auth required)
@@ -806,9 +807,14 @@ const AppRouter = () => (
           >
             <Route
               index
-              element={<Navigate to="/teacher/dashboard" replace />}
+              element={
+                <Navigate to={criticalRoutes.teacher.dashboard} replace />
+              }
             />
-            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route
+              path={criticalRouteSegments.teacher.dashboard}
+              element={<TeacherDashboard />}
+            />
             <Route path="students" element={<TeacherStudentsPage />} />
             <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="clos" element={<CLOListPage />} />
@@ -818,12 +824,18 @@ const AppRouter = () => (
             <Route path="rubrics" element={<RubricListPage />} />
             <Route path="rubrics/new" element={<RubricBuilder />} />
             <Route path="rubrics/:id/edit" element={<RubricBuilder />} />
-            <Route path="assignments" element={<AssignmentListPage />} />
+            <Route
+              path={criticalRouteSegments.teacher.assignments}
+              element={<AssignmentListPage />}
+            />
             <Route path="assignments/new" element={<AssignmentForm />} />
             <Route path="assignments/:id/edit" element={<AssignmentForm />} />
-            <Route path="grading" element={<GradingQueuePage />} />
             <Route
-              path="grading/:submissionId"
+              path={criticalRouteSegments.teacher.gradingQueue}
+              element={<GradingQueuePage />}
+            />
+            <Route
+              path={criticalRouteSegments.teacher.gradingSubmission}
               element={<GradingInterface />}
             />
             <Route
@@ -925,12 +937,20 @@ const AppRouter = () => (
           >
             <Route
               index
-              element={<Navigate to="/student/dashboard" replace />}
+              element={
+                <Navigate to={criticalRoutes.student.dashboard} replace />
+              }
             />
-            <Route path="dashboard" element={<StudentDashboard />} />
-            <Route path="assignments" element={<StudentAssignmentListPage />} />
             <Route
-              path="assignments/:id"
+              path={criticalRouteSegments.student.dashboard}
+              element={<StudentDashboard />}
+            />
+            <Route
+              path={criticalRouteSegments.student.assignments}
+              element={<StudentAssignmentListPage />}
+            />
+            <Route
+              path={criticalRouteSegments.student.assignmentDetail}
               element={<StudentAssignmentDetailPage />}
             />
             <Route path="leaderboard" element={<LeaderboardPage />} />
@@ -964,7 +984,10 @@ const AppRouter = () => (
               element={<MasteryRecoveryPage />}
             />
             <Route path="settings/profile" element={<ProfileSettingsPage />} />
-            <Route path="xp-history" element={<XPHistory />} />
+            <Route
+              path={criticalRouteSegments.student.xpHistory}
+              element={<XPHistory />}
+            />
             <Route path="portfolio" element={<StudentPortfolio />} />
             <Route path="calendar" element={<CalendarView />} />
             <Route path="timetable" element={<TimetableView />} />

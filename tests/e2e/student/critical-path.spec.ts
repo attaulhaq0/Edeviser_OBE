@@ -1,29 +1,36 @@
 // tests/e2e/student/critical-path.spec.ts
 //
 // Task 5.4.1 / Req 1.5: Student critical-path E2E spec.
+// @critical-e2e
 
 import { test, expect } from "@playwright/test";
-import { assertRoleClaim } from "../_helpers/auth.ts";
+import { criticalRoutes } from "../../../src/lib/criticalRoutes.ts";
+import { assertLiveAuthenticatedUser } from "../_helpers/auth.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 
 test.describe("Student critical path", () => {
-  test("5.4.1 — student can navigate dashboard, learning path, leaderboard", async ({
+  test("5.4.1 — student can navigate dashboard, assignments, and XP history", async ({
     page,
   }) => {
-    await page.goto(`${BASE_URL}/student/dashboard`);
+    await page.goto(`${BASE_URL}${criticalRoutes.student.dashboard}`);
     await page.waitForLoadState("networkidle");
-    await assertRoleClaim(page, "student");
-    await expect(page).toHaveURL(/student/);
+    await assertLiveAuthenticatedUser(page, {
+      role: "student",
+      email: "audit+student@edeviser.test",
+      institutionId: "audit-inst",
+    });
+    await expect(page).toHaveURL(/\/student\/dashboard$/);
 
-    // Learning path
-    await page.goto(`${BASE_URL}/student/learning-path`);
+    await page.goto(`${BASE_URL}${criticalRoutes.student.assignments}`);
     await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL(/student/);
+    await expect(page).toHaveURL(/\/student\/assignments$/);
 
-    // Leaderboard
-    await page.goto(`${BASE_URL}/student/leaderboard`);
+    await page.goto(`${BASE_URL}${criticalRoutes.student.xpHistory}`);
     await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL(/student/);
+    await expect(page).toHaveURL(/\/student\/xp-history$/);
+    await expect(
+      page.getByRole("heading", { name: "XP History" })
+    ).toBeVisible();
   });
 });
