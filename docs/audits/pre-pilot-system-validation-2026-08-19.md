@@ -24,7 +24,7 @@ This is the living status document for the complete pre-pilot validation program
 | Phase | Status | Current evidence |
 |---|---|---|
 | Initial A–P inventory | COMPLETE | Routes, tests, workflows, local/Preview capabilities, Production catalog, runtime ownership, and critical closed-loop gaps were inventoried. |
-| PR Boundary 1 — E2E harness truthfulness | IMPLEMENTED; PR PENDING | Fail-closed auth/session validation, live Supabase Auth proof, route/workflow/static guards, truthful critical specs, collection isolation, and regressions are complete. |
+| PR Boundary 1 — E2E harness truthfulness | PASS; PR #269 OPEN | Fail-closed auth/session validation, live Supabase Auth proof, route/workflow/static guards, truthful critical specs, collection isolation, and regressions are complete. The PR is open for review and has not been merged. |
 | PR Boundary 2 — deterministic audit fixtures | NOT STARTED | Deliberately excluded from Boundary 1. Existing fixture schema/order drift blocks authenticated Preview execution. |
 | Database/migration/data model execution | IN PROGRESS | Ledger parity and static replay guards pass; fresh reset, seed, and integration chain remain outstanding. |
 | Five-role authorization/tenant proof | NOT STARTED | Complete table/RPC/Storage/Edge/browser matrix remains absent. |
@@ -133,7 +133,7 @@ These are pilot blockers, but combining their remediation with harness truthfuln
 
 ## Next active work
 
-1. Publish and review the single Boundary 1 PR; do not merge it automatically.
+1. Review Boundary 1 PR #269; do not merge it automatically.
 2. Repair deterministic audit fixtures in Boundary 2 using an isolated Preview only.
 3. Prove five live roles, two tenants, idempotent seed/teardown, and the grade-to-XP chain.
 4. Continue the original program through database replay, authorization matrix, OBE/Learning State causal proofs, interventions, CQI, RAG/provider evaluations, UI/accessibility, performance, observability, security, and final pilot gates.
