@@ -56,18 +56,18 @@ complete without its tests.
 - [x] 1.4 Mapping validation DB-side — DONE & live: `trg_validate_outcome_mapping_hierarchy`, `trg_outcome_mapping_weight_sum` (DEFERRABLE), `trg_guard_mapped_outcome_delete`, `trg_enforce_learning_outcome_scope`.
 - [x] 1.5 Outcome RLS remediation — DONE & live: split SELECT/INSERT/UPDATE/DELETE policies per role+type WITH CHECK; institution-scoped reads; canonical-direction mapping policies.
 - [ ] 1.6 Regression tests for Phase 1: mapping-direction regression test + data-level CLO→PLO→ILO cascade tests (one-to-one, one-to-many, many-to-one, weight changes, grade updates/reversal, empty evidence, duplicate mappings, institution isolation). *(PDF §17, §38)*
-- [ ] 1.7 Archive the formal outcome-data reconciliation report artifact under `docs/audits/` (counts already captured; persist as dated document).
-- [ ] 1.8 Verify Admin ILO reorder safety end-to-end (atomic validated reorder; no arbitrary-ID upsert) and delete-dependency direction (follows canonical mapping); add e2e coverage if gaps found. *(PDF §13–14)*
+- [x] 1.7 Archive the formal outcome-data reconciliation report artifact under `docs/audits/` (counts already captured; persist as dated document). *(DONE: docs/audits/OUTCOME-DATA-RECONCILIATION-2026-08-21.md)*
+- [ ] 1.8 **[PREREQUISITE — do before 6.2 write tools]** Verify Admin ILO reorder safety end-to-end (atomic validated reorder; no arbitrary-ID upsert) and delete-dependency direction (follows canonical mapping); add e2e coverage if gaps found. *(PDF §13–14)*
 
 ## Phase 2 — DeepSeek provider, Tutor migration, orchestrator, read-only tools, logging
 
 - [x] 2.1 DeepSeekProvider — DONE: `_shared/ai/providers/deepseek.ts` (v4-flash/v4-pro, retries, timeout, cost estimation from official prices); provider factory is DeepSeek-only and config hard-fails on any other `AI_PROVIDER`.
 - [x] 2.2 Provider interface — DONE: `_shared/ai/provider.ts` (AIProvider/AICompletionRequest/Response/tool-calls/errors).
-- [ ] 2.3 MockProvider for deterministic tests *(PDF §29)*.
+- [x] 2.3 MockProvider for deterministic tests *(PDF §29)*. *(DONE: supabase/functions/_shared/ai/providers/mock-provider.ts + src/__tests__/unit/mockProvider.test.ts; never selectable in production — factory hard-fails on non-deepseek)*
 - [x] 2.4 Tutor migration — DONE (deployed chat-with-tutor v18): DeepSeek generation via canonical provider boundary; SSE contract preserved; enrollment/CLO-scope/institution authorization; usage limits; academic-integrity detection; server-authorized citation validation; independence nudges; handoff triggers; plan-update triggers; Big-Five persona auto-select; L1/L2/L3 autonomy with assignment>CLO precedence and teacher-ceiling cap.
 - [x] 2.5 Embeddings — DONE: Supabase-native gte-small provider (+ optional self-hosted bge-m3 multilingual), versioned metadata, pgvector RPCs v2/v3; RAG fail-closed (no uncited fallback); untrusted-evidence framing (prompt-injection resistance).
 - [x] 2.6 Shared orchestrator — DONE: `_shared/ai/orchestrator.ts` (431 lines) + deployed `agent-orchestrator` (v10) and `agent-worker` (v10) edge functions; SPECIALISTS_BY_ROLE routing; proposal store integration; audit sink.
-- [x] 2.7 Read-only tool registry — DONE (on main): `_shared/ai/tools/registry.ts` — 12 typed read tools (get_student_learning_context, get_course_mastery, get_outcome_chain, get_habit_context, get_at_risk_signals, search_course_materials, get_assignment_context, get_teacher_course_context, get_parent_child_progress, get_coordinator_outcome_context, get_admin_institution_context, get_intervention_effects) with allowedRoles, requiredContext, risk, approvalRequired=false, input/output validation, ToolBoundaryError enforcement.
+- [x] 2.7 Read-only tool registry — DONE (on main): `_shared/ai/tools/registry.ts` — 21 typed read tools: the original 12 (get_student_learning_context, get_course_mastery, get_outcome_chain, get_habit_context, get_at_risk_signals, search_course_materials, get_assignment_context, get_teacher_course_context, get_parent_child_progress, get_coordinator_outcome_context, get_admin_institution_context, get_intervention_effects) PLUS the 9 PDF §18 outcome tools (get_institution_ilos, get_ilo_detail, get_ilo_attainment, get_ilo_attainment_trend, get_ilo_mapping_coverage, get_ilo_program_contributions, get_ilo_evidence_summary, get_unmapped_program_outcomes, get_outcome_hierarchy_health) with allowedRoles, requiredContext, risk, approvalRequired=false, input/output validation, ToolBoundaryError enforcement.
 - [x] 2.8 Write-tools boundary — STARTED (main has `_shared/ai/write-tools/`): audit contents vs PDF §25 protected-action list; complete where thin.
 - [x] 2.9 Logging — PARTIAL: agent_runs, agent_action_proposals, agent_action_executions, agent_tool_attempts tables live; tutor_llm_logs live. Remaining: see 8.x observability tasks.
 - [x] 2.10 Approval system core — DONE: agent_action_proposals + agent_action_executions live; statuses incl. expired boundary handling (`proposals.ts`); approvals folded into proposals (documented deviation from §35's separate approvals table — acceptable unless product wants separation).
@@ -86,7 +86,7 @@ complete without its tests.
 ## Phase 4 — Digital Twin breadth + Mastery/Habit/Risk agents + intervention loop
 
 - [ ] 4.1 Add calculation_version/policy_version/model_version fields to student_learning_states (or a versions jsonb) per PDF §28.
-- [ ] 4.2 Decide snapshot strategy: keep single-table jsonb sections (documented deviation) or add student_mastery_snapshots/student_habit_snapshots/student_risk_snapshots; document decision in design.md/data-model.md.
+- [x] 4.2 Decide snapshot strategy: keep single-table jsonb sections (documented deviation) or add student_mastery_snapshots/student_habit_snapshots/student_risk_snapshots; document decision in design.md/data-model.md. *(DECIDED: keep single-table jsonb sections; documented in design.md §Design decisions. Snapshots may be added later only if history queries demand it.)*
 - [ ] 4.3 Implement Mastery Agent (CLO/PLO analysis, derived-ILO alignment with "derived alignment" labeling, prerequisite gaps, trends, chain explanation) using read tools only.
 - [ ] 4.4 Implement Habit Agent (consistency, streaks, sessions, late-submission patterns, intervention acceptance, timing, recovery) — deterministic-evidence-based, no invented scores.
 - [ ] 4.5 Implement Risk Agent (deterministic signals from OBE+habit evidence, structured output, escalation recommendation).
@@ -104,15 +104,15 @@ complete without its tests.
 ## Phase 6 — Parent Agent, full Admin Agent, governance/cost dashboard
 
 - [ ] 6.1 Parent Agent: verified-child summary, deadlines, attendance, support suggestions, privacy-aware explanations (uses get_parent_child_progress tool).
-- [ ] 6.2 Full Admin Agent: ILO governance tools per PDF §18 (get_institution_ilos, get_ilo_detail, get_ilo_attainment, get_ilo_attainment_trend, get_ilo_mapping_coverage, get_ilo_program_contributions, get_ilo_evidence_summary, get_unmapped_program_outcomes, get_outcome_hierarchy_health, draft_ilo, propose_create/update/delete_ilo, propose_reorder_ilos, draft_ilo_governance_report) — propose_* create agent_action_proposals requiring Admin approval.
-- [ ] 6.3 Institution intelligence + governance/cost dashboard UI (AI cost from tutor_llm_logs + agent_runs usage; safety/adoption/setup-completeness panels).
+- [~] 6.2 Full Admin Agent: ILO governance tools per PDF §18 — READ TOOLS REGISTERED (get_institution_ilos, get_ilo_detail, get_ilo_attainment, get_ilo_attainment_trend, get_ilo_mapping_coverage, get_ilo_program_contributions, get_ilo_evidence_summary, get_unmapped_program_outcomes, get_outcome_hierarchy_health in _shared/ai/tools/registry.ts). REMAINING: draft_ilo, propose_create/update/delete_ilo, propose_reorder_ilos, draft_ilo_governance_report via write-tools boundary → agent_action_proposals requiring Admin approval (blocked on 1.8 prerequisite).
+*(MOVED TO DEFERRED — not required for spec completion; see Deferred section.)*
 - [ ] 6.4 Tests: Admin Agent cannot create ILO without approval; no role receives unauthorized tools (registry allow-list assertions).
 
 ## Phase 7 — Controlled A3 automation
 
-- [ ] 7.1 A0–A3 operational autonomy policy engine (`policy/autonomy.ts`): effective autonomy = min(institution, role, page, tool, user preference, teacher/coordinator ceiling); users may lower, never exceed ceilings. L1–L3 pedagogical autonomy stays separate (already in Tutor).
+- [x] 7.1 A0–A3 operational autonomy policy engine (`policy/autonomy.ts`): effective autonomy = min(institution, role, page, tool, user preference, teacher/coordinator ceiling); users may lower, never exceed ceilings. L1–L3 pedagogical autonomy stays separate (already in Tutor). *(DONE: supabase/functions/_shared/ai/policy/autonomy.ts + src/__tests__/unit/agentAutonomyPolicy.test.ts incl. PROTECTED_ACTIONS invariant)*
 - [ ] 7.2 Institution-level feature flags for A3; evaluation thresholds; rollback controls.
-- [ ] 7.3 A3 may execute ONLY pre-approved low-risk action classes; PROTECTED_ACTIONS (§25 list) never bypassed — property test asserting this invariant.
+- [~] 7.3 A3 may execute ONLY pre-approved low-risk action classes; PROTECTED_ACTIONS (§25 list) never bypassed — property test asserting this invariant. *(PARTIAL: unit-level invariant covered in agentAutonomyPolicy.test.ts via mayAutoExecute over all PROTECTED_ACTIONS; fast-check property sweep remains.)*
 - [ ] 7.4 Evaluation harness: agent_evaluations table + agent-evaluation-jobs; citation/integrity/tool-correctness scoring.
 
 ## Cross-cutting — Observability, jobs, docs, hygiene
@@ -122,6 +122,14 @@ complete without its tests.
 - [ ] 8.3 Docs deliverables: deployment guide, DeepSeek secret-setup guide (Supabase secrets; never print values), rollback guide, known-limitations report.
 - [ ] 8.4 Hygiene: delete stale GEMINI_API_KEY/TUTOR_PRIMARY_MODEL lines from .env.example; sync local checkout with main/live (superseded local migration files caused false audit findings); regenerate src/types/database.ts.
 - [ ] 8.5 General gates before any merge: lint, tsc, unit, integration, RLS, edge-fn schema check, Playwright, visual, a11y, Arabic/RTL, migration replay, Security Advisor, Performance Advisor (use exact package.json script names).
+
+## Deferred — not required for spec completion
+
+- 6.3 Institution intelligence + governance/cost dashboard UI (AI cost from tutor_llm_logs +
+  agent_runs usage; safety/adoption/setup-completeness panels).
+  Rationale: product UI feature beyond the agentic platform's core acceptance criteria; the
+  underlying data (tutor_llm_logs, agent_runs usage) already exists. Re-scope into a product
+  spec when prioritized; do not block Phases 3–8 on it.
 
 ## Notes
 

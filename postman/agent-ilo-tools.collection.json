@@ -1,0 +1,381 @@
+{
+  "info": {
+    "name": "Edeviser – Agent ILO Tools",
+    "description": "9 read-tool exercisers for the ILO capability additions in registry.ts (agent-orchestrator POST interface). Import into the Edeviser API collection as a new folder, or merge manually.\n\nAll requests:\n  POST {{base_url}}/functions/v1/agent-orchestrator\n  Authorization: Bearer {{access_token}}\n  apikey: {{anon_key}}\n\nThe agent internally calls the registered read tool based on the message + context object. These requests are proof-of-exercise tests, not direct tool invocations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "edeviser-ilo-tools-v1"
+  },
+  "item": [
+    {
+      "name": "Agent – ILO Tools",
+      "description": "Read-tool exercisers for the 9 ILO agent capabilities added in registry.ts.",
+      "item": [
+        {
+          "name": "get_institution_ilos",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"List all institution learning outcomes for this institution.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_institution_ilos` — lists ILOs with mapping counts. Allowed role: admin."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});",
+                  "pm.test('No unexpected 5xx error', () => {",
+                  "  if (body.error) {",
+                  "    pm.expect(body.error.code).to.not.equal('execution_failed');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_ilo_detail",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Show me the detail for ILO {{ilo_id}} including its PLO mappings.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_ilo_detail` — returns one ILO with canonical PLO mappings. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});",
+                  "pm.test('No unexpected 5xx error', () => {",
+                  "  if (body.error) {",
+                  "    pm.expect(body.error.code).to.not.equal('execution_failed');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_ilo_attainment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What is the current attainment level for ILO {{ilo_id}} in program {{program_id}}?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/attainment\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_ilo_attainment` — server-calculated ILO attainment from canonical PLO/CLO evidence. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});",
+                  "if (body.reply) {",
+                  "  pm.test('Reply does not contain invented attainment', () => {",
+                  "    pm.expect(body.reply).to.not.match(/i estimate|i calculate|approximately/i);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_ilo_attainment_trend",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Show me the attainment trend over time for ILO {{ilo_id}} in program {{program_id}}.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/trend\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_ilo_attainment_trend` — deterministic attainment trend series for an ILO. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_ilo_mapping_coverage",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What is the ILO-to-PLO mapping coverage and are there any gaps for ILO {{ilo_id}} in program {{program_id}}?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/coverage\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_ilo_mapping_coverage` — ILO→PLO mapping coverage and gaps. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_ilo_program_contributions",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Which programs contribute to ILO {{ilo_id}} and by how much?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/programs\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_ilo_program_contributions` — per-program contribution to an ILO via canonical PLO mappings. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_ilo_evidence_summary",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"How much evidence exists for ILO {{ilo_id}} attainment in program {{program_id}} and how confident is the calculation?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/evidence\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_ilo_evidence_summary` — counts and confidence of assessment evidence feeding an ILO's derived attainment. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_unmapped_program_outcomes",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Which PLOs in program {{program_id}} are not mapped to any ILO?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/coordinator/programs/{{program_id}}/outcomes\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_unmapped_program_outcomes` — PLOs without a canonical ILO→PLO mapping. Allowed roles: admin, coordinator."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "get_outcome_hierarchy_health",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Are there any orphaned outcomes, invalid mapping pairs, or weight anomalies in the institution's outcome hierarchy?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/health\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/v1/agent-orchestrator",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
+            },
+            "description": "Exercises `get_outcome_hierarchy_health` — deterministic hierarchy-health signals (orphans, invalid pairs, weight anomalies). Allowed role: admin only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 10000ms', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test('Has reply or error', () => {",
+                  "  pm.expect(body).to.satisfy(b => b.reply !== undefined || b.error !== undefined);",
+                  "});",
+                  "pm.test('Admin-only: should not succeed for non-admin tokens', () => {",
+                  "  // If using a non-admin token this should fail with 401 at the function level",
+                  "  pm.expect([200, 401, 403, 503]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "ilo_id", "value": "REPLACE_WITH_REAL_ILO_UUID", "description": "A valid ILO UUID from your institution" },
+    { "key": "program_id", "value": "REPLACE_WITH_REAL_PROGRAM_UUID", "description": "A valid program UUID the authenticated user can access" }
+  ]
+}

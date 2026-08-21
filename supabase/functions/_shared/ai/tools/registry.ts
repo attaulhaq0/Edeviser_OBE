@@ -17,7 +17,16 @@ export type ReadToolName =
   | "get_parent_child_progress"
   | "get_coordinator_outcome_context"
   | "get_admin_institution_context"
-  | "get_intervention_effects";
+  | "get_intervention_effects"
+  | "get_institution_ilos"
+  | "get_ilo_detail"
+  | "get_ilo_attainment"
+  | "get_ilo_attainment_trend"
+  | "get_ilo_mapping_coverage"
+  | "get_ilo_program_contributions"
+  | "get_ilo_evidence_summary"
+  | "get_unmapped_program_outcomes"
+  | "get_outcome_hierarchy_health";
 
 export interface ToolDefinition extends AIToolDefinition {
   name: ReadToolName;
@@ -249,6 +258,78 @@ export const READ_TOOL_REGISTRY: Readonly<
     ["student", "teacher", "parent", "coordinator", "admin"],
     [],
     { studentId: uuid, courseId: uuid, programId: uuid },
+    []
+  ),
+  get_institution_ilos: define(
+    "get_institution_ilos",
+    "List the authenticated admin's institution ILOs with mapping counts. Read-only governance view.",
+    ["admin"],
+    [],
+    {},
+    []
+  ),
+  get_ilo_detail: define(
+    "get_ilo_detail",
+    "Return one institution ILO with its canonical PLO mappings (source=ILO, target=PLO).",
+    ["admin", "coordinator"],
+    [],
+    { iloId: uuid, programId: uuid },
+    []
+  ),
+  get_ilo_attainment: define(
+    "get_ilo_attainment",
+    "Return server-calculated ILO attainment derived from canonical PLO/CLO evidence. Never agent-computed.",
+    ["admin", "coordinator"],
+    [],
+    { iloId: uuid, programId: uuid },
+    []
+  ),
+  get_ilo_attainment_trend: define(
+    "get_ilo_attainment_trend",
+    "Return the deterministic attainment trend series for an institution ILO.",
+    ["admin", "coordinator"],
+    [],
+    { iloId: uuid, programId: uuid },
+    []
+  ),
+  get_ilo_mapping_coverage: define(
+    "get_ilo_mapping_coverage",
+    "Return ILO→PLO mapping coverage and gaps for the authorized institution/program scope.",
+    ["admin", "coordinator"],
+    [],
+    { iloId: uuid, programId: uuid },
+    []
+  ),
+  get_ilo_program_contributions: define(
+    "get_ilo_program_contributions",
+    "Return per-program contribution to an institution ILO via canonical PLO mappings.",
+    ["admin", "coordinator"],
+    [],
+    { iloId: uuid, programId: uuid },
+    []
+  ),
+  get_ilo_evidence_summary: define(
+    "get_ilo_evidence_summary",
+    "Return counts and confidence of assessment evidence feeding an ILO's derived attainment.",
+    ["admin", "coordinator"],
+    [],
+    { iloId: uuid, programId: uuid },
+    []
+  ),
+  get_unmapped_program_outcomes: define(
+    "get_unmapped_program_outcomes",
+    "List PLOs without a canonical ILO→PLO mapping in the authorized program scope.",
+    ["admin", "coordinator"],
+    [],
+    { programId: uuid },
+    []
+  ),
+  get_outcome_hierarchy_health: define(
+    "get_outcome_hierarchy_health",
+    "Return deterministic hierarchy-health signals (orphans, invalid pairs, weight anomalies) for the institution.",
+    ["admin"],
+    [],
+    {},
     []
   ),
 };
