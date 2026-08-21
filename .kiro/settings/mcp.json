@@ -1,8 +1,52 @@
 {
   "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp",
+      "disabled": false,
+      "autoApprove": [
+        "search_docs",
+        "list_organizations",
+        "get_organization",
+        "list_projects",
+        "get_project",
+        "get_cost",
+        "confirm_cost",
+        "list_tables",
+        "list_extensions",
+        "list_migrations",
+        "apply_migration",
+        "execute_sql",
+        "get_logs",
+        "get_advisors",
+        "get_project_url",
+        "get_publishable_keys",
+        "generate_typescript_types",
+        "list_edge_functions",
+        "get_edge_function",
+        "deploy_edge_function",
+        "create_branch",
+        "list_branches",
+        "delete_branch",
+        "merge_branch",
+        "reset_branch",
+        "rebase_branch"
+      ]
+    },
+    "github": {
+      "command": "C:\\Users\\hp\\Documents\\Cline\\MCP\\github-mcp-server\\github-mcp-server.exe",
+      "args": [
+        "stdio"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "REDACTED_USE_ENV_GITHUB_PAT"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
     "vercel": {
-      "command": "npx",
-      "args": ["-y", "vercel-mcp", "VERCEL_API_KEY=${VERCEL_API_KEY}"]
+      "url": "https://mcp.vercel.com/mcp",
+      "disabled": true,
+      "autoApprove": []
     }
   }
 }

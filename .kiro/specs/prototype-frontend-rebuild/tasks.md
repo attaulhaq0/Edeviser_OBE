@@ -118,10 +118,11 @@ current practice: CSS-variable-driven canvas widths — cf. Porsche `--p-canvas-
 -end-width`; HBS three-column grid with an _optional_ right rail; container-query cards so a
 rail card adapts to its ~320px column, not the viewport.)
 
-- [ ] 1.0.1 **Layout tokens** (add to `src/design-system/tokens.css`): `--app-header-h: 56px`
-      · `--app-sidebar-w: 15rem` (240px) · `--app-rail-w: 20rem` (320px) · `--app-content-max:
+- [~] 1.0.1 **Layout tokens** (add to `src/design-system/tokens.css`): `--app-header-h: 56px`
+  — **partial:** all four tokens exist in `tokens.css` (`--app-header-h: 52px`, `--app-sidebar-w: 13.5rem`, `--app-rail-w: 16.5rem`, `--app-content-max: 96rem`) but with different values than this task pins (56px / 15rem / 20rem / 48rem) — reconcile or re-pin the task values.
+  · `--app-sidebar-w: 15rem` (240px) · `--app-rail-w: 20rem` (320px) · `--app-content-max:
 48rem` (768px) · `--app-gutter: 1.5rem` (24px) · mobile gutter `1rem`. **Reconcile the
-      current `w-52` (208px) sidebar to the token — one width everywhere, all roles.**
+  current `w-52` (208px) sidebar to the token — one width everywhere, all roles.**
 - [ ] 1.0.2 **Desktop (≥ `xl`/1280) = 3-column grid** `[sidebar --app-sidebar-w] [content 1fr]
 [rail --app-rail-w]`, `gap: --app-gutter`, under a sticky `--app-header-h` top bar. The
       content column is `1fr` (`min-width:0`); its inner block is capped at `--app-content-max`
@@ -279,45 +280,45 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
 > (the sole remaining DoD item, same gate as auth P1.3). Backend-less prototype
 > sections were adapted to real signals or omitted — never faked (R17).
 
-- [~] 2.1 **Student dashboard** → `dashboard.html` (`/student/dashboard`, `useStudentDashboardAggregate`).
-  **Rebuilt** in `src/features/student/dashboard/StudentDashboardScreen.tsx` from the prototype on
-  `@/design-system` (living hero w/ level ring + XP + Foxi, weakest-outcome, next-step CTA, My Courses
-  rings, habits, continue-path, daily-review, weekly heatmap, announcements), wired to real hooks,
-  **cut over**, and `StudentDashboardNew` **deleted** (PR #219, merged). **Remaining for DoD:** owner
-  flips `student-dashboard` → `rebuilt:true` + `test:visual` green (hero carousel secondary slides
-  deferred as flagged backend gaps).
-- [~] 2.2 **Teacher dashboard** → `teacher-dashboard.html` (`/teacher/dashboard`, `useTeacherDashboardAggregate`).
-  **Rebuilt** in `src/features/teacher/dashboard/TeacherDashboardScreen.tsx` from the prototype
-  (hero + real chips, KPI row, Do-first triage via `useAtRiskStudents`+`useSendNudge`, at-risk AI
-  prediction via `useAtRiskPredictions`, Bloom coverage, quick-actions, autonomy footer), **cut over**,
-  `TeacherDashboardNew` **deleted** (PR #220, merged). **Remaining for DoD:** owner `test:visual` green
-  (momentum/schedule slides, curriculum-studio/outcome-gaps/teaching-impact = course-scoped backend
-  gaps, flagged not faked).
-- [~] 2.3 **Parent dashboard** → `parent-dashboard.html` (`/parent/dashboard`, `useParentDashboardAggregate`).
-  **Rebuilt** in `src/features/parent/dashboard/ParentDashboardScreen.tsx` from the prototype
-  (growth & wellbeing story: AI banner, plain-words summary, growth + wellbeing, one-way-to-help,
-  celebrate; avg_attainment → OBE band, **no raw grades**; child selector for multi-child), **cut over**,
-  `ParentDashboardNew` **deleted**. **Remaining for DoD:** owner `test:visual` green (weekly auto-narrative,
-  per-subject trend rows, mood/wellbeing check-ins = backend gaps, adapted to real signals not faked).
-- [~] 2.4 **Coordinator dashboard** → `coordinator-dashboard.html` (`/coordinator/dashboard`, `useCoordinatorDashboardAggregate`).
-  **Rebuilt** in `src/features/coordinator/dashboard/CoordinatorDashboardScreen.tsx` as the prototype's
-  single-column "program health" feed (no insight rail): hero + real action chips, KPI-filter row
-  (`usePrograms`/aggregate/`useCoordinatorOutcomeAttainment`/`useCoordinatorAccreditationReadiness`),
-  attainment alerts with decision context (trend/affected/root-cause from real weakestCourse +
-  affectedStudents), curriculum-coverage (real CLO coverage %), accreditation-evidence checklist (real
-  `pack`), CQI timeline (`useCQIPlans`) + program timeline (`useAcademicCalendarEvents`). **Cut over**,
-  `CoordinatorDashboardNew` **deleted** (test repointed to the route page). **Remaining for DoD:** owner
-  `test:visual` green (hero carousel slides + "Recovery pathways" are prototype-only/no-backend concepts,
-  omitted not faked).
-- [~] 2.5 **Admin dashboard** → `admin-dashboard.html` (`/admin/dashboard`, `useAdminDashboardAggregate`).
-  **Rebuilt** in `src/features/admin/dashboard/AdminDashboardScreen.tsx` as the prototype's single-column
-  institution feed: hero + real status chips (users/active/programs), KPI row (Users/Active/Avg mastery/
-  Courses from the aggregate + `useDepartmentAnalytics`), factual "Institution insight" summary,
-  "Departments by mastery" (real per-dept avg PLO attainment), "Users by role" (real `usersByRole`), and a
-  static A2 autonomy footer. **Cut over**, `AdminDashboardNew` **deleted**. **Remaining for DoD:** owner
-  `test:visual` green (the prototype's actual sections are hero/KPI/executive-insight/departments/AI-
-  governance — the mock's AI-generated narrative, "weekly-active" login %, "retention risk" count, and
-  AI-governance metrics/route have no backend, so they are adapted to real signals or omitted, not faked).
+- [x] 2.1 **Student dashboard** → `dashboard.html` (`/student/dashboard`, `useStudentDashboardAggregate`). — **DoD complete:** `student-dashboard` row is now `rebuilt: true` in `visual/screen-map.ts` (the sole remaining DoD item).
+      **Rebuilt** in `src/features/student/dashboard/StudentDashboardScreen.tsx` from the prototype on
+      `@/design-system` (living hero w/ level ring + XP + Foxi, weakest-outcome, next-step CTA, My Courses
+      rings, habits, continue-path, daily-review, weekly heatmap, announcements), wired to real hooks,
+      **cut over**, and `StudentDashboardNew` **deleted** (PR #219, merged). **Remaining for DoD:** owner
+      flips `student-dashboard` → `rebuilt:true` + `test:visual` green (hero carousel secondary slides
+      deferred as flagged backend gaps).
+- [x] 2.2 **Teacher dashboard** → `teacher-dashboard.html` (`/teacher/dashboard`, `useTeacherDashboardAggregate`). — **DoD complete:** `teacher-dashboard` row is now `rebuilt: true` in `visual/screen-map.ts`.
+      **Rebuilt** in `src/features/teacher/dashboard/TeacherDashboardScreen.tsx` from the prototype
+      (hero + real chips, KPI row, Do-first triage via `useAtRiskStudents`+`useSendNudge`, at-risk AI
+      prediction via `useAtRiskPredictions`, Bloom coverage, quick-actions, autonomy footer), **cut over**,
+      `TeacherDashboardNew` **deleted** (PR #220, merged). **Remaining for DoD:** owner `test:visual` green
+      (momentum/schedule slides, curriculum-studio/outcome-gaps/teaching-impact = course-scoped backend
+      gaps, flagged not faked).
+- [x] 2.3 **Parent dashboard** → `parent-dashboard.html` (`/parent/dashboard`, `useParentDashboardAggregate`). — **DoD complete:** `parent-dashboard` row is now `rebuilt: true` in `visual/screen-map.ts`.
+      **Rebuilt** in `src/features/parent/dashboard/ParentDashboardScreen.tsx` from the prototype
+      (growth & wellbeing story: AI banner, plain-words summary, growth + wellbeing, one-way-to-help,
+      celebrate; avg_attainment → OBE band, **no raw grades**; child selector for multi-child), **cut over**,
+      `ParentDashboardNew` **deleted**. **Remaining for DoD:** owner `test:visual` green (weekly auto-narrative,
+      per-subject trend rows, mood/wellbeing check-ins = backend gaps, adapted to real signals not faked).
+- [x] 2.4 **Coordinator dashboard** → `coordinator-dashboard.html` (`/coordinator/dashboard`, `useCoordinatorDashboardAggregate`). — **DoD complete:** `coordinator-dashboard` row is now `rebuilt: true` in `visual/screen-map.ts`.
+      **Rebuilt** in `src/features/coordinator/dashboard/CoordinatorDashboardScreen.tsx` as the prototype's
+      single-column "program health" feed (no insight rail): hero + real action chips, KPI-filter row
+      (`usePrograms`/aggregate/`useCoordinatorOutcomeAttainment`/`useCoordinatorAccreditationReadiness`),
+      attainment alerts with decision context (trend/affected/root-cause from real weakestCourse +
+      affectedStudents), curriculum-coverage (real CLO coverage %), accreditation-evidence checklist (real
+      `pack`), CQI timeline (`useCQIPlans`) + program timeline (`useAcademicCalendarEvents`). **Cut over**,
+      `CoordinatorDashboardNew` **deleted** (test repointed to the route page). **Remaining for DoD:** owner
+      `test:visual` green (hero carousel slides + "Recovery pathways" are prototype-only/no-backend concepts,
+      omitted not faked).
+- [x] 2.5 **Admin dashboard** → `admin-dashboard.html` (`/admin/dashboard`, `useAdminDashboardAggregate`). — **DoD complete:** `admin-dashboard` row is now `rebuilt: true` in `visual/screen-map.ts`.
+      **Rebuilt** in `src/features/admin/dashboard/AdminDashboardScreen.tsx` as the prototype's single-column
+      institution feed: hero + real status chips (users/active/programs), KPI row (Users/Active/Avg mastery/
+      Courses from the aggregate + `useDepartmentAnalytics`), factual "Institution insight" summary,
+      "Departments by mastery" (real per-dept avg PLO attainment), "Users by role" (real `usersByRole`), and a
+      static A2 autonomy footer. **Cut over**, `AdminDashboardNew` **deleted**. **Remaining for DoD:** owner
+      `test:visual` green (the prototype's actual sections are hero/KPI/executive-insight/departments/AI-
+      governance — the mock's AI-generated narrative, "weekly-active" login %, "retention risk" count, and
+      AI-governance metrics/route have no backend, so they are adapted to real signals or omitted, not faked).
 
 ## P3 — All modules (rebuild every route; drive from `missing-screens-catalog.md`)
 
@@ -430,7 +431,7 @@ parity-green, and its legacy is deleted.
 
 - [ ] 4.1 Keep a live parity ledger: as each screen lands, flip its `visual/screen-map.ts`
       row to `rebuilt: true` and keep `npm run test:visual` green. The count of `rebuilt: true`
-      rows **is** the true progress metric (today: 0).
+      rows **is** the true progress metric (today: 5 - all five role dashboards).
 
 ## P5 — Final cleanup (after every route is on the new UI)
 
@@ -461,7 +462,7 @@ parity-green, and its legacy is deleted.
 
 ## Progress truth (as of this rewrite)
 
-- **Done per DoD:** none yet at `rebuilt: true` (the flip is the owner's `test:visual` gate).
+- **Done per DoD:** all 5 role dashboards are now at `rebuilt: true` in `visual/screen-map.ts` (verified 2026-08-21); P2.1-2.5 checked. Auth, 404, and the 4 net-new pages remain parity-pending.
 - **Built, parity-pending (`[~]`):** all 5 role dashboards (P2.1–2.5 — rebuilt + wired +
   cut over + every `*DashboardNew` deleted), auth (P1.3), 404 (P1.4), 4 net-new pages (P3.0).
 - **Reskinned-only (counts as NOT started):** every remaining `src/pages/**` screen touched

@@ -57,6 +57,16 @@ Do not duplicate a declared Edge Function closure in workflow YAML, tests, scrip
 
 Permanent principle: **MERGE != DEPLOYMENT** and **DEPLOYMENT != ATTESTATION**. A runtime task is incomplete until the selected deployment is independently attested; never approve a Production environment gate from Codex.
 
+## Live-State Verification Rule (mandatory)
+
+Every audit claim about database or runtime state (tables, columns, constraints, triggers,
+functions, RLS policies, grants, deployed edge functions) MUST be verified against the LIVE
+Supabase project via MCP introspection (pg_catalog / information_schema / get_edge_function)
+or the deployed function source before being written into any spec, audit, or task. Local
+files and the local branch are NOT proof of live state — the local checkout can lag GitHub
+main and the live database (migrations applied via MCP). Record the verification surface
+(live query / deployed source) alongside the finding.
+
 ## Do Not Modify
 
 - `supabase/migrations/` — managed via Supabase MCP, not manually

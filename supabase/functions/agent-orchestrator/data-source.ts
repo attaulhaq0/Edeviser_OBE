@@ -359,6 +359,40 @@ export class SupabaseToolDataSource
         programId && (await this.programScope(programId, context))
       );
     }
+    if (
+      tool === "get_institution_ilos" ||
+      tool === "get_outcome_hierarchy_health"
+    ) {
+      return context.identity.role === "admin";
+    }
+    if (
+      tool === "get_ilo_detail" ||
+      tool === "get_ilo_attainment" ||
+      tool === "get_ilo_attainment_trend" ||
+      tool === "get_ilo_mapping_coverage" ||
+      tool === "get_ilo_program_contributions" ||
+      tool === "get_ilo_evidence_summary" ||
+      tool === "get_unmapped_program_outcomes"
+    ) {
+      const iloId = stringInput(input, "iloId");
+      if (iloId) {
+        const { data: ilo, error } = await this.reader
+          .from("learning_outcomes")
+          .select("id,institution_id")
+          .eq("id", iloId)
+          .eq("type", "ILO")
+          .maybeSingle();
+        if (error || !ilo) return false;
+        if (
+          (ilo as Record<string, unknown>).institution_id !==
+          context.identity.institutionId
+        ) {
+          return false;
+        }
+      }
+      if (programId) return this.programScope(programId, context);
+      return context.identity.role === "admin";
+    }
     if (studentId && !(await this.studentScope(studentId, context, courseId)))
       return false;
     if (courseId) return this.courseScope(courseId, context);
@@ -373,6 +407,7 @@ export class SupabaseToolDataSource
     const courseId = stringInput(input, "courseId") ?? context.page.courseId;
     const studentId = stringInput(input, "studentId") ?? context.page.studentId;
     const programId = stringInput(input, "programId") ?? context.page.programId;
+    const iloId = stringInput(input, "iloId");
     switch (tool) {
       case "get_student_learning_context": {
         const { data: needsRefresh, error: freshnessError } =
@@ -600,6 +635,222 @@ export class SupabaseToolDataSource
           effects: safeData(data ?? [], error),
         };
       }
+      case "get_institution_ilos": {
+        const { data, error } = await this.reader
+          .from("learning_outcomes")
+          .select("id,title,title_ar,weight,sort_order")
+          .eq("type", "ILO")
+          .eq("institution_id", context.identity.institutionId)
+          .order("sort_order")
+          .limit(200);
+        return {
+          institutionId: context.identity.institutionId,
+          ilos: safeData(data ?? [], error),
+        };
+      }
+      case "get_ilo_detail": {
+        const { data: ilo, error: iloError } = await this.reader
+          .from("learning_outcomes")
+          .select("id,title,title_ar,description,weight,institution_id")
+          .eq("id", iloId!)
+          .eq("type", "ILO")
+          .maybeSingle();
+        const iloRow = safeData(ilo, iloError);
+        if (!iloRow) return { iloId, ilo: null, ploMappings: [] };
+        const { data: mappings, error: mappingError } = await this.reader
+          .from("outcome_mappings")
+          .select("source_outcome_id,target_outcome_id,weight")
+          .eq("source_outcome_id", iloId!)
+          .limit(200);
+        return {
+          ilo: iloRow,
+          ploMappings: safeData(mappings ?? [], mappingError),
+        };
+      }
+      case "get_ilo_attainment": {
+        const ploIds = await this.iloPloTargetIds(iloId!);
+        if (ploIds.length === 0) {
+          return { iloId, derivedFrom: "canonical_plo_mappings", ploAttainment: [] };
+        }
+        const { data, error } = await this.reader
+          .from("outcome_attainment")
+          .select(
+            "outcome_id,scope,attainment_percent,sample_count,last_calculated_at"
+          )
+          .in("outcome_id", ploIds)
+          .eq("scope", "program")
+          .limit(200);
+        return {
+          iloId,
+          derivedFrom: "canonical_plo_mappings",
+          ploAttainment: safeData(data ?? [], error),
+        };
+      }
+      case "get_ilo_attainment_trend": {
+        const ploIds = await this.iloPloTargetIds(iloId!);
+        if (ploIds.length === 0) return { iloId, trend: [] };
+        const { data, error } = await this.reader
+          .from("outcome_attainment")
+          .select("outcome_id,attainment_percent,sample_count,last_calculated_at")
+          .in("outcome_id", ploIds)
+          .eq("scope", "program")
+          .order("last_calculated_at", { ascending: true })
+          .limit(500);
+        return { iloId, trend: safeData(data ?? [], error) };
+      }
+      case "get_ilo_mapping_coverage": {
+        const { data: ilos, error: iloError } = await this.reader
+          .from("learning_outcomes")
+          .select("id")
+          .eq("type", "ILO")
+          .eq("institution_id", context.identity.institutionId)
+          .limit(200);
+        const iloIds = safeData(ilos ?? [], iloError)
+          .map((row: Record<string, unknown>) => row.id)
+          .filter((id: unknown): id is string => typeof id === "string");
+        const { data: mappings, error: mappingError } = iloIds.length
+          ? await this.reader
+              .from("outcome_mappings")
+              .select("source_outcome_id,target_outcome_id")
+              .in("source_outcome_id", iloIds)
+              .limit(500)
+          : { data: [], error: null };
+        const mappedPlos = new Set(
+          safeData(mappings ?? [], mappingError)
+            .map((m: Record<string, unknown>) => m.target_outcome_id)
+            .filter((id: unknown): id is string => typeof id === "string")
+        );
+        let ploQuery = this.reader
+          .from("learning_outcomes")
+          .select("id,title,program_id")
+          .eq("type", "PLO")
+          .limit(500);
+        ploQuery = programId
+          ? ploQuery.eq("program_id", programId)
+          : ploQuery.eq("institution_id", context.identity.institutionId);
+        const { data: plos, error: ploError } = await ploQuery;
+        const ploRows = safeData(plos ?? [], ploError);
+        return {
+          institutionId: context.identity.institutionId,
+          programId: programId ?? null,
+          totalPlos: ploRows.length,
+          mappedPloCount: ploRows.filter((p: Record<string, unknown>) =>
+            mappedPlos.has(p.id as string)
+          ).length,
+          unmappedPlos: ploRows.filter(
+            (p: Record<string, unknown>) => !mappedPlos.has(p.id as string)
+          ),
+        };
+      }
+      case "get_ilo_program_contributions": {
+        const ploIds = await this.iloPloTargetIds(iloId!);
+        if (ploIds.length === 0) return { iloId, contributions: [] };
+        const { data, error } = await this.reader
+          .from("learning_outcomes")
+          .select("id,title,program_id")
+          .in("id", ploIds)
+          .eq("type", "PLO")
+          .limit(200);
+        return { iloId, contributions: safeData(data ?? [], error) };
+      }
+      case "get_ilo_evidence_summary": {
+        const ploIds = await this.iloPloTargetIds(iloId!);
+        if (ploIds.length === 0) return { iloId, evidence: [] };
+        const { data, error } = await this.reader
+          .from("outcome_attainment")
+          .select("outcome_id,sample_count,attainment_percent,last_calculated_at")
+          .in("outcome_id", ploIds)
+          .limit(200);
+        return { iloId, evidence: safeData(data ?? [], error) };
+      }
+      case "get_unmapped_program_outcomes": {
+        const { data: plos, error: ploError } = await this.reader
+          .from("learning_outcomes")
+          .select("id,title,program_id")
+          .eq("type", "PLO")
+          .eq("program_id", programId!)
+          .limit(500);
+        const ploRows = safeData(plos ?? [], ploError);
+        const ploIds = ploRows
+          .map((row: Record<string, unknown>) => row.id)
+          .filter((id: unknown): id is string => typeof id === "string");
+        if (ploIds.length === 0) return { programId, unmapped: [] };
+        const { data: mappings, error: mappingError } = await this.reader
+          .from("outcome_mappings")
+          .select("target_outcome_id")
+          .in("target_outcome_id", ploIds)
+          .limit(500);
+        const mapped = new Set(
+          safeData(mappings ?? [], mappingError)
+            .map((m: Record<string, unknown>) => m.target_outcome_id)
+            .filter((id: unknown): id is string => typeof id === "string")
+        );
+        return {
+          programId,
+          unmapped: ploRows.filter(
+            (p: Record<string, unknown>) => !mapped.has(p.id as string)
+          ),
+        };
+      }
+      case "get_outcome_hierarchy_health": {
+        const { data: outcomes, error: outcomeError } = await this.reader
+          .from("learning_outcomes")
+          .select("id,type,institution_id,program_id,course_id,weight")
+          .eq("institution_id", context.identity.institutionId)
+          .limit(500);
+        const rows = safeData(outcomes ?? [], outcomeError);
+        const ids = rows
+          .map((row: Record<string, unknown>) => row.id)
+          .filter((id: unknown): id is string => typeof id === "string");
+        const { data: mappings, error: mappingError } = ids.length
+          ? await this.reader
+              .from("outcome_mappings")
+              .select("source_outcome_id,target_outcome_id,weight")
+              .in("source_outcome_id", ids)
+              .limit(1000)
+          : { data: [], error: null };
+        const mappingRows = safeData(mappings ?? [], mappingError);
+        const typeById = new Map(
+          rows.map((row: Record<string, unknown>) => [
+            row.id as string,
+            row.type as string,
+          ])
+        );
+        const allowedPairs = new Set(["ILO>PLO", "PLO>CLO", "CLO>SUB_CLO"]);
+        const invalidPairs = mappingRows.filter((m: Record<string, unknown>) => {
+          const source = typeById.get(m.source_outcome_id as string);
+          const target = typeById.get(m.target_outcome_id as string);
+          return !source || !target || !allowedPairs.has(`${source}>${target}`);
+        });
+        const orphaned = rows
+          .filter(
+            (row: Record<string, unknown>) =>
+              row.type !== "ILO" &&
+              !mappingRows.some(
+                (m: Record<string, unknown>) =>
+                  m.target_outcome_id === row.id
+              )
+          )
+          .map((row: Record<string, unknown>) => row.id);
+        return {
+          institutionId: context.identity.institutionId,
+          outcomeCount: rows.length,
+          mappingCount: mappingRows.length,
+          invalidPairs,
+          orphanedOutcomeIds: orphaned,
+        };
+      }
     }
+  }
+
+  private async iloPloTargetIds(iloId: string): Promise<string[]> {
+    const { data, error } = await this.reader
+      .from("outcome_mappings")
+      .select("target_outcome_id")
+      .eq("source_outcome_id", iloId)
+      .limit(200);
+    return safeData(data ?? [], error)
+      .map((m: Record<string, unknown>) => m.target_outcome_id)
+      .filter((id: unknown): id is string => typeof id === "string");
   }
 }

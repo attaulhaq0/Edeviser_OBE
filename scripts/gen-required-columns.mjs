@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Required-column manifest generator (Part C / C2 tooling for Req 18.3).
 //
 // WHY THIS EXISTS:

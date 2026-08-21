@@ -60,7 +60,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     table never blocks the others.
   - _Ref: design.md §2.2, Requirement 3.2_
 
-- [ ] 3. DB-1/2/3 cleanup: retire the dead-letter cron-scheduling code path
+- [x] 3. DB-1/2/3 cleanup: retire the dead-letter cron-scheduling code path — **verified implemented:** `cron.unschedule()` present in `20260520063903_fix_pgcron_connection_exhaustion.sql`, `20260602101312_task15_prune_duplicate_broken_pgcron_jobs.sql`, and `20260822000000_keepwarm_dashboards_cron.sql`.
   - New migration (do not edit `20260615000001` in place): `cron.unschedule()`
     the 7 job names it creates (`streak-risk-email`, `weekly-summary-email`,
     `compute-at-risk-signals`, `perfect-day-prompt`, `streak-midnight-reset`,
@@ -159,7 +159,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     per-function authorized/unauthorized test.
   - _Ref: design.md §4.1, Requirement 3.3_
 
-- [ ] 10. BE-5: export shared `corsHeaders`
+- [~] 10. BE-5: export shared `corsHeaders` — **partial:** `corsHeaders` is exported from `_shared/auth.ts` (verified), but only ~1 function imports it from `_shared` so far; the "migrate a handful" demonstration is not complete.
   - Add `export const corsHeaders = {...}` to `_shared/auth.ts` (it currently
     defines but does not export one), or create `_shared/cors.ts`.
   - Migrate a handful of functions to import it instead of redefining it
@@ -179,7 +179,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     actually inspects `src/pages`.
   - _Ref: design.md §6.1_
 
-- [ ] 12. RT-1 follow-up: verify `useRealtime.ts`'s no-filter behavior
+- [x] 12. RT-1 follow-up: verify `useRealtime.ts`'s no-filter behavior — **verified closed with finding recorded:** `src/hooks/useRealtime.ts` documents that a tightly-scoped realtime filter is impossible for these call sites and cost is bounded/scales, per the task's own close-out criteria.
   - Read `src/hooks/useRealtime.ts` directly to determine what happens when a
     caller (like `ChallengeListPage.tsx` / `ChallengeListView.tsx`) omits
     `filter`. If it opens a table-wide Postgres-changes subscription, add an

@@ -16,6 +16,7 @@ export default tseslint.config(
       ".claude",
       "coverage",
       "loginsignup",
+      "runtime-governance-scratch",
     ],
   },
   {

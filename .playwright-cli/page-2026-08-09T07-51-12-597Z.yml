@@ -1,0 +1,54 @@
+- generic [ref=e4]:
+  - navigation "Accessibility" [ref=e1]:
+    - link "Skip to main content" [ref=e2] [cursor=pointer]:
+      - /url: "#main-content"
+  - main [ref=e6]:
+    - generic [ref=e7]:
+      - complementary [ref=e9]
+      - generic [ref=e10]:
+        - 'button "Language: English" [ref=e12]': English
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - button "Login" [ref=e16]
+            - button "Register" [ref=e17]
+          - generic [ref=e18]:
+            - generic [ref=e19]:
+              - generic [ref=e20]: Email Address
+              - textbox "Email Address" [ref=e25]:
+                - /placeholder: you@school.edu
+                - text: noor.student@local.test
+            - generic [ref=e26]:
+              - generic [ref=e27]:
+                - generic [ref=e28]: Password
+                - link "Forgot password?" [ref=e29] [cursor=pointer]:
+                  - /url: /reset-password
+              - generic [ref=e30]:
+                - textbox "Password" [ref=e34]:
+                  - /placeholder: ••••••••
+                  - text: NoorLocal!2026
+                - button [ref=e35]
+            - generic [ref=e40] [cursor=pointer]:
+              - checkbox "Keep me signed in" [checked] [ref=e41]
+              - checkbox [checked]
+              - text: Keep me signed in
+            - button "Sign In" [ref=e42]
+            - generic [ref=e44]: or
+            - button "Email me a magic link instead" [ref=e47]
+            - paragraph [ref=e52]:
+              - text: Don't have an account?
+              - button "Create one" [ref=e53]
+          - alert [ref=e196]:
+            - generic [ref=e197]: Login successful!
+          - generic [ref=e54]:
+            - generic [ref=e55]: Local Demo Login
+            - generic [ref=e60]:
+              - button "Admin" [ref=e61]
+              - button "Coordinator" [ref=e65]
+              - button "Teacher" [ref=e72]
+              - button "Student" [ref=e77]
+              - button "Parent" [ref=e82]
+        - generic [ref=e89]:
+          - generic [ref=e90]: Secure. Private. Built for education.
+          - img "Mascot Badge" [ref=e96]
+  - region "Notifications alt+T"
+  - button "Open Tanstack query devtools" [ref=e147] [cursor=pointer]
