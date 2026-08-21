@@ -47,8 +47,7 @@ function toggleCard(el, btnId, minCount=2){
 // DEVICE MODE — set as early as possible to avoid flash
 // ═══════════════════════════════════════════════════════════════════
 (function(){
-  const requestedMode=new URLSearchParams(location.search).get('mode');
-  const mode=(requestedMode==='laptop'||requestedMode==='mobile')?requestedMode:(localStorage.getItem('edv-mode')||'mobile');
+  const mode=localStorage.getItem('edv-mode')||'mobile';
   document.documentElement.classList.add('mode-'+mode);
   if(document.querySelector('#screens')) document.documentElement.classList.add('onboarding');
 })();
@@ -68,9 +67,7 @@ function setMode(mode){
 // pages defaulted to 'student' and their nav/back links bounced a teacher or
 // parent to the student dashboard.
 const ROLE=(function(){
-  var requestedRole=new URLSearchParams(location.search).get('role');
-  var allowedRoles=['student','teacher','parent','coordinator','admin'];
-  var r=(document.body&&document.body.dataset.role)||(allowedRoles.includes(requestedRole)?requestedRole:'');
+  var r=(document.body&&document.body.dataset.role);
   try{
     if(r){localStorage.setItem('edv-role',r);return r;}
     return localStorage.getItem('edv-role')||'student';
@@ -89,8 +86,8 @@ const ROLE_NAV={
   teacher:[
     {tab:'home',label:'Home',href:'teacher-dashboard.html',ic:'🏠'},
     {tab:'students',label:'Students',href:'teacher-students.html',ic:'🧑‍🎓'},
-    {tab:'curriculum',label:'Studio',href:'teacher-studio.html',ic:'🧬',fab:true},
-    {tab:'grade',label:'Grade',href:'teacher-grade.html',ic:'✍️'},
+    {tab:'curriculum',label:'Studio',href:'teacher-curriculum.html',ic:'🧬',fab:true},
+    {tab:'grade',label:'Grade',href:'teacher-grading.html',ic:'✍️'},
     {tab:'me',label:'Me',href:'teacher-profile.html',ic:'🙂'},
   ],
   parent:[
@@ -122,19 +119,19 @@ const ROLE_MORE={
     profile:{href:'profile.html',ini:'S',name:'Sarah Ahmed',bar:75,sub:'Lvl 4 · 750 / 1000 XP'},
   },
   teacher:{
-    links:[['teacher-triage.html','🧑‍🎓','Student Triage'],['teacher-curriculum.html','🧬','Curriculum Studio'],['teacher-questions.html','🧠','Question Bank'],['teacher-rubrics.html','📐','Rubric Builder'],['teacher-materials.html','📚','Course Materials'],['teacher-handoffs.html','🧭','Tutor Handoffs'],['teacher-grading.html','✍️','Grading Queue'],['teacher-gradebook.html','📊','Gradebook'],['teacher-attendance.html','🗓️','Attendance'],['discussions.html','💭','Discussions'],['announcements.html','📣','Announcements'],['notifications.html','🔔','Notifications'],['settings.html','⚙️','Settings']],
+    links:[['teacher-students.html','🧑‍🎓','Student Triage'],['teacher-curriculum.html','🧬','Curriculum Studio'],['teacher-questions.html','🧠','Question Bank'],['teacher-rubrics.html','📐','Rubric Builder'],['teacher-materials.html','📚','Course Materials'],['teacher-handoffs.html','🧭','Tutor Handoffs'],['teacher-grading.html','✍️','Grading Queue'],['teacher-gradebook.html','📊','Gradebook'],['teacher-attendance.html','🗓️','Attendance'],['discussions.html','💭','Discussions'],['announcements.html','📣','Announcements'],['notifications.html','🔔','Notifications'],['teacher-profile.html','⚙️','Settings']],
     profile:{href:'teacher-profile.html',ini:'A',name:'Prof. Ahmed',bar:100,sub:'Computer Science · 4 classes'},
   },
   parent:{
     links:[['parent-progress.html','🌱','Growth & Wellbeing'],['parent-support.html','💬','Support & Messages'],['fees.html','💳','Fees & Payments'],['announcements.html','📣','Announcements'],['notifications.html','🔔','Notifications'],['parent-profile.html','⚙️','Settings']],
-    profile:{href:'parent-profile.html',ini:'N',name:'Nadia (Parent)',bar:100,sub:'Guardian of Sarah Ahmed'},
+    profile:{href:'parent-profile.html',ini:'N',name:'Nadia (Parent)',bar:100,sub:'Guardian of Maya'},
   },
   coordinator:{
     links:[['coordinator-outcomes.html','🎯','Outcome Attainment'],['coordinator-curriculum.html','🗂️','Curriculum Matrix'],['coordinator-cqi.html','🔧','CQI Plans'],['coordinator-course-file.html','📘','Course File Generator'],['coordinator-teams.html','👥','Team Health Report'],['coordinator-competencies.html','🧭','Competency Frameworks'],['coordinator-accreditation.html','📋','Accreditation'],['discussions.html','💭','Discussions'],['announcements.html','📣','Announcements'],['notifications.html','🔔','Notifications'],['coordinator-profile.html','⚙️','Settings']],
     profile:{href:'coordinator-profile.html',ini:'K',name:'Dr. Khalid',bar:100,sub:'Program Coordinator · CS'},
   },
   admin:{
-    links:[['admin-outcomes.html','🎯','Institution Outcomes'],['admin-readiness.html','📁','Evidence & Readiness'],['admin-marketplace.html','🛍️','Marketplace'],['admin-structure.html','🏛️','Institution Structure'],['admin-import.html','📥','Bulk Import'],['admin-badges.html','🏅','Badge Definitions'],['admin-security.html','🔒','Security'],['admin-fees.html','💳','Fees Management'],['announcements.html?role=admin','📣','Announcements'],['notifications.html?role=admin','🔔','Notifications'],['admin-profile.html','⚙️','Settings']],
+    links:[['admin-analytics.html','📊','Analytics'],['admin-marketplace.html','🛍️','Marketplace'],['admin-governance.html','🛡️','AI Governance'],['admin-users.html','👥','People'],['admin-structure.html','🏛️','Institution Structure'],['admin-import.html','📥','Bulk Import'],['admin-badges.html','🏅','Badge Definitions'],['admin-security.html','🔒','Security'],['admin-fees.html','💳','Fees Management'],['announcements.html','📣','Announcements'],['notifications.html','🔔','Notifications'],['admin-profile.html','⚙️','Settings']],
     profile:{href:'admin-profile.html',ini:'G',name:'Gulf Academy',bar:100,sub:'Institution Admin'},
   },
 };
@@ -167,71 +164,19 @@ function injectNav(){
   bar.innerHTML=nav.map(n=>`<a href="${n.href}" class="tab-btn" data-tab="${n.tab}">${n.fab?`<div class="tutor-fab"><span style="font-size:18px">${n.ic}</span></div>`:`<span class="tab-ic">${n.ic}</span>`}<span>${n.label}</span></a>`).join('');
   document.body.appendChild(bar);
 }
-
-// The prototype wordmark is the shared way back to the role launcher. Some
-// pages hardcode the mobile header brand while the laptop brand lives inside
-// the shared sidebar, so normalize both into real, keyboard-accessible links.
-function linkBrandToRoleSelection(){
-  document.querySelectorAll('.hdr-brand').forEach(brand=>{
-    if(brand.tagName==='A'){
-      brand.setAttribute('href','roles.html');
-      brand.setAttribute('aria-label','Edeviser — choose a role');
-      return;
-    }
-    const link=document.createElement('a');
-    [...brand.attributes].forEach(attribute=>link.setAttribute(attribute.name,attribute.value));
-    link.setAttribute('href','roles.html');
-    link.setAttribute('aria-label','Edeviser — choose a role');
-    while(brand.firstChild) link.appendChild(brand.firstChild);
-    brand.replaceWith(link);
-  });
-
-  document.querySelectorAll('.bottom-bar').forEach(nav=>{
-    if(nav.querySelector(':scope > .sidebar-brand')) return;
-    const link=document.createElement('a');
-    link.className='sidebar-brand';
-    link.href='roles.html';
-    link.setAttribute('aria-label','Edeviser — choose a role');
-    link.textContent='Edeviser';
-    nav.prepend(link);
-  });
-}
-// Give each role's configured primary action the same persistent treatment as
-// the Student Tutor. This targets the configured route, not a nav position, so
-// it also safely upgrades legacy pages that still hardcode their primary tabs.
-function featurePrimaryRoleAction(){
-  const featured=(ROLE_NAV[ROLE]||[]).find(n=>n.fab);
-  if(!featured) return;
-  // `gov` is the legacy semantic tab name for AI Governance.
-  const tabs=ROLE==='admin'?[featured.tab,'gov']:[featured.tab];
-  const action=document.querySelector(`.bottom-bar > .tab-btn[href="${featured.href}"], ${tabs.map(tab=>`.bottom-bar > .tab-btn[data-tab="${tab}"]`).join(', ')}`);
-  if(!action) return;
-  const existing=action.querySelector(':scope > .tutor-fab');
-  if(existing){
-    existing.classList.add('role-primary-featured-icon');
-    return;
-  }
-  const icon=action.querySelector(':scope > svg, :scope > .tab-ic');
-  if(!icon) return;
-  const container=document.createElement('div');
-  container.className='tutor-fab role-primary-featured-icon';
-  icon.before(container);
-  container.appendChild(icon);
-}
 function setActiveTab(){
   const page=location.pathname.split('/').pop().replace('.html','');
   // derive from ROLE_NAV hrefs + a few known sub-pages
   const nav=ROLE_NAV[ROLE]||[];
   const extraMap={
     student:{index:'home',dashboard:'home',path:'learn',learn:'learn',course:'learn',assignment:'learn',lesson:'learn',review:'learn',tutor:'tutor',progress:'progress',profile:'me','learning-profile':'me',journal:'me',team:'me',calendar:'me',settings:'me',leaderboard:'me',marketplace:'me',portfolio:'me',badges:'me',transcript:'me',fees:'me',surveys:'me',discussions:'learn',notifications:'me'},
-    teacher:{'teacher-dashboard':'home','teacher-students':'students','teacher-triage':'students','teacher-student-detail':'students','teacher-studio':'curriculum','teacher-curriculum':'curriculum','teacher-questions':'curriculum','teacher-rubrics':'curriculum','teacher-materials':'curriculum','teacher-grade':'grade','teacher-grading':'grade','teacher-gradebook':'grade','teacher-attendance':'grade','teacher-profile':'me',calendar:'grade',settings:'me',discussions:'curriculum',notifications:'me'},
+    teacher:{'teacher-dashboard':'home','teacher-students':'students','teacher-curriculum':'curriculum','teacher-grading':'grade','teacher-profile':'me',calendar:'grade',settings:'me',discussions:'curriculum',notifications:'me'},
     parent:{'parent-dashboard':'home','parent-progress':'progress','parent-support':'support','parent-profile':'me',settings:'me',fees:'me',notifications:'me'},
-    coordinator:{'coordinator-dashboard':'home','coordinator-outcomes':'outcomes','coordinator-curriculum':'curriculum','coordinator-cqi':'curriculum','coordinator-course-file':'accred','coordinator-accreditation':'accred','coordinator-profile':'me',settings:'me',discussions:'curriculum',notifications:'me'},
-    admin:{'admin-dashboard':'home','admin-analytics':'analytics','admin-governance':'governance','admin-users':'users','admin-profile':'me'},
+    coordinator:{'coordinator-dashboard':'home','coordinator-outcomes':'outcomes','coordinator-curriculum':'curriculum','coordinator-accreditation':'accred','coordinator-profile':'me',settings:'me',discussions:'curriculum',notifications:'me'},
+    admin:{'admin-dashboard':'home','admin-analytics':'analytics','admin-governance':'governance','admin-users':'users','admin-profile':'me',settings:'me','admin-structure':'users','admin-import':'users','admin-badges':'users','admin-security':'governance','admin-fees':'users','admin-marketplace':'users',notifications:'me'},
   };
   const map=extraMap[ROLE]||{};
-  const sideOwnsPage=ROLE==='admin'&&!!document.querySelector('.side-link.active');
-  const active=map[page]|| (nav.find(n=>n.href.replace('.html','')===page)||{}).tab || (sideOwnsPage?'':'home');
+  const active=map[page]|| (nav.find(n=>n.href.replace('.html','')===page)||{}).tab || 'home';
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===active));
 }
 
@@ -246,15 +191,15 @@ const ROLE_NOTIFS={
     {icon:'🏅',title:'Most-Improved this week',body:'You climbed 2 spots in your league.',time:'1d',unread:false},
   ],
   teacher:[
-    {icon:'⚠️',title:'Sarah needs review',body:'Tutor handoff received for Normalization · CLO 3.',time:'8m',unread:true},
+    {icon:'⚠️',title:'3 students flagged',body:'Sara, Omar, Lina show declining Normalization.',time:'8m',unread:true},
     {icon:'✍️',title:'12 feedback drafts ready',body:'AI drafted feedback for CS301 Assignment 3.',time:'40m',unread:true},
     {icon:'🧬',title:'Curriculum draft ready',body:'Your uploaded slides became 6 micro-lessons.',time:'2h',unread:true},
     {icon:'📋',title:'CLO gap detected',body:'REST APIs (CLO5) below target across 2 sections.',time:'1d',unread:false},
   ],
   parent:[
-    {icon:'🌱',title:'Sarah had a steady week',body:'Database Design is progressing; Normalization is the current focus.',time:'2h',unread:true},
-    {icon:'💬',title:'A way to help',body:'Ask Sarah to explain why normalization helps.',time:'1d',unread:true},
-    {icon:'📅',title:'Assignment 3 is coming up',body:'Normalize a Schema is due Friday.',time:'2d',unread:false},
+    {icon:'🌱',title:'Maya had a strong week',body:'Studied 4 of 5 days — up from 2 last week.',time:'2h',unread:true},
+    {icon:'💬',title:'A way to help',body:'Ask Maya to teach you one thing she learned.',time:'1d',unread:true},
+    {icon:'🎉',title:'Improvement to celebrate',body:'Writing outcomes moved to Satisfactory.',time:'2d',unread:false},
   ],
   coordinator:[
     {icon:'📉',title:'PLO2 attainment dipped',body:'Down 6% across the CS program this term.',time:'1h',unread:true},
@@ -262,9 +207,9 @@ const ROLE_NOTIFS={
     {icon:'📋',title:'Accreditation evidence drafted',body:'Course file for CS301 is ready to review.',time:'1d',unread:false},
   ],
   admin:[
-    {icon:'📋',title:'ILO governance approval',body:'Update ILO2 target · Institution Admin review required.',time:'1h',unread:true},
-    {icon:'📁',title:'Evidence blocker',body:'Concurrency assessment evidence is still missing.',time:'5h',unread:true},
-    {icon:'🔧',title:'CQI mapping proposal',body:'Dr. Khalid submitted a reviewed mapping proposal.',time:'1d',unread:false},
+    {icon:'📈',title:'Weekly engagement report',body:'92% active learners · retention risk: 38 students.',time:'1h',unread:true},
+    {icon:'🛡️',title:'AI action log',body:'214 AI suggestions this week · 0 auto-actions.',time:'5h',unread:true},
+    {icon:'🏫',title:'Dept comparison ready',body:'CS leads mastery; Business trails on outcomes.',time:'1d',unread:false},
   ],
 };
 function buildNotifs(){
@@ -299,10 +244,10 @@ function buildNotifs(){
 // ═══════════════════════════════════════════════════════════════════
 const ROLE_PAGES={
   student:[['auth.html','🔐 Sign in / Sign up'],['index.html','Onboarding'],['dashboard.html','② Today'],['path.html','★ Learning Path'],['lesson.html','◆ Lesson Loop'],['review.html','🔁 Daily Review'],['learn.html','Courses'],['course.html','Course'],['assignment.html','Assignment'],['tutor.html','🤖 AI Tutor'],['progress.html','Progress'],['profile.html','Profile'],['learning-profile.html','Learning Profile'],['journal.html','Journal'],['team.html','Team'],['calendar.html','Calendar'],['leaderboard.html','Leaderboard'],['marketplace.html','Shop'],['portfolio.html','Portfolio'],['badges.html','Badges'],['transcript.html','Transcript'],['fees.html','Fees & Payments'],['surveys.html','Surveys'],['discussions.html','Discussions'],['notifications.html','Notifications'],['settings.html','Settings']],
-  teacher:[['teacher-dashboard.html','Home (AI-prepared)'],['teacher-students.html','Students'],['teacher-triage.html','Student Triage'],['teacher-studio.html','Studio'],['teacher-curriculum.html','Curriculum Studio'],['teacher-questions.html','Question Bank'],['teacher-rubrics.html','Rubric Builder'],['teacher-materials.html','Course Materials'],['teacher-handoffs.html','Tutor Handoffs'],['teacher-grade.html','Assessment Workspace'],['teacher-grading.html','Grading + AI drafts'],['teacher-gradebook.html','Gradebook'],['teacher-attendance.html','Attendance'],['teacher-profile.html','Profile']],
+  teacher:[['teacher-dashboard.html','Home (AI-prepared)'],['teacher-students.html','Student Triage'],['teacher-curriculum.html','Curriculum Studio'],['teacher-questions.html','Question Bank'],['teacher-rubrics.html','Rubric Builder'],['teacher-materials.html','Course Materials'],['teacher-handoffs.html','Tutor Handoffs'],['teacher-grading.html','Grading + AI drafts'],['teacher-gradebook.html','Gradebook'],['teacher-attendance.html','Attendance'],['teacher-profile.html','Profile']],
   parent:[['parent-dashboard.html','Home (weekly story)'],['parent-progress.html','Growth & Wellbeing'],['parent-support.html','Support & Messages'],['parent-profile.html','Profile']],
   coordinator:[['coordinator-dashboard.html','Home'],['coordinator-outcomes.html','Outcome Attainment'],['coordinator-curriculum.html','Curriculum Matrix'],['coordinator-cqi.html','CQI Plans'],['coordinator-course-file.html','Course File Generator'],['coordinator-teams.html','Team Health Report'],['coordinator-competencies.html','Competency Frameworks'],['coordinator-accreditation.html','Accreditation'],['coordinator-profile.html','Profile']],
-  admin:[['admin-dashboard.html','Home'],['admin-analytics.html','Analytics'],['admin-outcomes.html','Institution Outcomes'],['admin-readiness.html','Evidence & Readiness'],['admin-governance.html','AI Governance'],['admin-users.html','People'],['admin-marketplace.html','Marketplace'],['admin-structure.html','Institution Structure'],['admin-import.html','Bulk Import'],['admin-badges.html','Badge Definitions'],['admin-security.html','Security'],['admin-fees.html','Fees Management'],['admin-profile.html','Profile']],
+  admin:[['admin-dashboard.html','Home'],['admin-analytics.html','Analytics'],['admin-governance.html','AI Governance'],['admin-users.html','People'],['admin-marketplace.html','Marketplace'],['admin-structure.html','Institution Structure'],['admin-import.html','Bulk Import'],['admin-badges.html','Badge Definitions'],['admin-security.html','Security'],['admin-fees.html','Fees Management'],['admin-profile.html','Profile']],
 };
 function buildDock(){
   const pages=ROLE_PAGES[ROLE]||ROLE_PAGES.student;
@@ -329,21 +274,20 @@ const railCard=(inner,extra='')=>`<div class="rail-card" style="${extra}">${inne
 const railHead=(t,r='')=>`<div class="rail-h"><span>${t}</span>${r?`<span class="rail-r">${r}</span>`:''}</div>`;
 function railHTML(){
   if(ROLE==='teacher') return (
-    railCard(railHead('Upcoming')+`<div class="rail-row"><span style="flex:1"><b>Friday</b><br><span style="font-size:10px;color:#94a3b8">Assignment 3 closes</span></span><b style="color:#b45309">CS301</b></div><div class="rail-row"><span style="flex:1"><b>Wednesday</b><br><span style="font-size:10px;color:#94a3b8">Office hours · Room 210</span></span><b>1:00</b></div><div class="rail-row"><span style="flex:1"><b>Next week</b><br><span style="font-size:10px;color:#94a3b8">Publish assessment plan</span></span><b>Mon</b></div><a href="calendar.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Open calendar →</a>`)+
-    railCard(railHead('E Deviser task inbox')+`<div class="rail-row"><span style="flex:1">Attention items</span><b>3</b></div><div class="rail-row"><span style="flex:1">Tutor handoff</span><b>1</b></div><div class="rail-row"><span style="flex:1">Feedback drafts</span><b>12</b></div><div class="rail-row"><span style="flex:1">Curriculum draft</span><b>1</b></div><a href="teacher-triage.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Open task inbox →</a>`)+
-    railCard(railHead('Assessment coverage')+`<div class="rail-row"><span style="flex:1">CLO 3 questions</span><b>18</b></div><div class="rail-row"><span style="flex:1">Rubric criteria mapped</span><b style="color:#16a34a">5 / 5</b></div><div class="rail-row"><span style="flex:1">Question drafts to review</span><b style="color:#b45309">8</b></div><a href="teacher-questions.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Open Question Bank →</a>`)+
-    railCard(railHead('AI assistance')+`<p style="font-size:12px;color:#475569;margin:0">A2 · Suggest &amp; Draft</p><p style="font-size:10px;color:#94a3b8;margin:6px 0 0">Protected actions always require your approval.</p>`)
+    railCard(railHead('🤖 AI prepared your day')+`<p style="font-size:11.5px;color:#94a3b8;margin:0 0 8px">Based on your classes &amp; workload</p><div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Review 12 AI feedback</span><span class="rc-time">5 min</span></div><div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Help 3 students</span><span class="rc-time">6 min</span></div><div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Review 1 curriculum draft</span><span class="rc-time">3 min</span></div><div class="rail-btn" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;padding-left:12px;padding-right:12px">Estimated workload<b>~14 min</b></div>`)+
+    railCard(railHead('At-risk students','3')+`<div class="rail-row"><span class="dot" style="background:#ef4444"></span><span style="flex:1">Sara — Normalization ↓</span><b>78%</b></div><div class="rail-row"><span class="dot" style="background:#f59e0b"></span><span style="flex:1">Omar — missed 2 tasks</span><b>61%</b></div><div class="rail-row"><span class="dot" style="background:#f59e0b"></span><span style="flex:1">Lina — inactive 6d</span><b>55%</b></div><a href="teacher-students.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">View all at-risk students →</a>`)+
+    railCard(railHead('📊 Class pulse')+`<div class="rail-row"><span style="flex:1">Avg mastery</span><b style="color:#16a34a">74%</b></div><div class="rail-row"><span style="flex:1">Submissions on-time</span><b>88%</b></div><div class="rail-row"><span style="flex:1">CLOs below target</span><b style="color:#b45309">2</b></div><a href="teacher-students.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Detailed analytics →</a>`)+
+    railCard(railHead('🧬 Curriculum Studio','NEW')+`<p style="font-size:12px;color:#475569;margin:0 0 8px">Last upload → 6 micro-lessons drafted.</p><a href="teacher-curriculum.html" class="rail-btn">Review draft →</a>`)
   );
   if(ROLE==='parent') return (
     railCard(railHead('🌱 This week')+`<div class="rail-row"><span style="flex:1">Study days</span><b style="color:#16a34a">4 / 5</b></div><div class="rail-row"><span style="flex:1">Wellbeing</span><b style="color:#16a34a">Good</b></div><div class="rail-row"><span style="flex:1">Focus balance</span><b>Healthy</b></div>`)+
-    railCard(railHead('💬 Conversation starter')+`<p style="font-size:12px;color:#334155;margin:0">"Sarah, can you explain why normalization helps?"</p><p style="font-size:10px;color:#94a3b8;margin:6px 0 0">Connected to Normalization · CLO 3.</p>`)+
-    railCard(railHead('🎯 Current focus')+`<p style="font-size:12px;color:#334155;margin:0">Database Design · <b>Normalization</b></p><p style="font-size:10px;color:#94a3b8;margin:6px 0 0">62% mastery · Developing.</p>`,'background:linear-gradient(135deg,#ecfdf5,#eff6ff)')
+    railCard(railHead('💬 Conversation starter')+`<p style="font-size:12px;color:#334155;margin:0">"Maya, can you teach me one thing about databases you learned this week?"</p><p style="font-size:10px;color:#94a3b8;margin:6px 0 0">Retrieval practice — and it shows you care.</p>`)+
+    railCard(railHead('🎉 Celebrate')+`<p style="font-size:12px;color:#334155;margin:0">Writing outcomes reached <b>Satisfactory</b>. A note of encouragement goes a long way.</p>`,'background:linear-gradient(135deg,#ecfdf5,#eff6ff)')
   );
   if(ROLE==='coordinator') return (
-    railCard(railHead('📥 Coordinator inbox','3')+`<div class="rail-row"><span>📝</span><div style="flex:1"><b>CQI draft</b><br><small>PLO2 remediation · review required</small></div></div><div class="rail-row"><span>🗂️</span><div style="flex:1"><b>Mapping proposal</b><br><small>Concurrency → PLO4 · approval required</small></div></div><div class="rail-row"><span>👤</span><div style="flex:1"><b>Faculty follow-up</b><br><small>CS205 · CLO5 · waiting on teacher</small></div></div><a href="coordinator-cqi.html" class="rail-btn" style="margin-top:8px">Open CQI workspace →</a>`)+
-    railCard(railHead('🗓️ Next milestone')+`<p style="font-size:13px;font-weight:800;color:#0f172a;margin:0">CQI Committee · Nov 14</p><p style="font-size:11px;color:#64748b;margin:4px 0 0">PLO2 action plan needs sign-off.</p>`)+
-    railCard(railHead('🎓 Program scope')+`<div class="rail-row"><span style="flex:1">Computer Science</span><b>3 programs</b></div><div class="rail-row"><span style="flex:1">Courses in scope</span><b>12</b></div><div class="rail-row"><span style="flex:1">Active CQI plans</span><b>4</b></div>`)+
-    railCard(railHead('✨ E Deviser assistance')+`<p style="font-size:12px;color:#475569;margin:0">A2 · Suggest &amp; Draft</p><p style="font-size:10px;color:#94a3b8;margin:6px 0 0">Pattern analysis and drafts are evidence-checked. Mapping and official CQI actions require approval.</p>`)
+    railCard(railHead('📉 Attainment alerts','2')+`<div class="rail-row"><span class="dot" style="background:#ef4444"></span><span style="flex:1">PLO2 −6% this term</span></div><div class="rail-row"><span class="dot" style="background:#f59e0b"></span><span style="flex:1">CLO5 below target ×2</span></div>`)+
+    railCard(railHead('🗂️ Curriculum gap')+`<p style="font-size:12px;color:#475569;margin:0 0 8px">"Concurrency" has no mapped assessment.</p><a href="coordinator-curriculum.html" class="rail-btn">Open matrix →</a>`)+
+    railCard(railHead('📋 Accreditation')+`<div class="rail-row"><span style="flex:1">Evidence readiness</span><b style="color:#16a34a">82%</b></div><a href="coordinator-accreditation.html" class="rail-btn" style="margin-top:8px">Review draft →</a>`)
   );
   if(ROLE==='admin') return (
     railCard(railHead('🏛️ Institution')+`<div class="rail-row"><span style="flex:1">Active learners</span><b>1,240</b></div><div class="rail-row"><span style="flex:1">Weekly active</span><b style="color:#16a34a">92%</b></div><div class="rail-row"><span style="flex:1">Retention risk</span><b style="color:#b45309">38</b></div>`)+
@@ -365,7 +309,7 @@ function railHTML(){
     railCard(railHead('⚔️ Daily Quests','1/3')+`<div class="rail-row"><span>✅</span><div style="flex:1"><p style="font-size:12px;font-weight:600;color:#334155;margin:0">Complete 1 lesson</p><div class="mini-bar"><div style="width:100%;background:#22c55e"></div></div></div></div><div class="rail-row"><span>🔁</span><div style="flex:1"><p style="font-size:12px;font-weight:600;color:#334155;margin:0">Review 5 mistakes</p><div class="mini-bar"><div style="width:60%;background:#7c3aed"></div></div></div></div><div class="rail-row"><span>🎁</span><div style="flex:1"><p style="font-size:12px;font-weight:600;color:#334155;margin:0">Open mystery chest</p><p style="font-size:10px;color:#94a3b8;margin:1px 0 0">Finish 2 quests to unlock</p></div></div>`)+
     railCard(railHead('🏅 Gold League','3d left')+`<div class="rail-row"><span style="width:16px;font-weight:800;color:#f59e0b;font-size:12px">1</span><span style="flex:1;font-size:13px;color:#334155">Maryam</span><b>2,580</b></div><div class="rail-row" style="background:#eff6ff;border-radius:8px;margin:2px -6px;padding:5px 6px"><span style="width:16px;font-weight:800;color:#64748b;font-size:12px">4</span><span style="flex:1;font-size:13px;font-weight:800;color:#2563eb">You</span><b>1,890</b></div>`)+
     railCard(railHead('📅 Coming up')+`<div class="rail-row"><span style="flex:1">Web Dev Quiz</span><b style="color:#b45309">Tomorrow</b></div><div class="rail-row"><span style="flex:1">AI Research Essay</span><b>Friday</b></div><a href="calendar.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Open calendar →</a>`)+
-    railCard(railHead('❄️ Streak protection')+`<div class="rail-row"><span style="flex:1">Freezes in inventory</span><b>2</b></div><div class="rail-row"><span style="flex:1">Today's streak</span><b style="color:#b45309">Needs activity today</b></div><a href="marketplace.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Get more freezes →</a>`)+
+    railCard(railHead('❄️ Streak protection')+`<div class="rail-row"><span style="flex:1">Freezes in inventory</span><b>2</b></div><div class="rail-row"><span style="flex:1">Today's streak</span><b style="color:#dc2626">At risk</b></div><a href="marketplace.html" style="display:block;margin-top:8px;font-size:12px;font-weight:800;color:#2563eb">Get more freezes →</a>`)+
     railCard(`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">🤖</span><p style="font-size:12px;font-weight:800;margin:0">Edu's tip</p></div><p style="font-size:12px;color:rgba(255,255,255,.82);margin:6px 0 0">Review 5 mistakes to strengthen your weak CLOs.</p>`,'background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff')
   );
   if(page==='learn'||page==='course') return (
@@ -434,7 +378,7 @@ function buildSidebarExtra(){
   extra.innerHTML=`
     <div class="side-sep"></div>
     <p class="side-label">MORE</p>
-    ${cfg.links.map(([href,ic,label])=>`<a href="${href}" class="side-link ${(location.pathname.split('/').pop()||'')===href.split('?')[0]?'active':''}">${ic} <span>${label}</span></a>`).join('')}
+    ${cfg.links.map(([href,ic,label])=>`<a href="${href}" class="side-link">${ic} <span>${label}</span></a>`).join('')}
     ${upgrade}`;
   bar.appendChild(extra);
 }
@@ -481,7 +425,7 @@ const ROLE_CMDK={
   teacher:[{sec:'Go to'},{ic:'🏠',t:'Home',f:'teacher-dashboard.html'},{ic:'🧑‍🎓',t:'Student Triage',f:'teacher-students.html'},{ic:'🧬',t:'Curriculum Studio',f:'teacher-curriculum.html'},{ic:'✍️',t:'Grading Queue',f:'teacher-grading.html'},{sec:'Actions'},{ic:'✨',t:'Draft feedback with AI',f:'teacher-grading.html'},{ic:'📤',t:'Turn upload into lessons',f:'teacher-curriculum.html'}],
   parent:[{sec:'Go to'},{ic:'🏠',t:'Home',f:'parent-dashboard.html'},{ic:'🌱',t:'Growth & Wellbeing',f:'parent-progress.html'},{ic:'💬',t:'Support & Messages',f:'parent-support.html'}],
   coordinator:[{sec:'Go to'},{ic:'🏠',t:'Home',f:'coordinator-dashboard.html'},{ic:'🎯',t:'Outcome Attainment',f:'coordinator-outcomes.html'},{ic:'🗂️',t:'Curriculum Matrix',f:'coordinator-curriculum.html'},{ic:'📋',t:'Accreditation',f:'coordinator-accreditation.html'}],
-  admin:[{sec:'Institutional intelligence'},{ic:'🏠',t:'Home',f:'admin-dashboard.html'},{ic:'📊',t:'Analytics',f:'admin-analytics.html'},{ic:'🎯',t:'Institution Outcomes',f:'admin-outcomes.html'},{ic:'📁',t:'Evidence & Readiness',f:'admin-readiness.html'},{ic:'🛡️',t:'AI Governance',f:'admin-governance.html'},{sec:'Operations'},{ic:'👥',t:'People',f:'admin-users.html'},{ic:'🏛️',t:'Institution Structure',f:'admin-structure.html'},{ic:'📥',t:'Bulk Import',f:'admin-import.html'}],
+  admin:[{sec:'Go to'},{ic:'🏠',t:'Home',f:'admin-dashboard.html'},{ic:'📊',t:'Analytics',f:'admin-analytics.html'},{ic:'🛡️',t:'AI Governance',f:'admin-governance.html'},{ic:'👥',t:'People',f:'admin-users.html'}],
 };
 function renderCmdk(){
   const q=(document.getElementById('cmdk-input').value||'').toLowerCase();
@@ -518,8 +462,6 @@ function repointNav(){
 
 document.addEventListener('DOMContentLoaded',()=>{
   injectNav();
-  linkBrandToRoleSelection();
-  featurePrimaryRoleAction();
   normalizeHeader();
   buildNotifs();
   buildStats();
@@ -529,13 +471,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildProfileChip();
   repointNav();
   setActiveTab();
-  const currentPrototypePage=(location.pathname.split('/').pop()||'').replace('.html','');
-  if(ROLE==='admin'&&currentPrototypePage.startsWith('admin-')){
-    if(!document.querySelector('link[data-admin-refinement]')){
-      const link=document.createElement('link');link.rel='stylesheet';link.href='admin-refinement.css';link.setAttribute('data-admin-refinement','1');document.head.appendChild(link);
-    }
-    const script=document.createElement('script');script.src='admin-refinement.js';script.setAttribute('data-admin-refinement','1');document.body.appendChild(script);
-  }
+  buildDock();
 });
 
 // ═══════════════════════════════════════════════════════════════════

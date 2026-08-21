@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="student-refinement.css"/>
 </head>
 <body class="bg-slate-50" data-role="student">
 
@@ -26,14 +25,14 @@
     <div class="p-5">
       <div class="flex items-center justify-between mb-2">
         <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">Database Design · CS301</span>
-        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">⏰ <span data-student-due-label>Due in 2 days</span></span>
+        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">⏰ Due in 4h</span>
       </div>
       <h1 class="text-xl font-bold tracking-tight text-gray-900">Database Assignment 3</h1>
       <p class="text-sm text-gray-600 mt-1">Design a normalized schema for a library management system. Apply 1NF, 2NF, and 3NF.</p>
 
       <!-- Key facts grid -->
       <div class="grid grid-cols-3 gap-3 mt-4">
-        <div class="bg-slate-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-gray-400">Due</p><p class="text-sm font-bold text-gray-900 mt-0.5" data-student-due>Friday</p></div>
+        <div class="bg-slate-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-gray-400">Due</p><p class="text-sm font-bold text-gray-900 mt-0.5">5:00 PM</p></div>
         <div class="bg-slate-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-gray-400">Marks</p><p class="text-sm font-bold text-gray-900 mt-0.5">100</p></div>
         <div class="bg-amber-50 rounded-lg p-2.5 text-center"><p class="text-[9px] font-bold uppercase text-amber-500">Reward</p><p class="text-sm font-bold text-amber-700 mt-0.5">+25 XP</p></div>
       </div>
@@ -83,7 +82,6 @@
 </nav>
 
 <script src="shared.js"></script>
-<script src="demo-data.js"></script><script src="student-refinement.js"></script>
 <script>
 function fakeUpload(){document.getElementById('upload-zone').classList.add('hidden');document.getElementById('upload-done').classList.remove('hidden');}
 function submitAssignment(){

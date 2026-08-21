@@ -2,19 +2,12 @@
    EDEVISER PROTOTYPE — Shared Design System
    ═══════════════════════════════════════════════════════════════════ */
 *{font-family:'Noto Sans',sans-serif;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{max-width:100%;overflow-x:clip}
 body{margin:0;background:#f8fafc;overflow-x:hidden;min-height:100dvh}
 :root{
   --teal:#14b8a6;--blue:#0382bd;
   --brand-gradient:linear-gradient(93.65deg,#14B8A6 5.37%,#0382BD 78.89%);
   --hero-gradient:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%);
   --onboarding-bg:linear-gradient(160deg,#f0fdfa 0%,#eff6ff 50%,#eef2ff 100%);
-  /* Canonical prototype shell dimensions. These preserve the existing chrome
-     while allowing the center canvas to consume the remaining inline space. */
-  --app-sidebar-width:264px;
-  --app-right-rail-width:328px;
-  --app-page-gutter:40px;
-  --app-section-gap:20px;
 }
 a{text-decoration:none;color:inherit}
 
@@ -39,7 +32,6 @@ a{text-decoration:none;color:inherit}
 
 /* ─── Bottom Tab Bar ─────────────────────────────────────── */
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;z-index:50;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 0 max(8px,env(safe-area-inset-bottom))}
-.sidebar-brand{display:none}
 .tab-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 8px;border-radius:8px;transition:color .15s;cursor:pointer;border:none;background:none;min-width:48px;text-decoration:none}
 .tab-btn svg{width:22px;height:22px}
 .tab-btn span{font-size:10px;font-weight:500}
@@ -105,10 +97,8 @@ a{text-decoration:none;color:inherit}
   html.mode-laptop body{width:auto;min-height:100vh;margin:0;border:none;border-radius:0;box-shadow:none;display:block;background:#eef2f6}
 
   /* left sidebar hugs the left edge of the screen */
-  html.mode-laptop .bottom-bar{top:0;bottom:0;left:0;right:auto;width:var(--app-sidebar-width);height:100vh;flex-direction:column;justify-content:flex-start;align-items:stretch;border-top:none;border-right:1px solid #e2e8f0;padding:74px 14px 20px;gap:4px;background:#fff}
-  html.mode-laptop .sidebar-brand{display:flex;position:absolute;top:14px;left:14px;align-items:center;height:42px;padding:0 8px;border-radius:10px;font-weight:900;font-size:18px;letter-spacing:-.01em;color:#0f172a;transition:background .15s,color .15s}
-  html.mode-laptop .sidebar-brand:hover{background:#f1f5f9;color:#0369a1}
-  html.mode-laptop .sidebar-brand:focus-visible{outline:3px solid rgba(14,165,233,.3);outline-offset:2px}
+  html.mode-laptop .bottom-bar{top:0;bottom:0;left:0;right:auto;width:264px;height:100vh;flex-direction:column;justify-content:flex-start;align-items:stretch;border-top:none;border-right:1px solid #e2e8f0;padding:74px 14px 20px;gap:4px;background:#fff}
+  html.mode-laptop .bottom-bar::before{content:"Edeviser";position:absolute;top:22px;left:22px;font-weight:900;font-size:18px;letter-spacing:-.01em;color:#0f172a}
   html.mode-laptop .tab-btn{flex-direction:row;justify-content:flex-start;gap:14px;padding:12px 18px;border-radius:12px;min-width:0}
   html.mode-laptop .tab-btn:hover{background:#f1f5f9}
   html.mode-laptop .tab-btn.active{background:#eff6ff}
@@ -118,16 +108,15 @@ a{text-decoration:none;color:inherit}
 
   /* top header full width: search sits after the sidebar, the right cluster
      (streak · gems · bell · avatar) floats to the true right corner — above the rail */
-  html.mode-laptop .app-header{position:fixed;top:0;left:0;right:0;z-index:45;padding-top:0;padding-bottom:0;padding-left:calc(var(--app-sidebar-width) + 28px);padding-right:24px;height:57px}
+  html.mode-laptop .app-header{position:fixed;top:0;left:0;right:0;z-index:45;padding-top:0;padding-bottom:0;padding-left:292px;padding-right:24px;height:57px}
   html.mode-laptop .hdr-brand{display:none} /* avoid duplicate wordmark (sidebar has it) */
   html.mode-laptop .hdr-right{gap:12px!important}
 
   /* feed fills the middle as a clean, predictable vertical flow. Multi-column
      rows are EXPLICIT grids (.lg-row / Tailwind grid) so cards never land in a
      ragged height-balanced masonry that leaves empty gaps. */
-  html.mode-laptop .page-content{width:auto;min-width:0;max-width:none;margin-left:var(--app-sidebar-width);margin-right:var(--app-right-rail-width);margin-top:62px;padding:28px var(--app-page-gutter) 64px;display:flex;flex-direction:column;gap:var(--app-section-gap)}
-  html.mode-laptop .page-content > *{max-width:100%;margin:0!important;min-width:0}
-  html.mode-laptop .page-content :is(.grid,.lg-row) > *{min-width:0}
+  html.mode-laptop .page-content{margin-left:264px;margin-right:328px;margin-top:62px;max-width:1160px;padding:28px 40px 64px;display:flex;flex-direction:column;gap:20px}
+  html.mode-laptop .page-content > *{margin:0!important;min-width:0}
   /* .feed-wide is now a no-op (everything is full-width in the single flow) but
      kept so existing markup keeps working. */
   html.mode-laptop .progress-track{position:fixed}
@@ -143,10 +132,10 @@ a{text-decoration:none;color:inherit}
   html.mode-laptop .lg-row > *{margin:0!important}
   /* pages that render their own right-hand column (data-norail) reclaim the
      full width the injected rail would have used */
-  html.mode-laptop body[data-norail] .page-content{margin-right:0;padding-right:var(--app-page-gutter);max-width:none}
+  html.mode-laptop body[data-norail] .page-content{margin-right:0;padding-right:40px;max-width:1280px}
 
   /* right rail hugs the right edge */
-  html.mode-laptop .right-rail{display:block;position:fixed;top:57px;right:0;width:var(--app-right-rail-width);bottom:0;overflow-y:auto;padding:16px 22px 40px;border-left:1px solid #e2e8f0;background:#fff}
+  html.mode-laptop .right-rail{display:block;position:fixed;top:57px;right:0;width:328px;bottom:0;overflow-y:auto;padding:16px 22px 40px;border-left:1px solid #e2e8f0;background:#fff}
 
   /* onboarding: no chrome, full screen */
   html.mode-laptop.onboarding .bottom-bar,html.mode-laptop.onboarding .bottom-bar::before{display:none}
@@ -156,40 +145,15 @@ a{text-decoration:none;color:inherit}
 /* Medium widths (no room for rail): drop rail, feed uses the full middle */
 @media (min-width:640px) and (max-width:1099px){
   html.mode-laptop .right-rail{display:none}
-  html.mode-laptop .page-content{margin-right:0;padding-right:var(--app-page-gutter)}
+  html.mode-laptop .page-content{margin-right:0;padding-right:40px}
   html.mode-laptop .app-header{padding-right:32px}
   /* keep 4-up strips readable when the rail is gone */
   html.mode-laptop .lg-row-4{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media (min-width:1100px) and (max-width:1399px){
-  html.mode-laptop .lg-row-4{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-/* Compact laptop/tablet previews do not have enough center width for explicit
-   multi-card rows once the invariant sidebar and page gutters are reserved. */
-@media (min-width:640px) and (max-width:899px){
-  html.mode-laptop .lg-row-2,
-  html.mode-laptop .lg-row-3{grid-template-columns:minmax(0,1fr)}
-}
-/* Verified page-owned split layouts use a fixed contextual column. Stack that
-   column until the remaining center canvas is wide enough for both tracks. */
-@media (max-width:899px){
-  html.mode-laptop body .page-content :is(.an-grid,.bd-grid,.cal-grid,.cp-grid,.ds-grid,.fe-grid,.fc-grid,.lb-grid,.mkt-grid,.nf-grid,.path-grid,.pf-grid,.qs-grid,.rv-grid,.at-grid,.mt-grid,.qb-grid,.rb-grid,.tm-grid,.wl-grid){
-    grid-template-columns:minmax(0,1fr);
-  }
-  html.mode-laptop body .page-content :is(.an-rail,.bd-rail,.cal-rail,.cp-rail,.ds-rail,.fe-rail,.fc-rail,.lb-rail,.mkt-rail,.nf-rail,.detail-panel,.pf-rail,.qs-rail,.rv-rail,.at-rail,.mt-rail,.qb-rail,.rb-rail,.tm-rail,.wl-rail){
-    position:static;
-  }
-}
-/* Browser zoom-out behaves like a wider CSS viewport. Keep every standard
-   role workspace fluid; page composition (grids, tables and cards) owns the
-   extra room while readable prose retains its own local measures. */
-@media (min-width:2000px){
-  html.mode-laptop body:not([data-immersive]) .page-content{
-    --app-page-gutter:clamp(40px,2.3vw,72px);
-  }
-  html.mode-laptop .page-content .lg-row{
-    gap:clamp(16px,1vw,28px);
-  }
+/* Ultra-wide: give the feed a touch more room but keep it capped so cards
+   never stretch into unreadable bands. */
+@media (min-width:1600px){
+  html.mode-laptop .page-content{max-width:1320px}
 }
 
 /* ---- Sidebar extras (laptop only): grouped links + pinned profile ---- */
@@ -201,7 +165,6 @@ a{text-decoration:none;color:inherit}
   html.mode-laptop .side-label{font-size:10px;font-weight:800;letter-spacing:.1em;color:#94a3b8;padding:2px 18px;margin:0}
   html.mode-laptop .side-link{display:flex;align-items:center;gap:12px;padding:9px 18px;border-radius:12px;font-size:14px;font-weight:600;color:#64748b}
   html.mode-laptop .side-link:hover{background:#f1f5f9;color:#334155}
-  html.mode-laptop .side-link.active{background:#eff6ff;color:#0382bd}
   html.mode-laptop .side-profile{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:#f8fafc;border:1px solid #eef2f6}
   html.mode-laptop .side-profile:hover{background:#f1f5f9}
   html.mode-laptop .side-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;background:var(--brand-gradient);flex:0 0 auto}
@@ -245,7 +208,7 @@ html.mode-laptop .notif-panel{right:24px;top:60px}
 
 /* ---- Tutor page (custom full-height chat) in laptop mode ---- */
 @media (min-width:640px){
-  html.mode-laptop body.h-dvh{padding-left:var(--app-sidebar-width)}
+  html.mode-laptop body.h-dvh{padding-left:264px}
   html.mode-laptop body.h-dvh .app-header{position:static;padding-left:16px;padding-right:16px}
   /* the tutor chat + input already sit inside the padded body, clearing the sidebar */
 }
@@ -796,10 +759,6 @@ body[data-role="student"] .sec-h .chip{
 @media (min-width:640px){
   html.mode-laptop .mycourses{overflow:visible;flex-wrap:nowrap}
   html.mode-laptop .mycourses > a{flex:1 1 0;min-width:0}
-}
-@media (min-width:640px) and (max-width:899px){
-  html.mode-laptop .mycourses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-  html.mode-laptop .mycourses > a{width:100%;min-width:0}
 }
 
 

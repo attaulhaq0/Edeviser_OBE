@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="parent-refinement.css"/>
 <style>
   /* Professional profile header — mirrors the coordinator "Me" top section. */
   body[data-role="parent"] .contact{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -35,14 +34,14 @@
           </button>
           <div class="min-w-0">
             <h1 class="phdr-name">Nadia Hassan</h1>
-            <p class="phdr-role">Parent / Guardian <span class="sub">· Verified guardian of Sarah Ahmed</span></p>
+            <p class="phdr-role">Parent / Guardian <span class="sub">· Guardian of Maya &amp; Yusuf</span></p>
           </div>
         </div>
         <div class="phdr-stats">
-          <div class="phdr-stat"><span class="phdr-stat-ic st-teal">👨‍👩‍👧</span><span class="phdr-stat-tx"><span class="phdr-stat-v">1</span><span class="phdr-stat-l">Verified child</span></span></div>
-          <div class="phdr-stat"><span class="phdr-stat-ic st-blue">✓</span><span class="phdr-stat-tx"><span class="phdr-stat-v">Active</span><span class="phdr-stat-l">Parent access</span></span></div>
-          <div class="phdr-stat"><span class="phdr-stat-ic st-green">✦</span><span class="phdr-stat-tx"><span class="phdr-stat-v">On</span><span class="phdr-stat-l">Suggestions</span></span></div>
-          <div class="phdr-stat"><span class="phdr-stat-ic st-amber">🔒</span><span class="phdr-stat-tx"><span class="phdr-stat-v">Required</span><span class="phdr-stat-l">Approval</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-teal">👨‍👩‍👧</span><span class="phdr-stat-tx"><span class="phdr-stat-v">2</span><span class="phdr-stat-l">Children</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-blue">🎓</span><span class="phdr-stat-tx"><span class="phdr-stat-v">7</span><span class="phdr-stat-l">Courses</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-green">📈</span><span class="phdr-stat-tx"><span class="phdr-stat-v">82%</span><span class="phdr-stat-l">Avg attainment</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-amber">🔔</span><span class="phdr-stat-tx"><span class="phdr-stat-v">2</span><span class="phdr-stat-l">Alerts</span></span></div>
         </div>
       </div>
       <div class="phdr-right">
@@ -62,11 +61,16 @@
   <!-- Linked child -->
   <!-- Linked learners (parent_student_links is many; useParentDashboardAggregate returns children[]) -->
   <div class="pcard p-4">
-    <div class="sec-h"><span class="chip">👨‍👩‍👧</span><p class="t">Linked student</p><span class="pill pill-blue" style="margin-inline-start:auto">Verified</span></div>
+    <div class="sec-h"><span class="chip">👨‍👩‍👧</span><p class="t">Linked learners</p><span class="ml-auto pill pill-blue">2 linked</span></div>
     <div class="divide-y divide-gray-50">
       <div class="flex items-center gap-3 py-2.5">
-        <div class="h-11 w-11 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-black shrink-0">SA</div>
-        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Sarah Ahmed</p><p class="text-xs text-gray-500">Level 4 · verified Parent link ✓</p></div>
+        <div class="h-11 w-11 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-black shrink-0">M</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Maya Hassan</p><p class="text-xs text-gray-500">Grade 11 · Gulf Academy · link verified ✓</p></div>
+        <span class="pill pill-green">Active</span>
+      </div>
+      <div class="flex items-center gap-3 py-2.5">
+        <div class="h-11 w-11 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black shrink-0">Y</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Yusuf Hassan</p><p class="text-xs text-gray-500">Grade 8 · Gulf Academy · link verified ✓</p></div>
         <span class="pill pill-green">Active</span>
       </div>
     </div>
@@ -82,11 +86,11 @@
   <div class="lg-row lg-row-2 space-y-4 items-start">
   <!-- Privacy / consent -->
   <div class="pcard p-4">
-    <div class="sec-h"><span class="chip">🔒</span><p class="t">Privacy &amp; what you can see</p><button type="button" data-open-parent-drawer="profile" class="more">details</button></div>
-    <div class="permission-grid">
-      <section class="permission-panel"><h3>Parent access</h3><ul><li>Learning summaries</li><li>Upcoming deadlines</li><li>Approved wellbeing context</li><li>Teacher communication</li></ul></section>
-      <section class="permission-panel private"><h3>Private by default</h3><ul><li>Tutor conversations</li><li>Journal entries</li><li>Teacher-only notes</li></ul></section>
-      <section class="permission-panel"><h3>AI assistance</h3><ul><li>Suggestions: On</li><li>Drafts: On</li><li>Communication: Approval required</li></ul></section>
+    <div class="sec-h"><span class="chip">🔒</span><p class="t">Privacy &amp; what you can see</p><button onclick="whyPop('You see growth, wellbeing signals and strengths — never raw exam scores or her private journal. Maya can see exactly what is shared with you. Data is used only to support her learning, and you can request an export or deletion anytime.')" class="more">details</button></div>
+    <div class="space-y-2">
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Growth &amp; wellbeing summaries</span><span class="pill pill-green">Shared</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Raw exam scores</span><span class="pill pill-blue">Not shared</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Private journal</span><span class="pill pill-blue">Private to Maya</span></div>
     </div>
   </div>
 
@@ -101,7 +105,7 @@
       <div id="qh-times" class="flex items-center gap-2 py-2 border-t border-gray-50"><span class="text-sm text-gray-500">From</span><input type="time" value="21:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"><span class="text-sm text-gray-500">to</span><input type="time" value="07:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"></div>
       <div class="py-2 border-t border-gray-50">
         <p class="text-sm text-gray-700">Mute course alerts <span class="block text-xs text-gray-400">Stop notifications for a specific course</span></p>
-        <div class="flex flex-wrap gap-2 mt-2"><button class="mute-chip" onclick="toggleMute(this)">Database Design</button><button class="mute-chip" onclick="toggleMute(this)">Web Development</button><button class="mute-chip" onclick="toggleMute(this)">AI Fundamentals</button></div>
+        <div class="flex flex-wrap gap-2 mt-2"><button class="mute-chip" onclick="toggleMute(this)">Databases</button><button class="mute-chip" onclick="toggleMute(this)">Writing</button><button class="mute-chip" onclick="toggleMute(this)">Math</button></div>
       </div>
     </div>
   </div>
@@ -120,13 +124,7 @@
   <a href="roles.html" class="feed-wide block text-center py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200">Switch role →</a>
 
 </div>
-
-<div id="parent-drawer-backdrop" class="parent-drawer-backdrop" hidden></div>
-<aside id="parent-drawer" class="parent-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="parent-drawer-title" hidden><div class="drawer-top"><div><p id="parent-drawer-eyebrow" class="parent-eyebrow"></p><h2 id="parent-drawer-title"></h2></div><button class="drawer-close" type="button" data-parent-close aria-label="Close">×</button></div><div id="parent-drawer-content"></div></aside>
-
 <script src="shared.js"></script>
-<script src="parent-data.js"></script>
-<script src="parent-refinement.js"></script>
 <script>
 function editParentProfile(){
   openEditModal({

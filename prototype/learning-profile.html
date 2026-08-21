@@ -2,30 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Edeviser — Learning Intelligence</title>
+<title>Edeviser — Learning Profile</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="student-refinement.css"/>
 </head>
 <body class="bg-slate-50" data-role="student">
 
 <header class="app-header">
   <div class="flex items-center gap-3">
     <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
-    <h1 class="text-base font-bold tracking-tight text-gray-900">Learning Intelligence</h1>
+    <h1 class="text-base font-bold tracking-tight text-gray-900">Learning Profile</h1>
   </div>
 </header>
 
 <div class="page-content space-y-4 no-scrollbar">
   <!-- BACKEND GROUNDING · hooks: useOnboarding, useOnboardingResponses, useStudentProfile | tables: onboarding_responses, student_profiles -->
 
-  <!-- Student-safe learning state, not a psychological profile. -->
+  <!-- Type hero -->
   <div class="rounded-xl p-5 text-white text-center shadow-lg" style="background:var(--brand-gradient)">
     <div class="badge-pop mx-auto mb-2 h-16 w-16 rounded-2xl bg-white/15 flex items-center justify-center text-3xl border border-white/20">⚡</div>
-    <h2 class="text-lg font-bold">Sarah’s learning state</h2>
-    <p class="text-sm text-white/80 mt-1">Mastery, habits, evidence and support — used to guide the next step</p>
+    <h2 class="text-lg font-bold">The Strategic Planner</h2>
+    <p class="text-sm text-white/80 mt-1">You thrive with structure, clear goals, and deep understanding</p>
   </div>
 
   <div class="lg-row lg-row-2 space-y-4 items-start">
@@ -36,32 +35,33 @@
     <p class="text-[11px] text-gray-400 mt-1.5">Complete daily micro-assessments over 2 weeks to reach 100%</p>
   </div>
 
-  <!-- Learning state -->
+  <!-- Personality (Big Five) -->
   <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-    <div class="flex items-center gap-2 mb-3"><span class="text-base">◎</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Current learning state</p></div>
+    <div class="flex items-center gap-2 mb-3"><span class="text-base">🧬</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Personality Traits</p></div>
     <div class="space-y-2.5">
-      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Normalization · CLO 3</span><span class="text-xs font-bold text-gray-900">62% · Developing</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-purple-400" style="width:62%"></div></div></div>
-      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Learning Path · Apply</span><span class="text-xs font-bold text-gray-900">65%</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-blue-400" style="width:65%"></div></div></div>
-      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Evidence confidence</span><span class="text-xs font-bold text-gray-900">Medium</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-teal-400" style="width:60%"></div></div></div>
+      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Openness</span><span class="text-xs font-bold text-gray-900">78%</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-purple-400" style="width:78%"></div></div></div>
+      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Conscientiousness</span><span class="text-xs font-bold text-gray-900">88%</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-blue-400" style="width:88%"></div></div></div>
+      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Extraversion</span><span class="text-xs font-bold text-gray-900">45%</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-teal-400" style="width:45%"></div></div></div>
+      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Agreeableness</span><span class="text-xs font-bold text-gray-400">Not yet measured</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-gray-200" style="width:0%"></div></div></div>
     </div>
-    <p class="text-[10px] text-gray-400 mt-2">Concept understanding is stronger than independent application.</p>
+    <p class="text-[10px] text-gray-400 mt-2">Based on 3 of 25 questions · more via micro-assessments</p>
   </div>
   </div>
 
   <div class="lg-row lg-row-2 space-y-4 items-start">
-  <!-- Evidence & support -->
+  <!-- Learning Style -->
   <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-    <div class="flex items-center gap-2 mb-3"><span class="text-base">▤</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Evidence & support</p></div>
-    <div class="flex items-center gap-3 mb-3"><span class="text-2xl">📝</span><div><p class="text-sm font-bold text-gray-900">Assignment 3 · Normalize a Schema</p><p class="text-xs text-gray-500">Evidence is in progress · remeasurement ready after submission</p></div></div>
-    <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-start gap-2"><span class="text-amber-600 text-xs mt-0.5">⚠️</span><p class="text-[11px] text-amber-800">Teacher handoff is available only with Sarah’s consent.</p></div>
+    <div class="flex items-center gap-2 mb-3"><span class="text-base">👁️</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Learning Style (VARK)</p></div>
+    <div class="flex items-center gap-3 mb-3"><span class="text-2xl">👁️</span><div><p class="text-sm font-bold text-gray-900">Visual + Read/Write</p><p class="text-xs text-gray-500">You learn best with diagrams, notes, and written material</p></div></div>
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-start gap-2"><span class="text-amber-600 text-xs mt-0.5">⚠️</span><p class="text-[11px] text-amber-800">For self-awareness only — not used to restrict your content.</p></div>
   </div>
 
-  <!-- Habits & next action -->
+  <!-- Self-Efficacy -->
   <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-    <div class="flex items-center gap-2 mb-3"><span class="text-base">↻</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Habits & next action</p></div>
+    <div class="flex items-center gap-2 mb-3"><span class="text-base">💪</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Self-Efficacy</p></div>
     <div class="space-y-2.5">
-      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Study consistency</span><span class="text-xs font-bold text-green-600">12-day streak</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-green-400" style="width:86%"></div></div></div>
-      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Recommended focus window</span><span class="text-xs font-bold text-blue-600">25 minutes</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-blue-400" style="width:65%"></div></div></div>
+      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Problem-solving confidence</span><span class="text-xs font-bold text-green-600">High</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-green-400" style="width:82%"></div></div></div>
+      <div><div class="flex justify-between mb-1"><span class="text-xs text-gray-600">Focus & self-regulation</span><span class="text-xs font-bold text-blue-600">Good</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-blue-400" style="width:68%"></div></div></div>
     </div>
   </div>
   </div>
@@ -81,6 +81,5 @@
   <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
 </nav>
 <script src="shared.js"></script>
-<script src="demo-data.js"></script>
 </body>
 </html>

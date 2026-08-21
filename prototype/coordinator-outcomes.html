@@ -26,9 +26,7 @@
 <div class="page-content space-y-4 no-scrollbar">
   <!-- BACKEND GROUNDING · hooks: useCoordinatorOutcomeAttainment, useCoordinatorAttainmentTrends | tables: outcome_attainment, outcome_attainment_snapshots, learning_outcomes -->
 
-  <div class="feed-wide flex items-end justify-between gap-3"><div><h1 class="text-xl font-black tracking-tight text-gray-900">Outcome attainment</h1><p class="text-xs text-gray-500 mt-0.5">Trace program outcomes to the course evidence that supports them.</p></div><select class="text-xs font-bold border border-slate-200 rounded-lg p-2 bg-white"><option>Computer Science Program</option></select></div>
-
-  <div class="feed-wide pcard p-4" style="background:#f8fbff"><p class="text-[10px] font-black uppercase tracking-widest text-blue-600">Program alignment</p><div class="flex flex-wrap items-center gap-2 mt-2 text-xs"><span class="font-bold text-slate-800">ILO2 · Technical Mastery</span><span class="text-slate-300">↓</span><span class="font-bold text-slate-800">PLO2 · Apply Engineering Principles</span><span class="pill pill-red">67% / 75%</span><span class="text-slate-300">↓</span><span class="text-slate-600">CLO5 REST APIs · 48%</span></div><p class="text-[11px] text-slate-500 mt-2">Evidence confidence: <b class="text-slate-700">High</b> · 8 assessments · 3 courses · 142 student evidence records</p></div>
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Outcome attainment</h1><p class="text-xs text-gray-500 mt-0.5">ILO → PLO → CLO. Live rollup from student evidence. Click a PLO to see contributing CLOs.</p></div>
 
   <!-- ILO summary -->
   <div class="feed-wide pcard p-4">
@@ -63,7 +61,7 @@ document.getElementById('plos').innerHTML=PLOS.map(p=>`
       <span class="plo-chev">▾</span>
     </button>
     <div class="plo-clos hidden px-3 py-3">
-      <p class="clo-lbl">Contributing CLOs · ${p.clos.length} · evidence confidence: High</p>
+      <p class="clo-lbl">Contributing CLOs · ${p.clos.length}</p>
       <div class="space-y-1.5">
       ${p.clos.map(([n,v])=>v===null?`<div class="flex items-center gap-2 text-xs"><span class="pill pill-red">GAP</span><span class="text-gray-700 flex-1">${n}</span><span class="text-gray-400">no assessment mapped</span></div>`:`<div class="flex items-center gap-2 text-xs"><span class="text-gray-700 flex-1">${n}</span><div style="width:90px" class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full" style="width:${v}%;background:${c(v)}"></div></div><b style="color:${c(v)};width:34px;text-align:right">${v}%</b></div>`).join('')}
       </div>

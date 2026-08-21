@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="teacher-refinement.css"/>
 </head>
 <body class="bg-slate-50" data-role="teacher">
 
@@ -130,6 +129,6 @@ function reveal(){
 }
 function approveAll(){document.querySelectorAll('#lessonList [data-ai-card]').forEach(c=>{c.style.opacity='.5';});toast('All 6 lessons approved & queued to publish','✅');}
 </script>
-<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+<script src="shared.js"></script>
 </body>
 </html>

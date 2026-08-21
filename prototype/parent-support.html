@@ -2,76 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Edeviser — Ways to Support Sarah</title>
+<title>Edeviser — Support</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="parent-refinement.css"/>
 </head>
 <body class="bg-slate-50" data-role="parent">
 <header class="app-header">
   <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
   <div class="flex items-center gap-2"><a href="parent-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">N</a></div>
 </header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useParentDashboard, useNotifications | tables: notifications, announcements -->
 
-<main class="page-content no-scrollbar">
-  <header class="feed-wide"><p class="parent-eyebrow">Support</p><h1 class="parent-page-title">Ways to support Sarah</h1><p class="parent-subtitle">Small, appropriate actions connected to what matters in her learning this week.</p></header>
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Ways to support Maya</h1><p class="text-xs text-gray-500 mt-0.5">Small, specific actions — matched to where she is this week.</p></div>
 
-  <section class="feed-wide pcard parent-section support-callout" aria-labelledby="recommended-title">
-    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">💬</span><div><p class="parent-eyebrow">Recommended this week</p><h2 id="recommended-title">Ask Sarah to teach you</h2></div><span class="ai-autonomy-badge" style="margin-inline-start:auto">✦ E Deviser suggestion</span></div>
-    <p class="support-quote">“What is a transitive dependency, and why does normalization help?”</p>
-    <p class="support-reason"><strong>Why this helps:</strong> Explaining it in her own words reinforces the current Database Design learning goal.</p>
-    <div class="parent-chip-row"><span class="ai-context-chip">Normalization · CLO 3</span><span class="ai-context-chip">~5 min</span></div>
-    <div class="parent-actions"><button class="btn3d sm" type="button" data-support-save>Save for tonight</button><button class="parent-text-button" type="button" data-open-parent-drawer="support">Why this?</button><span class="ai-action-status" id="suggestion-status">Waiting for Nadia</span></div>
-  </section>
-
-  <div class="parent-grid parent-grid-2">
-    <section class="pcard parent-section" aria-labelledby="ideas-title">
-    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">🏡</span><div><p class="parent-eyebrow">Optional alternatives</p><h2 id="ideas-title">Two other small ideas</h2></div></div>
-      <div class="support-idea"><span class="support-idea-icon">📝</span><div><strong>Plan for Friday</strong><p>Ask Sarah what she wants to finish in Assignment 3 before Friday.</p></div></div>
-      <div class="support-idea"><span class="support-idea-icon">⏱️</span><div><strong>Protect one focus window</strong><p>Help keep one 25-minute study window interruption-free.</p></div></div>
-    </section>
-
-    <section class="pcard parent-section" aria-labelledby="status-title">
-      <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">✅</span><div><p class="parent-eyebrow">Continuity</p><h2 id="status-title">Support this week</h2></div></div>
-      <div class="status-list">
-        <div class="status-item done" data-status="suggestion"><span class="status-icon">✓</span><span>E Deviser suggestion viewed</span></div>
-        <div class="status-item" data-status="saved"><span class="status-icon">✓</span><span>Conversation prompt saved</span></div>
-        <div class="status-item"><span class="status-icon">○</span><span>Reminder awaiting approval</span></div>
-        <div class="status-item" data-status="message"><span class="status-icon">○</span><span>Teacher message draft not sent</span></div>
-      </div>
-      <p class="parent-safety-note">Nothing is scheduled or communicated automatically.</p>
-    </section>
+  <!-- Home activities -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🏡</span><p class="t">At-home ideas</p></div>
+    <div class="space-y-2.5">
+      <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3"><span class="text-xl">💬</span><div class="flex-1"><p class="text-sm font-bold text-gray-900">Ask her to teach you</p><p class="text-xs text-gray-500">"Explain one database idea to me." Retrieval practice + it shows you care.</p></div><button onclick="toast('Saved to tonight','⭐')" class="text-xs font-bold text-blue-600 shrink-0">Save</button></div>
+      <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3"><span class="text-xl">🧮</span><div class="flex-1"><p class="text-sm font-bold text-gray-900">Gentle math encouragement</p><p class="text-xs text-gray-500">Math is her growing edge — celebrate effort over getting it right.</p></div><button onclick="toast('Saved','⭐')" class="text-xs font-bold text-blue-600 shrink-0">Save</button></div>
+      <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3"><span class="text-xl">🌙</span><div class="flex-1"><p class="text-sm font-bold text-gray-900">Protect her evenings</p><p class="text-xs text-gray-500">Her rhythm is healthy — keeping a consistent stop-time helps it stick.</p></div><button onclick="toast('Saved','⭐')" class="text-xs font-bold text-blue-600 shrink-0">Save</button></div>
+    </div>
   </div>
 
-  <div class="parent-grid parent-grid-main">
-    <section class="pcard parent-section" aria-labelledby="teacher-title">
-      <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">✉️</span><div><p class="parent-eyebrow">Protected communication</p><h2 id="teacher-title">Message the teacher</h2><p>Prof. Ahmed · Database Design</p></div><span class="ai-autonomy-badge" style="margin-inline-start:auto">A2 · Draft only</span></div>
-      <label class="parent-eyebrow" for="teacher-draft" style="display:block">Draft prepared by E Deviser</label>
-      <textarea id="teacher-draft" class="parent-draft">Hi Prof. Ahmed, I can see Sarah is currently working on Normalization and Assignment 3. Is there anything simple we can reinforce at home without interfering with the class work?</textarea>
-      <div class="parent-actions"><button class="btn3d sm" type="button" data-review-teacher>Review &amp; send</button><span class="ai-action-status" id="draft-status">Waiting for Nadia's approval</span></div>
-    </section>
-
-    <aside class="pcard parent-section" aria-labelledby="privacy-title">
-      <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">🔒</span><div><p class="parent-eyebrow">Before anything is shared</p><h2 id="privacy-title">Parent-safe by design</h2></div></div>
-      <div class="ai-policy-check" style="margin-top:0"><h3>May use</h3><p>Sarah's course, current focus, and Parent-visible assignment context.</p></div>
-      <div class="ai-approval-card"><strong>Will not use or share</strong><p>Tutor transcript, journal entries, or teacher-only notes.</p></div>
-      <p class="parent-safety-note">Nadia approves every external communication.</p>
-    </aside>
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Message teacher -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">✉️</span><p class="t">Message the teacher</p></div>
+    <p class="text-xs text-gray-500 mb-2">Prof. Ahmed · Computer Science</p>
+    <textarea class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="3" placeholder="Write a note… (AI can suggest a starter)">Hi Prof. Ahmed, I noticed Maya is doing really well in databases — is there a way to keep that momentum going?</textarea>
+    <div class="flex gap-2 mt-2">
+      <button onclick="toast('Message sent to Prof. Ahmed','✉️')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">Send</button>
+      <button onclick="toast('AI suggested a starter','✨')" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">✨ Suggest</button>
+    </div>
   </div>
 
-  <section class="feed-wide pcard parent-section" aria-labelledby="reads-title">
-    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">📎</span><div><p class="parent-eyebrow">Helpful reads</p><h2 id="reads-title">Short guides</h2></div></div>
-    <div class="parent-grid parent-grid-2"><button class="support-idea" type="button" onclick="toast('Opening effort guide…','📖')"><span class="support-idea-icon">📖</span><span style="text-align:start"><strong>How to praise effort, not just results</strong><p>A two-minute Parent guide.</p></span></button><button class="support-idea" type="button" onclick="toast('Opening teach-back guide…','📖')"><span class="support-idea-icon">↻</span><span style="text-align:start"><strong>Why teach-back helps memory</strong><p>A simple explanation and examples.</p></span></button></div>
-  </section>
+  <!-- Resources -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📎</span><p class="t">Helpful reads</p></div>
+    <div class="space-y-2">
+      <a href="#" onclick="toast('Opening guide…','📖');return false" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2"><span class="text-lg">📖</span><span class="text-sm text-gray-700">How to praise effort, not just results</span></a>
+      <a href="#" onclick="toast('Opening guide…','📖');return false" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2"><span class="text-lg">🧠</span><span class="text-sm text-gray-700">Why "teach-back" helps memory</span></a>
+    </div>
+  </div>
+  </div>
 
-  <div class="feedback-loop" aria-label="Learning feedback loop, Support is active"><span>LEARN</span><b>→</b><span>PRACTICE</span><b>→</b><span class="active">SUPPORT</span><b>→</b><span>REFLECT</span><b>→</b><span>IMPROVE</span></div>
-</main>
-
-<div id="parent-drawer-backdrop" class="parent-drawer-backdrop" hidden></div>
-<aside id="parent-drawer" class="parent-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="parent-drawer-title" hidden><div class="drawer-top"><div><p id="parent-drawer-eyebrow" class="parent-eyebrow"></p><h2 id="parent-drawer-title"></h2></div><button class="drawer-close" type="button" data-parent-close aria-label="Close">×</button></div><div id="parent-drawer-content"></div></aside>
-
-<script src="shared.js"></script><script src="parent-data.js"></script><script src="parent-refinement.js"></script>
+</div>
+<script src="shared.js"></script>
 </body>
 </html>

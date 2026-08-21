@@ -7,13 +7,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="teacher-refinement.css"/>
 <style>
   /* Teacher Gradebook — maps to: useGradebook, grades, grade_categories,
      submissions, assignments, quizzes; per-student × per-assessment matrix with
      weighted average and CLO attainment roll-up. */
   html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
-  .gb-wrap{width:100%;min-width:0;max-width:100%;overflow-x:auto;contain:inline-size;border:1px solid #eef2f6;border-radius:16px;background:#fff}
+  .gb-wrap{overflow-x:auto;border:1px solid #eef2f6;border-radius:16px;background:#fff}
   table.gb{border-collapse:collapse;width:100%;min-width:720px}
   table.gb th,table.gb td{padding:10px 12px;text-align:center;font-size:13px;border-bottom:1px solid #f5f7fa;white-space:nowrap}
   table.gb th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;background:#f8fafc}
@@ -21,7 +20,6 @@
   table.gb th.stu{background:#f8fafc}
   .g{display:inline-block;min-width:38px;padding:3px 6px;border-radius:7px;font-weight:800;font-size:12px}
   .g-ex{background:#dcfce7;color:#166534}.g-sat{background:#dbeafe;color:#1d4ed8}.g-dev{background:#fef3c7;color:#b45309}.g-no{background:#fee2e2;color:#b91c1c}.g-miss{background:#f1f5f9;color:#94a3b8}
-  @media(max-width:639px){table.gb th.stu,table.gb td.stu{position:static}}
 </style>
 </head>
 <body class="bg-slate-50" data-role="teacher" data-norail>
@@ -62,7 +60,7 @@
       </tr></thead>
       <tbody>
         <tr><td class="stu">Maryam K.</td><td><span class="g g-ex">95</span></td><td><span class="g g-ex">90</span></td><td><span class="g g-ex">92</span></td><td><span class="g g-sat">84</span></td><td><span class="g g-ex">88</span></td><td class="font-black text-green-600">90%</td><td><span class="g g-ex">Excellent</span></td></tr>
-<tr><td class="stu">Sarah Ahmed</td><td><span class="g g-sat">82</span></td><td><span class="g g-sat">78</span></td><td><span class="g g-ex">88</span></td><td><span class="g g-sat">80</span></td><td><span class="g g-sat">76</span></td><td class="font-black text-blue-600">81%</td><td><span class="g g-sat">Developing · 62% CLO mastery</span></td></tr>
+        <tr><td class="stu">Sarah A.</td><td><span class="g g-sat">82</span></td><td><span class="g g-sat">78</span></td><td><span class="g g-ex">88</span></td><td><span class="g g-sat">80</span></td><td><span class="g g-sat">76</span></td><td class="font-black text-blue-600">81%</td><td><span class="g g-sat">Satisfactory</span></td></tr>
         <tr><td class="stu">Omar Z.</td><td><span class="g g-sat">74</span></td><td><span class="g g-dev">62</span></td><td><span class="g g-dev">58</span></td><td><span class="g g-miss">—</span></td><td><span class="g g-dev">65</span></td><td class="font-black text-amber-600">65%</td><td><span class="g g-dev">Developing</span></td></tr>
         <tr><td class="stu">Layla H.</td><td><span class="g g-ex">89</span></td><td><span class="g g-sat">80</span></td><td><span class="g g-sat">78</span></td><td><span class="g g-sat">82</span></td><td><span class="g g-ex">86</span></td><td class="font-black text-blue-600">83%</td><td><span class="g g-sat">Satisfactory</span></td></tr>
         <tr><td class="stu">Nora S.</td><td><span class="g g-dev">61</span></td><td><span class="g g-no">48</span></td><td><span class="g g-dev">55</span></td><td><span class="g g-no">44</span></td><td><span class="g g-miss">—</span></td><td class="font-black text-red-600">52%</td><td><span class="g g-no">Not yet</span></td></tr>
@@ -87,6 +85,6 @@
   <a href="teacher-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Curriculum</span></a>
   <a href="teacher-grading.html" class="tab-btn" data-tab="grading"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg><span>Grading</span></a>
 </nav>
-<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+<script src="shared.js"></script>
 </body>
 </html>

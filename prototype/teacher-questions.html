@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="teacher-refinement.css"/>
 <style>
   /* Teacher Question Bank / Quiz Builder — maps to: question_bank, quiz_questions,
      useQuestionBank, useGenerateQuestions + generate-quiz-questions edge fn,
@@ -18,10 +17,7 @@
   html.mode-laptop .qb-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
   body[data-role="teacher"] .qb-tab{font-size:12.5px;font-weight:800;color:#64748b;padding:7px 13px;border-radius:10px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
   body[data-role="teacher"] .qb-tab.on{background:#0382bd;color:#fff;border-color:transparent}
-  .q-card{border:1px solid #e8edf3;border-radius:12px;padding:14px;transition:border-color .15s,box-shadow .15s;background:#fff}
-  .q-card:hover{border-color:#bae6fd;box-shadow:0 4px 14px rgba(15,23,42,.06)}
-  .qb-filter{font-size:12px;border:1px solid #e2e8f0;border-radius:9px;padding:8px 10px;color:#475569;background:#fff;width:100%}
-  .qb-question-actions{opacity:.65;transition:opacity .15s}.q-card:hover .qb-question-actions{opacity:1}
+  .q-card{border:1px solid #eef2f6;border-radius:14px;padding:14px}
   .bloom{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;padding:3px 7px;border-radius:999px}
 </style>
 </head>
@@ -32,51 +28,38 @@
     <a href="teacher-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
     <div><h1 class="text-base font-bold tracking-tight text-gray-900">Question Bank</h1><p class="text-xs text-gray-500">CS301 · Database Design</p></div>
   </div>
-  <button class="btn3d sm" onclick="toast('Question editor opened','➕')" style="background:#0382bd">➕ New question</button>
+  <button class="btn3d sm" onclick="toast('New question…','➕')" style="background:#0382bd">➕ New question</button>
 </header>
 
 <div class="page-content no-scrollbar">
-  <div class="feed-wide mb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-    <div><p class="text-[10px] font-black tracking-widest uppercase text-sky-700">Assessment design workspace</p><h2 class="text-xl font-black tracking-tight text-slate-900">Build questions with outcome coverage</h2><p class="text-xs text-slate-500 mt-1">Draft, review, then publish. Students never see an AI-prepared question until you approve it.</p></div>
-    <a href="teacher-curriculum.html" class="text-xs font-bold text-blue-600">View CLO coverage →</a>
-  </div>
-  <div class="feed-wide grid grid-cols-3 gap-3 mb-4">
-    <div class="pcard p-3"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">In bank</p><p class="text-lg font-black text-slate-900">124</p><p class="text-[11px] text-slate-500">CS301 questions</p></div>
-    <div class="pcard p-3"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Needs review</p><p class="text-lg font-black text-amber-700">8</p><p class="text-[11px] text-slate-500">Teacher approval required</p></div>
-    <div class="pcard p-3"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">CLO 3 coverage</p><p class="text-lg font-black text-teal-700">18</p><p class="text-[11px] text-slate-500">Normalization items</p></div>
-  </div>
   <div class="qb-grid">
     <div class="space-y-4">
 
-      <!-- Clear browse / review controls -->
-      <div class="pcard p-3">
-        <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-          <div class="flex gap-2 overflow-x-auto no-scrollbar flex-1">
+      <!-- Filter tabs -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar">
         <button class="qb-tab on" onclick="qbTab('all',this)">All · 124</button>
-        <button class="qb-tab" onclick="qbTab('pending',this)">Draft review · 8</button>
+        <button class="qb-tab" onclick="qbTab('pending',this)">🤖 AI review · 8</button>
         <button class="qb-tab" onclick="qbTab('approved',this)">✅ Approved · 112</button>
-          </div>
-          <div class="flex gap-2"><select aria-label="Filter questions by outcome" class="qb-filter"><option>All outcomes</option><option>CLO 3 · Normalization</option><option>CLO 4 · Indexing</option></select><select aria-label="Filter questions by type" class="qb-filter"><option>All types</option><option>MCQ</option><option>Short answer</option></select></div>
-        </div>
       </div>
 
       <!-- PENDING AI review (useReviewQueue: approve/reject) -->
       <div data-qb="pending" hidden>
-        <div class="pcard p-4 mb-3 border-sky-100 bg-sky-50">
-          <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-bold text-gray-900">8 prepared question drafts</p><p class="text-xs text-gray-600 mt-0.5">Evidence Check validated course, CLO and Bloom alignment. Policy Check requires your approval before publishing.</p></div><span class="teacher-a2">A2 · Draft</span></div>
-          <button class="btn3d sm mt-3" onclick="toast('Batch marked for Teacher review','✅')" style="background:#0382bd">Review batch →</button>
+        <div class="pcard p-4 mb-3" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border:1px solid #ddd6fe">
+          <p class="text-sm font-bold text-gray-900">🤖 8 AI-generated questions need review</p>
+          <p class="text-xs text-gray-500 mt-0.5">Approve to add to the bank, or reject. Bulk-approve trusted batches.</p>
+          <button class="btn3d sm mt-2" onclick="toast('8 questions approved','✅')" style="background:#0382bd">Approve all</button>
         </div>
         <div class="space-y-2.5">
           <div class="q-card">
             <div class="flex items-center gap-2 mb-2"><span class="bloom" style="background:#dcfce7;color:#166534">Apply</span><span class="pill pill-blue">CLO3</span><span class="text-[11px] text-gray-400">MCQ · AI</span></div>
             <p class="text-sm font-semibold text-gray-900">Which normal form removes transitive dependencies?</p>
             <p class="text-xs text-gray-500 mt-1">Correct: 3NF · Options: 1NF, 2NF, 3NF, BCNF</p>
-            <div class="flex gap-2 mt-2.5 qb-question-actions"><button class="btn3d sm" onclick="toast('Question approved for the bank','✅')" style="background:#16a34a">Approve</button><button class="btn3d sm b-ghost" onclick="toast('Question editor opened','✏️')">Edit draft</button><button class="text-red-600 text-xs font-bold px-2" onclick="toast('Draft rejected','🗑️')">Reject</button></div>
+            <div class="flex gap-2 mt-2.5"><button class="btn3d sm" onclick="toast('Approved','✅')" style="background:#16a34a">✓ Approve</button><button class="btn3d sm b-ghost" onclick="toast('Edit…','✏️')">Edit</button><button class="text-red-600 text-xs font-bold px-2" onclick="toast('Rejected','🗑️')">Reject</button></div>
           </div>
           <div class="q-card">
             <div class="flex items-center gap-2 mb-2"><span class="bloom" style="background:#fef3c7;color:#b45309">Analyze</span><span class="pill pill-blue">CLO4</span><span class="text-[11px] text-gray-400">Short answer · AI</span></div>
             <p class="text-sm font-semibold text-gray-900">Explain when a composite index outperforms two single-column indexes.</p>
-            <div class="flex gap-2 mt-2.5 qb-question-actions"><button class="btn3d sm" onclick="toast('Question approved for the bank','✅')" style="background:#16a34a">Approve</button><button class="btn3d sm b-ghost" onclick="toast('Question editor opened','✏️')">Edit draft</button><button class="text-red-600 text-xs font-bold px-2" onclick="toast('Draft rejected','🗑️')">Reject</button></div>
+            <div class="flex gap-2 mt-2.5"><button class="btn3d sm" onclick="toast('Approved','✅')" style="background:#16a34a">✓ Approve</button><button class="btn3d sm b-ghost" onclick="toast('Edit…','✏️')">Edit</button><button class="text-red-600 text-xs font-bold px-2" onclick="toast('Rejected','🗑️')">Reject</button></div>
           </div>
         </div>
       </div>
@@ -96,16 +79,16 @@
 
     <aside class="qb-rail">
       <!-- Generate with AI (generate-quiz-questions) -->
-      <div class="pcard p-4">
-        <div class="sec-h"><span class="chip">✨</span><p class="t">Prepare question drafts</p><span class="teacher-a2">A2</span></div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <div class="sec-h"><span class="chip">🤖</span><p class="t">Generate with AI</p></div>
         <label class="text-[11px] font-bold text-gray-500">Target CLO</label>
         <select class="w-full mt-1 mb-2 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>CLO3 · Normalization</option><option>CLO4 · Indexing</option><option>CLO5 · REST APIs</option></select>
         <div class="grid grid-cols-2 gap-2 mb-2">
           <div><label class="text-[11px] font-bold text-gray-500">Count</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white"><option>5</option><option>10</option></select></div>
           <div><label class="text-[11px] font-bold text-gray-500">Bloom</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white"><option>Apply</option><option>Analyze</option><option>Understand</option></select></div>
         </div>
-        <button class="btn3d w-full" onclick="toast('Five drafts prepared for review','✨')" style="background:var(--brand-gradient)">Prepare 5 drafts</button>
-        <p class="text-[10px] text-gray-400 mt-2">Drafts land in review. You approve before students see them.</p>
+        <button class="btn3d w-full" onclick="toast('Generating questions…','🤖')" style="background:var(--brand-gradient)">✨ Generate 5 questions</button>
+        <p class="text-[10px] text-gray-400 mt-2">AI drafts land in "AI review" — you approve before students see them.</p>
       </div>
 
       <!-- Bank composition -->
@@ -129,7 +112,7 @@
   <a href="teacher-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Curriculum</span></a>
   <a href="teacher-grading.html" class="tab-btn" data-tab="grading"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg><span>Grading</span></a>
 </nav>
-<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+<script src="shared.js"></script>
 <script>
   function qbTab(t,btn){ document.querySelectorAll('.qb-tab').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); document.querySelectorAll('[data-qb]').forEach(g=>g.hidden=(g.dataset.qb!==t)); }
 </script>

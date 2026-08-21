@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="teacher-refinement.css"/>
 <style>
   /* Teacher "Me" — professional profile & class config. Scoped, additive
      styles mirroring the coordinator-profile pattern. */
@@ -44,7 +43,7 @@
             <span class="ava-cam">📷</span>
           </button>
           <div class="min-w-0">
-            <h1 class="phdr-name">Prof. Ahmed</h1>
+            <h1 class="phdr-name">Prof. Ahmed Al-Rashid</h1>
             <p class="phdr-role">Assistant Professor <span class="sub">· Computer Science / Gulf Academy</span></p>
           </div>
         </div>
@@ -70,27 +69,27 @@
     </div>
   </div>
 
-  <!-- Profile intentionally owns identity and settings, not dashboard metrics. -->
-  <div class="feed-wide pcard p-4 hidden">
+  <!-- 2 · Teaching impact (preserved) -->
+  <div class="feed-wide pcard p-4">
     <div class="sec-h"><span class="chip">📈</span><p class="t">Teaching impact</p></div>
     <div class="grid grid-cols-3 gap-3">
-      <div class="text-center"><p class="text-2xl font-black text-slate-900">4</p><p class="text-[10px] text-gray-500">Active classes</p></div>
-      <div class="text-center"><p class="text-2xl font-black text-gray-900">A2</p><p class="text-[10px] text-gray-500">Draft assistance</p></div>
-      <div class="text-center"><p class="text-2xl font-black text-blue-600">12</p><p class="text-[10px] text-gray-500">Feedback drafts ready</p></div>
+      <div class="text-center"><p class="text-2xl font-black text-green-600">+12%</p><p class="text-[10px] text-gray-500">Avg mastery gain</p></div>
+      <div class="text-center"><p class="text-2xl font-black text-gray-900">88%</p><p class="text-[10px] text-gray-500">On-time rate</p></div>
+      <div class="text-center"><p class="text-2xl font-black text-blue-600">6.2h</p><p class="text-[10px] text-gray-500">Saved / week by AI</p></div>
     </div>
   </div>
 
   <div class="lg-row lg-row-2 space-y-4 items-start">
   <!-- 3 · AI autonomy control (preserved) -->
   <div class="pcard p-4">
-    <div class="sec-h"><span class="chip">🛡️</span><p class="t">E Deviser assistance · A2</p><button onclick="whyPop('E Deviser may prepare attention, evidence, feedback, intervention, question and curriculum drafts. Messaging, publishing, grades, feedback release and attendance always require your approval.')" class="more">what's this?</button></div>
+    <div class="sec-h"><span class="chip">🛡️</span><p class="t">AI autonomy for your classes</p><button onclick="whyPop('Autonomy tiers control how far the AI may act on your behalf. <b>A0</b> observe only · <b>A1</b> suggest · <b>A2</b> act with your one-click approval · <b>A3</b> act autonomously (logged &amp; reversible). Grading, publishing and messaging never exceed A2.')" class="more">what's this?</button></div>
     <div class="tier-seg" id="tier">
       <button onclick="setTier(this,'A0','Observe only — AI shows insights, never acts.')">A0</button>
       <button onclick="setTier(this,'A1','Suggest — AI proposes actions you open manually.')">A1</button>
       <button class="on" onclick="setTier(this,'A2','Act with approval — one-click, you confirm each action.')">A2</button>
-      <button disabled title="Protected actions always require Teacher approval">A2 · Active</button>
+      <button onclick="setTier(this,'A3','Autonomous — AI schedules reviews &amp; nudges; logged &amp; reversible.')">A3</button>
     </div>
-    <p id="tierMsg" class="text-xs text-gray-500 mt-2">Drafts are prepared with Evidence and Policy checks; every protected action needs your approval.</p>
+    <p id="tierMsg" class="text-xs text-gray-500 mt-2">Act with approval — one-click, you confirm each action.</p>
   </div>
 
   <!-- 4 · Preferences (accessible toggles) -->
@@ -107,7 +106,7 @@
   <!-- 5 · Notification preferences -->
   <div class="pcard p-4">
     <div class="sec-h"><span class="chip">🔔</span><p class="t">Notification preferences</p></div>
-    <div class="set-row"><span class="sr-t">Student attention alerts</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">At-risk student alerts</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
     <div class="set-row"><span class="sr-t">New submissions to grade</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
     <div class="set-row"><span class="sr-t">Tutor handoff requests</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
     <div class="set-row"><span class="sr-t">Weekly class summary</span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
@@ -135,7 +134,7 @@
     <div class="sec-h"><span class="chip">🔌</span><p class="t">Connected integrations</p></div>
     <div class="set-row"><span class="text-lg">📅</span><span class="sr-t">Google Calendar<span class="sr-s block">Sync class times &amp; deadlines</span></span><span class="pill pill-green">Connected</span></div>
     <div class="set-row"><span class="text-lg">📧</span><span class="sr-t">Microsoft Outlook</span><button onclick="toast('Connecting Outlook…','🔌')" class="btn3d sm b-soft">Connect</button></div>
-    <div class="set-row"><span class="text-lg">💬</span><span class="sr-t">Alert channel<span class="sr-s block">Student attention and grading alerts</span></span><button onclick="toast('Preference saved','🔔')" class="btn3d sm b-soft">Manage</button></div>
+    <div class="set-row"><span class="text-lg">💬</span><span class="sr-t">Slack<span class="sr-s block">At-risk &amp; grading alerts to a channel</span></span><button onclick="toast('Connecting Slack…','🔌')" class="btn3d sm b-soft">Connect</button></div>
     <button onclick="toast('Opening integrations…','🔌')" class="btn3d sm b-ghost full mt-3">Manage integrations</button>
   </div>
 
@@ -169,7 +168,7 @@ function editTeacherProfile(){
   openEditModal({
     title:'Edit profile', initial:'A', successMsg:'Profile updated',
     fields:[
-{label:'Title', value:'Prof. Ahmed'},
+      {label:'Title', value:'Prof. Ahmed Al-Rashid'},
       {label:'Designation', value:'Assistant Professor'},
       {type:'row2', items:[{label:'Email', type:'email', value:'a.alrashid@gulf-academy.edu.qa'},{label:'Phone', type:'tel', value:'+974 4000 2233'}]},
       {label:'Office', value:'Building A · Room 210'},
@@ -178,6 +177,6 @@ function editTeacherProfile(){
   });
 }
 </script>
-<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
+<script src="shared.js"></script>
 </body>
 </html>

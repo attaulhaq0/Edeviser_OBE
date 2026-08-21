@@ -2,93 +2,61 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Edeviser — Sarah's Growth &amp; Learning</title>
+<title>Edeviser — Growth &amp; Wellbeing</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
-<link rel="stylesheet" href="parent-refinement.css"/>
 </head>
 <body class="bg-slate-50" data-role="parent">
 <header class="app-header">
   <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
   <div class="flex items-center gap-2"><a href="parent-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">N</a></div>
 </header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useParentDashboard, useStudentProgress | tables: outcome_attainment, evidence, habit_tracking -->
 
-<main class="page-content no-scrollbar">
-  <header class="feed-wide">
-    <p class="parent-eyebrow">Growth</p>
-    <h1 class="parent-page-title">Sarah's growth &amp; learning</h1>
-    <p class="parent-subtitle">Progress over time — focused on learning growth, not raw grades.</p>
-  </header>
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Maya's growth &amp; wellbeing</h1><p class="text-xs text-gray-500 mt-0.5">Progress described as growth over time — strengths and effort, not raw grades.</p></div>
 
-  <section class="feed-wide pcard parent-section" aria-labelledby="focus-title">
-    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">🎯</span><div><p class="parent-eyebrow">What matters now</p><h2 id="focus-title">Current learning focus</h2></div><button class="ai-why-trigger" style="margin-inline-start:auto" type="button" data-open-parent-drawer="growth">✦ Why this focus?</button></div>
-    <div class="focus-card">
-      <div>
-        <p class="parent-eyebrow">Database Design</p>
-        <p class="focus-value">Normalization · CLO 3</p>
-        <div class="parent-chip-row" style="margin-top:6px"><span class="parent-label focus">Developing</span><span class="ai-context-chip">62% mastery</span></div>
-        <p class="focus-translation">Sarah understands the concept and is currently building confidence applying it independently.</p>
-      </div>
-      <div class="next-evidence"><span>Next evidence</span><strong>Assignment 3</strong><small>Normalize a Schema · Friday</small></div>
+  <!-- Subject strengths as bands -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">📚</span><p class="t">Subjects · where she stands</p></div>
+    <div class="space-y-3">
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">Databases</span><span class="pill pill-green">Strong</span></div><div class="h-2.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:86%;background:linear-gradient(90deg,#14b8a6,#0382bd)"></div></div></div>
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">Writing</span><span class="pill pill-blue">Growing ↑</span></div><div class="h-2.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:72%;background:linear-gradient(90deg,#14b8a6,#0382bd)"></div></div></div>
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">Web Development</span><span class="pill pill-blue">Growing</span></div><div class="h-2.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:64%;background:linear-gradient(90deg,#14b8a6,#0382bd)"></div></div></div>
+      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-medium text-gray-900">Math</span><span class="pill pill-amber">Needs support</span></div><div class="h-2.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:48%;background:linear-gradient(90deg,#f59e0b,#f97316)"></div></div></div>
     </div>
-  </section>
-
-  <section class="feed-wide pcard parent-section" aria-labelledby="journey-title">
-    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">🌱</span><div><p class="parent-eyebrow">Database Design journey</p><h2 id="journey-title">Learning Path</h2></div><span class="parent-label focus" style="margin-inline-start:auto">Level 3 · Apply</span></div>
-    <div class="journey" aria-label="Remember and Understand complete, Apply current, Analyze Evaluate and Create upcoming">
-      <div class="journey-step done"><div class="journey-dot">✓</div><span>Remember</span></div>
-      <div class="journey-step done"><div class="journey-dot">✓</div><span>Understand</span></div>
-      <div class="journey-step current"><div class="journey-dot">3</div><span>Apply</span></div>
-      <div class="journey-step"><div class="journey-dot">4</div><span>Analyze</span></div>
-      <div class="journey-step"><div class="journey-dot">5</div><span>Evaluate</span></div>
-      <div class="journey-step"><div class="journey-dot">6</div><span>Create</span></div>
-    </div>
-    <div class="journey-stats"><span class="ai-context-chip">65% mastery</span><span class="ai-context-chip">2 / 5 concepts</span><span class="ai-context-chip">+18% improvement</span><span class="ai-context-chip">Next evidence · Assignment 3</span></div>
-  </section>
-
-  <section class="feed-wide pcard parent-section" aria-labelledby="courses-title">
-    <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">📚</span><div><p class="parent-eyebrow">Course progress</p><h2 id="courses-title">Across Sarah's courses</h2><p>Completion through course modules — not grades.</p></div></div>
-    <div class="course-list">
-      <div><div class="course-line-head"><span><strong>Database Design</strong> · Module 5 of 8</span><b>72%</b></div><div class="course-track"><span style="width:72%"></span></div></div>
-      <div><div class="course-line-head"><span><strong>Web Development</strong> · Module 3 of 7</span><b>45%</b></div><div class="course-track"><span style="width:45%"></span></div></div>
-      <div><div class="course-line-head"><span><strong>AI Fundamentals</strong> · Module 7 of 8</span><b>88%</b></div><div class="course-track"><span style="width:88%"></span></div></div>
-      <div><div class="course-line-head"><span><strong>Software Engineering</strong> · Module 2 of 6</span><b>30%</b></div><div class="course-track"><span style="width:30%"></span></div></div>
-      <div><div class="course-line-head"><span><strong>Statistics</strong> · Module 4 of 9</span><b>58%</b></div><div class="course-track"><span style="width:58%"></span></div></div>
-    </div>
-  </section>
-
-  <div class="parent-grid parent-grid-2">
-    <section class="pcard parent-section" aria-labelledby="consistency-title">
-      <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">🔥</span><div><p class="parent-eyebrow">Habit trend</p><h2 id="consistency-title">Study consistency</h2></div><span class="parent-label" style="margin-inline-start:auto">Steady</span></div>
-      <div class="consistency-bars" aria-label="Five-week steady consistency chart"><span class="consistency-bar" style="height:48%"></span><span class="consistency-bar" style="height:58%"></span><span class="consistency-bar" style="height:54%"></span><span class="consistency-bar" style="height:70%"></span><span class="consistency-bar current" style="height:76%"></span></div>
-      <div class="wellbeing-grid"><div class="wellbeing-metric"><span>Current streak</span><strong>12 days</strong></div><div class="wellbeing-metric"><span>Weekly consistency</span><strong>Steady</strong></div></div>
-      <p class="parent-safety-note">Consistency continues to support Sarah's progress.</p>
-    </section>
-
-    <section class="pcard parent-section" aria-labelledby="balance-title">
-      <div class="parent-section-head"><span class="parent-section-icon" aria-hidden="true">😊</span><div><p class="parent-eyebrow">Approved context</p><h2 id="balance-title">Wellbeing &amp; balance</h2></div></div>
-      <div class="wellbeing-grid">
-        <div class="wellbeing-metric"><span>Study days</span><strong>4 / 5</strong></div><div class="wellbeing-metric"><span>Focus balance</span><strong>Healthy</strong></div>
-        <div class="wellbeing-metric"><span>Wellbeing</span><strong>Good</strong></div><div class="wellbeing-metric"><span>Study rhythm</span><strong>Consistent</strong></div>
-      </div>
-      <p class="parent-safety-note">No concerning pattern shown this week. This is an observable pattern, not a diagnosis.</p>
-    </section>
+    <p class="text-[11px] text-gray-400 mt-3">Bands (Strong / Growing / Needs support) describe mastery of learning outcomes — chosen over numbers to keep the focus on progress.</p>
   </div>
 
-  <section class="ai-intelligence-summary" aria-labelledby="growth-intelligence-title">
-    <div class="ai-intelligence-head"><strong id="growth-intelligence-title">✦ E Deviser Intelligence</strong><span class="ai-autonomy-badge">A1 · Explain</span></div>
-    <p>Mastery Agent: Normalization evidence · Habit Agent: 12-day consistency · Parent Agent: simplified translation · Policy: Parent-safe summary.</p>
-    <div class="parent-actions"><button class="parent-text-button" type="button" data-open-parent-drawer="growth">What is driving this view? →</button></div>
-  </section>
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Consistency -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔥</span><p class="t">Study consistency</p></div>
+    <div class="flex items-end gap-1.5 h-24">
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded bg-teal-500" style="height:40%"></div><span class="text-[9px] text-gray-400">W1</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded bg-teal-500" style="height:30%"></div><span class="text-[9px] text-gray-400">W2</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded bg-teal-500" style="height:55%"></div><span class="text-[9px] text-gray-400">W3</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded bg-teal-500" style="height:45%"></div><span class="text-[9px] text-gray-400">W4</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded" style="height:80%;background:linear-gradient(180deg,#14b8a6,#0382bd)"></div><span class="text-[9px] font-bold text-gray-600">This wk</span></div>
+    </div>
+    <p class="text-xs text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 mt-3">📈 Her best week yet — consistency is trending up.</p>
+  </div>
 
-  <div class="feedback-loop" aria-label="Learning feedback loop, Support is active"><span>LEARN</span><b>→</b><span>PRACTICE</span><b>→</b><span class="active">SUPPORT</span><b>→</b><span>REFLECT</span><b>→</b><span>IMPROVE</span></div>
-</main>
+  <!-- Wellbeing trend -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">😊</span><p class="t">Wellbeing signals</p></div>
+    <div class="space-y-2">
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Mood check-ins</span><span class="pill pill-green">Mostly positive</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Study/break balance</span><span class="pill pill-green">Healthy</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Late-night studying</span><span class="pill pill-green">Rare</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-700">Signs of stress</span><span class="pill pill-green">None detected</span></div>
+    </div>
+  </div>
+  </div>
 
-<div id="parent-drawer-backdrop" class="parent-drawer-backdrop" hidden></div>
-<aside id="parent-drawer" class="parent-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="parent-drawer-title" hidden><div class="drawer-top"><div><p id="parent-drawer-eyebrow" class="parent-eyebrow"></p><h2 id="parent-drawer-title"></h2></div><button class="drawer-close" type="button" data-parent-close aria-label="Close">×</button></div><div id="parent-drawer-content"></div></aside>
-
-<script src="shared.js"></script><script src="parent-data.js"></script><script src="parent-refinement.js"></script>
+</div>
+<script src="shared.js"></script>
 </body>
 </html>
