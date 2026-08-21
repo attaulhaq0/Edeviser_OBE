@@ -8,9 +8,9 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 
 test.describe("Coordinator curriculum matrix", () => {
   test("5.2.3 — curriculum matrix page renders", async ({ page }) => {
-    await page.goto(`${BASE_URL}/coordinator/curriculum-matrix`);
+    await page.goto(`${BASE_URL}/coordinator/matrix`);
     await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL(/coordinator/);
+    await expect(page).toHaveURL(/\/coordinator\/matrix$/);
 
     const heading = page.getByRole("heading").first();
     await expect(heading).toBeVisible({ timeout: 10_000 });
@@ -19,7 +19,7 @@ test.describe("Coordinator curriculum matrix", () => {
   test("5.2.3 — curriculum matrix has a grid or table structure", async ({
     page,
   }) => {
-    await page.goto(`${BASE_URL}/coordinator/curriculum-matrix`);
+    await page.goto(`${BASE_URL}/coordinator/matrix`);
     await page.waitForLoadState("networkidle");
 
     const hasGrid =

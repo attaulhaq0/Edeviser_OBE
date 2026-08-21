@@ -21,14 +21,8 @@ test.describe("Admin audit log", () => {
     await page.goto(`${BASE_URL}/admin/audit-log`);
     await page.waitForLoadState("networkidle");
 
-    // Should have some kind of filter or search
-    const hasFilter =
-      (await page
-        .locator('input[type="search"], input[placeholder*="search" i], select')
-        .count()) > 0;
-    // Acceptable if no filter exists yet — just assert page loaded
-    expect(
-      hasFilter || (await page.getByRole("heading").first().isVisible())
-    ).toBe(true);
+    await expect(
+      page.getByPlaceholder("Search action, type, or ID...")
+    ).toBeVisible();
   });
 });

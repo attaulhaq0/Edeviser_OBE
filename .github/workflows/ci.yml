@@ -303,6 +303,13 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
+      - name: Verify critical E2E contracts and collection
+        run: |
+          npm run check:critical-e2e
+          npm run check:critical-routes
+          npm run check:playwright-contracts
+          npx playwright test --list
+
       - name: Check if Supabase backend is available
         id: backend
         run: |
@@ -315,7 +322,7 @@ jobs:
 
       - name: Run Playwright tests
         if: steps.backend.outputs.available == 'true'
-        run: npx playwright test --project=chromium
+        run: npx playwright test --project=legacy-smoke
 
       - name: Upload test artifacts
         if: failure()

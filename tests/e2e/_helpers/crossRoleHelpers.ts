@@ -4,6 +4,7 @@
 // Uses pollUntil for the 60s grade→XP bound and 2s realtime bound.
 
 import type { Page } from "@playwright/test";
+import { criticalRoutes } from "../../../src/lib/criticalRoutes.ts";
 import { pollUntil } from "./propagation.ts";
 
 /**
@@ -17,7 +18,7 @@ export const waitForGradePropagation = async (
 ): Promise<number> => {
   return pollUntil(
     async () => {
-      await studentPage.goto("/student/xp-history");
+      await studentPage.goto(criticalRoutes.student.xpHistory);
       await studentPage.waitForLoadState("networkidle");
       const xpText = await studentPage.getByTestId("xp-total").textContent();
       if (!xpText) return false;
@@ -47,32 +48,6 @@ export const waitForXpUpdate = async (
       return xp > baselineXp ? xp : false;
     },
     { intervalMs: 500, timeoutMs: 2_000, label: "XP realtime update" }
-  );
-};
-
-/**
- * Wait for a new PLO to appear in the teacher's CLO mapping target list.
- * Polls every 2s for up to 30s.
- */
-export const waitForPloAvailable = async (
-  teacherPage: Page,
-  ploTitle: string
-): Promise<boolean> => {
-  return pollUntil(
-    async () => {
-      await teacherPage.goto("/teacher/outcomes/clos");
-      await teacherPage.waitForLoadState("networkidle");
-      const visible = await teacherPage
-        .getByText(ploTitle)
-        .isVisible()
-        .catch(() => false);
-      return visible;
-    },
-    {
-      intervalMs: 2_000,
-      timeoutMs: 30_000,
-      label: `PLO "${ploTitle}" available`,
-    }
   );
 };
 

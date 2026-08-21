@@ -22,17 +22,9 @@ test.describe("Student leaderboard opt-out", () => {
     await page.goto(`${BASE_URL}/student/leaderboard`);
     await page.waitForLoadState("networkidle");
 
-    // Look for an opt-out toggle or anonymous switch
-    const hasToggle =
-      (await page
-        .getByRole("switch")
-        .or(page.getByRole("checkbox", { name: /anonymous|opt.out|hide/i }))
-        .count()) > 0;
-
-    // Acceptable if no toggle — leaderboard may not have opt-out UI yet
-    // Just assert the page loaded
-    expect(
-      hasToggle || (await page.getByRole("heading").first().isVisible())
-    ).toBe(true);
+    const toggle = page
+      .getByRole("switch", { name: /anonymous|opt.out|hide/i })
+      .or(page.getByRole("checkbox", { name: /anonymous|opt.out|hide/i }));
+    await expect(toggle.first()).toBeVisible();
   });
 });

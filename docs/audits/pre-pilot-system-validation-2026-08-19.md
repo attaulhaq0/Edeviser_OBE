@@ -1,8 +1,10 @@
 # E Deviser pre-pilot system validation
 
-Date: 2026-08-19  
-Authoritative repository state: `main` at `dc7d840fdb52b980fcdba2781e45cec6115c48ff`  
-Production Supabase: `cdlgtbvxlxjpcddjazzx`  
+Date: 2026-08-19
+
+Authoritative repository baseline: `main` at `dc7d840fdb52b980fcdba2781e45cec6115c48ff`
+
+Production Supabase: `cdlgtbvxlxjpcddjazzx`
 Program verdict: **IN PROGRESS — PILOT READY: NO**
 
 This is the living status document for the complete pre-pilot validation program. A phase is not marked PASS from source inspection alone. Production checks in this assessment were read-only.
@@ -11,247 +13,129 @@ This is the living status document for the complete pre-pilot validation program
 
 | Gate | Verdict | Evidence |
 |---|---|---|
-| Runtime dependency governance | PASS | PR #268 merged to `main`; main CI run `32195698679` passed, including runtime dependency contracts, SQL/replay checks, tests, lint, typecheck, build, and ownership checks. |
-| Production deployment attestation | PASS | Read-only source download from Production compared with reviewed `main`; repository attestation reported `PASS (10/10 governed functions)`, including status and `verify_jwt` parity. |
-| Migration deployment safety | PASS | Production branch is `ACTIVE_HEALTHY` / `FUNCTIONS_DEPLOYED`; repository and Production contain the same 410 migration versions with head `20260830000010`. Main CI replay-order, duplicate-name, schema-contract, and declared-object guards passed. |
-| Tutor/RAG Production parity | PASS | Production deployment run `32171093575` deployed the reviewed Tutor/Intelligence closure. Read-only source parity passed for `chat-with-tutor`, `embed-course-material`, `generate-plan-update`, `agent-worker`, and `agent-orchestrator`. |
-| Supabase branch health | PASS | The only listed branch is `main`; no branch is `MIGRATIONS_FAILED`. |
+| Runtime dependency governance | PASS | PR #268 is on `main`; its CI passed runtime dependency contracts, replay guards, tests, lint, typecheck, build, and ownership checks. |
+| Production deployment attestation | PASS | Read-only source comparison reported 10/10 governed functions in parity, including status and `verify_jwt`. |
+| Migration deployment safety | PASS | Repository and Production had the same 410 migration versions, headed by `20260830000010`; no Supabase branch reported `MIGRATIONS_FAILED`. |
+| Tutor/RAG Production parity | PASS | The reviewed Tutor/Intelligence closure was deployed and five governed functions matched Production source. |
+| Supabase breaking-change review | PASS WITH WATCH ITEM | No migration pins extension versions or writes to the internal Realtime schema. Data API grants remain a separate control from RLS and require explicit review. |
 
-Current Supabase changelog items relevant to this program were checked. No migration pins an extension version and no migration writes to Supabase's internal Realtime migration schema. New Data API grants must continue to be audited explicitly because RLS and API grants are separate controls.
-
-## Phase status
+## Program phase status
 
 | Phase | Status | Current evidence |
 |---|---|---|
-| Prerequisite gate | PASS | Direct GitHub, production ledger, branch, function inventory, and source-parity evidence above. |
-| Initial A–P inventory | COMPLETE | Routes, tests, workflows, local/Preview capabilities, Production catalog, Supabase runtime ownership, and critical closed-loop gaps are inventoried below. |
-| 1 — Database/migration/data model | IN PROGRESS | Ledger parity and static replay guards pass. Fresh reset + seed + integration chain has not yet been rerun for this program. |
-| 2 — Five-role authorization/tenant proof | NOT STARTED | Existing RLS tests are inventoried below; complete table/RPC/function/browser matrix is absent. |
-| 3–18 — Product and closed-loop chains | NOT STARTED | Unit-level fragments exist, but no complete database/API/browser causal proof exists. |
-| 19–27 — UI, contracts, consistency, failure, performance, observability, security, privacy, accessibility | NOT STARTED | Existing automation is inventoried below; program-grade execution has not occurred. |
-| 28 — Master regression matrix | NOT STARTED | No machine-readable master matrix exists. |
-| 29–33 — Continuous quality through pilot gates | NOT STARTED | Existing CI is incomplete as a pilot gate; findings below are blocking. |
+| Initial A–P inventory | COMPLETE | Routes, tests, workflows, local/Preview capabilities, Production catalog, runtime ownership, and critical closed-loop gaps were inventoried. |
+| PR Boundary 1 — E2E harness truthfulness | PASS; PR #269 OPEN | Fail-closed auth/session validation, live Supabase Auth proof, route/workflow/static guards, truthful critical specs, collection isolation, and regressions are complete. The PR is open for review and has not been merged. |
+| PR Boundary 2 — deterministic audit fixtures | NOT STARTED | Deliberately excluded from Boundary 1. Existing fixture schema/order drift blocks authenticated Preview execution. |
+| Database/migration/data model execution | IN PROGRESS | Ledger parity and static replay guards pass; fresh reset, seed, and integration chain remain outstanding. |
+| Five-role authorization/tenant proof | NOT STARTED | Complete table/RPC/Storage/Edge/browser matrix remains absent. |
+| Closed-loop OBE, Learning State, intervention, CQI, and RAG proof | NOT STARTED | No complete database/API/browser causal proof exists. |
+| Master regression and pilot gates | NOT STARTED | Branch protection, security policy, and deep Preview E2E are not yet enforceable pilot gates. |
 
-## A. Existing test inventory
+## Boundary 1 result
 
-Authoritative `main` contains:
+### Fail-closed authentication and seed contract
 
-- 413 tests under `src/__tests__/unit`.
-- 231 property-test files under `src/__tests__/properties`.
-- 1 conventional integration test and 12 real Preview RLS integration tests.
-- 31 role-oriented Playwright specifications under `tests/e2e` and 7 legacy Playwright smoke specifications under `e2e`.
-- 2 visual Playwright specifications.
-- Four k6 scripts: login, submission, grading pipeline, and leaderboard.
+- Missing, zero-byte, empty, tokenless, malformed-JWT, missing-role, and wrong-role storage states fail.
+- Role states load both cookies and Supabase local-storage origins.
+- JWT role inspection is a local integrity assertion only. Actual Preview authorization proof calls Supabase Auth `GET /auth/v1/user`, verifies the authenticated user, and checks role, expected email, and institution scope.
+- Preview fixture mode aborts on seed HTTP failure, partial seed response, login redirect/failure, invalid storage state, invalid role, or failed live user proof.
+- Parent linked and unlinked sessions are distinct states.
+- Production is prohibited for controlled fixture mode and was not mutated.
 
-The latest main CI test job passed. Test count is not treated as product proof because much of the suite is hermetic, source-contract, or mocked.
+Regression coverage includes missing file, empty file, no token, malformed JWT, wrong role, missing claim, correct role, propagation timeout, missing grading control, and stale route. Additional guard fixtures cover `test.skip`, conditional no-op actions, swallowed success fallbacks, and explicit narrow polling exceptions.
 
-## B. Existing CI and release gates
+### Critical E2E truthfulness policy
 
-Workflows on `main`:
+Critical scope is explicit: files marked `@critical-e2e`, every `tests/e2e/cross-role/**` spec, and every `critical-path.spec.ts`. Within that scope the AST guard rejects swallowed catches, success-compatible catch fallbacks, `test.skip`, and required actions hidden behind `isVisible()` without a failing alternative. Required controls can be declared with `@critical-control`; the grader test requires an unconditional Submit Grade action. A narrowly documented `@allow-critical-catch` exception exists only for polling where the eventual assertion still fails closed.
 
-- CI: lint, typecheck, Vitest coverage, build, bundle size, Lighthouse, SQL/replay/schema guards, static RLS guard, conditional Preview RLS smoke, conditional runtime impact/deploy, and a legacy Chromium E2E job.
-- Pre-Deployment Audit: lint, typecheck, unit/property, build, security/static scanners, connectivity, RLS, cron, optional E2E/Nova Act, and report aggregation.
-- Supabase Preview: Git-linked fresh migration replay and conditional Preview runtime closure.
-- Production Edge Runtime deployment, read-only bootstrap attestation, manual reconciliation, and manual migration break-glass workflows.
-- Scheduled health, CodeQL, Dependabot, dependency graph, and Changesets release.
+The grade-to-XP test now visits the real teacher grading route, requires the rubric, feedback, and Submit Grade controls, measures the student's real XP history before the action, and fails if propagation does not occur within 60 seconds. Other role and cross-role smoke specs now use live authenticated users and real routes/RLS queries rather than accepting not-found pages or role-prefix URLs.
 
-Release-governance gaps:
+### Route and workflow contracts
 
-- `main` has no GitHub branch protection or required status checks.
-- The Production environment has a required reviewer, but self-review is allowed and the sole configured reviewer is the repository owner.
-- The CI E2E job skips Playwright when a backend is unavailable and runs only the legacy `chromium` project.
-- Role E2E is not run on pull requests in Pre-Deployment Audit and is `continue-on-error` when manually run.
-- Connectivity, RLS, cron, static scanners, coverage threshold, and several security signals are non-blocking or continue-on-error.
-- Current authoritative lockfile audit fails with 41 findings: 1 critical, 28 high, 6 moderate, and 6 low. CI's high/critical audit currently warns instead of blocking. The latest scheduled-health workflow is red for this reason.
+Canonical route builders now bind the router and critical E2E for:
 
-## C. Existing Docker/local capabilities
+- teacher dashboard, assignments, grading queue, and grading submission;
+- student dashboard, assignments, assignment detail, and XP history.
 
-- Supabase CLI `2.114.0` is installed and the project is linked.
-- Local Postgres, Studio, pg-meta, Storage, REST, Inbucket, Auth, and Kong containers are present.
-- Migrations, Auth, Storage, Realtime, Edge Runtime, and local email are configured in `supabase/config.toml`; database major version is 17.
-- `supabase/seed.sql` provides one demo institution, admin/coordinator/teacher, 50 students, four courses, OBE data, grades, attainment, habits, activity, and gamification.
+The route guard rejects stale manually typed critical paths. The workflow guard parses Playwright project declarations and rejects workflow references to nonexistent projects. It found and corrected CI's nonexistent `chromium` project reference to `legacy-smoke`.
 
-Local environment blockers observed during this assessment:
+### Collection and workspace hygiene
 
-- Realtime, Vector, and Analytics containers report unhealthy.
-- Edge Runtime is stopped.
-- Seed execution is disabled by default in `config.toml`.
-- The local seed has only one institution and does not provide the required deterministic five-role/two-tenant/six-learning-state fixture matrix.
+Playwright ignores nested `node_modules` and `runtime-governance-scratch` trees. The legacy project's broad pattern previously recollected role specs; it is now isolated to the seven legacy files. Clean collection reports **134 tests in 37 files**: 81 legacy tests plus the role/cross-role/RTL set, with no duplicate role collection.
 
-## D. Existing Supabase Preview capabilities
+User work under `runtime-governance-scratch` was not deleted or modified.
 
-- Git-linked Preview is used as the authoritative fresh migration replay.
-- A production-ref guard prevents the real RLS suite from running against Production.
-- Twelve real Preview RLS files cover smoke, inserts, profiles, team members, timetable, dashboards, nudges, habit logs, outcome governance, and RAG authorization.
-- CI resolves Preview project credentials and deploys the exact manifest-derived runtime closure when relevant files change.
-- `audit-fixtures` is explicitly disabled outside `ENV_ID=audit-staging` and hard-blocked in Production.
+### Validation evidence
 
-Preview fixture gaps:
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | PASS |
+| ESLint, zero warnings, tracked project scope | PASS |
+| Auth fail-closed regressions and focused guard/property tests | PASS, 34/34 |
+| Critical E2E no-swallow guard | PASS |
+| Critical route contract guard | PASS |
+| Playwright workflow project contract | PASS |
+| Playwright clean collection | PASS, 134 tests / 37 files |
+| Production build | PASS, 4,402 modules transformed |
+| Full Vitest under pinned Node 20 | BLOCKED BY PRE-EXISTING WINDOWS ISSUES: 685 files and 6,315 tests pass; two unchanged CRLF/shebang `.mjs` imports fail during Vitest loading and one unchanged migration guard exceeds its 15-second timeout |
+| Lockfile security audit | FAIL, known baseline: 41 findings (1 critical, 28 high, 6 moderate, 6 low) |
+| Whitespace (`git diff --check`) | PASS |
 
-- Fixture setup was best-effort: seed errors and failed sign-ins warned and continued. PR boundary 1 now fails closed when Preview fixture mode is enabled.
-- It seeds one institution, one student state, and no complete intervention/intelligence measurement scenario.
-- It does not provide Institution B for malicious cross-tenant browser/API tests.
-- The fixture implementation is incompatible with the current schema: its fixed entity IDs are not valid UUIDs; it writes removed/nonexistent columns such as `rubrics.course_id`, `rubrics.institution_id`, `rubrics.criteria`, `assignments.institution_id`, `assignments.clo_ids`, and `assignments.max_score`; and it creates FK-dependent profiles/courses before their institution/program parents. The previous warn-and-continue behavior concealed these failures.
+The full-suite and security failures are recorded blockers. They are unrelated to E2E harness truthfulness and are not repaired in this PR boundary.
 
-## E. Five-role route inventory
+## Future CI relevance rule
 
-`AppRouter.tsx` declares approximately:
+A pull request is **critical Preview E2E relevant** when it changes authentication/session/storage-state behavior, Playwright configuration or critical specs, audit fixtures, canonical critical routes/router bindings, the grading-to-XP chain, or relevant database migrations/RPCs/Edge Functions. For a relevant change, missing Preview deployment, credentials, or deterministic fixtures is a hard failure; the critical chain must never warn, skip, or continue successfully.
 
-| Role | Route declarations | Path-bearing routes |
-|---|---:|---:|
-| Admin | 54 | 52 |
-| Coordinator | 28 | 26 |
-| Teacher | 55 | 53 |
-| Student | 56 | 54 |
-| Parent | 15 | 14 |
+A cheap frontend-only pull request outside those areas may avoid the expensive authenticated Preview chain. It must still pass the static E2E guard, route guard, workflow-project guard, clean collection, typecheck, lint, focused tests, and build. Relevance controls cost; it does not turn missing required evidence into success.
 
-Page source inventory contains 52 admin, 16 coordinator, 50 teacher, 71 student, and 9 parent files, plus shared/auth/public pages. Route existence is broad; route quality and real-data behavior remain unproved.
+## Boundary 2 entry criteria and current fixture status
 
-## F. Core database/RPC/Edge Function inventory
+Boundary 2 begins only after Boundary 1 is reviewable and its focused checks are green. It will repair `audit-fixtures` in an isolated non-production Preview and add deterministic Institution A/B, five roles, controlled learner states, one ungraded submission, idempotent seed/teardown, and evidence sufficient for the grade-to-XP browser chain.
 
-Read-only Production catalog:
+| Fixture proof | Current status |
+|---|---|
+| Current-schema compatibility | FAIL — removed/nonexistent assignment/rubric columns remain |
+| Valid UUIDs | FAIL |
+| Parent-before-dependent FK order | FAIL |
+| Idempotent seed and teardown | NOT PROVEN |
+| Five live role sessions | 0/5 |
+| Two-tenant isolation data | FAIL |
+| Grade → XP isolated Preview proof | NOT RUN |
 
-- 170 public tables; all 170 have RLS enabled.
-- 398 public RLS policies.
-- 284 public functions, including 91 `SECURITY DEFINER` functions requiring explicit privilege/body/search-path review.
-- 2 views, 1 materialized view, 5 cron jobs, and 8 Realtime publication tables.
-- 61 repository Edge Functions; 10 are covered by the new governed runtime manifest.
+## Release-governance blockers kept outside Boundary 1
 
-Core tables include assignments, submissions, grades, evidence, learning outcomes, outcome mappings/attainment/snapshots, habit logs/levels/correlations, student learning states, agent runs/tool attempts/proposals/executions/jobs, intervention measurements, course materials/embeddings, and CQI patterns/plans/measurements.
+- `main` has no required GitHub branch protection/status checks.
+- Production review can be self-approved by the sole configured reviewer.
+- Current dependency audit has 1 critical and 28 high findings; CI does not block on them.
+- Pre-deployment role E2E is non-blocking or conditional, and historical missing-backend behavior could report success without execution.
+- Local Realtime is unhealthy and Edge Runtime is stopped.
+- Only 10 of 61 Edge Functions are source-attested; known ownership drift remains.
+- 91 public `SECURITY DEFINER` functions require an explicit exposure/body/search-path review.
 
-Core RPC/function families include attainment rollup, Learning State refresh/read/staleness, proactive job claim/complete/fail, protected agent/CQI execution, intervention/CQI measurement, course-material search/replacement, hierarchy/weight validation, and notification triggers.
+These are pilot blockers, but combining their remediation with harness truthfulness would make the review boundary unsafe and unauditable.
 
-## G. Existing OBE tests
+## Active findings
 
-Strengths:
-
-- Deterministic attainment classifier/rollup tests.
-- OBE property tests for cascade, mappings/weights, evidence immutability, prerequisite gates, and Bloom/CLO constraints.
-- Preview RLS coverage for outcome governance.
-- Teacher grade page, coordinator PLO/matrix, and grade-to-XP browser specifications exist.
-
-Gaps:
-
-- No single real fixture proves ILO → PLO → CLO → assessment → submission → released grade → evidence → attainment → Learning State → teacher/coordinator UI.
-- Missing independent mathematical oracle across released/unreleased, updates, duplicate evidence, rounding, semester/cohort, and cross-tenant cases.
-- The browser grade-release spec only proves a heading renders.
-
-## H. Existing Habit/Learning State tests
-
-Habit unit/property coverage is broad: logs, streak/recovery, difficulty, heatmap, correlations, wellness, level history, and Preview habit-log RLS. Learning State has migrations, refresh/read/staleness RPCs, proactive worker logic, and measured-intervention unit contracts.
-
-No real database/browser test changes one signal at a time and proves before-state → event → recalculation → after-state. Duplicate, delayed, out-of-order, timezone, stale-cache, and cross-student convergence remain unproved as one chain.
-
-## I. Existing Agent/RAG/eval tests
-
-Existing tests cover provider configuration, DeepSeek response/error parsing, orchestrator/tool registry, authorization data sources, proposal approval rules, protected execution contracts, RAG authorization, prompt-injection contracts, embedding provider/versioning, multilingual benchmark logic, citation parsing, and CQI drafting.
-
-The multilingual benchmark is a deterministic unit benchmark, not a fixed non-production corpus executed against a real vector index/provider. No permanent provider latency/cost/error budget run or real A0/A1/A2 browser/API/database evaluation exists.
-
-## J. Existing E2E coverage
-
-Role projects exist for admin, coordinator, teacher, student, parent, cross-role, and RTL. Coverage includes dashboards, ILO/PLO/CLO, assignments, grade page, XP/streak, parent linked/unlinked, CQI page, and basic propagation.
-
-Credibility blockers:
-
-- `teacher-to-student.spec.ts` navigates to nonexistent `/teacher/assignments/:id/grade`, conditionally clicks only if a button appears, catches propagation failure, and still passes.
-- Its helper polls nonexistent `/student/xp`; the real route is `/student/xp-history`.
-- `teacherHelpers.ts` contains additional stale routes such as `/teacher/outcomes/clos` and `/teacher/courses/:id`.
-- Several specs accept not-found/no-op behavior as success or only assert that a role prefix remains in the URL.
-- Empty storage-state files are considered present, so unauthenticated runs can look like seeded E2E runs.
-
-## K. Existing visual/accessibility coverage
-
-- Axe Playwright scans exist for each role dashboard and selected major pages; admin includes a basic Tab-navigation check.
-- Unit/property accessibility tests cover landmarks, focus, ARIA, contrast tokens, reduced motion, and selected complex widgets.
-- RTL screenshots and prototype parity tooling exist.
-
-Gaps:
-
-- Standard role projects use 1440×900 and 390×844, not the required 360/768/1024/1440 matrix.
-- Visual parity is not a release-blocking all-route regression suite.
-- Modal focus, screen-reader semantics, zoom, keyboard-only completion, and error/empty/loading states are not comprehensively exercised.
-
-## L. Existing performance/observability coverage
-
-- k6 scripts define p95 budgets for login, submission, grading/rollup, and leaderboard.
-- Lighthouse runs three throttled desktop samples; accessibility/best-practice/SEO and byte weight block, while performance metrics warn.
-- A student TTI Playwright spec and static performance audit exist.
-- Agent contracts carry request, run, and session IDs; tables exist for agent runs/tool attempts and provider/tool timing fields.
-
-Gaps:
-
-- No stored recent k6 baseline or CI/scheduled execution was found.
-- No p50/p95/p99 baseline for Learning State, at-risk teacher view, coordinator aggregation, Tutor retrieval/TTFT/full response, embeddings, or proposal execution.
-- No automated browser → Edge → orchestrator → provider → tool/RPC → proposal → execution → measurement correlation proof exists.
-
-## M. Missing critical chains
-
-1. `CLOSED-LOOP-001`: declining released grade → evidence → attainment → Learning State → recommendation → teacher approval → one protected execution → measurement → refreshed state → changed next recommendation.
-2. `HABIT-LOOP-001`: out-of-order/duplicate habit events → streak/risk → Learning State → bounded action → recovery.
-3. `CQI-LOOP-001`: student evidence → comparable cohort aggregation → CQI finding/proposal/approval/execution → new measurement cycle.
-4. `TENANT-NEG-001`: malicious cross-tenant table/RPC/storage/function/browser IDs across all five roles.
-5. `RAG-EVAL-001`: fixed Arabic/English golden corpus with authorization, citation, injection, and no-context metrics.
-6. `FAILURE-001`: provider/database/queue/network failure with audit, bounded retry, and exactly-once protected action.
-
-## N. Known stale/legacy architecture
-
-- Browser helpers and specs contain stale route contracts and no-op success paths.
-- Dashboard unit tests commonly mock RPCs; they do not prove frontend/backend contracts.
-- Preview fixture setup is best-effort instead of fail-closed.
-- Production ownership inventory still reports known drift: repository-only `coordinator-ai-insights` and deployed-only `fee-overdue-check`; neither is in the governed runtime manifest.
-- Only 10 of 61 Edge Functions are covered by runtime source attestation.
-- Public `SECURITY DEFINER` surface is large and needs a callable-role/search-path/body audit before pilot.
-- The main branch and Production approval model do not provide independent enforced review.
-
-## O. Proposed execution order
-
-1. Restore test credibility: fail-closed Preview fixtures, correct stale routes, remove swallowed E2E failures, and make the first closed-loop test produce database/UI evidence.
-2. Build deterministic two-institution, five-role, six-student-state fixtures with teardown and idempotency.
-3. Fresh local reset/replay/seed/integration and upgrade-path checks; repair local Realtime/Edge health.
-4. Complete five-role RLS/RPC/storage/Edge/browser negative matrix.
-5. Prove deterministic OBE and Learning State chains.
-6. Prove A0/A1/A2 intervention and CQI loops.
-7. Run multilingual RAG, prompt-injection, DeepSeek, and tool-contract evals under explicit budgets.
-8. Expand role/UI/accessibility/responsive/failure/realtime/performance/observability coverage.
-9. Make validated critical chains blocking in PR or scheduled/manual deep gates.
-10. Re-run all pilot gates and issue the final YES/NO verdict.
-
-## P. Proposed focused PR boundaries
-
-1. **E2E harness truthfulness** — fail-closed fixture setup, authenticated storage-state validation, route-contract corrections, and removal of swallowed propagation failures.
-2. **Deterministic audit fixtures** — Institution A/B plus six controlled learner states and cleanup/idempotency.
-3. **Database replay and five-role authorization matrix** — local/Preview integration only.
-4. **OBE grade-to-state chain** — mathematical oracle plus API/database/browser proof.
-5. **A2 intervention closed loop** — proposal/approval/exactly-once execution/measurement/next recommendation.
-6. **CQI comparable-cohort loop**.
-7. **RAG multilingual/security golden evaluation**.
-8. **DeepSeek/tool/failure evaluation with budgets**.
-9. **All-role route, responsive, visual, and accessibility completion**.
-10. **Performance, observability, release protection, and final pilot gate automation**.
-
-## Initial severity findings
-
-| ID | Severity | Finding | Pilot impact |
+| ID | Severity | Finding | State |
 |---|---|---|---|
-| PPV-P1-001 | P1 | Critical closed-loop browser test is a false positive (invalid routes, conditional no-op, swallowed timeout). | Blocking |
-| PPV-P1-002 | P1 | Preview fixtures warn and continue after seed/login failure; no two-tenant controlled fixture set. | Blocking |
-| PPV-P1-003 | P1 | Main branch is unprotected; production review can be self-approved by the sole reviewer. | Blocking |
-| PPV-P1-004 | P1 | Current lockfile has 1 critical and 28 high audit findings; CI warning policy does not block. | Blocking pending reachability/upgrade triage |
-| PPV-P1-005 | P1 | Local Realtime is unhealthy and Edge Runtime is stopped, preventing deterministic full-chain validation. | Blocks local chain proof |
-| PPV-P1-006 | P1 | No real grade → Learning State → approval → execution → measurement → changed recommendation proof exists. | Blocking |
-| PPV-P1-007 | P1 | `audit-fixtures` has fatal schema/order drift (invalid UUID identifiers, removed columns, and parent rows created after dependents). | Blocks every controlled Preview role/closed-loop run |
-| PPV-P2-001 | P2 | Only 10/61 Edge Functions are source-attested; two known ownership drifts remain. | Must be classified/closed before final gate |
-| PPV-P2-002 | P2 | 91 public `SECURITY DEFINER` functions require explicit exposure review. | Security audit queue; severity may increase |
+| PPV-P1-001 | P1 | Critical cross-role E2E contained invalid routes, conditional no-op actions, and swallowed propagation failure. | REMEDIATED IN BOUNDARY 1 |
+| PPV-P1-002 | P1 | Preview fixture setup warned and continued after seed/login failure. | FAIL-CLOSED IN BOUNDARY 1; DATA REPAIR IN BOUNDARY 2 |
+| PPV-P1-003 | P1 | Main branch lacks enforced required checks and independent review. | OPEN |
+| PPV-P1-004 | P1 | Lockfile has 1 critical and 28 high findings while audit is non-blocking. | OPEN |
+| PPV-P1-005 | P1 | Local Realtime/Edge health blocks deterministic local chain proof. | OPEN |
+| PPV-P1-006 | P1 | No real grade → state → approval → execution → measurement proof exists. | OPEN |
+| PPV-P1-007 | P1 | `audit-fixtures` has fatal schema, UUID, and FK-order drift. | OPEN; BOUNDARY 2 |
+| PPV-P1-008 | P1 | CI referenced nonexistent Playwright project `chromium`. | REMEDIATED IN BOUNDARY 1 |
+| PPV-P1-009 | P1 | Legacy Playwright matching duplicated the role E2E tree. | REMEDIATED IN BOUNDARY 1 |
+| PPV-P2-001 | P2 | Only 10/61 Edge Functions are source-attested; ownership drift remains. | OPEN |
+| PPV-P2-002 | P2 | 91 public `SECURITY DEFINER` functions require exposure review. | OPEN |
 
 ## Next active work
 
-PR boundary 1 is in progress. Completed in the working tree:
+1. Review Boundary 1 PR #269; do not merge it automatically.
+2. Repair deterministic audit fixtures in Boundary 2 using an isolated Preview only.
+3. Prove five live roles, two tenants, idempotent seed/teardown, and the grade-to-XP chain.
+4. Continue the original program through database replay, authorization matrix, OBE/Learning State causal proofs, interventions, CQI, RAG/provider evaluations, UI/accessibility, performance, observability, security, and final pilot gates.
 
-- Preview seed HTTP/partial failures and role-login failures now abort setup.
-- Stored role sessions are validated and their Supabase local-storage origins are loaded into cross-role contexts.
-- Missing/invalid JWTs now fail role assertions.
-- The teacher-to-student test uses `/teacher/grading/:submissionId` and `/student/xp-history`, requires the actual grading action, and no longer swallows propagation timeout.
-- Focused regression: `src/__tests__/unit/e2eHarnessFailClosed.test.ts` passes (2/2); `npx tsc --noEmit` passes.
-
-The strict browser regression is intentionally blocked before execution by PPV-P1-007. The next focused boundary is to repair `audit-fixtures` against the generated schema, add a deterministic ungraded submission with a valid UUID, and prove idempotent seed/teardown in an isolated Preview environment.
+Pilot readiness remains **NO**.

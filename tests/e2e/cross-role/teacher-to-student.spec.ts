@@ -2,9 +2,15 @@
 //
 // Task 6.1 / Req 3.1: Teacher grades → Student XP propagation spec.
 // Teacher releases a grade → Student polls XP page up to 60s → assert XP increased.
+// @critical-e2e
+// @critical-control Submit Grade
 
 import { test, expect, chromium } from "@playwright/test";
-import { assertRoleClaim, loadStorageState } from "../_helpers/auth.ts";
+import { criticalRoutes } from "../../../src/lib/criticalRoutes.ts";
+import {
+  assertLiveAuthenticatedUser,
+  loadStorageState,
+} from "../_helpers/auth.ts";
 import { waitForGradePropagation } from "../_helpers/crossRoleHelpers.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
@@ -25,10 +31,14 @@ test.describe("Cross-role: teacher grade → student XP", () => {
     const studentPage = await studentCtx.newPage();
 
     try {
-      // Read student baseline XP
-      await studentPage.goto(`${BASE_URL}/student/dashboard`);
+      // Read the same canonical XP total that the propagation poll observes.
+      await studentPage.goto(`${BASE_URL}${criticalRoutes.student.xpHistory}`);
       await studentPage.waitForLoadState("networkidle");
-      await assertRoleClaim(studentPage, "student");
+      await assertLiveAuthenticatedUser(studentPage, {
+        role: "student",
+        email: "audit+student@edeviser.test",
+        institutionId: "audit-inst",
+      });
       const baselineXpText = await studentPage
         .getByTestId("xp-total")
         .textContent();
@@ -45,17 +55,26 @@ test.describe("Cross-role: teacher grade → student XP", () => {
         "Student baseline XP must be numeric"
       ).toBe(false);
 
-      // Teacher submits the grade. Grade creation is the release boundary in
-      // the current application and triggers attainment + canonical grade XP.
+      // Grade creation is the current application action that starts the
+      // attainment/XP chain. The deterministic ungraded submission is supplied
+      // by Boundary 2's Preview fixture.
       await teacherPage.goto(
-        `${BASE_URL}/teacher/grading/${AUDIT_SUBMISSION_ID}`
+        `${BASE_URL}${criticalRoutes.teacher.gradingSubmission(
+          AUDIT_SUBMISSION_ID
+        )}`
       );
       await teacherPage.waitForLoadState("networkidle");
-      await assertRoleClaim(teacherPage, "teacher");
+      await assertLiveAuthenticatedUser(teacherPage, {
+        role: "teacher",
+        email: "audit+teacher@edeviser.test",
+        institutionId: "audit-inst",
+      });
       await expect(
         teacherPage.getByRole("heading", { name: "Grade Submission" })
       ).toBeVisible();
-      await teacherPage.getByRole("button", { name: "Excellent" }).click();
+      await teacherPage
+        .getByRole("button", { name: /Overall Performance: Excellent/i })
+        .click();
       await teacherPage
         .getByLabel("Overall Feedback")
         .fill("Closed-loop audit grade");
