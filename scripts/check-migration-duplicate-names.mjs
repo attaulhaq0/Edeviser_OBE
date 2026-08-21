@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Migration duplicate base-name guard.
 //
 // WHY THIS EXISTS (root-cause guard for the "stripped hardening / regressed definition"

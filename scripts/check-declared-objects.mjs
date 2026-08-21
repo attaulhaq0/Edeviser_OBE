@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Declared-object existence checker (Part C — "Declared_Object_Check", Req 20).
 //
 // WHY THIS EXISTS (rule: a task cannot be "done" without an applied migration):

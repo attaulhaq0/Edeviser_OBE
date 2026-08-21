@@ -182,7 +182,7 @@ describe("Quick Login for Noor International Testing", () => {
     expect(screen.getByTestId("quick-login-parent")).toBeInTheDocument();
   });
 
-  it("authenticates student and navigates to /student/profile", async () => {
+  it("authenticates student and navigates to /student/dashboard", async () => {
     setupMocks("student", "student01@noor-international.test", "student-id-1");
     const user = userEvent.setup();
     renderLoginPage();
@@ -201,7 +201,7 @@ describe("Quick Login for Noor International Testing", () => {
           email: "student01@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/student/profile", {
+        expect(mockNavigate).toHaveBeenCalledWith("/student/dashboard", {
           replace: true,
         });
       },
@@ -209,7 +209,7 @@ describe("Quick Login for Noor International Testing", () => {
     );
   });
 
-  it("authenticates parent with verified child link and navigates to /parent/profile", async () => {
+  it("authenticates parent with verified child link and navigates to /parent/dashboard", async () => {
     setupMocks("parent", "parent01@noor-international.test", "parent-id-1");
     const user = userEvent.setup();
     renderLoginPage();
@@ -228,7 +228,7 @@ describe("Quick Login for Noor International Testing", () => {
           email: "parent01@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/parent/profile", {
+        expect(mockNavigate).toHaveBeenCalledWith("/parent/dashboard", {
           replace: true,
         });
       },
@@ -236,7 +236,7 @@ describe("Quick Login for Noor International Testing", () => {
     );
   });
 
-  it("authenticates teacher with assigned courses and navigates to /teacher/settings/profile", async () => {
+  it("authenticates teacher with assigned courses and navigates to /teacher/dashboard", async () => {
     setupMocks("teacher", "okonkwo@noor-international.test", "teacher-id-1");
     const user = userEvent.setup();
     renderLoginPage();
@@ -255,7 +255,7 @@ describe("Quick Login for Noor International Testing", () => {
           email: "okonkwo@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/teacher/settings/profile", {
+        expect(mockNavigate).toHaveBeenCalledWith("/teacher/dashboard", {
           replace: true,
         });
       },
@@ -263,7 +263,7 @@ describe("Quick Login for Noor International Testing", () => {
     );
   });
 
-  it("authenticates coordinator with program access and navigates to /coordinator/profile", async () => {
+  it("authenticates coordinator with program access and navigates to /coordinator/dashboard", async () => {
     setupMocks(
       "coordinator",
       "curriculum@noor-international.test",
@@ -286,7 +286,7 @@ describe("Quick Login for Noor International Testing", () => {
           email: "curriculum@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/coordinator/profile", {
+        expect(mockNavigate).toHaveBeenCalledWith("/coordinator/dashboard", {
           replace: true,
         });
       },
@@ -294,7 +294,7 @@ describe("Quick Login for Noor International Testing", () => {
     );
   });
 
-  it("authenticates admin and navigates to /admin/profile", async () => {
+  it("authenticates admin and navigates to /admin/dashboard", async () => {
     setupMocks("admin", "principal@noor-international.test", "admin-id-1");
     const user = userEvent.setup();
     renderLoginPage();
@@ -313,7 +313,7 @@ describe("Quick Login for Noor International Testing", () => {
           email: "principal@noor-international.test",
           password: expect.any(String),
         });
-        expect(mockNavigate).toHaveBeenCalledWith("/admin/profile", {
+        expect(mockNavigate).toHaveBeenCalledWith("/admin/dashboard", {
           replace: true,
         });
       },

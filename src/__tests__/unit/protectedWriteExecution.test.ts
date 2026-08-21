@@ -42,7 +42,9 @@ const proposal = (
   status: "approved",
   idempotencyKey: "b".repeat(64),
   createdAt: "2026-08-14T00:00:00.000Z",
-  expiresAt: "2026-08-21T00:00:00.000Z",
+  // Far-future default so non-expiry cases never time-bomb; the dedicated
+  // expiry case below overrides this with its own past date + fixed clock.
+  expiresAt: "2099-01-01T00:00:00.000Z",
   ...overrides,
 });
 

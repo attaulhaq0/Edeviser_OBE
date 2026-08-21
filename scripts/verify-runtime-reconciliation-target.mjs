@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 const SHA = /^[0-9a-f]{40}$/i;
 const MAIN_REF = "refs/heads/main";

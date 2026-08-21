@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { extname, relative, resolve } from "node:path";

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Migration replay-order integrity checker.
 //
 // WHY THIS EXISTS (rule: never ship a migration chain that aborts on a fresh replay):
