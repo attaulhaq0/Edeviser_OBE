@@ -51,13 +51,13 @@ tracked in tasks.md.
 
 ## R5 — Coordinator & Teacher workflows
 
-- R5.1 Coordinator manages PLOs for assigned programs only; maps PLO→ILO with weight validation; sees coverage/gaps/contribution/matrix/CQI/accreditation; cannot create or edit ILOs. UI states ownership text ("ILOs are managed by the institution Admin").
-- R5.2 Teacher manages CLOs/Sub-CLOs for taught courses only; maps CLO→PLO; links assignments/rubrics to CLOs; views attainment and upward contribution; cannot modify ILOs/PLOs or access unassigned courses.
+- R5.1 Coordinator manages PLOs for assigned programs only; maps ILO→PLO with weight validation; sees coverage/gaps/contribution/matrix/CQI/accreditation; cannot create or edit ILOs. UI states ownership text ("ILOs are managed by the institution Admin").
+- R5.2 Teacher manages CLOs/Sub-CLOs for taught courses only; maps PLO→CLO; links assignments/rubrics to CLOs; views attainment and upward contribution; cannot modify ILOs/PLOs or access unassigned courses.
 
 ## R6 — Multi-agent architecture
 
 - R6.1 One authenticated orchestrator + one background worker; narrowly controlled specialists; no free agent-to-agent chatter.
-- R6.2 Every tool declares: name, description, allowedRoles, actionType (read|suggest|draft|write), approval (none|actor|student|teacher|coordinator|admin), dataCategories, inputSchema, execute(). Authorization lives in tool handlers + RLS, never in LLM output.
+- R6.2 Every tool declares: name, description, allowedRoles, actionType (read|suggest|draft|write), approval (none|actor|student|teacher|coordinator|admin), dataCategories, inputJsonSchema, execute(). Authorization lives in tool handlers + RLS, never in LLM output.
 - R6.3 No agent receives arbitrary SQL, table access, generic query tools, service-role/DB credentials, or anything that bypasses role policy.
 - R6.4 Specialist agents deliver their PDF §21 capability sets (tutor, mastery, habit, risk, intervention, teacher, coordinator, admin, parent, evaluator), each reading only authorized scopes.
 - R6.5 ILO/PLO/CLO are first-class context for authorized agents; students get derived-alignment explanations only; parents get simplified authorized summaries.
