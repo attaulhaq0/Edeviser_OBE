@@ -1,19 +1,46 @@
-# Tasks — Edeviser Agentic Intelligence, Digital Twin & OBE/ILO Remediation
+# Implementation Plan
 
-> Source of truth: "Edeviser Agentic Intelligence Platform Specification" (PDF).
-> Status legend: `[x]` done (with live/code evidence) · `[~]` partial · `[ ]` not started.
->
-> **Verification basis (2026-08-21):** every `[x]` below was confirmed against the LIVE Supabase
-> project `cdlgtbvxlxjpcddjazzx` (pg_policy / pg_constraint / pg_trigger / pg_proc / deployed edge
-> functions) and GitHub main (`attaulhaq0/Edeviser_OBE`). See
-> `docs/audits/AGENTIC-INTELLIGENCE-CROSSCHECK-2026-08-21.md` for full evidence.
->
-> Gates for every remaining task: `npm run lint` → `npx tsc --noEmit` → `npm test`
-> (+ `db:check-replay` for migrations) → feature branch + PR → green CI + Supabase Preview → merge.
-> Never expose outcome write-tools to agents before Phase 1 certification. Never mark a task
-> complete without its tests.
+## Overview
 
-## Phase 0 — Audits & specifications
+Transform Edeviser into a secure, context-aware, multi-agent learning platform per the
+"Edeviser Agentic Intelligence Platform Specification" (PDF): canonical OBE/ILO layer,
+DeepSeek-only agentic backbone, approval-gated interventions, Student Learning Digital Twin,
+and role-aware assistant experiences — delivered through verified vertical slices.
+
+Status legend: `[x]` done (with live/code evidence) · `[~]` partial · `[ ]` not started.
+
+**Verification basis (2026-08-21):** every `[x]` was confirmed against the LIVE Supabase project
+`cdlgtbvxlxjpcddjazzx` (pg_policy / pg_constraint / pg_trigger / pg_proc / deployed edge functions)
+and GitHub main (`attaulhaq0/Edeviser_OBE`). Full evidence:
+`docs/audits/AGENTIC-INTELLIGENCE-CROSSCHECK-2026-08-21.md`.
+
+Gates for every remaining task: `npm run lint` → `npx tsc --noEmit` → `npm test`
+(+ `db:check-replay` for migrations) → feature branch + PR → green CI + Supabase Preview → merge.
+Never expose outcome write-tools to agents before Phase 1 certification. Never mark a task
+complete without its tests.
+
+## Task Dependency Graph
+
+```json
+{
+  "waves": [
+    { "id": 0, "tasks": ["0.1", "0.2", "0.3", "0.4", "0.5"] },
+    { "id": 1, "tasks": ["1.1", "1.2", "1.3", "1.4", "1.5"], "after": 0 },
+    { "id": 2, "tasks": ["1.6", "1.7", "1.8"], "after": 1 },
+    { "id": 3, "tasks": ["2.1", "2.2", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "2.12", "2.3"], "after": 2 },
+    { "id": 4, "tasks": ["3.1", "3.2", "3.3", "3.4", "3.5", "3.6"], "after": 3 },
+    { "id": 5, "tasks": ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8"], "after": 4 },
+    { "id": 6, "tasks": ["5.1", "5.2", "5.3", "5.4"], "after": 5 },
+    { "id": 7, "tasks": ["6.1", "6.2", "6.3", "6.4"], "after": 6 },
+    { "id": 8, "tasks": ["7.1", "7.2", "7.3", "7.4"], "after": 7 },
+    { "id": 9, "tasks": ["8.1", "8.2", "8.3", "8.4", "8.5"], "parallelWithAll": true }
+  ]
+}
+```
+
+## Tasks
+
+### Phase 0 — Audits & specifications
 
 - [x] 0.1 Repository audit (routes, hooks, outcome libs, admin/coordinator/teacher pages, e2e) — findings in `current-state-audit.md`, `ilo-frontend-backend-audit.md`.
 - [x] 0.2 Live-schema audit of outcome objects (columns, enums, constraints, FKs, indexes, triggers, functions, RLS policies, grants) — findings in `obe-hierarchy-audit.md`, `outcome-security-remediation.md`.
@@ -96,7 +123,12 @@
 - [ ] 8.4 Hygiene: delete stale GEMINI_API_KEY/TUTOR_PRIMARY_MODEL lines from .env.example; sync local checkout with main/live (superseded local migration files caused false audit findings); regenerate src/types/database.ts.
 - [ ] 8.5 General gates before any merge: lint, tsc, unit, integration, RLS, edge-fn schema check, Playwright, visual, a11y, Arabic/RTL, migration replay, Security Advisor, Performance Advisor (use exact package.json script names).
 
-## Explicit non-goals (per PDF)
+## Notes
 
-- No Pinecone; no generic SQL tools; no service-role keys in browser; no user_metadata authorization;
-  no automatic official outcome mutations; no duplicate cron schedules; no mock production data.
+- Explicit non-goals (per PDF): no Pinecone; no generic SQL tools; no service-role keys in browser;
+  no user_metadata authorization; no automatic official outcome mutations; no duplicate cron
+  schedules; no mock production data.
+- Deviations documented in design.md §3: single-table Digital Twin (vs snapshot tables),
+  approvals folded into proposals, agent_tool_attempts naming, generation/embeddings provider split.
+- Supporting files in this directory stay synchronized with this canonical tasks file
+  (see traceability.md for the requirement→implementation→test map).
