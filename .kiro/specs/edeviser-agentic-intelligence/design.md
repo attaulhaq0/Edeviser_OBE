@@ -4,7 +4,15 @@
 > All claims marked "live" were verified against Supabase project `cdlgtbvxlxjpcddjazzx`
 > on 2026-08-21; "main" = GitHub attaulhaq0/Edeviser_OBE default branch.
 
-## 1. Architecture overview
+## Overview
+
+Transform Edeviser into a secure, context-aware, multi-agent learning platform: a canonical
+OBE/ILO layer enforced at the database, a DeepSeek-only agentic backbone (orchestrator +
+worker + typed tool registry + approval proposals), a Student Learning Digital Twin, and one
+shared role-aware assistant frontend. This design records the VERIFIED current state (do not
+rebuild) and the remaining build surface.
+
+## Architecture
 
 ```
 Browser (React 18 + TS + Vite + TanStack Query + Shadcn/ui, en/ar RTL)
@@ -50,9 +58,9 @@ PostgreSQL (RLS everywhere; SECURITY INVOKER preferred)
 4. **Generation vs embeddings separation:** generation = DeepSeek only; embeddings = Supabase-native/self-hosted. An embedding outage degrades RAG context but never routes data to another vendor (already implemented in Tutor).
 5. **SSE contract preserved:** Tutor streams SSE to the browser while generation itself uses the canonical non-streaming provider call — keeps the browser contract stable across provider changes.
 
-## 4. Components to build (the remaining design surface)
+## Components and Interfaces
 
-### 4.1 Specialist agents (`_shared/ai/agents/*`)
+### Specialist agents (`_shared/ai/agents/*`)
 Each specialist is a prompt+tool-scope configuration consumed by the orchestrator's tool loop — not an independent LLM client:
 - `mastery-agent`: inputs from get_course_mastery/get_outcome_chain; outputs derived-alignment explanations (labels "derived alignment based on mapped course evidence"); never official ILO attainment.
 - `habit-agent`: get_habit_context + habit tables; deterministic evidence structuring; no invented scores.
@@ -61,32 +69,41 @@ Each specialist is a prompt+tool-scope configuration consumed by the orchestrato
 - `teacher-agent` / `coordinator-agent` / `admin-agent` / `parent-agent`: role-scoped read/draft behaviors per PDF §21.
 - `evaluator-agent`: post-run scoring (authorization, citations, integrity, tool correctness, approval policy, safety) → agent_evaluations.
 
-### 4.2 Tool registry extensions (`_shared/ai/tools/*`)
+### Tool registry extensions (`_shared/ai/tools/*`)
 Add PDF §18 outcome tools as read tools first (get_institution_ilos, get_ilo_detail, get_ilo_attainment, get_ilo_attainment_trend, get_ilo_mapping_coverage, get_ilo_program_contributions, get_ilo_evidence_summary, get_unmapped_program_outcomes, get_outcome_hierarchy_health). Draft/propose tools (draft_ilo, propose_create/update/delete_ilo, propose_reorder_ilos, draft_plo, propose_plo_ilo_mapping, draft_cqi_action, draft_clo, propose_clo_plo_mapping) go through write-tools boundary → agent_action_proposals. Every tool follows the existing registry pattern (allowedRoles, requiredContext, validation, boundary errors).
 
-### 4.3 Autonomy engine (`_shared/ai/policy/autonomy.ts`)
+### Autonomy engine (`_shared/ai/policy/autonomy.ts`)
 ```ts
 effectiveAutonomy = min(institutionCeiling, roleCeiling, pageCeiling, toolCeiling, userPreference, supervisorCeiling?)
 ```
 A0 observe · A1 suggest/draft · A2 confirm-before-action · A3 execute pre-approved low-risk classes. PROTECTED_ACTIONS always require approval regardless of A-level. Persisted ceilings: institution_settings (new column or jsonb), user preference (profiles jsonb), page matrix, tool declaration.
 
-### 4.4 Context builders (`_shared/ai/context/*`)
+### Context builders (`_shared/ai/context/*`)
 actor-context (identity/role/institution from authoritative profile), page-context (route/entity IDs supplied by the client request and validated against the page-capability matrix), institution-context, outcome-context (ILO/PLO/CLO chain via read tools), student-learning-state (reads student_learning_states), conversation-memory (tutor_messages / future agent_messages), retrieval-context (RAG scope).
 
-### 4.5 Observability (`_shared/ai/observability/*`)
+### Observability (`_shared/ai/observability/*`)
 logger (structured, redacted), cost-tracker (DeepSeek price table already in provider), redaction (strip secrets/tokens/PII/CoT), metrics (latency/token/cost aggregates). Tables per tasks 8.1.
 
-### 4.6 Frontend (`src/ai/components/*`)
+### Frontend (`src/ai/components/*`)
 One assistant shell (EdeviserAssistantPanel) adapted by the page-capability matrix: entry point, suggested prompts, insight cards, proactive cards, evidence drawer, approval card, task inbox, autonomy control, feedback controls, learning-state summary, outcome-alignment summary. Hooks call agent-orchestrator with { route context, message }; approval decisions call the orchestrator decision endpoint. i18n namespaces `ai.*` in en/ar.
 
-## 5. Data model deltas (see data-model.md for full detail)
+## Data Models
+
+Full detail in data-model.md. Deltas:
 
 New tables (RLS on all): agent_conversations, agent_messages, agent_tasks, agent_feedback, agent_evaluations, learning_interventions, intervention_outcomes, learning_state_events (+ optional student_support_states). Columns added: calculation_version/policy_version/model_version on student_learning_states (or versions jsonb). Naming reconciliation: agent_tool_attempts ↔ agent_tool_calls.
 
-## 6. Security model summary (full detail in security-model.md)
+## Error Handling
+
+See architecture.md §Failure modes: classified AIProviderError kinds with retry/backoff;
+fail-closed RAG (NO_AUTHORIZED_EVIDENCE / RAG_UNAVAILABLE); ProposalBoundaryError on expired
+proposals; ToolBoundaryError surfaced as safe denial. Security model summary (full detail in
+security-model.md):
 
 JWT → authenticateRequest → authoritative profile lookup → RLS under caller identity for reads; managed server key only for cross-table writes inside edge functions; tool handlers re-check scope; proposals re-validate authorization at execution; no raw SQL anywhere; advisors clean before merge.
 
-## 7. Testing strategy (see evaluation-plan.md)
+## Testing Strategy
+
+Full plan in evaluation-plan.md.
 
 Unit (registry boundaries, autonomy min-ceiling, redaction), integration-RLS (outcome matrix deny-side), property tests (A3 never bypasses PROTECTED_ACTIONS; derived-alignment labeling), e2e Playwright (approval flows, role surfaces), visual/a11y/Arabic-RTL, migration replay via local Docker, advisors after every migration.

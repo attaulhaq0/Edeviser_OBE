@@ -1,10 +1,27 @@
-# Requirements — Edeviser Agentic Intelligence, Digital Twin & OBE/ILO Remediation
+# Requirements Document
 
-> Canonical file (with design.md + tasks.md). Source: the platform specification PDF.
-> Each requirement lists acceptance criteria. Implementation status is tracked in tasks.md;
-> this file states WHAT must hold, not how.
+## Introduction
 
-## R1 — Platform foundations (verified in place)
+Edeviser is becoming a secure, context-aware, multi-agent learning platform: a canonical
+OBE/ILO layer, a DeepSeek-only agentic backbone with approval-gated interventions, a Student
+Learning Digital Twin, and role-aware assistant experiences for all five roles
+(student, teacher, parent, coordinator, admin). This document states WHAT must hold
+(acceptance criteria); HOW is in design.md and WHEN in tasks.md. Implementation status is
+tracked in tasks.md.
+
+## Glossary
+
+- **ILO / PLO / CLO / Sub-CLO** — Institutional / Program / Course / Sub-course Learning Outcome.
+- **Canonical mapping direction** — source_outcome_id = parent/higher outcome; target_outcome_id = child/lower outcome (ILO→PLO, PLO→CLO, CLO→SUB_CLO).
+- **Digital Twin / Student Learning State** — per-student computed mastery/habits/risk/support/outcomes snapshot.
+- **Operational autonomy (A0–A3)** — observe / suggest-draft / confirm-before-action / auto-execute low-risk.
+- **Pedagogical autonomy (L1–L3)** — tutor hints-only / guided discovery / direct explanation.
+- **PROTECTED_ACTIONS** — action classes that always require human approval regardless of autonomy.
+- **Proposal** — an agent-created pending change in agent_action_proposals awaiting approval.
+
+## Requirements
+
+### R1 — Platform foundations (verified in place)
 
 - R1.1 DeepSeek is the sole production generation provider; configuration hard-fails on any other provider; keys never reach the browser.
 - R1.2 Gemini is not required for normal production AI execution (stale env documentation removed).
