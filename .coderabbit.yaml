@@ -1,24 +1,200 @@
-language: en
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Repository review policy only. Enable CodeRabbit Security products (AI Deep
+# Scan, secrets, dependency, SBOM, and IaC scanning) in the CodeRabbit website.
+language: en-US
+tone_instructions: >-
+  Be direct and evidence-based. Prioritize material correctness, security,
+  tenant isolation, data integrity, and test credibility issues. Do not raise
+  cosmetic, wording, style, or speculative-architecture comments as blockers.
+
 reviews:
-  profile: chill
-  request_changes_workflow: false
+  profile: assertive
+  request_changes_workflow: true
   high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  high_level_summary_instructions: >-
+    Give founders a concise explanation of what is being built or fixed, the
+    product area and components involved, the conceptual change, and the
+    material risk, business value, or tradeoff. When relevant, summarize the
+    flow as User -> Frontend -> Backend -> Security -> Database/AI -> Response
+    -> downstream effect. This supplements, never replaces, technical details.
   poem: false
   review_status: true
+  review_details: true
   collapse_walkthrough: false
   auto_review:
     enabled: true
     drafts: false
+    auto_incremental_review: true
+  path_filters:
+    - "!node_modules/**"
+    - "!dist/**"
+    - "!build/**"
+    - "!coverage/**"
+    - "!playwright-report/**"
+    - "!test-results/**"
+    - "!audit/output/**"
+    - "!runtime-governance-scratch/**"
+    - "!.claude/worktrees/**"
+    - "!.playwright-cli/**"
   path_instructions:
     - path: "src/components/**"
-      instructions: "Follow Shadcn/ui patterns. Use cn() for class merging. Never use raw HTML for interactive elements. Check design-system.md for color tokens."
+      instructions: >-
+        Follow Shadcn/ui patterns and use cn() for class merging. Never use raw
+        HTML for interactive elements. Use the documented design-system tokens.
+        Treat client role guards as UX only: they are never authorization.
     - path: "src/hooks/**"
-      instructions: "Must use TanStack Query. Never call Supabase directly in components. Use queryKeys factory from src/lib/queryKeys.ts."
+      instructions: >-
+        Use TanStack Query. Never call Supabase directly in components. Use the
+        queryKeys factory from src/lib/queryKeys.ts. Ensure protected queries and
+        mutations retain institution, role, ownership, and resource scope.
     - path: "src/lib/schemas/**"
-      instructions: "All schemas must use Zod. Export types alongside schemas. No inline validation in components."
+      instructions: >-
+        All schemas must use Zod and export types alongside schemas. Do not put
+        validation inline in components. Validate untrusted input before it can
+        influence privileged, database, or AI/tool operations.
+    - path: "src/**"
+      instructions: >-
+        Browser code is untrusted. Never expose service-role or other privileged
+        secrets, rely on client-only authorization, log sensitive data, or trust
+        redirect, object-ID, or user-controlled HTML assumptions. Flag material
+        IDOR/BOLA, XSS, tenant-scope, authentication, and authorization defects.
     - path: "supabase/functions/**"
-      instructions: "Deno runtime. Use esm.sh imports, not npm. Always handle CORS. Use SUPABASE_SERVICE_ROLE_KEY for server ops."
+      instructions: >-
+        This is a privileged Deno server boundary: use esm.sh imports, validate
+        input, handle CORS, authenticate callers, and authorize identity, role,
+        institution/tenant, ownership, and resource scope before every protected
+        operation. Authenticate cron/webhook callers. Use SUPABASE_SERVICE_ROLE_KEY
+        only in trusted server-side code when genuinely required; it is never
+        authorization and must never reach browser code. Prefer normal user-scoped,
+        RLS-enforced access. Keep AI/RAG tools allowlisted, typed, scoped, and unable
+        to turn model output or prompt content into privileged execution.
+    - path: "supabase/migrations/**"
+      instructions: >-
+        Treat migrations as production-sensitive. Review RLS, GRANT/REVOKE,
+        SECURITY DEFINER functions, fixed search_path, RPC EXECUTE permissions,
+        tenant isolation, Storage policies, dynamic SQL, ordering/replay safety,
+        destructive changes, and generated database-type implications. Do not
+        accept migration rewrites that could diverge from applied environments.
+    - path: "tests/e2e/**"
+      instructions: >-
+        Critical E2E and security tests must fail closed. Flag swallowed errors,
+        catch-and-pass, conditional required actions, fake/empty authentication,
+        critical skip/fixme/describe.skip, ignored propagation timeouts, weak
+        success-compatible fallbacks, and URL-only proof where page evidence is
+        required. Require real user-visible outcomes and negative tenant/role
+        authorization coverage when access control changes.
+    - path: ".github/workflows/**"
+      instructions: >-
+        CI/CD is a security boundary. Flag fail-open required gates,
+        security-critical continue-on-error, PASS on missing credentials,
+        unsafe secret handling, excessive GitHub token permissions, missing
+        Preview/Production separation, and Production deployment without a
+        protected human approval boundary.
+    - path: "scripts/**"
+      instructions: >-
+        Review command/path injection, unsafe shell quoting, weak parsers,
+        fail-open control flow, misleading PASS verdicts, audit-guard bypasses,
+        fixture/test tooling that can target Production, and deployment safety.
+    - path: "src/types/database.ts"
+      instructions: >-
+        This generated contract must track the schema. Flag application or Edge
+        Function changes that depend on schema not represented here, and migrations
+        that would leave generated database types stale. Do not hand-edit this file.
     - path: "src/__tests__/**"
-      instructions: "Property tests need min 100 iterations with fast-check. Use happy-dom environment. Mock Supabase client, never real calls."
+      instructions: >-
+        Property tests need at least 100 fast-check iterations. Use happy-dom.
+        Mock the Supabase client rather than making real calls. Add focused,
+        fail-closed regression protection for meaningful fixed defects.
+  finishing_touches:
+    custom:
+      - name: "add regression guards"
+        instructions: >-
+          For a meaningful defect fixed by this PR, determine whether focused
+          regression protection is missing. Reproduce the failure class with the
+          smallest appropriate test or deterministic guard, make critical guards
+          fail closed, run the focused check, and report what was added. Do not
+          broaden scope or modify production configuration or data.
+      - name: "harden tests"
+        instructions: >-
+          Review changed tests for swallowed errors, catch-and-pass, conditional
+          required actions, weak fallbacks, fake authentication, critical skips,
+          URL-only assertions, ignored propagation, and missing negative
+          authorization coverage. Make only evidence-backed, focused changes and
+          run the affected tests.
+      - name: "security regression tests"
+        instructions: >-
+          For actual relevant security changes, add focused tests for tenant
+          isolation, RLS, privilege escalation, IDOR/BOLA, parent/student scope,
+          service-role boundaries, Edge Function authentication, unsafe input, or
+          RAG/agent/tool boundaries. Do not invent coverage for unrelated code;
+          keep tests deterministic and fail closed.
+      - name: "founder change summary"
+        instructions: >-
+          Add a concise PR explanation covering product area, components and
+          technology, conceptual change, material risk/business value/tradeoff,
+          and, when relevant, User -> Frontend -> Backend -> Security ->
+          Database/AI -> Response -> downstream effect. Do not replace or dilute
+          technical documentation.
+  pre_merge_checks:
+    override_requested_reviewers_only: true
+    docstrings:
+      mode: off
+    title:
+      mode: warning
+      requirements: "Concise, descriptive title with an appropriate conventional prefix."
+    description:
+      mode: warning
+    issue_assessment:
+      mode: warning
+    custom_checks:
+      - name: "Critical test integrity"
+        mode: error
+        instructions: >-
+          Only for changed critical E2E, security, authentication, or CI test
+          paths: fail if required setup, authentication, action, or expected
+          outcome can be skipped or pass without proof. Fail for swallowed
+          exceptions, catch-and-pass, conditional required actions, critical
+          skips/fixmes, fake or empty auth, ignored propagation timeouts, weak
+          success fallbacks, or URL-only proof where content evidence is required.
+          Otherwise pass; do not enforce style preferences.
+      - name: "Tenant and authorization safety"
+        mode: error
+        instructions: >-
+          Only for changed auth, access-control, tenant, parent/student, API, or
+          data-access paths: fail on plausible cross-institution access, privilege
+          escalation, unlinked-parent access, client-only authorization, IDOR/BOLA,
+          unsafe service-role use, missing RLS/server authorization, or unscoped
+          protected mutation. Require concrete identity, role, tenant, ownership,
+          and resource-scope enforcement. Otherwise pass.
+      - name: "Supabase and database safety"
+        mode: error
+        instructions: >-
+          Only for changed Supabase functions, migrations, Storage, RPC, or
+          database-facing code: fail on material RLS, grant, SECURITY DEFINER,
+          search_path, RPC EXECUTE, tenant-scope, unsafe dynamic SQL, ordering,
+          destructive rewrite, generated-type drift, or Storage-policy defects.
+          Otherwise pass; do not substitute this review for deterministic CI.
+      - name: "AI, RAG, and agent safety"
+        mode: error
+        instructions: >-
+          Only for changed AI, retrieval, agent, or tool code: fail if model output
+          becomes authorization or deterministic truth; retrieval can cross course
+          or institution scope; tools are not allowlisted, typed, and scoped;
+          arbitrary SQL/RPC/service-role execution is possible; protected actions
+          bypass human approval; or prompt injection can influence privileged
+          execution. Otherwise pass.
+      - name: "Production and delivery safety"
+        mode: error
+        instructions: >-
+          Only for changed workflows, deployment, fixtures, migrations, scripts,
+          or runtime governance: fail if test tooling can target Production, a
+          required delivery gate fails open, Production deployment lacks protected
+          human approval, migrations are rewritten, embeddings are backfilled
+          without explicit approval, experimental AI flags auto-enable, protected
+          autonomy is introduced, or tests can mutate academic records in
+          Production. Otherwise pass.
+
 chat:
   auto_reply: true
+  allow_non_org_members: false
