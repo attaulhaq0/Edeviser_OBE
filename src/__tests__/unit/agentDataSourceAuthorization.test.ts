@@ -125,6 +125,7 @@ const embeddings: EmbeddingProvider = {
     version: 2,
     maxInputTokens: 512,
     languageSupport: "english_only",
+    normalized: true,
   },
   async embed() {
     throw new Error("not used by authorization tests");

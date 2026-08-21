@@ -33,6 +33,14 @@ const learningStateMigration = readFileSync(
   "supabase/migrations/20260828000001_create_student_learning_state_and_protected_execution.sql",
   "utf8"
 );
+const interventionFeedbackMigration = readFileSync(
+  "supabase/migrations/20260830000002_measured_intervention_learning_state_feedback.sql",
+  "utf8"
+);
+const measurementTriggerPrivilegeMigration = readFileSync(
+  "supabase/migrations/20260830000007_restrict_measurement_trigger_execute.sql",
+  "utf8"
+);
 
 describe("agentic migration contracts", () => {
   it("captures correlation, audit, approval, and idempotency fields", () => {
@@ -136,9 +144,8 @@ describe("agentic migration contracts", () => {
       "utf8"
     );
     expect(embedFunction).not.toContain(".delete()");
-    expect(
-      embedFunction.match(/replace_course_material_embeddings_v2/g)
-    ).toHaveLength(2);
+    expect(embedFunction).toContain("replace_course_material_embeddings_v2");
+    expect(embedFunction).toContain("replace_course_material_embeddings_v3");
     expect(embedFunction).toContain(
       "autoInsertedCount !== autoInsertRows.length"
     );
@@ -252,6 +259,36 @@ describe("agentic migration contracts", () => {
     );
     expect(learningStateMigration).not.toMatch(
       /EXECUTE\s+format|p_rpc|p_table|raw_sql/i
+    );
+  });
+
+  it("refreshes and reconciles Learning State on every measured intervention", () => {
+    expect(interventionFeedbackMigration).toContain(
+      "CREATE OR REPLACE FUNCTION public.reconcile_student_learning_state_measurements_v1"
+    );
+    expect(interventionFeedbackMigration).toContain(
+      "refresh_student_learning_state_v1(NEW.student_id)"
+    );
+    expect(interventionFeedbackMigration).toContain(
+      "intervention_measurement_learning_state_refresh"
+    );
+    expect(interventionFeedbackMigration).toContain(
+      "m.evaluation_state = 'IMPROVED'"
+    );
+    expect(interventionFeedbackMigration).toContain(
+      "m.evaluation_state IN ('DECLINED', 'NO_MATERIAL_CHANGE')"
+    );
+    expect(interventionFeedbackMigration).toMatch(
+      /REVOKE ALL[\s\S]*PUBLIC, anon, authenticated[\s\S]*GRANT EXECUTE[\s\S]*TO service_role/
+    );
+  });
+
+  it("keeps the internal measurement-state trigger off every direct RPC surface", () => {
+    expect(measurementTriggerPrivilegeMigration).toMatch(
+      /REVOKE ALL ON FUNCTION public\.sync_learning_state_measurements_v1\(\)[\s\S]*FROM PUBLIC, anon, authenticated, service_role/
+    );
+    expect(measurementTriggerPrivilegeMigration).not.toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.sync_learning_state_measurements_v1\(\)/
     );
   });
 });

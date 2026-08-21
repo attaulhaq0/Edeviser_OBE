@@ -59,10 +59,18 @@ describe("strict provider consolidation", () => {
       "supabase/functions/embed-course-material/index.ts",
       "utf8"
     );
+    const planUpdate = readFileSync(
+      "supabase/functions/generate-plan-update/index.ts",
+      "utf8"
+    );
     expect(functions).toMatch(/createAIProvider/);
     expect(tutor).toMatch(/createAIProvider/);
-    expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
-    expect(embed).toMatch(/createSupabaseEmbeddingProvider/);
+    expect(tutor).toMatch(/createConfiguredEmbeddingProvider/);
+    expect(embed).toMatch(/createConfiguredEmbeddingProvider/);
+    expect(planUpdate).toMatch(/createConfiguredEmbeddingProvider/);
+    expect(planUpdate).not.toMatch(/createSupabaseEmbeddingProvider/);
+    expect(planUpdate).toMatch(/search_course_materials_v2/);
+    expect(planUpdate).toMatch(/search_course_materials_v3/);
   });
 
   it("keeps vendor selection inside the canonical provider composition root", () => {
@@ -89,7 +97,7 @@ describe("strict provider consolidation", () => {
       "supabase/functions/chat-with-tutor/index.ts",
       "utf8"
     );
-    expect(tutor).toMatch(/createSupabaseEmbeddingProvider/);
+    expect(tutor).toMatch(/createConfiguredEmbeddingProvider/);
     expect(tutor).toMatch(/continuing without RAG context/i);
     expect(tutor).not.toMatch(/OPENAI_API_KEY/);
     expect(tutor).toMatch(/PERSONA_PROMPTS/);
@@ -98,5 +106,18 @@ describe("strict provider consolidation", () => {
     expect(tutor).toMatch(/detectIntegrityViolation/);
     expect(tutor).toMatch(/do my homework/i);
     expect(tutor).toMatch(/ACADEMIC INTEGRITY ALERT/);
+  });
+
+  it("keeps the downstream plan specialist on the protected internal contract", () => {
+    const planUpdate = readFileSync(
+      "supabase/functions/generate-plan-update/index.ts",
+      "utf8"
+    );
+    expect(planUpdate).toContain("getManagedServerKey");
+    expect(planUpdate).toContain("student_id");
+    expect(planUpdate).toContain("course_id");
+    expect(planUpdate).toContain("clo_id");
+    expect(planUpdate).toContain("tutor_plan_updates");
+    expect(planUpdate).toContain("createAIProvider");
   });
 });

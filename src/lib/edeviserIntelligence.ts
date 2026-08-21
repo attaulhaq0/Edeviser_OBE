@@ -37,6 +37,24 @@ const proposalSchema = z.object({
   expiresAt: z.string().optional(),
 });
 
+export const cqiCoordinatorDraftSchema = z
+  .object({
+    problemStatement: z.string().min(1).max(4000),
+    outcomeContext: z.string().min(1).max(2000),
+    baseline: z.number().finite().min(0).max(100),
+    target: z.number().finite().min(0).max(100),
+    proposedImprovement: z.string().min(1).max(4000),
+    rationale: z.string().min(1).max(4000),
+    responsibleOwner: z.string().min(1).max(500),
+    measurementPlan: z.string().min(1).max(4000),
+    measurementWindow: z.string().min(1).max(500),
+    successCriterion: z.string().min(1).max(2000),
+    citations: z.array(z.string().min(1)).min(1).max(100),
+  })
+  .strict();
+
+export type CqiCoordinatorDraft = z.infer<typeof cqiCoordinatorDraftSchema>;
+
 export const intelligenceResponseSchema = z.object({
   requestId: z.uuid(),
   runId: z.uuid(),
@@ -47,10 +65,14 @@ export const intelligenceResponseSchema = z.object({
   proposals: z.array(proposalSchema),
   provider: z.literal("deepseek"),
   model: z.string(),
+  cqiDraft: cqiCoordinatorDraftSchema.optional(),
 });
 
 export type IntelligenceRequest = z.infer<typeof intelligenceRequestSchema>;
 export type IntelligenceResponse = z.infer<typeof intelligenceResponseSchema>;
+
+export const isExecutableIntelligenceAction = (actionType: string): boolean =>
+  actionType === "create_goal" || actionType === "create_planner_session";
 
 export const protectedWriteReceiptSchema = z.object({
   executionId: z.uuid(),

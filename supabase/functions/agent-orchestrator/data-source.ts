@@ -328,6 +328,20 @@ export class SupabaseToolDataSource
     if (tool === "get_admin_institution_context") {
       return context.identity.role === "admin";
     }
+    if (tool === "get_intervention_effects") {
+      if (context.identity.role === "admin") return true;
+      if (context.identity.role === "coordinator") {
+        return Boolean(
+          programId && (await this.programScope(programId, context))
+        );
+      }
+      if (context.identity.role === "teacher") {
+        return Boolean(courseId && (await this.courseScope(courseId, context)));
+      }
+      return Boolean(
+        studentId && (await this.studentScope(studentId, context, courseId))
+      );
+    }
     if (tool === "get_parent_child_progress") {
       return Boolean(
         studentId && (await this.studentScope(studentId, context))
@@ -474,8 +488,12 @@ export class SupabaseToolDataSource
           throw new Error("Authorized embedding read returned invalid output");
         }
         const vector = `[${firstVector.join(",")}]`;
+        const searchRpc =
+          this.embeddings.metadata.version === 3
+            ? "search_course_materials_v3"
+            : "search_course_materials_v2";
         const { data, error } = await this.reader.rpc(
-          "search_course_materials_v2",
+          searchRpc,
           {
             query_embedding: vector,
             match_course_ids: [courseId!],
@@ -566,6 +584,20 @@ export class SupabaseToolDataSource
           institutionId: context.identity.institutionId,
           activeProfileCount: profiles ?? 0,
           programCount: programs ?? 0,
+        };
+      }
+      case "get_intervention_effects": {
+        const { data, error } = await this.reader.rpc(
+          "get_intervention_effects_v1",
+          {
+            p_student_id: studentId ?? null,
+            p_course_id: courseId ?? null,
+            p_program_id: programId ?? null,
+          }
+        );
+        return {
+          studentId: studentId ?? null,
+          effects: safeData(data ?? [], error),
         };
       }
     }

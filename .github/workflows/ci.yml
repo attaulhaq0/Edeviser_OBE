@@ -303,6 +303,13 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
+      - name: Verify critical E2E contracts and collection
+        run: |
+          npm run check:critical-e2e
+          npm run check:critical-routes
+          npm run check:playwright-contracts
+          npx playwright test --list
+
       - name: Check if Supabase backend is available
         id: backend
         run: |
@@ -315,7 +322,7 @@ jobs:
 
       - name: Run Playwright tests
         if: steps.backend.outputs.available == 'true'
-        run: npx playwright test --project=chromium
+        run: npx playwright test --project=legacy-smoke
 
       - name: Upload test artifacts
         if: failure()
@@ -429,6 +436,46 @@ jobs:
       - name: Verify no cross-institution RLS leaks in migrations
         run: npx vitest --run src/__tests__/properties/rlsInstitutionIsolation.property.test.ts
 
+  preview-validation-relevance:
+    name: Preview validation relevance
+    # A Git-linked Preview is mandatory evidence for schema-bearing changes, but
+    # documentation, dependency, and workflow-only PRs must not create a paid
+    # Preview solely to satisfy an irrelevant database integration gate.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.filter.outputs.required }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            required:
+              - 'supabase/**'
+
+  runtime-deployment-impact:
+    name: Runtime deployment impact
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deployment_required: ${{ steps.impact.outputs.deployment_required }}
+      deployment_closure: ${{ steps.impact.outputs.deployment_closure }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate manifest and resolve the PR runtime closure
+        id: impact
+        run: |
+          node scripts/resolve-runtime-deployment-impact.mjs --validate
+          node scripts/resolve-runtime-deployment-impact.mjs \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --head-sha "${{ github.event.pull_request.head.sha }}" --format github \
+            >> "$GITHUB_OUTPUT"
+
   rls-smoke:
     name: RLS Smoke (Supabase preview)
     # Part C — C3 RLS_Smoke_Test (Req 19, 21.2). Runs the isolated integration suite
@@ -438,12 +485,22 @@ jobs:
     # from the isolated Supabase Preview branch using SUPABASE_ACCESS_TOKEN. Missing preview
     # credentials fail this required gate; the RAG authorization suite must never pass by
     # silently skipping its cases.
+    needs: [preview-validation-relevance, runtime-deployment-impact]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required == 'true'
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # Release-critical Preview validation uses the exact CLI recorded in
+      # package-lock.json. Latest-at-runtime is not reproducible.
+      - run: npm ci
 
       - name: Wait for isolated Supabase Preview deployment and resolve credentials
         shell: bash
@@ -481,7 +538,7 @@ jobs:
               break
             fi
             if [[ "$attempt" -eq 60 ]]; then
-              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED (last status: ${preview_status:-not-found})"
+              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED: no valid Git-linked branch (git_branch + pr_number); direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
               exit 1
             fi
             echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
@@ -533,23 +590,21 @@ jobs:
             sleep 10
           done
 
-      - name: Deploy reviewed RAG Edge Functions to isolated Preview
+      - name: Deploy exact manifest-derived Edge closure to isolated Preview
+        if: needs.runtime-deployment-impact.outputs.deployment_required == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DEPLOYMENT_CLOSURE: ${{ needs.runtime-deployment-impact.outputs.deployment_closure }}
         run: |
-          npx supabase@latest functions deploy \
-            embed-course-material chat-with-tutor \
+          set -euo pipefail
+          test -n "$DEPLOYMENT_CLOSURE" || { echo "::error::runtime resolver selected an empty closure"; exit 1; }
+          read -r -a closure <<< "$DEPLOYMENT_CLOSURE"
+          for function_name in "${closure[@]}"; do
+            [[ "$function_name" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::unsafe function slug from resolver"; exit 1; }
+          done
+          npx supabase functions deploy "${closure[@]}" \
             --project-ref "$SUPABASE_PREVIEW_REF" \
             --use-api --yes
-
-      - uses: actions/setup-node@v7
-        with:
-          # Supabase Realtime requires native WebSocket support for the real
-          # integration clients used by this isolated smoke suite.
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
 
       - name: Run RLS insert/update smoke tests against the preview branch
         run: npm run test:rls

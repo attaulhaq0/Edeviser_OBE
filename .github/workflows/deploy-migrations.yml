@@ -3,11 +3,9 @@ name: Deploy Migrations (production)
 # ---------------------------------------------------------------------------
 # WHY THIS EXISTS
 #
-# Database migrations reach production ONLY through this workflow. Previously the
-# repo relied on Supabase Branching to auto-apply migrations on merge to `main`,
-# but the Branching `main` branch silently entered MIGRATIONS_FAILED and stopped
-# applying anything — so merged PRs (e.g. #185/#186) piled up on `main` while
-# production's schema_migrations froze weeks behind, with no alert.
+# NORMAL: Supabase Branching applies migrations after merge to main.
+# MONITOR: scheduled-health.yml verifies branch health and ledger parity.
+# BREAK GLASS: this workflow is manual-only and may be used only after review.
 #
 # This workflow makes a DB deploy EXPLICIT and LOUD: `supabase db push` fails
 # visibly (red X) if a migration cannot apply — instead of drifting silently.
@@ -45,6 +43,8 @@ jobs:
       SUPABASE_PROJECT_REF: cdlgtbvxlxjpcddjazzx
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
@@ -73,7 +73,7 @@ jobs:
 
       - uses: supabase/setup-cli@v3
         with:
-          version: latest
+          version: 2.114.0
 
       - name: Link to production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
@@ -84,5 +84,9 @@ jobs:
       - name: Push migrations to production
         run: supabase db push --linked
 
-      - name: Confirm local head == remote head after push
-        run: supabase migration list --linked
+      - name: Confirm local head == remote ledger after push
+        run: |
+          supabase db query --linked --output json \
+            "select version from supabase_migrations.schema_migrations order by version" \
+            > remote-migrations.json
+          node scripts/check-migration-ledger.mjs remote-migrations.json

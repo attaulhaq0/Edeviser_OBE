@@ -1,7 +1,7 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { authenticateRequest } from "../_shared/auth.ts";
 import { EmbeddingProviderError } from "../_shared/ai/embedding.ts";
-import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Buffer } from "node:buffer";
@@ -61,7 +61,11 @@ interface TextChunk {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const embeddingProvider = createSupabaseEmbeddingProvider();
+const embeddingProvider = createConfiguredEmbeddingProvider();
+const replacementRpc =
+  embeddingProvider.metadata.version === 3
+    ? "replace_course_material_embeddings_v3"
+    : "replace_course_material_embeddings_v2";
 type LooseTable = {
   Row: Record<string, unknown>;
   Insert: Record<string, unknown>;
@@ -818,7 +822,14 @@ serve(async (req) => {
         institution_id: autoInstitutionId,
         course_id: autoReq.course_id,
         chunk_text: chunk.text,
-        embedding_v2: JSON.stringify(autoEmbeddings[index]),
+        embedding_v2:
+          embeddingProvider.metadata.version === 2
+            ? JSON.stringify(autoEmbeddings[index])
+            : null,
+        embedding_v3:
+          embeddingProvider.metadata.version === 3
+            ? JSON.stringify(autoEmbeddings[index])
+            : null,
         embedding_provider: embeddingProvider.metadata.provider,
         embedding_model: embeddingProvider.metadata.model,
         embedding_dimensions: embeddingProvider.metadata.dimensions,
@@ -834,7 +845,7 @@ serve(async (req) => {
       }));
 
       const { data: autoInsertedCount, error: autoReplaceError } =
-        await supabase.rpc("replace_course_material_embeddings_v2", {
+        await supabase.rpc(replacementRpc, {
           p_institution_id: autoInstitutionId,
           p_course_id: autoReq.course_id,
           p_source_material_id: autoReq.source_material_id ?? null,
@@ -1117,7 +1128,14 @@ serve(async (req) => {
       institution_id: institutionId,
       course_id: embedReq.course_id,
       chunk_text: chunk.text,
-      embedding_v2: JSON.stringify(embeddings[index]),
+      embedding_v2:
+        embeddingProvider.metadata.version === 2
+          ? JSON.stringify(embeddings[index])
+          : null,
+      embedding_v3:
+        embeddingProvider.metadata.version === 3
+          ? JSON.stringify(embeddings[index])
+          : null,
       embedding_provider: embeddingProvider.metadata.provider,
       embedding_model: embeddingProvider.metadata.model,
       embedding_dimensions: embeddingProvider.metadata.dimensions,
@@ -1133,7 +1151,7 @@ serve(async (req) => {
     }));
 
     const { data: insertedCount, error: replaceError } = await supabase.rpc(
-      "replace_course_material_embeddings_v2",
+      replacementRpc,
       {
         p_institution_id: institutionId,
         p_course_id: embedReq.course_id,

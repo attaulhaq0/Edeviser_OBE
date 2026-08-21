@@ -1,0 +1,124 @@
+name: Reconcile Edge Runtime (production)
+
+# Manual redeploy of a declared runtime group from the exact current reviewed
+# main SHA. This workflow has no database, feature-flag, secret, or approval
+# mutation path.
+on:
+  workflow_dispatch:
+    inputs:
+      reviewed_sha:
+        description: Exact current reviewed main SHA to redeploy
+        required: true
+        type: string
+      runtime_group:
+        description: Declared runtime group to reconcile
+        required: true
+        type: choice
+        options:
+          - tutor-intelligence
+          - identity-runtime
+
+concurrency:
+  group: reconcile-edge-runtime-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    name: Verify reviewed main target and runtime group
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      reviewed_sha: ${{ steps.target.outputs.reviewed_sha }}
+      deployment_closure: ${{ steps.group.outputs.deployment_closure }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact current reviewed main SHA
+        id: target
+        shell: bash
+        env:
+          REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          main_sha="$(git rev-parse origin/main)"
+          verified_sha="$(node scripts/verify-runtime-reconciliation-target.mjs \
+            --ref "$GITHUB_REF" --reviewed-sha "$REVIEWED_SHA" \
+            --head-sha "$GITHUB_SHA" --main-sha "$main_sha")"
+          echo "reviewed_sha=$verified_sha" >> "$GITHUB_OUTPUT"
+      - name: Resolve exact declared runtime closure
+        id: group
+        shell: bash
+        env:
+          RUNTIME_GROUP: ${{ inputs.runtime_group }}
+        run: |
+          set -euo pipefail
+          node scripts/resolve-runtime-reconciliation.mjs \
+            --group "$RUNTIME_GROUP" --format github >> "$GITHUB_OUTPUT"
+
+  reconcile:
+    name: Redeploy exact reviewed runtime closure
+    needs: resolve
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: cdlgtbvxlxjpcddjazzx
+      REVIEWED_SHA: ${{ needs.resolve.outputs.reviewed_sha }}
+      DEPLOYMENT_CLOSURE: ${{ needs.resolve.outputs.deployment_closure }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.resolve.outputs.reviewed_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reverify current reviewed main and Production credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          main_sha="$(git rev-parse origin/main)"
+          head_sha="$(git rev-parse HEAD)"
+          node scripts/verify-runtime-reconciliation-target.mjs \
+            --ref "$GITHUB_REF" --reviewed-sha "$REVIEWED_SHA" \
+            --head-sha "$head_sha" --main-sha "$main_sha" >/dev/null
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN is not configured for production"; exit 1; }
+          test -n "$DEPLOYMENT_CLOSURE" || { echo "::error::runtime group resolved an empty closure"; exit 1; }
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.114.0
+      - name: Redeploy exact manifest-derived closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r -a closure <<< "$DEPLOYMENT_CLOSURE"
+          for function_name in "${closure[@]}"; do
+            [[ "$function_name" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::unsafe function slug from manifest"; exit 1; }
+          done
+          supabase functions deploy "${closure[@]}" \
+            --project-ref "$SUPABASE_PROJECT_REF" --use-api --yes
+      - name: Attest complete governed Production runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase functions list --project-ref "$SUPABASE_PROJECT_REF" --output json > deployed-functions.json
+          node scripts/download-managed-runtime-source.mjs \
+            --project-ref "$SUPABASE_PROJECT_REF" --output-root remote-source
+          node scripts/check-edge-function-ownership.mjs --deployed-json deployed-functions.json
+          node scripts/attest-edge-deployment.mjs \
+            --deployed-json deployed-functions.json \
+            --all-managed \
+            --reviewed-sha "$REVIEWED_SHA" \
+            --remote-source-root remote-source \
+            --expires-after-days 90 \
+            --output edge-runtime-attestation.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: edge-runtime-attestation-snapshot
+          path: edge-runtime-attestation.json
+          retention-days: 90

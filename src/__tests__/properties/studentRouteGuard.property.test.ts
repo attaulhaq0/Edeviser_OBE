@@ -13,6 +13,7 @@ import * as fc from "fast-check";
 import * as fs from "fs";
 import * as path from "path";
 import { navItems } from "@/lib/navItems";
+import { criticalRouteSegments } from "@/lib/criticalRoutes";
 
 const projectRoot = path.resolve(__dirname, "../../..");
 
@@ -52,6 +53,12 @@ function deriveRegisteredStudentRoutes(routerSrc: string): string[] {
   const routes = new Set<string>();
   // Always-registered index target for the student section.
   routes.add("/student");
+  // Critical routes are expressions in AppRouter so route renames propagate
+  // atomically to product code and E2E. Include their canonical segments in
+  // this source-derived model instead of requiring duplicate string literals.
+  for (const segment of Object.values(criticalRouteSegments.student)) {
+    routes.add(`/student/${segment}`);
+  }
 
   for (const match of block.matchAll(/path="([^"]+)"/g)) {
     const raw = match[1];

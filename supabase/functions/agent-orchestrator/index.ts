@@ -24,7 +24,7 @@ import {
   ProposalBoundaryError,
   type ProposalStore,
 } from "../_shared/ai/proposals.ts";
-import { createSupabaseEmbeddingProvider } from "../_shared/ai/providers/supabase-embedding.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { SupabaseToolDataSource } from "./data-source.ts";
 import {
   executeApprovedProposal,
@@ -247,12 +247,13 @@ serve(async (req) => {
     const config = getAgenticConfig(Deno.env);
     const dataSource = new SupabaseToolDataSource(
       admin,
-      createSupabaseEmbeddingProvider(),
+      createConfiguredEmbeddingProvider(),
       reader
     );
     try {
+      const targetProposal = proposalFromRow(data as Record<string, unknown>);
       const receipt = await executeApprovedProposal(
-        proposalFromRow(data as Record<string, unknown>),
+        targetProposal,
         identity,
         {
           featureEnabled: config.enabled,
@@ -261,8 +262,12 @@ serve(async (req) => {
         dataSource,
         {
           async executeApprovedPersonalAction(targetProposalId) {
+            const executionFunction =
+              targetProposal.actionType === "create_cqi_action"
+                ? "execute_approved_cqi_action_v1"
+                : "execute_approved_agent_personal_action_v1";
             const { data: result, error: executionError } = await admin.rpc(
-              "execute_approved_agent_personal_action_v1",
+              executionFunction,
               {
                 p_proposal_id: targetProposalId,
                 p_actor_id: identity.userId,
@@ -311,6 +316,34 @@ serve(async (req) => {
           },
         }
       );
+      const baselineMetric = targetProposal.payload.baselineMetric;
+      const executionId = object(receipt)?.id;
+      if (
+        typeof baselineMetric === "number" &&
+        typeof executionId === "string" &&
+        targetProposal.studentId
+      ) {
+        const baselineEvidence = targetProposal.payload.baselineEvidence;
+        await admin.rpc("register_intervention_measurement_v1", {
+          p_proposal_id: targetProposal.id,
+          p_execution_id: executionId,
+          p_baseline_evidence: Array.isArray(baselineEvidence)
+            ? baselineEvidence
+            : [],
+          p_baseline_metric: baselineMetric,
+          p_window_start: targetProposal.createdAt,
+          p_window_end:
+            targetProposal.expiresAt ??
+            new Date(Date.now() + 7 * 86_400_000).toISOString(),
+          p_student_id: targetProposal.studentId,
+          p_course_id: targetProposal.courseId ?? null,
+          p_program_id: targetProposal.programId ?? null,
+          p_outcome_id:
+            typeof targetProposal.payload.outcomeId === "string"
+              ? targetProposal.payload.outcomeId
+              : null,
+        });
+      }
       return json(200, { receipt });
     } catch (executionError) {
       const code =
@@ -461,7 +494,7 @@ serve(async (req) => {
     const provider = createAIProvider(config, { env: Deno.env });
     const dataSource = new SupabaseToolDataSource(
       admin,
-      createSupabaseEmbeddingProvider(),
+      createConfiguredEmbeddingProvider(),
       reader
     );
     const result = await runAgentOrchestrator({
