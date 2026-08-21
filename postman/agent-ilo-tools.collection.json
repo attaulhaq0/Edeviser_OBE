@@ -15,19 +15,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"List all institution learning outcomes for this institution.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_institution_ilos` — lists ILOs with mapping counts. Allowed role: admin."
           },
@@ -58,19 +80,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Show me the detail for ILO {{ilo_id}} including its PLO mappings.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_ilo_detail` — returns one ILO with canonical PLO mappings. Allowed roles: admin, coordinator."
           },
@@ -101,19 +145,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"What is the current attainment level for ILO {{ilo_id}} in program {{program_id}}?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/attainment\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_ilo_attainment` — server-calculated ILO attainment from canonical PLO/CLO evidence. Allowed roles: admin, coordinator."
           },
@@ -144,19 +210,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Show me the attainment trend over time for ILO {{ilo_id}} in program {{program_id}}.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/trend\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_ilo_attainment_trend` — deterministic attainment trend series for an ILO. Allowed roles: admin, coordinator."
           },
@@ -182,19 +270,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"What is the ILO-to-PLO mapping coverage and are there any gaps for ILO {{ilo_id}} in program {{program_id}}?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/coverage\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_ilo_mapping_coverage` — ILO→PLO mapping coverage and gaps. Allowed roles: admin, coordinator."
           },
@@ -220,19 +330,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Which programs contribute to ILO {{ilo_id}} and by how much?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/programs\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_ilo_program_contributions` — per-program contribution to an ILO via canonical PLO mappings. Allowed roles: admin, coordinator."
           },
@@ -258,19 +390,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"How much evidence exists for ILO {{ilo_id}} attainment in program {{program_id}} and how confident is the calculation?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/evidence\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_ilo_evidence_summary` — counts and confidence of assessment evidence feeding an ILO's derived attainment. Allowed roles: admin, coordinator."
           },
@@ -296,19 +450,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Which PLOs in program {{program_id}} are not mapped to any ILO?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/coordinator/programs/{{program_id}}/outcomes\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_unmapped_program_outcomes` — PLOs without a canonical ILO→PLO mapping. Allowed roles: admin, coordinator."
           },
@@ -334,19 +510,41 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Are there any orphaned outcomes, invalid mapping pairs, or weight anomalies in the institution's outcome hierarchy?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/health\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": ["{{base_url}}"],
-              "path": ["functions", "v1", "agent-orchestrator"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "functions",
+                "v1",
+                "agent-orchestrator"
+              ]
             },
             "description": "Exercises `get_outcome_hierarchy_health` — deterministic hierarchy-health signals (orphans, invalid pairs, weight anomalies). Allowed role: admin only."
           },
@@ -375,7 +573,47 @@
     }
   ],
   "variable": [
-    { "key": "ilo_id", "value": "REPLACE_WITH_REAL_ILO_UUID", "description": "A valid ILO UUID from your institution" },
-    { "key": "program_id", "value": "REPLACE_WITH_REAL_PROGRAM_UUID", "description": "A valid program UUID the authenticated user can access" }
+    {
+      "key": "ilo_id",
+      "value": "REPLACE_WITH_REAL_ILO_UUID",
+      "description": "A valid ILO UUID from your institution"
+    },
+    {
+      "key": "program_id",
+      "value": "REPLACE_WITH_REAL_PROGRAM_UUID",
+      "description": "A valid program UUID the authenticated user can access"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// FAIL-CLOSED ENVIRONMENT GUARD — do not remove.",
+          "// This collection may ONLY run against a Supabase Preview (or local) target.",
+          "// Production is rejected before any request is sent.",
+          "const baseUrl = (pm.variables.get(\"base_url\") || \"\").trim();",
+          "const projectRef = (pm.variables.get(\"supabase_project_ref\") || \"\").trim();",
+          "const productionRef = (pm.variables.get(\"production_project_ref\") || \"\").trim();",
+          "",
+          "if (!baseUrl) {",
+          "  throw new Error(",
+          "    \"GUARD: base_url is not set. Select the 'Edeviser Preview' environment and fill in the Git-linked Preview URL.\"",
+          "  );",
+          "}",
+          "if (/prod/i.test(baseUrl) || /prod/i.test(projectRef)) {",
+          "  throw new Error(\"GUARD: production-looking target rejected: \" + baseUrl);",
+          "}",
+          "if (productionRef && projectRef && projectRef === productionRef) {",
+          "  throw new Error(\"GUARD: production project ref rejected: \" + projectRef);",
+          "}",
+          "if (!/(supabase\\.co|supabase\\.red|localhost|127\\.0\\.0\\.1)/.test(baseUrl)) {",
+          "  throw new Error(\"GUARD: base_url must be a Supabase Preview or local URL: \" + baseUrl);",
+          "}",
+          "console.log(\"GUARD: preview target accepted:\", baseUrl);"
+        ]
+      }
+    }
   ]
 }

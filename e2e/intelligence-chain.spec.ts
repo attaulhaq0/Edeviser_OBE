@@ -1,17 +1,44 @@
-// Intelligence Chain E2E Test - OBE hierarchy, mapping direction, attainment cascade,
+// Intelligence Chain E2E - OBE hierarchy, mapping direction, attainment cascade,
 // and agent-guardrail verification. Adapted from the Edeviser Agentic Intelligence spec.
-import { test, expect } from '@playwright/test';
+//
+// Auth contract: every test authenticates through the real login flow with
+// seeded demo credentials (overridable via E2E_* env vars) and asserts the
+// authenticated landing route before touching protected pages.
+import { test, expect, type Page } from '@playwright/test';
 
-// Property: Canonical mapping direction is enforced everywhere.
-// source_outcome_id = parent, target_outcome_id = child. Allowed: ILO->PLO, PLO->CLO, CLO->SUB_CLO.
+const CREDENTIALS = {
+  admin: {
+    email: process.env.E2E_ADMIN_EMAIL ?? 'admin@test.edeviser.com',
+    password: process.env.E2E_ADMIN_PASSWORD ?? 'Test1234!',
+    landing: /\/admin\//,
+  },
+  coordinator: {
+    email: process.env.E2E_COORDINATOR_EMAIL ?? 'coordinator@test.edeviser.com',
+    password: process.env.E2E_COORDINATOR_PASSWORD ?? 'Test1234!',
+    landing: /\/coordinator\//,
+  },
+  student: {
+    email: process.env.E2E_STUDENT_EMAIL ?? 'student@test.edeviser.com',
+    password: process.env.E2E_STUDENT_PASSWORD ?? 'Test1234!',
+    landing: /\/student\//,
+  },
+} as const;
+
+type Role = keyof typeof CREDENTIALS;
+
+async function loginAs(page: Page, role: Role): Promise<void> {
+  const creds = CREDENTIALS[role];
+  await page.goto('/login', { waitUntil: 'networkidle' });
+  await page.getByLabel(/email/i).fill(creds.email);
+  await page.getByLabel(/password/i).fill(creds.password);
+  await page.getByRole('button', { name: /sign in|log in|login/i }).click();
+  // Fail fast (no silent skip) if authentication did not succeed.
+  await page.waitForURL(creds.landing, { timeout: 30000 });
+}
+
 test.describe('Intelligence Layer - OBE hierarchy & mapping direction', () => {
   test('Admin ILO list fetches only type=ILO via RLS (own institution)', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' });
-    await page.fill('input[name="email"]', 'admin@example.com');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/admin\/outcomes/, { timeout: 30000 });
-
+    await loginAs(page, 'admin');
     await page.goto('/admin/outcomes', { waitUntil: 'networkidle' });
     const rows = page.locator('[data-testid="outcome-row"]');
     const count = await rows.count();
@@ -20,51 +47,60 @@ test.describe('Intelligence Layer - OBE hierarchy & mapping direction', () => {
     expect(firstRowText.toLowerCase()).toContain('ilo');
   });
 
-  test('Admin cannot edit PLO or CLO through ILO route (type guard)', async ({ page }) => {
+  test('Admin cannot open a PLO/CLO editor through the ILO edit route (type guard)', async ({ page }) => {
+    await loginAs(page, 'admin');
+    // A non-ILO outcome id must never resolve into an editable ILO form.
     await page.goto('/admin/outcomes/plo-only-id/edit', { waitUntil: 'networkidle' });
-    const forbidden = page.locator('text=Forbidden');
-    const notFound = page.locator('text=Not found');
-    await expect(forbidden.or(notFound)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Forbidden').or(page.locator('text=Not found'))).toBeVisible({
+      timeout: 10000,
+    });
+    // The guard must not leave us on a successful edit surface.
+    await expect(page).not.toHaveURL(/\/edit$/);
   });
 
-  test('Mapping direction is canonical (source=parent, target=child)', async ({ page }) => {
+  test('Coordinator curriculum matrix renders canonical mapping direction', async ({ page }) => {
+    await loginAs(page, 'coordinator');
     await page.goto('/coordinator/matrix', { waitUntil: 'networkidle' });
     const heading = page.locator('h1, h2').first();
     await expect(heading).toBeVisible();
-    const body = await page.locator('body').innerText();
-    expect(body.toLowerCase()).not.toContain('reverse mapping');
+    const body = (await page.locator('body').innerText()).toLowerCase();
+    expect(body).not.toContain('reverse mapping');
+    // Canonical direction surfaces parent->child labels somewhere on the matrix.
+    expect(body).toMatch(/ilo|plo/);
   });
 });
 
-// Property: CLO attainment rolls to PLO then ILO.
 test.describe('Intelligence Layer - attainment cascade', () => {
-  test('Cascade: evidence -> CLO -> PLO -> ILO renders for admin analytics', async ({ page }) => {
+  test('Cascade: evidence -> CLO -> PLO -> ILO renders derived alignment for admins', async ({ page }) => {
+    await loginAs(page, 'admin');
     await page.goto('/admin/analytics', { waitUntil: 'networkidle' });
-    const body = await page.locator('body').innerText();
-    const hasDerived = body.toLowerCase().includes('derived');
-    const hasCascade = body.toLowerCase().includes('attainment') || body.toLowerCase().includes('ilo');
-    expect(hasDerived || hasCascade).toBe(true);
+    const body = (await page.locator('body').innerText()).toLowerCase();
+    expect(body).toContain('attainment');
+    expect(body).toMatch(/ilo|derived/);
+    // Derived alignment must never be presented as official ILO mastery.
+    expect(body).not.toContain('official ilo mastery');
   });
 
-  test('CLO contribution to ILO is labeled derived, not official', async ({ page }) => {
+  test('Student surfaces never claim official ILO mastery', async ({ page }) => {
+    await loginAs(page, 'student');
     await page.goto('/student/dashboard', { waitUntil: 'networkidle' });
-    const body = await page.locator('body').innerText();
-    expect(body.toLowerCase()).not.toContain('official ilo mastery');
+    const body = (await page.locator('body').innerText()).toLowerCase();
+    expect(body).not.toContain('official ilo mastery');
   });
 });
 
-// Property: No role receives unauthorized outcome tools or arbitrary SQL.
 test.describe('Intelligence Layer - agent guardrails', () => {
   test('Student route has no outcome-management tool surface', async ({ page }) => {
+    await loginAs(page, 'student');
     await page.goto('/student/dashboard', { waitUntil: 'networkidle' });
-    const body = await page.locator('body').innerText();
-    const lower = body.toLowerCase();
-    expect(lower).not.toContain('create ilo');
-    expect(lower).not.toContain('delete ilo');
-    expect(lower).not.toContain('manage outcomes');
+    const body = (await page.locator('body').innerText()).toLowerCase();
+    expect(body).not.toContain('create ilo');
+    expect(body).not.toContain('delete ilo');
+    expect(body).not.toContain('manage outcomes');
   });
 
-  test('No arbitrary SQL input field appears anywhere on authenticated pages', async ({ page }) => {
+  test('No arbitrary SQL input field appears on any authenticated dashboard', async ({ page }) => {
+    await loginAs(page, 'admin');
     const routes = ['/admin/dashboard', '/coordinator/dashboard', '/teacher/dashboard', '/student/dashboard'];
     for (const route of routes) {
       await page.goto(route, { waitUntil: 'networkidle' });
@@ -73,11 +109,20 @@ test.describe('Intelligence Layer - agent guardrails', () => {
     }
   });
 
-  test('Approval-required actions surface an approval card, not auto-execution', async ({ page }) => {
+  test('Approval-required actions always surface explicit approval controls (never auto-execution)', async ({ page }) => {
+    await loginAs(page, 'admin');
     await page.goto('/admin/dashboard', { waitUntil: 'networkidle' });
-    const body = await page.locator('body').innerText();
-    if (body.toLowerCase().includes('approve')) {
-      expect(body.toLowerCase()).toContain('appro');
+    const body = (await page.locator('body').innerText()).toLowerCase();
+    // Unconditional invariants: protected actions are never auto-executed and
+    // any approval surface exposes BOTH decision controls.
+    expect(body).not.toContain('auto-executed');
+    expect(body).not.toContain('automatically executed');
+    const approvalCard = page.locator('[data-testid="agent-approval-card"], [data-testid="agent-approval"]');
+    const approvalCount = await approvalCard.count();
+    if (approvalCount > 0) {
+      const cardText = (await approvalCard.first().innerText()).toLowerCase();
+      expect(cardText).toContain('approve');
+      expect(cardText).toContain('reject');
     }
   });
 });
