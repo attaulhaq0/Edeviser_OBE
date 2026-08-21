@@ -1,7 +1,6 @@
-import { CheckCircle2, Clock3 } from "lucide-react";
+import { Clock3 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import type { ProactiveContributingEvidence } from "@/hooks/useAtRiskPredictions";
 
 interface AtRiskStudentRowProps {
@@ -12,9 +11,6 @@ interface AtRiskStudentRowProps {
   triggerVersion: string;
   recommendedNextAction: string;
   triggeredAt: string;
-  approvalAvailable: boolean;
-  onReviewDraft: () => void;
-  isApproving: boolean;
 }
 
 const evidenceLabel = (evidence: ProactiveContributingEvidence): string =>
@@ -31,9 +27,6 @@ const AtRiskStudentRow = ({
   triggerVersion,
   recommendedNextAction,
   triggeredAt,
-  approvalAvailable,
-  onReviewDraft,
-  isApproving,
 }: AtRiskStudentRowProps) => (
   <div className="space-y-3 border-b border-slate-100 py-4 last:border-0">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -52,17 +45,9 @@ const AtRiskStudentRow = ({
           Next: {recommendedNextAction}
         </p>
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="shrink-0"
-        onClick={onReviewDraft}
-        disabled={isApproving || !approvalAvailable}
-        aria-label={`Review intervention draft for ${studentName}`}
-      >
-        <CheckCircle2 className="size-4" aria-hidden="true" />
-        {approvalAvailable ? "Review draft" : "Legacy evidence"}
-      </Button>
+      <Badge variant="secondary" className="shrink-0">
+        Evidence only
+      </Badge>
     </div>
 
     <div className="flex flex-wrap gap-1.5">

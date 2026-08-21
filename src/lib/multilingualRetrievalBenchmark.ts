@@ -26,6 +26,7 @@ export interface RetrievalBenchmarkResult {
   topResultCorrect: boolean;
   reciprocalRank: number;
   citationCorrect: boolean;
+  falsePositiveCount: number;
   unauthorizedLeak: boolean;
 }
 
@@ -54,23 +55,40 @@ export const MULTILINGUAL_RETRIEVAL_FIXTURES = [
 export const evaluateRetrievalBenchmark = (input: {
   query: RetrievalBenchmarkQuery;
   rankedDocumentIds: readonly string[];
+  citedDocumentIds: readonly string[];
   authorizedDocumentIds: ReadonlySet<string>;
 }): RetrievalBenchmarkResult => {
   const expected = new Set(input.query.expectedDocumentIds);
   const firstExpectedIndex = input.rankedDocumentIds.findIndex((id) => expected.has(id));
-  const unauthorizedLeak = input.rankedDocumentIds.some((id) => !input.authorizedDocumentIds.has(id));
+  const rankedResultsAuthorized = input.rankedDocumentIds.every((id) =>
+    input.authorizedDocumentIds.has(id)
+  );
+  const unauthorizedLeak = [
+    ...input.rankedDocumentIds,
+    ...input.citedDocumentIds,
+  ].some((id) => !input.authorizedDocumentIds.has(id));
+  const falsePositiveCount = input.rankedDocumentIds.filter(
+    (id) => !expected.has(id)
+  ).length;
+  const authorizedCitation =
+    input.citedDocumentIds.length > 0 &&
+    input.citedDocumentIds.every((id) => expected.has(id)) &&
+    input.citedDocumentIds.every((id) => input.authorizedDocumentIds.has(id));
   return {
     queryId: input.query.id,
     topResultCorrect:
       input.query.access !== "authorized"
-        ? firstExpectedIndex === -1 && !unauthorizedLeak
-        : firstExpectedIndex === 0,
-    reciprocalRank: firstExpectedIndex === -1 ? 0 : 1 / (firstExpectedIndex + 1),
+        ? input.rankedDocumentIds.length === 0 && !unauthorizedLeak
+        : rankedResultsAuthorized && firstExpectedIndex === 0,
+    reciprocalRank:
+      !rankedResultsAuthorized || firstExpectedIndex === -1
+        ? 0
+        : 1 / (firstExpectedIndex + 1),
     citationCorrect:
       input.query.access !== "authorized"
-        ? input.query.expectedDocumentIds.length === 0 && !unauthorizedLeak
-        : firstExpectedIndex >= 0 && !unauthorizedLeak,
+        ? input.citedDocumentIds.length === 0 && !unauthorizedLeak
+        : authorizedCitation && !unauthorizedLeak,
+    falsePositiveCount,
     unauthorizedLeak,
   };
 };
-

@@ -74,6 +74,13 @@ export interface IngestedFindings {
 }
 
 const FINDINGS_FILE_PATTERN = /-findings\.json$/;
+const REQUIRED_AUDIT_STAGES = [
+  "security",
+  "static-scanners",
+  "connectivity",
+  "rls",
+  "cron",
+] as const;
 
 const isFinding = (value: unknown): value is Finding => {
   if (!value || typeof value !== "object") return false;
@@ -159,6 +166,53 @@ export const countSeverities = (
     trivial: findings.filter((f) => f.severity === "Trivial").length,
   };
   return counts;
+};
+
+export const requiredStageFindings = (
+  rawResults: string | undefined
+): readonly Finding[] => {
+  if (!rawResults) {
+    return [
+      {
+        severity: "Blocker",
+        requirementId: "16.7",
+        message:
+          "Required audit stage outcomes are missing; a Go verdict cannot be produced.",
+      },
+    ];
+  }
+
+  let results: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(rawResults) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("stage outcomes must be a JSON object");
+    }
+    results = parsed as Record<string, unknown>;
+  } catch {
+    return [
+      {
+        severity: "Blocker",
+        requirementId: "16.7",
+        message:
+          "Required audit stage outcomes are malformed; a Go verdict cannot be produced.",
+      },
+    ];
+  }
+
+  return REQUIRED_AUDIT_STAGES.flatMap((stage) =>
+    results[stage] === "success"
+      ? []
+      : [
+          {
+            severity: "Blocker" as const,
+            requirementId: "16.7",
+            message: `Required audit stage ${stage} did not pass (result: ${
+              typeof results[stage] === "string" ? results[stage] : "missing"
+            }).`,
+          },
+        ]
+  );
 };
 
 // ─── Waiver loader ────────────────────────────────────────────────────────
@@ -472,7 +526,11 @@ export const runReportStage = async (): Promise<StageResult> => {
 
   const manifest = loadManifest();
   const ingested = ingestFindings();
-  const counts = countSeverities(ingested.findings);
+  const stageFindings = requiredStageFindings(
+    process.env.REQUIRED_AUDIT_STAGE_RESULTS
+  );
+  const findings = [...ingested.findings, ...stageFindings];
+  const counts = countSeverities(findings);
   const waivers = loadWaivers();
   const verdict = severityToVerdict(counts, waivers);
   const migrationHead = resolveMigrationHead();
@@ -481,7 +539,7 @@ export const runReportStage = async (): Promise<StageResult> => {
   const novaActSection = ingestNovaActReports();
   const report = renderReport({
     manifest,
-    findings: ingested.findings,
+    findings,
     counts,
     verdict,
     migrationHead,
@@ -539,7 +597,7 @@ export const runReportStage = async (): Promise<StageResult> => {
     status: verdict === "No-Go" ? "failed" : "passed",
     durationMs,
     artifact: artifactRelative,
-    message: `Verdict: ${verdict}. Findings: ${ingested.findings.length} (B:${counts.blocker} C:${counts.critical} M:${counts.major} m:${counts.minor} T:${counts.trivial}).`,
+    message: `Verdict: ${verdict}. Findings: ${findings.length} (B:${counts.blocker} C:${counts.critical} M:${counts.major} m:${counts.minor} T:${counts.trivial}).`,
   };
 };
 

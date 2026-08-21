@@ -51,7 +51,7 @@ describe("Parent linking security invariants", () => {
       "supabase/functions/generate-accreditation-report/index.ts"
     );
     expect(tutor).toContain('.from("profiles")');
-    expect(tutor).toContain('select("institution_id, role, is_active")');
+    expect(tutor).toContain('select("institution_id, role, is_active, status")');
     expect(tutor).not.toContain("user.app_metadata?.institution_id");
     expect(tutor).not.toContain("user.user_metadata?.institution_id");
     expect(accreditation).not.toContain("user.app_metadata?.institution_id");

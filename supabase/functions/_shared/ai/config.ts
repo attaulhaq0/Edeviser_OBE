@@ -5,9 +5,7 @@ export interface EnvironmentReader {
 }
 
 export type AIProviderName = "deepseek";
-export type EmbeddingProviderName =
-  | "supabase_gte_small"
-  | "self_hosted_bge_m3";
+export type EmbeddingProviderName = "supabase_gte_small";
 export type DeepSeekModel = "deepseek-v4-flash" | "deepseek-v4-pro";
 
 export interface AgenticConfig {
@@ -109,10 +107,7 @@ export const getAgenticConfig = (env: EnvironmentReader): AgenticConfig => {
   }
   const embeddingProvider =
     env.get("EMBEDDING_PROVIDER") ?? "supabase_gte_small";
-  if (
-    embeddingProvider !== "supabase_gte_small" &&
-    embeddingProvider !== "self_hosted_bge_m3"
-  ) {
+  if (embeddingProvider !== "supabase_gte_small") {
     throw new AgenticConfigurationError(
       "EMBEDDING_PROVIDER",
       "Unsupported embedding provider"

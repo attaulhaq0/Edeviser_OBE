@@ -81,6 +81,11 @@
   text-decoration: none;
 }
 
+.auth-brand-lockup[data-language="ar"] {
+  direction: rtl;
+  letter-spacing: 0;
+}
+
 .auth-brand-mark {
   display: block;
   width: 44px;

@@ -124,7 +124,7 @@ type AuthTab = "login" | "register";
 // ---------------------------------------------------------------------------
 const LoginPage = () => {
   const { t, i18n } = useTranslation("auth");
-  const { signIn, signOut } = useAuth();
+  const { signIn, signOut, signUp } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -191,9 +191,42 @@ const LoginPage = () => {
     }
   };
 
-  // Keep one authoritative student signup flow. The dedicated wizard carries
-  // the institution UUID required by the server trigger.
-  const handleSignUp = () => navigate("/signup");
+  const handleSignUp = async (data: SignUpFormData) => {
+    setError(null);
+    setSuccess(null);
+    setIsPending(true);
+
+    try {
+      const fullName = `${data.firstName} ${data.lastName}`.trim();
+      const result = await signUp({
+        email: data.email,
+        password: data.password,
+        fullName,
+        username: data.username,
+        requestedRole: data.requestedRole,
+      });
+
+      if (!result.success) {
+        setError(result.error ?? t("signup.defaultError"));
+        return;
+      }
+
+      if (result.requiresVerification) {
+        setSuccess(t("signup.verificationSent"));
+        signUpForm.reset();
+        return;
+      }
+
+      setSuccess(t("signup.successMessage"));
+      if (result.redirectTo) {
+        navigate(result.redirectTo, { replace: true });
+      }
+    } catch {
+      setError(t("signup.genericError"));
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   const handleNoorDemoLogin = async (email: string, role: string) => {
     setError(null);
@@ -361,14 +394,14 @@ const LoginPage = () => {
 
       // 6. Explicit role dashboard routing
       const roleRoutes: Record<string, string> = {
-        admin: "/admin/profile",
-        coordinator: "/coordinator/profile",
-        teacher: "/teacher/settings/profile",
-        parent: "/parent/profile",
-        student: "/student/profile",
+        admin: "/admin/dashboard",
+        coordinator: "/coordinator/dashboard",
+        teacher: "/teacher/dashboard",
+        parent: "/parent/dashboard",
+        student: "/student/dashboard",
       };
 
-      const targetRoute = roleRoutes[role] || `/${role}/profile`;
+      const targetRoute = roleRoutes[role] || `/${role}/dashboard`;
       navigate(targetRoute, { replace: true });
     } catch (err: unknown) {
       await signOut();
@@ -412,7 +445,7 @@ const LoginPage = () => {
   return (
     <div className="auth-landing" dir={landingCopy.dir} lang={landingCopy.lang}>
       <header className="auth-landing-header">
-        <BrandLogo />
+        <BrandLogo language={language} />
         <div className="auth-language-control">
           <LanguageSwitcher />
         </div>

@@ -65,9 +65,8 @@ export const useGapAnalysis = (programId?: string, _semesterId?: string) => {
   return useQuery({
     queryKey: queryKeys.gapAnalysisData.list({ programId }),
     queryFn: async (): Promise<GapResult[]> => {
-      // Parallel reads (was serial). outcome_mappings.parent_outcome_id ->
-      // source_outcome_id (the parent in a source->target mapping); evidence is
-      // keyed by clo_id.
+      // Parallel reads. source_outcome_id is the parent in the canonical
+      // parent → child mapping; evidence is keyed by clo_id.
       const [outcomesRes, mappingsRes, evidenceRes] = await Promise.all([
         supabase.from("learning_outcomes").select("id, title, type"),
         supabase.from("outcome_mappings").select("source_outcome_id"),

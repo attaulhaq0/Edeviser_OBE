@@ -3,8 +3,9 @@ name: Pre-Deployment Audit
 # Implements Tasks 18.1–18.6 / Req 17.1–17.6.
 #
 # Two modes:
-#   PR mode  (on: pull_request)  — static + contract + property layers only.
-#             Skips E2E and RTL screenshots to stay under 10 minutes.
+#   PR mode  (on: pull_request)  — static + contract + Supabase-backed audit
+#             layers, including Cron Health. Skips E2E and RTL screenshots to
+#             stay under 10 minutes.
 #             Triggered by the --pr flag in the audit runner.
 #   Pre-deploy mode (on: workflow_dispatch, on: push: tags: v*)
 #             Full pipeline including E2E, RTL, cron health, RLS matrix.
@@ -81,6 +82,23 @@ jobs:
           fi
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # Git-linked Previews are required for database-bearing PRs only. Keep
+  # platform/docs-only PRs from waiting for a Preview that Git integration does
+  # not create, while retaining full Preview validation for supabase/** changes.
+  preview-validation-relevance:
+    name: Preview validation relevance
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.filter.outputs.required }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            required:
+              - 'supabase/**'
 
   # ─── Static analysis (fail-fast) ──────────────────────────────────────────
   lint:
@@ -168,6 +186,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+
+      - name: Verify production build contains no prototype artifacts
+        run: node scripts/check-prototype-boundary.mjs --skip-diff --dist dist
 
       - uses: actions/upload-artifact@v7
         with:
@@ -302,25 +323,101 @@ jobs:
           path: audit/output/rls-matrix.json
           retention-days: 30
 
-  # ─── Cron health (continue-on-error, needs Supabase) ─────────────────────
+  # ─── Cron health (required when Supabase is available) ────────────────────
+  # Requirements 15.1–15.4 require this probe in the PR audit as well as the
+  # deploy pipeline. CRON_SECRET must therefore be configured in GitHub
+  # Actions; an absent secret is a real gate failure, not a reason to weaken
+  # the audit.
   cron:
     name: Cron Health
     runs-on: ubuntu-latest
-    needs: [build, preflight]
-    if: needs.preflight.outputs.supabase_available == 'true'
-    continue-on-error: true
+    needs: [build, preflight, preview-validation-relevance]
+    if: >-
+      always() && needs.preflight.outputs.supabase_available == 'true' &&
+      (github.event_name != 'pull_request' || needs.preview-validation-relevance.outputs.required == 'true')
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: ${{ env.NODE_VERSION_FILE }}
           cache: npm
+      # Use the project-pinned CLI for reproducible Preview deployments.
       - run: npm ci
+      - name: Resolve Supabase Preview branch and deploy Cron dependencies
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PARENT_PROJECT_REF: ${{ vars.SUPABASE_PARENT_PROJECT_REF || 'cdlgtbvxlxjpcddjazzx' }}
+          SUPABASE_PREVIEW_BRANCH: ${{ github.head_ref }}
+          SUPABASE_PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_ACCESS_TOKEN" ]]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN is required to deploy Preview Cron dependencies"
+            exit 1
+          fi
+
+          preview_ref=""
+          preview_status=""
+          for attempt in $(seq 1 60); do
+            if ! branches=$(curl --fail --silent --show-error \
+              --connect-timeout 5 --max-time 20 \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches"); then
+              echo "::warning::Supabase Preview branch lookup attempt $attempt failed; retrying"
+              branches='[]'
+            fi
+            preview=$(jq -c \
+              --arg branch "$SUPABASE_PREVIEW_BRANCH" \
+              --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
+              '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | {project_ref, status}][0] // {}' \
+              <<< "$branches")
+            preview_ref=$(jq -r '.project_ref // empty' <<< "$preview")
+            preview_status=$(jq -r '.status // empty' <<< "$preview")
+            if [[ -n "$preview_ref" && "$preview_status" == "FUNCTIONS_DEPLOYED" ]]; then
+              echo "Supabase Preview deployment is complete"
+              break
+            fi
+            if [[ "$attempt" -eq 60 ]]; then
+              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED for Cron Health: no valid Git-linked branch (git_branch + pr_number); direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
+              exit 1
+            fi
+            echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
+            sleep 10
+          done
+
+          npx supabase functions deploy \
+            agent-worker compute-at-risk-signals exam-period-notify \
+            leaderboard-refresh notification-digest perfect-day-prompt \
+            process-streak streak-risk-cron health weekly-summary-cron \
+            --project-ref "$preview_ref" --use-api --yes
+      - name: Resolve current Vercel Preview for pull request
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          preview_url="$(
+            gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --paginate \
+              --jq '.[] | select(.user.login | startswith("vercel")) | .body' \
+              | grep -Eo "https://e-deviser-git-[a-z0-9-]+-attaulhaq0s-projects\\.vercel\\.app" \
+              | tail -n 1 \
+              || true
+          )"
+          if [[ -z "$preview_url" ]]; then
+            echo "::error::No current Vercel Preview URL was found for this pull request"
+            exit 1
+          fi
+          echo "AUDIT_BASE_URL=$preview_url" >> "$GITHUB_ENV"
+          echo "Resolved current Vercel Preview deployment for cron health"
       - name: Run cron health probe
         run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=cron
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/upload-artifact@v7
@@ -460,6 +557,7 @@ jobs:
       - name: Download connectivity matrix
         if: needs.connectivity.result != 'skipped'
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: connectivity-matrix
           path: audit/output/
@@ -467,6 +565,7 @@ jobs:
       - name: Download RLS matrix
         if: needs.rls.result != 'skipped'
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: rls-matrix
           path: audit/output/
@@ -474,6 +573,7 @@ jobs:
       - name: Download cron health
         if: needs.cron.result != 'skipped'
         uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: cron-health
           path: audit/output/
@@ -498,6 +598,8 @@ jobs:
         env:
           GITHUB_SHA: ${{ github.sha }}
           AUDIT_ENV: ${{ env.AUDIT_ENV }}
+          REQUIRED_AUDIT_STAGE_RESULTS: >-
+            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required != 'true' && 'success' || needs.cron.result }}"}
 
       - uses: actions/upload-artifact@v7
         if: always()

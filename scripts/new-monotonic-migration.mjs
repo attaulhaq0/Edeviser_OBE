@@ -6,7 +6,10 @@ const VERSION_PATTERN = /^(\d{14})_.+\.sql$/;
 const NAME_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 
 export const utcVersion = (date = new Date()) =>
-  date.toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
+  date
+    .toISOString()
+    .replace(/[-:TZ.]/g, "")
+    .slice(0, 14);
 
 export const migrationVersions = (filenames) =>
   filenames.flatMap((filename) => {

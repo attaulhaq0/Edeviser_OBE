@@ -92,8 +92,6 @@ enabled = true
 port = 54323
 # External URL of the API server that frontend connects to.
 api_url = "http://127.0.0.1"
-# OpenAI API Key to use for Supabase AI in the Supabase Studio.
-openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
@@ -146,7 +144,7 @@ max_buckets = 10
 max_indexes = 5
 
 # Vector Buckets is available to Supabase Pro plan.
-# [storage.vector.buckets.documents-openai]
+# [storage.vector.buckets.documents]
 
 [auth]
 enabled = true
@@ -391,6 +389,12 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 # Public invitation endpoints validate their own short-lived token in-handler.
 # Keep authenticated admin/parent endpoints behind the Supabase JWT gateway.
+[functions.award-xp]
+verify_jwt = false
+
+[functions.check-badges]
+verify_jwt = false
+
 [functions.invitation-preview]
 verify_jwt = false
 
@@ -407,6 +411,45 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-email-notification]
+verify_jwt = true
+
+# Cron targets are invoked server-to-server with a managed Supabase secret key
+# and enforce that key/CRON_SECRET in-handler. The health probe retains gateway
+# JWT verification to match the current Production function configuration.
+[functions.ai-at-risk-prediction]
+verify_jwt = false
+
+[functions.agent-worker]
+verify_jwt = false
+
+[functions.agent-orchestrator]
+verify_jwt = true
+
+[functions.compute-at-risk-signals]
+verify_jwt = false
+
+[functions.exam-period-notify]
+verify_jwt = false
+
+[functions.leaderboard-refresh]
+verify_jwt = false
+
+[functions.notification-digest]
+verify_jwt = false
+
+[functions.perfect-day-prompt]
+verify_jwt = false
+
+[functions.process-streak]
+verify_jwt = false
+
+[functions.streak-risk-cron]
+verify_jwt = false
+
+[functions.weekly-summary-cron]
+verify_jwt = false
+
+[functions.health]
 verify_jwt = true
 
 # PR 237 preview synchronization marker; no runtime configuration change.

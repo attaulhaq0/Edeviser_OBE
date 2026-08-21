@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import GlobalHeader from "@/components/shared/GlobalHeader";
 import Sidebar from "@/components/shared/Sidebar";
 import { SidebarProvider } from "@/components/shared/SidebarContext";
@@ -7,6 +7,12 @@ import EmailVerificationBanner from "@/components/shared/EmailVerificationBanner
 import type { UserRole } from "@/types/app";
 import { cn } from "@/lib/utils";
 import { usePageViewLogger } from "@/hooks/usePageViewLogger";
+
+const EDeviserIntelligencePanel = lazy(
+  () => import("@/components/shared/EDeviserIntelligencePanel")
+);
+const intelligenceUiEnabled =
+  import.meta.env.VITE_AI_FEATURE_ENABLED === "true";
 
 interface RoleAppShellProps {
   userRole: UserRole;
@@ -67,6 +73,11 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
           {rail}
         </div>
         <GuidedTour />
+        {intelligenceUiEnabled ? (
+          <Suspense fallback={null}>
+            <EDeviserIntelligencePanel />
+          </Suspense>
+        ) : null}
       </div>
     </SidebarProvider>
   );

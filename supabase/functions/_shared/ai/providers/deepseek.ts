@@ -1,276 +1,329 @@
-/**
- * Server-only DeepSeek boundary.
- *
- * This module is intentionally not wired into product features yet. Keep the
- * secret lookup here so future callers cannot accidentally accept credentials
- * or provider URLs from a request payload or from the browser.
- */
+import type { AgenticConfig, EnvironmentReader } from "../config.ts";
+import {
+  AIProviderError,
+  type AICompletionRequest,
+  type AICompletionResponse,
+  type AIProvider,
+  type AIToolCall,
+  type AIUsage,
+} from "../provider.ts";
 
-export const DEEPSEEK_DEFAULT_BASE_URL = "https://api.deepseek.com";
-export const DEEPSEEK_DEFAULT_MODEL = "deepseek-v4-flash";
-export const DEEPSEEK_LEGACY_MODELS = ["deepseek-chat", "deepseek-reasoner"] as const;
-
-const DEFAULT_TIMEOUT_MS = 15_000;
-const DEFAULT_MAX_RETRIES = 2;
-const DEFAULT_MAX_OUTPUT_TOKENS = 512;
-const DEFAULT_MAX_CONCURRENT_REQUESTS = 2;
-
-type DenoRuntime = {
-  env: { get(name: string): string | undefined };
-};
-
-const getDenoEnv = (name: string): string | undefined => {
-  const runtime = (globalThis as typeof globalThis & { Deno?: DenoRuntime }).Deno;
-  return runtime?.env.get(name);
-};
-
-export type DeepSeekRole = "system" | "user" | "assistant" | "tool";
-
-export interface DeepSeekMessage {
-  role: DeepSeekRole;
-  content: string;
-  name?: string;
-  tool_call_id?: string;
-  tool_calls?: readonly DeepSeekToolCall[];
+interface DeepSeekDependencies {
+  env: EnvironmentReader;
+  fetch: typeof fetch;
+  sleep: (milliseconds: number) => Promise<void>;
 }
 
-export interface DeepSeekToolCall {
-  id: string;
-  type: "function";
-  function: { name: string; arguments: string };
+interface JsonObject {
+  [key: string]: unknown;
 }
 
-export interface DeepSeekTool {
-  type: "function";
-  function: {
-    name: string;
-    description?: string;
-    parameters?: Record<string, unknown>;
+const object = (value: unknown): JsonObject | null =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as JsonObject)
+    : null;
+
+const finiteNumber = (value: unknown): number | undefined =>
+  typeof value === "number" && Number.isFinite(value) ? value : undefined;
+
+const parseToolCalls = (value: unknown): AIToolCall[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map((entry) => {
+    const call = object(entry);
+    const fn = object(call?.function);
+    if (
+      typeof call?.id !== "string" ||
+      call.type !== "function" ||
+      typeof fn?.name !== "string" ||
+      typeof fn.arguments !== "string"
+    ) {
+      throw new AIProviderError(
+        "malformed_response",
+        "DeepSeek returned a malformed tool call"
+      );
+    }
+    let args: unknown;
+    try {
+      args = JSON.parse(fn.arguments);
+    } catch {
+      throw new AIProviderError(
+        "malformed_response",
+        "DeepSeek returned invalid tool arguments"
+      );
+    }
+    return { id: call.id, name: fn.name, arguments: args };
+  });
+};
+
+// Official prices verified 2026-08-14. Estimation is informational and never
+// authorizes spend; feature enablement separately requires an explicit budget.
+const MODEL_PRICES = {
+  "deepseek-v4-flash": { input: 0.14, cachedInput: 0.0028, output: 0.28 },
+  "deepseek-v4-pro": { input: 0.435, cachedInput: 0.003625, output: 0.87 },
+} as const;
+
+const parseUsage = (value: unknown, model: string): AIUsage | undefined => {
+  const usage = object(value);
+  if (!usage) return undefined;
+  const inputTokens = finiteNumber(usage.prompt_tokens);
+  const outputTokens = finiteNumber(usage.completion_tokens);
+  const totalTokens = finiteNumber(usage.total_tokens);
+  const details = object(usage.prompt_tokens_details);
+  const cachedInputTokens = finiteNumber(details?.cached_tokens);
+  const prices =
+    model === "deepseek-v4-flash" || model === "deepseek-v4-pro"
+      ? MODEL_PRICES[model]
+      : undefined;
+  const uncached = Math.max(0, (inputTokens ?? 0) - (cachedInputTokens ?? 0));
+  const estimatedCostUsd = prices
+    ? (uncached * prices.input +
+        (cachedInputTokens ?? 0) * prices.cachedInput +
+        (outputTokens ?? 0) * prices.output) /
+      1_000_000
+    : undefined;
+  return {
+    inputTokens,
+    cachedInputTokens,
+    outputTokens,
+    totalTokens,
+    estimatedCostUsd,
   };
-}
-
-export interface DeepSeekChatRequest {
-  messages: readonly DeepSeekMessage[];
-  model?: string;
-  maxOutputTokens?: number;
-  temperature?: number;
-  thinking?: { type: "enabled" | "disabled" };
-  tools?: readonly DeepSeekTool[];
-  toolChoice?: "none" | "auto";
-  signal?: AbortSignal;
-}
-
-export interface DeepSeekUsage {
-  promptTokens?: number;
-  completionTokens?: number;
-  totalTokens?: number;
-}
-
-export interface DeepSeekChatResult {
-  content: string;
-  model: string;
-  finishReason: string | null;
-  toolCalls: readonly DeepSeekToolCall[];
-  usage?: DeepSeekUsage;
-}
-
-export interface DeepSeekConfig {
-  provider: "deepseek";
-  baseUrl: string;
-  primaryModel: typeof DEEPSEEK_DEFAULT_MODEL;
-  complexModel: typeof DEEPSEEK_DEFAULT_MODEL;
-  timeoutMs: number;
-  maxRetries: number;
-  maxOutputTokens: number;
-  maxConcurrentRequests: number;
-}
-
-export class DeepSeekProviderError extends Error {
-  readonly code: "missing_api_key" | "invalid_config" | "timeout" | "http" | "invalid_response";
-  readonly status?: number;
-
-  constructor(
-    code: DeepSeekProviderError["code"],
-    message: string,
-    status?: number
-  ) {
-    super(message);
-    this.name = "DeepSeekProviderError";
-    this.code = code;
-    this.status = status;
-  }
-}
-
-const positiveInteger = (value: string | undefined, fallback: number): number => {
-  const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 };
 
-const ensureSupportedModel = (model: string): typeof DEEPSEEK_DEFAULT_MODEL => {
-  if (model !== DEEPSEEK_DEFAULT_MODEL) {
-    throw new DeepSeekProviderError(
-      "invalid_config",
-      `Unsupported DeepSeek model configured: ${model}`
-    );
+const retryDelay = (response: Response | null, attempt: number): number => {
+  const retryAfter = response?.headers.get("Retry-After");
+  const seconds = retryAfter ? Number(retryAfter) : Number.NaN;
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(5_000, seconds * 1_000);
   }
-  return DEEPSEEK_DEFAULT_MODEL;
+  return Math.min(2_000, 250 * 2 ** attempt);
 };
 
-export const getDeepSeekConfig = (): DeepSeekConfig => {
-  const baseUrl = (getDenoEnv("DEEPSEEK_BASE_URL") ?? DEEPSEEK_DEFAULT_BASE_URL).replace(/\/$/, "");
-  const primaryModel = getDenoEnv("DEEPSEEK_PRIMARY_MODEL") ?? DEEPSEEK_DEFAULT_MODEL;
-  const complexModel = getDenoEnv("DEEPSEEK_COMPLEX_MODEL") ?? DEEPSEEK_DEFAULT_MODEL;
-
-  if (baseUrl !== DEEPSEEK_DEFAULT_BASE_URL) {
-    throw new DeepSeekProviderError(
-      "invalid_config",
-      `DeepSeek base URL must be ${DEEPSEEK_DEFAULT_BASE_URL}`
+const classifyStatus = (status: number): AIProviderError => {
+  if (status === 401 || status === 403) {
+    return new AIProviderError(
+      "authentication",
+      "Generation provider authentication failed",
+      status
     );
   }
-  const resolvedPrimaryModel = ensureSupportedModel(primaryModel);
-  const resolvedComplexModel = ensureSupportedModel(complexModel);
+  if (status === 429) {
+    return new AIProviderError(
+      "rate_limit",
+      "Generation provider rate limit reached",
+      status,
+      true
+    );
+  }
+  if (status === 408 || status >= 500) {
+    return new AIProviderError(
+      "transient",
+      "Generation provider is temporarily unavailable",
+      status,
+      true
+    );
+  }
+  return new AIProviderError(
+    "provider",
+    "Generation provider rejected the request",
+    status
+  );
+};
+
+export const createDeepSeekProvider = (
+  config: AgenticConfig,
+  dependencies: Partial<DeepSeekDependencies> &
+    Pick<DeepSeekDependencies, "env">
+): AIProvider => {
+  const fetchImpl = dependencies.fetch ?? fetch;
+  const sleep =
+    dependencies.sleep ??
+    ((milliseconds: number) =>
+      new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
 
   return {
-    provider: "deepseek",
-    baseUrl,
-    primaryModel: resolvedPrimaryModel,
-    complexModel: resolvedComplexModel,
-    timeoutMs: positiveInteger(getDenoEnv("DEEPSEEK_TIMEOUT_MS"), DEFAULT_TIMEOUT_MS),
-    maxRetries: Math.min(3, positiveInteger(getDenoEnv("DEEPSEEK_MAX_RETRIES"), DEFAULT_MAX_RETRIES)),
-    maxOutputTokens: Math.min(
-      2048,
-      positiveInteger(getDenoEnv("DEEPSEEK_MAX_OUTPUT_TOKENS"), DEFAULT_MAX_OUTPUT_TOKENS)
-    ),
-    maxConcurrentRequests: Math.min(
-      4,
-      positiveInteger(
-        getDenoEnv("DEEPSEEK_MAX_CONCURRENT_REQUESTS"),
-        DEFAULT_MAX_CONCURRENT_REQUESTS
-      )
-    ),
-  };
-};
+    name: "deepseek",
+    async complete(
+      request: AICompletionRequest
+    ): Promise<AICompletionResponse> {
+      const apiKey = dependencies.env.get("DEEPSEEK_API_KEY")?.trim();
+      if (!apiKey) {
+        throw new AIProviderError(
+          "configuration",
+          "Generation provider is not configured"
+        );
+      }
+      const model =
+        request.modelTier === "complex"
+          ? config.deepSeek.complexModel
+          : config.deepSeek.primaryModel;
+      const body = {
+        model,
+        thinking: {
+          type: request.modelTier === "complex" ? "enabled" : "disabled",
+        },
+        messages: request.messages.map((message) => ({
+          role: message.role,
+          content: message.content,
+          ...(message.name ? { name: message.name } : {}),
+          ...(message.toolCallId ? { tool_call_id: message.toolCallId } : {}),
+          ...(message.toolCalls
+            ? {
+                tool_calls: message.toolCalls.map((call) => ({
+                  id: call.id,
+                  type: "function",
+                  function: {
+                    name: call.name,
+                    arguments: JSON.stringify(call.arguments),
+                  },
+                })),
+              }
+            : {}),
+        })),
+        max_tokens: Math.min(
+          request.maxOutputTokens ?? config.deepSeek.maxOutputTokens,
+          config.deepSeek.maxOutputTokens
+        ),
+        temperature: request.temperature ?? 0.2,
+        ...(request.responseFormat === "json"
+          ? { response_format: { type: "json_object" } }
+          : {}),
+        ...(request.tools
+          ? {
+              tools: request.tools.map((tool) => ({
+                type: "function",
+                function: {
+                  name: tool.name,
+                  description: tool.description,
+                  parameters: tool.inputJsonSchema,
+                },
+              })),
+            }
+          : {}),
+        ...(request.toolChoice ? { tool_choice: request.toolChoice } : {}),
+      };
 
-const retryableStatus = (status: number): boolean => status === 408 || status === 429 || status >= 500;
-
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-const parseUsage = (value: unknown): DeepSeekUsage | undefined => {
-  if (!value || typeof value !== "object") return undefined;
-  const usage = value as Record<string, unknown>;
-  const promptTokens = typeof usage.prompt_tokens === "number" ? usage.prompt_tokens : undefined;
-  const completionTokens = typeof usage.completion_tokens === "number" ? usage.completion_tokens : undefined;
-  const totalTokens = typeof usage.total_tokens === "number" ? usage.total_tokens : undefined;
-  return promptTokens === undefined && completionTokens === undefined && totalTokens === undefined
-    ? undefined
-    : { promptTokens, completionTokens, totalTokens };
-};
-
-export const createDeepSeekProvider = () => {
-  const config = getDeepSeekConfig();
-  let activeRequests = 0;
-  const waiting: Array<() => void> = [];
-
-  const acquire = async (): Promise<() => void> => {
-    if (activeRequests < config.maxConcurrentRequests) {
-      activeRequests += 1;
-    } else {
-      await new Promise<void>((resolve) => waiting.push(resolve));
-      activeRequests += 1;
-    }
-    return () => {
-      activeRequests -= 1;
-      waiting.shift()?.();
-    };
-  };
-
-  const complete = async (request: DeepSeekChatRequest): Promise<DeepSeekChatResult> => {
-    const apiKey = getDenoEnv("DEEPSEEK_API_KEY");
-    if (!apiKey) {
-      throw new DeepSeekProviderError("missing_api_key", "DeepSeek API key is not configured");
-    }
-
-    const model = request.model ?? config.primaryModel;
-    const resolvedModel = ensureSupportedModel(model);
-    const thinking = request.thinking ?? { type: "disabled" as const };
-    const body = {
-      model: resolvedModel,
-      messages: request.messages,
-      max_tokens: Math.min(request.maxOutputTokens ?? config.maxOutputTokens, config.maxOutputTokens),
-      temperature: request.temperature ?? 0.2,
-      thinking,
-      ...(request.tools ? { tools: request.tools } : {}),
-      ...(request.toolChoice ? { tool_choice: request.toolChoice } : {}),
-    };
-
-    const release = await acquire();
-    try {
-      for (let attempt = 0; attempt <= config.maxRetries; attempt += 1) {
+      for (
+        let attempt = 0;
+        attempt <= config.deepSeek.maxRetries;
+        attempt += 1
+      ) {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+        const onAbort = () => controller.abort(request.signal?.reason);
+        request.signal?.addEventListener("abort", onAbort, { once: true });
+        const timeout = setTimeout(
+          () => controller.abort("timeout"),
+          config.deepSeek.timeoutMs
+        );
+        let response: Response | null = null;
         try {
-          const response = await fetch(`${config.baseUrl}/chat/completions`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-            signal: request.signal
-              ? AbortSignal.any([request.signal, controller.signal])
-              : controller.signal,
-          });
+          response = await fetchImpl(
+            `${config.deepSeek.baseUrl}/chat/completions`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+              signal: controller.signal,
+            }
+          );
           if (!response.ok) {
-            if (retryableStatus(response.status) && attempt < config.maxRetries) {
-              await sleep(Math.min(2_000, 250 * 2 ** attempt));
+            const classified = classifyStatus(response.status);
+            if (classified.retryable && attempt < config.deepSeek.maxRetries) {
+              try {
+                await response.body?.cancel();
+              } catch {
+                // The response may already be closed; retry classification wins.
+              }
+              await sleep(retryDelay(response, attempt));
               continue;
             }
-            throw new DeepSeekProviderError("http", `DeepSeek request failed with HTTP ${response.status}`, response.status);
+            throw classified;
           }
-
-          const data: unknown = await response.json();
-          if (!data || typeof data !== "object") {
-            throw new DeepSeekProviderError("invalid_response", "DeepSeek returned an invalid response");
+          let raw: unknown;
+          try {
+            raw = await response.json();
+          } catch {
+            throw new AIProviderError(
+              "malformed_response",
+              "Generation provider returned invalid JSON"
+            );
           }
-          const root = data as Record<string, unknown>;
-          const choices = Array.isArray(root.choices) ? root.choices : [];
-          const first = choices[0];
-          const choice = first && typeof first === "object" ? (first as Record<string, unknown>) : undefined;
-          const message = choice?.message;
-          const messageObject = message && typeof message === "object" ? (message as Record<string, unknown>) : undefined;
-          const content = typeof messageObject?.content === "string" ? messageObject.content : "";
-          const toolCalls = Array.isArray(messageObject?.tool_calls)
-            ? (messageObject.tool_calls as DeepSeekToolCall[])
-            : [];
-          if (!choice || (content.length === 0 && toolCalls.length === 0)) {
-            throw new DeepSeekProviderError("invalid_response", "DeepSeek returned no message content");
+          const root = object(raw);
+          const first = Array.isArray(root?.choices)
+            ? object(root.choices[0])
+            : null;
+          const message = object(first?.message);
+          const content =
+            typeof message?.content === "string" ? message.content : "";
+          const toolCalls = parseToolCalls(message?.tool_calls);
+          if (
+            !root ||
+            !first ||
+            !message ||
+            (!content && toolCalls.length === 0)
+          ) {
+            throw new AIProviderError(
+              "malformed_response",
+              "Generation provider returned no usable response"
+            );
           }
+          const responseModel =
+            typeof root.model === "string" ? root.model : model;
           return {
+            id: typeof root.id === "string" ? root.id : undefined,
             content,
-            model: typeof root.model === "string" ? root.model : model,
-            finishReason: typeof choice.finish_reason === "string" ? choice.finish_reason : null,
+            model: responseModel,
+            finishReason:
+              typeof first.finish_reason === "string"
+                ? first.finish_reason
+                : null,
             toolCalls,
-            usage: parseUsage(root.usage),
+            usage: parseUsage(root.usage, responseModel),
           };
         } catch (error) {
-          if (error instanceof DeepSeekProviderError) throw error;
-          if (error instanceof DOMException && error.name === "AbortError") {
-            throw new DeepSeekProviderError("timeout", "DeepSeek request timed out");
+          if (error instanceof AIProviderError) throw error;
+          if (controller.signal.aborted) {
+            if (request.signal?.aborted) {
+              throw new AIProviderError(
+                "cancelled",
+                "Generation request was cancelled"
+              );
+            }
+            if (attempt < config.deepSeek.maxRetries) {
+              await sleep(retryDelay(response, attempt));
+              continue;
+            }
+            throw new AIProviderError(
+              "timeout",
+              "Generation provider timed out",
+              undefined,
+              true
+            );
           }
-          if (attempt < config.maxRetries) {
-            await sleep(Math.min(2_000, 250 * 2 ** attempt));
+          if (attempt < config.deepSeek.maxRetries) {
+            await sleep(retryDelay(response, attempt));
             continue;
           }
-          throw new DeepSeekProviderError("http", "DeepSeek request could not be completed");
+          throw new AIProviderError(
+            "transient",
+            "Generation provider could not be reached",
+            undefined,
+            true
+          );
         } finally {
           clearTimeout(timeout);
+          request.signal?.removeEventListener("abort", onAbort);
         }
       }
-      throw new DeepSeekProviderError("http", "DeepSeek request could not be completed");
-    } finally {
-      release();
-    }
+      throw new AIProviderError(
+        "transient",
+        "Generation provider could not be reached",
+        undefined,
+        true
+      );
+    },
   };
-
-  return { config, complete };
 };

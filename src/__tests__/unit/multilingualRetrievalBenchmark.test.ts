@@ -27,6 +27,7 @@ describe("multilingual retrieval benchmark fixtures", () => {
       evaluateRetrievalBenchmark({
         query: authorized!,
         rankedDocumentIds: ["en-course-a-outcome", "unrelated-course-a"],
+        citedDocumentIds: ["en-course-a-outcome"],
         authorizedDocumentIds: new Set([
           "en-course-a-outcome",
           "unrelated-course-a",
@@ -36,6 +37,7 @@ describe("multilingual retrieval benchmark fixtures", () => {
       topResultCorrect: true,
       reciprocalRank: 1,
       citationCorrect: true,
+      falsePositiveCount: 1,
       unauthorizedLeak: false,
     });
 
@@ -45,6 +47,7 @@ describe("multilingual retrieval benchmark fixtures", () => {
       evaluateRetrievalBenchmark({
         query: negative!,
         rankedDocumentIds: ["same-topic-institution-b"],
+        citedDocumentIds: ["same-topic-institution-b"],
         authorizedDocumentIds: new Set(["en-course-a-outcome"]),
       })
     ).toMatchObject({
@@ -53,5 +56,60 @@ describe("multilingual retrieval benchmark fixtures", () => {
       unauthorizedLeak: true,
     });
   });
-});
 
+  it("does not call an unauthorized query successful when an authorized distractor is returned", () => {
+    const fixture = MULTILINGUAL_RETRIEVAL_FIXTURES[0];
+    const negative = fixture?.queries[5];
+    expect(negative).toBeDefined();
+    expect(
+      evaluateRetrievalBenchmark({
+        query: negative!,
+        rankedDocumentIds: ["unrelated-course-a"],
+        citedDocumentIds: [],
+        authorizedDocumentIds: new Set(["unrelated-course-a"]),
+      })
+    ).toMatchObject({
+      topResultCorrect: false,
+      citationCorrect: true,
+      falsePositiveCount: 1,
+      unauthorizedLeak: false,
+    });
+  });
+
+  it("rejects a hallucinated citation even when retrieval ranking is correct", () => {
+    const fixture = MULTILINGUAL_RETRIEVAL_FIXTURES[0];
+    const authorized = fixture?.queries[0];
+    expect(authorized).toBeDefined();
+    expect(
+      evaluateRetrievalBenchmark({
+        query: authorized!,
+        rankedDocumentIds: ["en-course-a-outcome"],
+        citedDocumentIds: ["hallucinated-material-id"],
+        authorizedDocumentIds: new Set(["en-course-a-outcome"]),
+      })
+    ).toMatchObject({
+      topResultCorrect: true,
+      citationCorrect: false,
+      unauthorizedLeak: true,
+    });
+  });
+
+  it("rejects an authorized ranking when any lower result is unauthorized", () => {
+    const fixture = MULTILINGUAL_RETRIEVAL_FIXTURES[0];
+    const authorized = fixture?.queries[0];
+    expect(authorized).toBeDefined();
+    expect(
+      evaluateRetrievalBenchmark({
+        query: authorized!,
+        rankedDocumentIds: ["en-course-a-outcome", "foreign-material-id"],
+        citedDocumentIds: ["en-course-a-outcome"],
+        authorizedDocumentIds: new Set(["en-course-a-outcome"]),
+      })
+    ).toMatchObject({
+      topResultCorrect: false,
+      reciprocalRank: 0,
+      citationCorrect: false,
+      unauthorizedLeak: true,
+    });
+  });
+});

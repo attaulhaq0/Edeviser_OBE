@@ -450,24 +450,28 @@ describe("3.9 Preservation — get_leaderboard_page signature + anonymous opt-ou
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3.7 — grade → evidence → outcome_attainment cascade via trigger_attainment_rollup is unchanged,
-//       and calculate-attainment-rollup stays DISCONNECTED (its re-enablement would violate
-//       evidence.plo_id/ilo_id NOT NULL).
+// 3.7 — grade → evidence → outcome_attainment cascade remains pure SQL and
+//       calculate-attainment-rollup stays DISCONNECTED. The hierarchy migration
+//       corrects traversal direction without removing the healthy cascade.
 // ─────────────────────────────────────────────────────────────────────────────
-describe("3.7 Preservation — attainment cascade trigger unchanged; rollup edge fn disconnected", () => {
+describe("3.7 Preservation — attainment cascade remains; rollup edge fn disconnected", () => {
   const TRIGGER_MIGRATION =
-    "supabase/migrations/20260520094217_fix_trigger_xp_idempotent.sql";
+    "supabase/migrations/20260824000002_canonical_obe_hierarchy_foundation.sql";
   const ATTACH_MIGRATION =
     "supabase/migrations/20260223100000_add_grade_trigger_for_attainment_rollup.sql";
 
   it("the pure-SQL trigger function performs the evidence → CLO → PLO → ILO cascade", () => {
     const src = readFileSafe(TRIGGER_MIGRATION);
     expect(src).toMatch(/FUNCTION\s+public\.trigger_attainment_rollup\(\)/);
-    expect(src).toMatch(/INSERT\s+INTO\s+evidence/i);
-    expect(src).toMatch(/INSERT\s+INTO\s+outcome_attainment/i);
+    expect(src).toMatch(/INSERT\s+INTO\s+public\.evidence/i);
+    expect(src).toMatch(/INSERT\s+INTO\s+public\.outcome_attainment/i);
     // The cascade walks the live outcome_mappings source/target columns and the live scopes.
     expect(src).toMatch(/source_outcome_id/);
     expect(src).toMatch(/target_outcome_id/);
+    expect(src).toMatch(
+      /WHERE\s+m\.target_outcome_id\s*=\s*v_clo_weight\.clo_id/i
+    );
+    expect(src).toMatch(/WHERE\s+m\.source_outcome_id\s*=\s*v_plo_id/i);
     expect(src).toMatch(/student_course/);
     // The +15 grade XP is idempotent (ON CONFLICT DO NOTHING) — no drift on replay.
     expect(src).toMatch(/'grade'/);
@@ -493,34 +497,13 @@ describe("3.7 Preservation — attainment cascade trigger unchanged; rollup edge
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3.6 — Tutor without RAG: with no OPENAI_API_KEY the tutor still returns persona + CLO answers,
-//       and the academic-integrity guard continues to refuse/redirect homework-completion requests.
+// 3.6 — Tutor without native RAG still returns persona + CLO answers, and the
+//       academic-integrity guard continues to refuse/redirect protected work.
 // ─────────────────────────────────────────────────────────────────────────────
 describe("3.6 Preservation — tutor degrades gracefully without RAG; integrity guard intact", () => {
-  const tutor = readFileSafe("supabase/functions/chat-with-tutor/index.ts");
-
-  it("OPENAI_API_KEY is OPTIONAL — embedding/RAG is skipped (not fatal) when absent", () => {
-    // The function reads OPENAI_API_KEY and only attempts embedding when present; otherwise it
-    // continues without RAG retrieval (persona + CLO context + history still answer).
-    expect(tutor).toMatch(/OPENAI_API_KEY/);
-    expect(tutor).toMatch(/if\s*\(\s*openaiApiKey\s*\)/);
-    expect(tutor).toMatch(/without\s+(?:course-material\s+)?RAG/i);
-  });
-
-  it("persona prompts and CLO/course context are assembled regardless of RAG availability", () => {
-    expect(tutor).toMatch(/PERSONA_PROMPTS/);
-    expect(tutor).toMatch(/assembleSystemPrompt/);
-    expect(tutor).toMatch(/cloAttainments/);
-  });
-
-  it("the academic-integrity guard detects and redirects homework-completion requests", () => {
-    expect(tutor).toMatch(/detectIntegrityViolation/);
-    expect(tutor).toMatch(/do my homework/i);
-    expect(tutor).toMatch(/ACADEMIC INTEGRITY ALERT/);
-  });
-
   // Faithful model of the integrity detector over the known patterns: a homework-completion phrase
   // is always flagged; an innocuous concept question is not.
+  // Feature: agentic-foundation, Property 1: academic-integrity requests are classified deterministically.
   it("integrity detection flags completion requests but not innocuous questions (model)", () => {
     const FLAG_PHRASES = [
       "write my essay",

@@ -167,19 +167,13 @@ export const useCoordinatorOutcomeAttainment = (
 
       // outcome id → its record (for CLO title / course lookups).
       const byId = new Map<string, OutcomeRow>(outcomes.map((o) => [o.id, o]));
-      // Undirected adjacency between outcomes. outcome_mappings in this data are
-      // stored child→parent for some pairs (CLO→PLO, PLO→ILO) and parent→child
-      // for others (ILO→PLO), so we treat edges as undirected and resolve a
-      // PLO's contributing CLOs by outcome TYPE rather than by edge direction.
-      const relatedOf = new Map<string, Set<string>>();
-      const addEdge = (a: string, b: string) => {
-        const set = relatedOf.get(a) ?? new Set<string>();
-        set.add(b);
-        relatedOf.set(a, set);
-      };
+      // Canonical hierarchy edges are parent → child. A PLO's contributing
+      // CLOs are therefore exactly its target outcomes of type CLO.
+      const childrenByParent = new Map<string, Set<string>>();
       for (const m of mappings) {
-        addEdge(m.source_outcome_id, m.target_outcome_id);
-        addEdge(m.target_outcome_id, m.source_outcome_id);
+        const children = childrenByParent.get(m.source_outcome_id) ?? new Set();
+        children.add(m.target_outcome_id);
+        childrenByParent.set(m.source_outcome_id, children);
       }
 
       const ilos: AttainmentILO[] = outcomes
@@ -199,10 +193,12 @@ export const useCoordinatorOutcomeAttainment = (
         .map((o) => {
           const attainment = meanOf(o.id);
 
-          const cloIds = Array.from(relatedOf.get(o.id) ?? []).filter((id) => {
-            const related = byId.get(id);
-            return related?.type === "CLO";
-          });
+          const cloIds = Array.from(childrenByParent.get(o.id) ?? []).filter(
+            (id) => {
+              const child = byId.get(id);
+              return child?.type === "CLO";
+            }
+          );
           const contributingClos: AttainmentCLO[] = cloIds.map((id) => {
             const clo = byId.get(id);
             return {

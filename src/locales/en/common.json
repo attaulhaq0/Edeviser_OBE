@@ -1227,5 +1227,25 @@
       "title": "No Attainment Data",
       "description": "CLO attainment will appear as assessments are completed."
     }
+  },
+  "intelligence": {
+    "title": "E Deviser Intelligence",
+    "open": "Open E Deviser Intelligence",
+    "description": "Role-aware guidance grounded in authorized learning evidence. Protected actions always require your approval.",
+    "proactive": "For you",
+    "noProactive": "No new proactive guidance right now.",
+    "placeholder": "Ask about the learning evidence on this page…",
+    "ask": "Ask Intelligence",
+    "approvalRequired": "Your approval is required",
+    "approve": "Approve proposal",
+    "execute": "Execute approved action",
+    "approved": "Proposal approved. Nothing was executed yet.",
+    "approvedAwaiting": "Approved. This action remains pending until a registered executor is available.",
+    "rejected": "This proposal was rejected.",
+    "expired": "This proposal expired before execution.",
+    "executedStatus": "This approved action has been completed.",
+    "executed": "Approved action completed.",
+    "unavailable": "Intelligence is currently unavailable.",
+    "actionFailed": "The action could not be completed."
   }
 }

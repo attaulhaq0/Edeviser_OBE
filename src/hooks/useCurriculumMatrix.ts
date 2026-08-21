@@ -191,7 +191,7 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
 
       const typedClos = clos ?? [];
 
-      // 4. Fetch outcome_mappings: PLO (parent) ← CLO (child)
+      // 4. Fetch outcome_mappings: PLO (parent) → CLO (child)
       const cloIds = typedClos.map((c) => c.id);
 
       let typedMappings: OutcomeMappingRow[] = [];

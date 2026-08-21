@@ -82,68 +82,94 @@ serve(async (req) => {
       );
     }
 
-    let sent = 0;
-    const errors: Array<{ student_id: string; error: string }> = [];
     const appUrl = (Deno.env.get("APP_URL") ?? "https://app.edeviser.com")
       .trim()
       .replace(/\/+$/, "");
     const dashboardUrl = `${appUrl}/student/dashboard`;
+    const results: Array<
+      | { student_id: string; sent: true }
+      | { student_id: string; sent: false; error: string }
+    > = [];
 
-    for (const student of students) {
-      try {
-        // Aggregate XP earned this week
-        const { data: xpRows } = await supabase
-          .from("xp_transactions")
-          .select("xp_amount")
-          .eq("student_id", student.id)
-          .gte("created_at", weekAgoISO);
+    // Bound concurrency so the weekly job finishes within its caller timeout
+    // without creating an unbounded burst for larger institutions.
+    for (let offset = 0; offset < students.length; offset += 10) {
+      const batch = students.slice(offset, offset + 10);
+      results.push(
+        ...(await Promise.all(
+          batch.map(async (student) => {
+            try {
+              // Aggregate XP earned this week
+              const [
+                xpResult,
+                badgesResult,
+                gamificationResult,
+                submissionsResult,
+              ] = await Promise.all([
+                supabase
+                  .from("xp_transactions")
+                  .select("xp_amount")
+                  .eq("student_id", student.id)
+                  .gte("created_at", weekAgoISO),
+                supabase
+                  .from("student_badges")
+                  .select("id", { count: "exact", head: true })
+                  .eq("student_id", student.id)
+                  .gte("awarded_at", weekAgoISO),
+                supabase
+                  .from("student_gamification")
+                  .select("streak_current")
+                  .eq("student_id", student.id)
+                  .maybeSingle(),
+                supabase
+                  .from("submissions")
+                  .select("id", { count: "exact", head: true })
+                  .eq("student_id", student.id)
+                  .gte("created_at", weekAgoISO),
+              ]);
 
-        const xpEarned = (xpRows ?? []).reduce(
-          (sum: number, row: { xp_amount: number }) => sum + row.xp_amount,
-          0
-        );
+              const xpEarned = (xpResult.data ?? []).reduce(
+                (sum: number, row: { xp_amount: number }) =>
+                  sum + row.xp_amount,
+                0
+              );
 
-        // Count badges earned this week
-        const { count: badgesEarned } = await supabase
-          .from("student_badges")
-          .select("id", { count: "exact", head: true })
-          .eq("student_id", student.id)
-          .gte("awarded_at", weekAgoISO);
-
-        // Get current streak
-        const { data: gamification } = await supabase
-          .from("student_gamification")
-          // live column is `streak_current` (not `streak_count`)
-          .select("streak_current")
-          .eq("student_id", student.id)
-          .maybeSingle();
-
-        // Count submissions this week
-        const { count: submissionsCount } = await supabase
-          .from("submissions")
-          .select("id", { count: "exact", head: true })
-          .eq("student_id", student.id)
-          .gte("created_at", weekAgoISO);
-
-        await supabase.functions.invoke("send-email-notification", {
-          body: {
-            to: student.email,
-            template: "weekly_summary",
-            data: {
-              student_name: student.full_name,
-              xp_earned: xpEarned,
-              badges_earned: badgesEarned ?? 0,
-              streak_count: gamification?.streak_current ?? 0,
-              submissions_count: submissionsCount ?? 0,
-              dashboard_url: dashboardUrl,
-            },
-          },
-        });
-        sent++;
-      } catch (err) {
-        errors.push({ student_id: student.id, error: (err as Error).message });
-      }
+              const { error: emailError } = await supabase.functions.invoke(
+                "send-email-notification",
+                {
+                  body: {
+                    to: student.email,
+                    template: "weekly_summary",
+                    data: {
+                      student_name: student.full_name,
+                      xp_earned: xpEarned,
+                      badges_earned: badgesResult.count ?? 0,
+                      streak_count:
+                        gamificationResult.data?.streak_current ?? 0,
+                      submissions_count: submissionsResult.count ?? 0,
+                      dashboard_url: dashboardUrl,
+                    },
+                  },
+                }
+              );
+              if (emailError) throw emailError;
+              return { student_id: student.id, sent: true } as const;
+            } catch (err) {
+              return {
+                student_id: student.id,
+                sent: false,
+                error: err instanceof Error ? err.message : String(err),
+              } as const;
+            }
+          })
+        ))
+      );
     }
+
+    const sent = results.filter((result) => result.sent).length;
+    const errors = results
+      .filter((result) => !result.sent)
+      .map(({ student_id, error }) => ({ student_id, error }));
 
     return new Response(
       JSON.stringify({

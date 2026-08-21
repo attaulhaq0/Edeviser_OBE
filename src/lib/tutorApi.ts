@@ -114,7 +114,7 @@ export const sendTutorMessage = async (
     }));
     callbacks.onError({
       code: errorBody.code ?? String(response.status),
-      message: errorBody.message ?? response.statusText,
+      message: errorBody.message ?? errorBody.error ?? response.statusText,
       httpStatus: response.status,
     });
     return;

@@ -39,7 +39,6 @@ const optionsSchema = z.object({
     .trim()
     .regex(/^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$/),
   confirmationToken: z.string().trim().optional(),
-  confirmInstitutionId: z.string().uuid().optional(),
   outputPath: z.string().trim().min(1),
 });
 
@@ -52,8 +51,6 @@ export interface TenantOperationOptions {
   mode: TenantOperationMode;
   runId: string;
   confirmationToken?: string;
-  /** A deliberately separate, exact target guard required for any deletion. */
-  confirmInstitutionId?: string;
   outputPath: string;
 }
 
@@ -153,7 +150,6 @@ const flagMap = {
   "--mode": "mode",
   "--run-id": "runId",
   "--confirmation-token": "confirmationToken",
-  "--confirm-institution-id": "confirmInstitutionId",
   "--output-path": "outputPath",
 } as const;
 
@@ -165,16 +161,8 @@ export function parseTenantOperationArgs(
   args: readonly string[]
 ): TenantOperationOptions {
   const parsed: Record<string, string> = {};
-  for (let index = 0; index < args.length; ) {
+  for (let index = 0; index < args.length; index += 2) {
     const flag = args[index];
-    if (flag === "--dry-run" || flag === "--execute") {
-      if (parsed.mode !== undefined) {
-        throw new Error("Duplicate tenant-operations mode flag");
-      }
-      parsed.mode = flag === "--dry-run" ? "dry-run" : "execute";
-      index += 1;
-      continue;
-    }
     const value = args[index + 1];
     if (!flag || !isFlag(flag)) {
       throw new Error(`Unknown tenant-operations flag: ${flag ?? "<missing>"}`);
@@ -187,7 +175,6 @@ export function parseTenantOperationArgs(
       throw new Error(`Duplicate tenant-operations flag: ${flag}`);
     }
     parsed[key] = value;
-    index += 2;
   }
   const result = optionsSchema.safeParse(parsed);
   if (!result.success) {
@@ -237,17 +224,14 @@ export function assertTenantOperationSafety(
     throw new Error("Institution identity mismatch; operation aborted");
   }
   if (options.mode === "dry-run") return;
-  if (options.confirmationToken !== expectedConfirmationToken(options)) {
-    throw new Error("Exact confirmation token required for execute mode");
-  }
-  if (options.confirmInstitutionId !== options.institutionId) {
-    throw new Error("Exact --confirm-institution-id is required for execute mode");
-  }
   if (
     options.projectRef === PRODUCTION_PROJECT_REF &&
     !PRODUCTION_EXECUTION_AVAILABLE
   ) {
     throw new Error("Production execute mode is unavailable in this build");
+  }
+  if (options.confirmationToken !== expectedConfirmationToken(options)) {
+    throw new Error("Exact confirmation token required for execute mode");
   }
 }
 

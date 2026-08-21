@@ -1,111 +1,181 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createDeepSeekProvider,
-  DEEPSEEK_DEFAULT_BASE_URL,
-  DEEPSEEK_DEFAULT_MODEL,
-  getDeepSeekConfig,
-  DeepSeekProviderError,
-} from "../../../supabase/functions/_shared/ai/providers/deepseek";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-const env = new Map<string, string>();
+import { getAgenticConfig } from "../../../supabase/functions/_shared/ai/config";
+import { AIProviderError } from "../../../supabase/functions/_shared/ai/provider";
+import { createDeepSeekProvider } from "../../../supabase/functions/_shared/ai/providers/deepseek";
 
-const installDenoEnv = () => {
-  vi.stubGlobal("Deno", { env: { get: (name: string) => env.get(name) } });
-};
+const envValues = new Map<string, string>([
+  ["AI_FEATURE_ENABLED", "true"],
+  ["AI_DAILY_BUDGET_USD", "10"],
+  ["DEEPSEEK_API_KEY", "test-only-secret"],
+]);
+const env = { get: (name: string) => envValues.get(name) };
 
-const response = (body: unknown, init: ResponseInit = {}) =>
-  new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
+const success = (content = "ok") =>
+  new Response(
+    JSON.stringify({
+      id: "completion-1",
+      model: "deepseek-v4-flash",
+      choices: [{ message: { content }, finish_reason: "stop" }],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
 
-describe("DeepSeek server provider", () => {
-  beforeEach(() => {
-    env.clear();
-    env.set("DEEPSEEK_API_KEY", "test-only-key");
-    installDenoEnv();
-    vi.stubGlobal("fetch", vi.fn());
-  });
+afterEach(() => {
+  envValues.clear();
+  envValues.set("AI_FEATURE_ENABLED", "true");
+  envValues.set("AI_DAILY_BUDGET_USD", "10");
+  envValues.set("DEEPSEEK_API_KEY", "test-only-secret");
+  vi.useRealTimers();
+});
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
-  });
-
-  it("uses the safe production defaults", () => {
-    const config = getDeepSeekConfig();
-    expect(config.baseUrl).toBe(DEEPSEEK_DEFAULT_BASE_URL);
-    expect(config.primaryModel).toBe(DEEPSEEK_DEFAULT_MODEL);
-    expect(config.complexModel).toBe(DEEPSEEK_DEFAULT_MODEL);
-  });
-
-  it("fails safely when the server secret is missing", async () => {
-    env.delete("DEEPSEEK_API_KEY");
-    const provider = createDeepSeekProvider();
-
-    await expect(
-      provider.complete({ messages: [{ role: "user", content: "hello" }] })
-    ).rejects.toMatchObject({ code: "missing_api_key" });
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it("sends disabled thinking, bounded tokens, and normalizes success metadata", async () => {
-    const fetchMock = vi.mocked(fetch);
-    fetchMock.mockResolvedValue(
-      response({
-        model: DEEPSEEK_DEFAULT_MODEL,
-        choices: [{ message: { content: "hello" }, finish_reason: "stop" }],
-        usage: { prompt_tokens: 7, completion_tokens: 3, total_tokens: 10 },
-      })
-    );
-    const provider = createDeepSeekProvider();
-
+describe("DeepSeek AIProvider", () => {
+  it("normalizes requests and usage without exposing its secret", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(success());
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock,
+    });
     const result = await provider.complete({
       messages: [{ role: "user", content: "hello" }],
-      maxOutputTokens: 99999,
+      maxOutputTokens: 999_999,
     });
-
     expect(result).toMatchObject({
-      content: "hello",
-      model: DEEPSEEK_DEFAULT_MODEL,
-      finishReason: "stop",
-      usage: { promptTokens: 7, completionTokens: 3, totalTokens: 10 },
+      content: "ok",
+      model: "deepseek-v4-flash",
+      usage: { inputTokens: 10, outputTokens: 5, totalTokens: 15 },
     });
-    const [, init] = fetchMock.mock.calls[0] ?? [];
-    const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>;
     expect(body).toMatchObject({
-      model: DEEPSEEK_DEFAULT_MODEL,
-      max_tokens: 512,
+      model: "deepseek-v4-flash",
+      max_tokens: 2048,
       thinking: { type: "disabled" },
     });
+    expect(JSON.stringify(body)).not.toContain("test-only-secret");
   });
 
-  it("rejects legacy models and non-official base URLs", () => {
-    env.set("DEEPSEEK_PRIMARY_MODEL", "deepseek-chat");
-    expect(() => getDeepSeekConfig()).toThrow(DeepSeekProviderError);
-    env.delete("DEEPSEEK_PRIMARY_MODEL");
-    env.set("DEEPSEEK_BASE_URL", "https://example.test");
-    expect(() => getDeepSeekConfig()).toThrow(DeepSeekProviderError);
+  it("uses standard-endpoint tool calling without beta-only strict mode", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(success());
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock,
+    });
+    await provider.complete({
+      messages: [{ role: "user", content: "use the tool" }],
+      tools: [
+        {
+          name: "read_context",
+          description: "Read authorized context",
+          inputJsonSchema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {},
+            required: [],
+          },
+        },
+      ],
+    });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as {
+      tools: Array<{ function: Record<string, unknown> }>;
+    };
+    expect(body.tools[0]?.function).not.toHaveProperty("strict");
   });
 
-  it("normalizes API failures without exposing the secret", async () => {
-    vi.mocked(fetch).mockResolvedValue(response({ error: { message: env.get("DEEPSEEK_API_KEY") } }, { status: 400 }));
-    const provider = createDeepSeekProvider();
-
-    const error = await provider.complete({ messages: [{ role: "user", content: "hello" }] }).catch((value: unknown) => value);
-    expect(error).toBeInstanceOf(DeepSeekProviderError);
-    expect(String(error)).not.toContain("test-only-key");
-    expect((error as DeepSeekProviderError).code).toBe("http");
-  });
-
-  it("converts request aborts into a safe timeout error", async () => {
-    vi.mocked(fetch).mockRejectedValue(new DOMException("aborted", "AbortError"));
-    env.set("DEEPSEEK_MAX_RETRIES", "1");
-    const provider = createDeepSeekProvider();
-
+  it("fails safely when the server secret is absent", async () => {
+    envValues.delete("DEEPSEEK_API_KEY");
+    const fetchMock = vi.fn();
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock,
+    });
     await expect(
       provider.complete({ messages: [{ role: "user", content: "hello" }] })
-    ).rejects.toMatchObject({ code: "timeout" });
+    ).rejects.toMatchObject({ kind: "configuration" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([429, 500, 503])(
+    "retries safe transient HTTP %s responses",
+    async (status) => {
+      envValues.set("AI_MAX_RETRIES", "1");
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(new Response("unavailable", { status }))
+        .mockResolvedValueOnce(success());
+      const provider = createDeepSeekProvider(getAgenticConfig(env), {
+        env,
+        fetch: fetchMock,
+        sleep: vi.fn().mockResolvedValue(undefined),
+      });
+      await expect(
+        provider.complete({ messages: [{ role: "user", content: "hello" }] })
+      ).resolves.toMatchObject({ content: "ok" });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it("releases a retryable response body before the next attempt", async () => {
+    envValues.set("AI_MAX_RETRIES", "1");
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    const retryableResponse = {
+      ok: false,
+      status: 503,
+      headers: new Headers(),
+      body: { cancel },
+    } as unknown as Response;
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: vi
+        .fn()
+        .mockResolvedValueOnce(retryableResponse)
+        .mockResolvedValueOnce(success()),
+      sleep: vi.fn().mockResolvedValue(undefined),
+    });
+    await expect(
+      provider.complete({ messages: [{ role: "user", content: "hello" }] })
+    ).resolves.toMatchObject({ content: "ok" });
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("classifies a malformed response", async () => {
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: vi
+        .fn()
+        .mockResolvedValue(new Response("not-json", { status: 200 })),
+    });
+    await expect(
+      provider.complete({ messages: [{ role: "user", content: "hello" }] })
+    ).rejects.toMatchObject({ kind: "malformed_response" });
+  });
+
+  it("converts request timeout to a typed safe error", async () => {
+    vi.useFakeTimers();
+    envValues.set("AI_REQUEST_TIMEOUT_MS", "1000");
+    envValues.set("AI_MAX_RETRIES", "0");
+    const fetchMock = vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("aborted", "AbortError"))
+          );
+        })
+    );
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock as typeof fetch,
+    });
+    const pending = provider.complete({
+      messages: [{ role: "user", content: "hello" }],
+    });
+    const captured = pending.catch((value: unknown) => value);
+    await vi.advanceTimersByTimeAsync(1000);
+    const error = await captured;
+    expect(error).toBeInstanceOf(AIProviderError);
+    expect(error).toMatchObject({ kind: "timeout", retryable: true });
+    expect(String(error)).not.toContain("test-only-secret");
   });
 });

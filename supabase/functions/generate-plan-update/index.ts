@@ -1,4 +1,7 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { getAgenticConfig } from "../_shared/ai/config.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -44,6 +47,18 @@ interface LearningPlanUpdate {
   interaction_count: number;
 }
 
+const constantTimeEqual = (left: string, right: string): boolean => {
+  const encoder = new TextEncoder();
+  const leftBytes = encoder.encode(left);
+  const rightBytes = encoder.encode(right);
+  if (leftBytes.length !== rightBytes.length) return false;
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index]! ^ rightBytes[index]!;
+  }
+  return difference === 0;
+};
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -60,9 +75,17 @@ serve(async (req) => {
   }
 
   try {
+    const managedServerKey = getManagedServerKey();
+    const authorization = req.headers.get("Authorization") ?? "";
+    if (!constantTimeEqual(authorization, `Bearer ${managedServerKey}`)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      getManagedServerKey()
+      managedServerKey
     );
 
     // Parse request body
@@ -145,52 +168,40 @@ serve(async (req) => {
 
     let retrievedChunks: RetrievedChunk[] = [];
 
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (openaiApiKey) {
-      // Generate embedding for CLO title + bloom level as query
-      const queryText = `Study materials for ${cloTitle} at ${bloomLevel} level`;
-
-      try {
-        const embeddingResponse = await fetch(
-          "https://api.openai.com/v1/embeddings",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${openaiApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "text-embedding-ada-002",
-              input: queryText,
-            }),
-          }
-        );
-
-        if (embeddingResponse.ok) {
-          const embeddingData = await embeddingResponse.json();
-          const queryEmbedding = embeddingData.data[0].embedding;
-
-          const { data: chunks } = await supabase.rpc(
-            "search_course_materials",
-            {
-              query_embedding: JSON.stringify(queryEmbedding),
-              match_course_ids: [course_id],
-              match_clo_ids: [clo_id],
-              match_threshold: 0.6, // slightly lower threshold for broader material coverage
-              match_count: 3,
-            }
-          );
-
-          if (chunks) {
-            retrievedChunks = chunks as RetrievedChunk[];
-          }
-        }
-      } catch (err) {
-        console.error(
-          "RAG retrieval failed (non-blocking):",
-          (err as Error).message
+    const queryText = `Study materials for ${cloTitle} at ${bloomLevel} level`;
+    try {
+      const embeddingProvider = createConfiguredEmbeddingProvider();
+      const embedded = await embeddingProvider.embed({
+        inputs: [queryText],
+      });
+      const queryEmbedding = embedded.vectors[0];
+      if (!queryEmbedding) {
+        throw new Error("Embedding provider returned no query vector");
+      }
+      const searchRpc =
+        embeddingProvider.metadata.version === 3
+          ? "search_course_materials_v3"
+          : embeddingProvider.metadata.version === 2
+            ? "search_course_materials_v2"
+            : null;
+      if (!searchRpc) {
+        throw new Error(
+          `Unsupported embedding version: ${embeddingProvider.metadata.version}`
         );
       }
+      const { data: chunks } = await supabase.rpc(
+        searchRpc,
+        {
+          query_embedding: JSON.stringify(queryEmbedding),
+          match_course_ids: [course_id],
+          match_clo_ids: [clo_id],
+          match_threshold: 0.6,
+          match_count: 3,
+        }
+      );
+      if (chunks) retrievedChunks = chunks as RetrievedChunk[];
+    } catch {
+      console.error("Supabase-native RAG retrieval unavailable");
     }
 
     // ── 15.2.3: Generate study time and planner recommendations via LLM ─
@@ -204,8 +215,17 @@ serve(async (req) => {
     let studyTimeRecommendation = "";
     let suggestedPlannerSessions = 2;
 
-    const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (openRouterApiKey) {
+    const agenticConfig = getAgenticConfig(Deno.env);
+    if (!agenticConfig.enabled) {
+      return new Response(
+        JSON.stringify({ error: "E Deviser Intelligence is not enabled" }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    {
       const llmPrompt = [
         "You are an educational planning assistant. Based on the following student data, generate a brief study plan recommendation.",
         "",
@@ -228,61 +248,57 @@ serve(async (req) => {
       ].join("\n");
 
       try {
-        const model =
-          Deno.env.get("TUTOR_PRIMARY_MODEL") ?? "openai/gpt-4o-mini";
-
-        const llmResponse = await fetch(
-          "https://openrouter.ai/api/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${openRouterApiKey}`,
-              "Content-Type": "application/json",
-              "HTTP-Referer": Deno.env.get("SUPABASE_URL") ?? "",
-              "X-Title": "Edeviser AI Tutor Plan Update",
+        const response = await createAIProvider(agenticConfig, {
+          env: Deno.env,
+        }).complete({
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are an educational planning assistant. Return json only. Use only supplied facts and do not create planner records.",
             },
-            body: JSON.stringify({
-              model,
-              messages: [{ role: "user", content: llmPrompt }],
-              max_tokens: 300,
-              temperature: 0.5,
-            }),
+            { role: "user", content: llmPrompt },
+          ],
+          responseFormat: "json",
+          maxOutputTokens: 300,
+          temperature: 0.5,
+        });
+        const parsed = JSON.parse(response.content) as Record<string, unknown>;
+        studyTimeRecommendation =
+          typeof parsed.study_time_recommendation === "string"
+            ? parsed.study_time_recommendation
+            : "";
+        suggestedPlannerSessions =
+          typeof parsed.suggested_planner_sessions === "number" &&
+          Number.isFinite(parsed.suggested_planner_sessions)
+            ? Math.min(
+                5,
+                Math.max(1, Math.round(parsed.suggested_planner_sessions))
+              )
+            : 2;
+      } catch {
+        return new Response(
+          JSON.stringify({
+            error: "Plan recommendation provider is unavailable",
+            code: "PROVIDER_UNAVAILABLE",
+          }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
-        );
-
-        if (llmResponse.ok) {
-          const llmData = await llmResponse.json();
-          const content = llmData.choices?.[0]?.message?.content ?? "";
-
-          try {
-            const parsed = JSON.parse(content);
-            studyTimeRecommendation = parsed.study_time_recommendation ?? "";
-            suggestedPlannerSessions = parsed.suggested_planner_sessions ?? 2;
-          } catch {
-            // If JSON parsing fails, use the raw content as recommendation
-            studyTimeRecommendation = content.trim();
-          }
-        }
-      } catch (err) {
-        console.error(
-          "LLM recommendation failed (non-blocking):",
-          (err as Error).message
         );
       }
     }
-
-    // Fallback if LLM didn't produce a recommendation
     if (!studyTimeRecommendation) {
-      if (attainmentPercent < 50) {
-        studyTimeRecommendation = `Increase study time to 4 hours/week for "${cloTitle}" — focus on foundational concepts at the ${bloomLevel} level.`;
-        suggestedPlannerSessions = 3;
-      } else if (attainmentPercent < 70) {
-        studyTimeRecommendation = `Dedicate 3 hours/week to "${cloTitle}" — practice applying concepts to strengthen your understanding.`;
-        suggestedPlannerSessions = 2;
-      } else {
-        studyTimeRecommendation = `Maintain 2 hours/week for "${cloTitle}" — review materials and attempt higher-order practice problems.`;
-        suggestedPlannerSessions = 1;
-      }
+      return new Response(
+        JSON.stringify({
+          error: "Provider returned an invalid plan recommendation",
+        }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Clamp planner sessions to valid range

@@ -1,4 +1,7 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { getAgenticConfig } from "../_shared/ai/config.ts";
+import type { AIProvider } from "../_shared/ai/provider.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
 // =============================================================================
 // coordinator-ai-insights — AI attainment insights for coordinators
 // =============================================================================
@@ -10,8 +13,8 @@ import { getManagedServerKey } from "../_shared/serverSecret.ts";
 //      contributing CLO, prioritized recommendations) — this ALWAYS works and is
 //      genuinely useful with no LLM (mirrors the ai-feedback-draft template
 //      approach).
-//   3. If GEMINI_API_KEY is configured, ENHANCES the narrative + recommendations
-//      with a Gemini call (non-streaming). On any LLM error it falls back to the
+//   3. If E Deviser Intelligence is enabled, ENHANCES the narrative through the
+//      canonical DeepSeek AIProvider. On any provider error it falls back to the
 //      computed insight (never fails the request).
 //   4. Caches the payload in coordinator_ai_insights (service role) so repeat
 //      views are a cache hit; `refresh: true` forces regeneration.
@@ -95,18 +98,12 @@ function computeInsight(
   };
 
   const byId = new Map<string, OutcomeRow>(outcomes.map((o) => [o.id, o]));
-  // Undirected adjacency: outcome_mappings are stored child→parent for some
-  // pairs (CLO→PLO) and parent→child for others, so resolve related CLOs by
-  // outcome TYPE rather than edge direction.
-  const relatedOf = new Map<string, Set<string>>();
-  const addEdge = (a: string, b: string) => {
-    const set = relatedOf.get(a) ?? new Set<string>();
-    set.add(b);
-    relatedOf.set(a, set);
-  };
+  // Canonical hierarchy edges are parent → child.
+  const childrenByParent = new Map<string, Set<string>>();
   for (const m of mappings) {
-    addEdge(m.source_outcome_id, m.target_outcome_id);
-    addEdge(m.target_outcome_id, m.source_outcome_id);
+    const children = childrenByParent.get(m.source_outcome_id) ?? new Set();
+    children.add(m.target_outcome_id);
+    childrenByParent.set(m.source_outcome_id, children);
   }
 
   const plos = outcomes.filter((o) => o.type === "PLO");
@@ -130,7 +127,7 @@ function computeInsight(
     null;
   let weakest: InsightPayload["weakest"] = null;
   if (focusPlo) {
-    const cloIds = Array.from(relatedOf.get(focusPlo.id) ?? []).filter(
+    const cloIds = Array.from(childrenByParent.get(focusPlo.id) ?? []).filter(
       (id) => byId.get(id)?.type === "CLO"
     );
     let weakClo: { title: string; attainment: number } | null = null;
@@ -202,13 +199,16 @@ function computeInsight(
   };
 }
 
-// ─── Optional Gemini enhancement ────────────────────────────────────────────
+// ─── Optional canonical provider enhancement ───────────────────────────────
 
-async function enhanceWithGemini(
+async function enhanceWithProvider(
   base: InsightPayload,
-  apiKey: string,
-  model: string
-): Promise<{ narrative: string; recommendations: string[] } | null> {
+  provider: AIProvider
+): Promise<{
+  narrative: string;
+  recommendations: string[];
+  model: string;
+} | null> {
   const facts = {
     threshold: base.threshold,
     measuredOutcomes: base.ploCount,
@@ -216,46 +216,21 @@ async function enhanceWithGemini(
     belowTargetCount: base.belowTargetCount,
     weakest: base.weakest,
   };
-  const systemInstruction = {
-    parts: [
+  const response = await provider.complete({
+    messages: [
       {
-        text:
-          "You are an outcome-based-education quality advisor for a university program coordinator. " +
-          "Given factual attainment data, write a concise, professional insight (2–3 sentences) and 3 " +
-          "prioritized, actionable recommendations. Do NOT invent numbers beyond the facts provided. " +
-          'Respond ONLY as strict JSON: {"narrative": string, "recommendations": string[]}.',
+        role: "system",
+        content:
+          "You are an outcome-based-education quality advisor. Use only the supplied calculated facts. " +
+          "Return json with narrative and recommendations. Do not invent numbers.",
       },
+      { role: "user", content: JSON.stringify(facts) },
     ],
-  };
-  const contents = [
-    {
-      role: "user",
-      parts: [
-        { text: `Attainment facts (JSON):\n${JSON.stringify(facts, null, 2)}` },
-      ],
-    },
-  ];
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: systemInstruction,
-      contents,
-      generationConfig: {
-        maxOutputTokens: 512,
-        temperature: 0.4,
-        responseMimeType: "application/json",
-      },
-    }),
+    responseFormat: "json",
+    maxOutputTokens: 512,
+    temperature: 0.4,
   });
-  if (!resp.ok) throw new Error(`Gemini HTTP ${resp.status}`);
-  const data = await resp.json();
-  const text: string | undefined =
-    data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return null;
-  const parsed = JSON.parse(text) as {
+  const parsed = JSON.parse(response.content) as {
     narrative?: unknown;
     recommendations?: unknown;
   };
@@ -270,7 +245,7 @@ async function enhanceWithGemini(
         )
         .slice(0, 5)
     : base.recommendations;
-  return { narrative, recommendations };
+  return { narrative, recommendations, model: response.model };
 }
 
 // ─── Handler ────────────────────────────────────────────────────────────────
@@ -395,22 +370,22 @@ serve(async (req) => {
     let source = "computed";
     let model: string | null = null;
 
-    const geminiKey = Deno.env.get("GEMINI_API_KEY");
-    if (geminiKey) {
-      const geminiModel =
-        Deno.env.get("COORDINATOR_INSIGHTS_MODEL") ?? "gemini-2.0-flash";
+    const agenticConfig = getAgenticConfig(Deno.env);
+    if (agenticConfig.enabled) {
+      const provider = createAIProvider(agenticConfig, { env: Deno.env });
       try {
-        const enhanced = await enhanceWithGemini(base, geminiKey, geminiModel);
+        const enhanced = await enhanceWithProvider(base, provider);
         if (enhanced) {
-          payload = { ...base, ...enhanced };
+          payload = {
+            ...base,
+            narrative: enhanced.narrative,
+            recommendations: enhanced.recommendations,
+          };
           source = "ai";
-          model = geminiModel;
+          model = enhanced.model;
         }
-      } catch (err) {
-        console.error(
-          "Gemini enhancement failed (using computed):",
-          (err as Error).message
-        );
+      } catch {
+        console.error("Provider enhancement failed; using computed insight");
       }
     }
 

@@ -119,6 +119,32 @@ jobs:
           path: dist/
           retention-days: 7
 
+  prototype-boundary:
+    name: Prototype Boundary
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download production build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Enforce prototype diff, import, and artifact boundaries
+        env:
+          PROTOTYPE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PROTOTYPE_HEAD_REF: ${{ github.head_ref }}
+        run: >-
+          node scripts/check-prototype-boundary.mjs
+          --base-sha "$PROTOTYPE_BASE_SHA"
+          --head-ref "$PROTOTYPE_HEAD_REF"
+          --dist dist
+
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
@@ -403,31 +429,178 @@ jobs:
       - name: Verify no cross-institution RLS leaks in migrations
         run: npx vitest --run src/__tests__/properties/rlsInstitutionIsolation.property.test.ts
 
+  preview-validation-relevance:
+    name: Preview validation relevance
+    # A Git-linked Preview is mandatory evidence for schema-bearing changes, but
+    # documentation, dependency, and workflow-only PRs must not create a paid
+    # Preview solely to satisfy an irrelevant database integration gate.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.filter.outputs.required }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            required:
+              - 'supabase/**'
+
+  runtime-deployment-impact:
+    name: Runtime deployment impact
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deployment_required: ${{ steps.impact.outputs.deployment_required }}
+      deployment_closure: ${{ steps.impact.outputs.deployment_closure }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate manifest and resolve the PR runtime closure
+        id: impact
+        run: |
+          node scripts/resolve-runtime-deployment-impact.mjs --validate
+          node scripts/resolve-runtime-deployment-impact.mjs \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --head-sha "${{ github.event.pull_request.head.sha }}" --format github \
+            >> "$GITHUB_OUTPUT"
+
   rls-smoke:
     name: RLS Smoke (Supabase preview)
     # Part C — C3 RLS_Smoke_Test (Req 19, 21.2). Runs the isolated integration suite
     # (vitest.integration.config.ts) which performs REAL per-role inserts/updates against a
     # Supabase PREVIEW branch — never production (a config-load guard aborts if SUPABASE_URL
-    # resolves to the production project ref). The suite is skip-safe: when the preview
-    # secrets are absent it marks itself describe.skip and the job stays GREEN, so the gate
-    # is wired and ready but does not block merges until the secrets are configured. Once
-    # SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are set (with
-    # SUPABASE_DB_ENV=preview) the cases execute for real.
+    # resolves to the production project ref). For pull requests, credentials are resolved
+    # from the isolated Supabase Preview branch using SUPABASE_ACCESS_TOKEN. Missing preview
+    # credentials fail this required gate; the RAG authorization suite must never pass by
+    # silently skipping its cases.
+    needs: [preview-validation-relevance, runtime-deployment-impact]
     runs-on: ubuntu-latest
-    env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      SUPABASE_DB_ENV: preview
+    if: github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required == 'true'
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version: 22
           cache: npm
 
+      # Release-critical Preview validation uses the exact CLI recorded in
+      # package-lock.json. Latest-at-runtime is not reproducible.
       - run: npm ci
+
+      - name: Wait for isolated Supabase Preview deployment and resolve credentials
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PARENT_PROJECT_REF: ${{ vars.SUPABASE_PARENT_PROJECT_REF || 'cdlgtbvxlxjpcddjazzx' }}
+          SUPABASE_PREVIEW_BRANCH: ${{ github.head_ref }}
+          SUPABASE_PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_ACCESS_TOKEN" ]]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN is required to resolve the isolated Preview branch"
+            exit 1
+          fi
+
+          preview_ref=""
+          preview_status=""
+          for attempt in $(seq 1 60); do
+            if ! branches=$(curl --fail --silent --show-error \
+              --connect-timeout 5 --max-time 20 \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              "https://api.supabase.com/v1/projects/$SUPABASE_PARENT_PROJECT_REF/branches"); then
+              echo "::warning::Supabase Preview branch lookup attempt $attempt failed; retrying"
+              branches='[]'
+            fi
+            preview=$(jq -c \
+              --arg branch "$SUPABASE_PREVIEW_BRANCH" \
+              --arg pr "$SUPABASE_PREVIEW_PR_NUMBER" \
+              '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | {project_ref, status}][0] // {}' \
+              <<< "$branches")
+            preview_ref=$(jq -r '.project_ref // empty' <<< "$preview")
+            preview_status=$(jq -r '.status // empty' <<< "$preview")
+            if [[ -n "$preview_ref" && "$preview_status" == "FUNCTIONS_DEPLOYED" ]]; then
+              echo "Supabase Preview deployment is complete"
+              break
+            fi
+            if [[ "$attempt" -eq 60 ]]; then
+              echo "::error::Supabase Preview did not reach FUNCTIONS_DEPLOYED: no valid Git-linked branch (git_branch + pr_number); direct MCP branches are invalid PR evidence (last status: ${preview_status:-not-found})"
+              exit 1
+            fi
+            echo "Supabase Preview deployment is not complete on attempt $attempt (status: ${preview_status:-not-found}); retrying"
+            sleep 10
+          done
+
+          keys=$(curl --fail --silent --show-error \
+            --connect-timeout 5 --max-time 20 \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$preview_ref/api-keys")
+          anon_key=$(jq -r '[.[] | select((.name == "publishable" or .type == "publishable") or (.name == "anon" and .type == "legacy")) | .api_key][0] // empty' <<< "$keys")
+          service_role_key=$(jq -r '[.[] | select((.name == "secret" or .type == "secret") or (.name == "service_role" and .type == "legacy")) | .api_key][0] // empty' <<< "$keys")
+          if [[ -z "$anon_key" || -z "$service_role_key" || "$anon_key" == "null" || "$service_role_key" == "null" ]]; then
+            echo "::error::Preview anon/service-role keys could not be resolved"
+            exit 1
+          fi
+          echo "::add-mask::$anon_key"
+          echo "::add-mask::$service_role_key"
+          {
+            echo "SUPABASE_URL=https://$preview_ref.supabase.co"
+            echo "SUPABASE_PREVIEW_REF=$preview_ref"
+            echo "SUPABASE_ANON_KEY=$anon_key"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$service_role_key"
+            echo "SUPABASE_DB_ENV=preview"
+            echo "RLS_SMOKE_REQUIRED=true"
+          } >> "$GITHUB_ENV"
+
+      - name: Wait for Preview REST schema readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            status=$(curl --silent --show-error \
+              --connect-timeout 5 --max-time 20 \
+              --output /dev/null --write-out '%{http_code}' \
+              -H "apikey: $SUPABASE_ANON_KEY" \
+              -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+              "$SUPABASE_URL/rest/v1/institutions?select=join_mode&limit=0" \
+              || true)
+            if [[ "$status" == "200" || "$status" == "206" ]]; then
+              echo "Preview REST schema is ready (institutions.join_mode visible)"
+              break
+            fi
+            if [[ "$attempt" -eq 30 ]]; then
+              echo "::error::Preview REST schema did not expose institutions.join_mode after 30 attempts (last HTTP status: ${status:-none})"
+              exit 1
+            fi
+            echo "Preview REST schema not ready on attempt $attempt (HTTP ${status:-none}); retrying"
+            sleep 10
+          done
+
+      - name: Deploy exact manifest-derived Edge closure to isolated Preview
+        if: needs.runtime-deployment-impact.outputs.deployment_required == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DEPLOYMENT_CLOSURE: ${{ needs.runtime-deployment-impact.outputs.deployment_closure }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_CLOSURE" || { echo "::error::runtime resolver selected an empty closure"; exit 1; }
+          read -r -a closure <<< "$DEPLOYMENT_CLOSURE"
+          for function_name in "${closure[@]}"; do
+            [[ "$function_name" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::unsafe function slug from resolver"; exit 1; }
+          done
+          npx supabase functions deploy "${closure[@]}" \
+            --project-ref "$SUPABASE_PREVIEW_REF" \
+            --use-api --yes
 
       - name: Run RLS insert/update smoke tests against the preview branch
         run: npm run test:rls
+
+      - name: Run HTTP runtime authorization smoke tests against the preview branch
+        run: npm run test:preview-runtime-auth

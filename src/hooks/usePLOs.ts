@@ -10,7 +10,6 @@ import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreatePLOFormData } from "@/lib/schemas/plo";
 import type { LearningOutcome } from "@/types/app";
-import type { Database } from "@/types/database";
 import type { PaginatedResult } from "@/types/pagination";
 import { getPaginationRange } from "@/types/pagination";
 
@@ -73,6 +72,7 @@ export const usePLO = (id: string | undefined) => {
         .from("learning_outcomes")
         .select("*")
         .eq("id", id!)
+        .eq("type", "PLO")
         .maybeSingle();
 
       if (error) throw error;
@@ -130,6 +130,7 @@ export const useUpdatePLO = (id: string) => {
         .from("learning_outcomes")
         .update(data)
         .eq("id", id)
+        .eq("type", "PLO")
         .select()
         .single();
 
@@ -188,7 +189,10 @@ export const useDeletePLO = () => {
       const { error } = await supabase
         .from("learning_outcomes")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("type", "PLO")
+        .select("id")
+        .single();
 
       if (error) throw error;
 
@@ -216,22 +220,19 @@ export const useReorderPLOs = () => {
     mutationFn: async (data: {
       items: Array<{ id: string; sort_order: number }>;
     }): Promise<void> => {
-      const updates = data.items.map((item, index) => ({
-        id: item.id,
-        sort_order: index,
-      }));
+      await Promise.all(
+        data.items.map(async (item, index) => {
+          const { error } = await supabase
+            .from("learning_outcomes")
+            .update({ sort_order: index })
+            .eq("id", item.id)
+            .eq("type", "PLO")
+            .select("id")
+            .single();
 
-      // Partial upsert: ON CONFLICT (id) only updates sort_order.
-      // Cast needed because Supabase Insert type requires `type` and `title`,
-      // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
-      const { error } = await supabase
-        .from("learning_outcomes")
-        .upsert(
-          updates as Database["public"]["Tables"]["learning_outcomes"]["Insert"][],
-          { onConflict: "id" }
-        );
-
-      if (error) throw error;
+          if (error) throw error;
+        })
+      );
 
       await logAuditEvent({
         action: "reorder",
@@ -265,7 +266,7 @@ export const usePLOMappings = (ploId: string | undefined) => {
   });
 };
 
-// ─── useUpdatePLOMappings — replace outcome_mappings for a PLO→ILO ─────────
+// ─── useUpdatePLOMappings — replace parent ILO → child PLO mappings ─────────
 
 export const useUpdatePLOMappings = () => {
   const queryClient = useQueryClient();

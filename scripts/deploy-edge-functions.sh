@@ -80,6 +80,7 @@ done
 
 # Explicit per-function deploy commands (so the property test can grep them):
 # supabase functions deploy agent-worker
+# supabase functions deploy agent-orchestrator
 # supabase functions deploy ai-at-risk-prediction
 # supabase functions deploy ai-feedback-draft
 # supabase functions deploy ai-module-suggestion

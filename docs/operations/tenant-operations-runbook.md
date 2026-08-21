@@ -4,6 +4,13 @@ This runbook is local-first. Production Supabase is read-only until a separately
 
 ## Local Docker and migration replay
 
+### Creating migrations while the repository tail is future-dated
+
+Use `npm run migration:new -- <lowercase_snake_case_name>`. Migration versions
+must be monotonically greater than the repository migration tail; wall-clock
+timestamps alone are unsafe when existing migrations are future-dated. The
+helper creates exactly one new file and refuses an overwrite.
+
 ```powershell
 npx supabase@latest start
 npx supabase@latest db reset --local --yes

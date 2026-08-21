@@ -72,6 +72,12 @@ const IGNORED_TABLES = new Set([
   // Added by auth_onboarding_hardening; generated database.ts is immutable and
   // will be refreshed after the forward migration is applied.
   "admin_bootstrap_requests",
+  // Added by the pending agentic foundation forward migration. The generated
+  // database.ts is protected and will be regenerated from Preview after the
+  // migration is applied; remove these entries in that follow-up.
+  "agent_runs",
+  "agent_tool_attempts",
+  "agent_action_proposals",
 ]);
 
 // Pending approved production migration fields. The invitation functions are

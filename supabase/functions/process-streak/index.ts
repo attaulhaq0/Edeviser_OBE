@@ -14,6 +14,10 @@ interface ProcessStreakPayload {
   student_id: string;
 }
 
+interface MidnightResetPayload {
+  type: "midnight_reset";
+}
+
 interface StreakState {
   streak_count: number;
   last_login_date: string | null;
@@ -172,6 +176,16 @@ function validatePayload(
   }
 
   return { valid: true, data: { student_id: p.student_id } };
+}
+
+function isMidnightResetPayload(
+  payload: unknown
+): payload is MidnightResetPayload {
+  return (
+    !!payload &&
+    typeof payload === "object" &&
+    (payload as Record<string, unknown>).type === "midnight_reset"
+  );
 }
 
 // ─── Peer Milestone Notification for Streak ─────────────────────────────────
@@ -466,7 +480,97 @@ serve(async (req) => {
       getManagedServerKey()
     );
 
-    const body = await req.json();
+    const body: unknown = await req.json();
+
+    if (isMidnightResetPayload(body)) {
+      if (!isServiceRole) {
+        return new Response(
+          JSON.stringify({
+            error: "Forbidden: midnight reset requires service role",
+          }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      const { data: gamificationRows, error: resetListError } = await supabase
+        .from("student_gamification")
+        .select("student_id");
+
+      if (resetListError) {
+        return new Response(
+          JSON.stringify({
+            error: "Failed to list students for midnight reset",
+            detail: resetListError.message,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      const studentIds = Array.from(
+        new Set(
+          (gamificationRows ?? [])
+            .map((row: { student_id: string | null }) => row.student_id)
+            .filter((studentId): studentId is string => !!studentId)
+        )
+      );
+      const failures: Array<{
+        student_id: string;
+        status: number;
+        error: unknown;
+      }> = [];
+      const functionUrl = `${Deno.env.get(
+        "SUPABASE_URL"
+      )!}/functions/v1/process-streak`;
+
+      for (let offset = 0; offset < studentIds.length; offset += 10) {
+        const batch = studentIds.slice(offset, offset + 10);
+        const results = await Promise.all(
+          batch.map(async (studentId) => {
+            const response = await fetch(functionUrl, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${serviceRoleKey}`,
+                apikey: serviceRoleKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ student_id: studentId }),
+            });
+            const result: unknown = await response.json().catch(() => ({}));
+            return { studentId, status: response.status, result };
+          })
+        );
+
+        for (const result of results) {
+          if (result.status < 200 || result.status >= 300) {
+            failures.push({
+              student_id: result.studentId,
+              status: result.status,
+              error: result.result,
+            });
+          }
+        }
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: failures.length === 0,
+          processed: studentIds.length - failures.length,
+          failed: failures.length,
+          errors: failures,
+        }),
+        {
+          status: failures.length === 0 ? 200 : 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const validation = validatePayload(body);
 
     if (!validation.valid) {
