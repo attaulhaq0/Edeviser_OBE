@@ -42,14 +42,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_institution_ilos` — lists ILOs with mapping counts. Allowed role: admin."
           },
@@ -107,14 +101,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_ilo_detail` — returns one ILO with canonical PLO mappings. Allowed roles: admin, coordinator."
           },
@@ -172,14 +160,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_ilo_attainment` — server-calculated ILO attainment from canonical PLO/CLO evidence. Allowed roles: admin, coordinator."
           },
@@ -237,14 +219,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_ilo_attainment_trend` — deterministic attainment trend series for an ILO. Allowed roles: admin, coordinator."
           },
@@ -297,14 +273,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_ilo_mapping_coverage` — ILO→PLO mapping coverage and gaps. Allowed roles: admin, coordinator."
           },
@@ -357,14 +327,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_ilo_program_contributions` — per-program contribution to an ILO via canonical PLO mappings. Allowed roles: admin, coordinator."
           },
@@ -417,14 +381,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_ilo_evidence_summary` — counts and confidence of assessment evidence feeding an ILO's derived attainment. Allowed roles: admin, coordinator."
           },
@@ -477,14 +435,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_unmapped_program_outcomes` — PLOs without a canonical ILO→PLO mapping. Allowed roles: admin, coordinator."
           },
@@ -537,14 +489,8 @@
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "functions",
-                "v1",
-                "agent-orchestrator"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["functions", "v1", "agent-orchestrator"]
             },
             "description": "Exercises `get_outcome_hierarchy_health` — deterministic hierarchy-health signals (orphans, invalid pairs, weight anomalies). Allowed role: admin only."
           },
@@ -590,28 +536,39 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// FAIL-CLOSED ENVIRONMENT GUARD — do not remove.",
+          "// FAIL-CLOSED ENVIRONMENT GUARD - do not remove.",
           "// This collection may ONLY run against a Supabase Preview (or local) target.",
-          "// Production is rejected before any request is sent.",
-          "const baseUrl = (pm.variables.get(\"base_url\") || \"\").trim();",
-          "const projectRef = (pm.variables.get(\"supabase_project_ref\") || \"\").trim();",
+          "// Production and malformed targets are rejected before any request is sent.",
+          "const rawUrl = (pm.variables.get(\"base_url\") || \"\").trim();",
+          "const declaredRef = (pm.variables.get(\"supabase_project_ref\") || \"\").trim();",
           "const productionRef = (pm.variables.get(\"production_project_ref\") || \"\").trim();",
-          "",
-          "if (!baseUrl) {",
-          "  throw new Error(",
-          "    \"GUARD: base_url is not set. Select the 'Edeviser Preview' environment and fill in the Git-linked Preview URL.\"",
-          "  );",
+          "if (!rawUrl) {",
+          "  throw new Error(\"GUARD: base_url is not set. Select the Edeviser Preview environment and fill in the Git-linked Preview URL.\");",
           "}",
-          "if (/prod/i.test(baseUrl) || /prod/i.test(projectRef)) {",
-          "  throw new Error(\"GUARD: production-looking target rejected: \" + baseUrl);",
+          "let parsed;",
+          "try { parsed = new URL(rawUrl); } catch (_) {",
+          "  throw new Error(\"GUARD: base_url is not a valid URL: \" + rawUrl);",
           "}",
-          "if (productionRef && projectRef && projectRef === productionRef) {",
-          "  throw new Error(\"GUARD: production project ref rejected: \" + projectRef);",
+          "const isLocal = parsed.hostname === \"localhost\" || parsed.hostname === \"127.0.0.1\" || parsed.hostname === \"[::1]\";",
+          "if (!isLocal && parsed.protocol !== \"https:\") {",
+          "  throw new Error(\"GUARD: non-local targets must use HTTPS: \" + rawUrl);",
           "}",
-          "if (!/(supabase\\.co|supabase\\.red|localhost|127\\.0\\.0\\.1)/.test(baseUrl)) {",
-          "  throw new Error(\"GUARD: base_url must be a Supabase Preview or local URL: \" + baseUrl);",
+          "const supabaseHostRe = /^([a-z0-9]{20})\\.(supabase\\.co|supabase\\.red)$/;",
+          "const hostMatch = supabaseHostRe.exec(parsed.hostname);",
+          "if (!isLocal && !hostMatch) {",
+          "  throw new Error(\"GUARD: base_url must be an exact Supabase project host or localhost: \" + parsed.hostname);",
           "}",
-          "console.log(\"GUARD: preview target accepted:\", baseUrl);"
+          "const derivedRef = hostMatch ? hostMatch[1] : \"\";",
+          "const refsToCheck = [declaredRef, derivedRef].filter(Boolean);",
+          "for (const ref of refsToCheck) {",
+          "  if (productionRef && ref === productionRef) {",
+          "    throw new Error(\"GUARD: production project ref rejected: \" + ref);",
+          "  }",
+          "}",
+          "if (/prod/i.test(rawUrl) || refsToCheck.some(function (ref) { return /prod/i.test(ref); })) {",
+          "  throw new Error(\"GUARD: production-looking target rejected: \" + rawUrl);",
+          "}",
+          "console.log(\"GUARD: preview target accepted:\", rawUrl);"
         ]
       }
     }
