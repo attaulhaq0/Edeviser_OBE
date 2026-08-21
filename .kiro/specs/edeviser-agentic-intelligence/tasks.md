@@ -55,7 +55,7 @@ complete without its tests.
 - [x] 1.3 Database constraints — DONE & live: `learning_outcomes_canonical_shape_check`, weight CHECKs on learning_outcomes + outcome_mappings.
 - [x] 1.4 Mapping validation DB-side — DONE & live: `trg_validate_outcome_mapping_hierarchy`, `trg_outcome_mapping_weight_sum` (DEFERRABLE), `trg_guard_mapped_outcome_delete`, `trg_enforce_learning_outcome_scope`.
 - [x] 1.5 Outcome RLS remediation — DONE & live: split SELECT/INSERT/UPDATE/DELETE policies per role+type WITH CHECK; institution-scoped reads; canonical-direction mapping policies.
-- [ ] 1.6 Regression tests for Phase 1: mapping-direction regression test + data-level CLO→PLO→ILO cascade tests (one-to-one, one-to-many, many-to-one, weight changes, grade updates/reversal, empty evidence, duplicate mappings, institution isolation). *(PDF §17, §38)*
+- [ ] 1.6 *(PARTIAL: lib-level direction regression DONE — src/__tests__/properties/outcomeMappingDirection.property.test.ts, fast-check 100 runs, green on main)* Regression tests for Phase 1: mapping-direction regression test + data-level CLO→PLO→ILO cascade tests (one-to-one, one-to-many, many-to-one, weight changes, grade updates/reversal, empty evidence, duplicate mappings, institution isolation). *(PDF §17, §38)*
 - [x] 1.7 Archive the formal outcome-data reconciliation report artifact under `docs/audits/` (counts already captured; persist as dated document). *(DONE: docs/audits/OUTCOME-DATA-RECONCILIATION-2026-08-21.md)*
 - [ ] 1.8 **[PREREQUISITE — do before 6.2 write tools]** Verify Admin ILO reorder safety end-to-end (atomic validated reorder; no arbitrary-ID upsert) and delete-dependency direction (follows canonical mapping); add e2e coverage if gaps found. *(PDF §13–14)*
 
