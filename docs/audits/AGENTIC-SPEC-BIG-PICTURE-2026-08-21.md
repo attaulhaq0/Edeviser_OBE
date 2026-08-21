@@ -89,3 +89,26 @@ Merge commit: `7d42a10` on `feat/agentic-prereq-slice`.
 - Conflict analysis: `git merge-base`, `git diff --numstat <base>..HEAD` and `<base>..origin/main` per file (local git).
 - Registry superset proof: `git diff HEAD origin/main -- registry.ts` showed only removals of our 9 tools.
 - package.json validity: `JSON.parse` check passed post-resolution.
+
+## 6. Post-Merge Gate Recovery (same day)
+
+After the merge sync, the full local suite failed with 8 tests in 4 files. Diagnosis showed
+**main itself was red** (`gh run list --branch main` → CI failure on latest main commit), so
+three of the four failures were pre-existing main breakage, not caused by this branch:
+
+| Failure | Root cause | Fix |
+|---|---|---|
+| `prototypeBoundary.test.ts`, `runtimeDependencyGovernance.test.ts` — `SyntaxError: Invalid or unexpected token` at import | 15 `scripts/*.mjs` files carry `#!/usr/bin/env node` shebangs; vite/vitest cannot transform shebang-bearing imported modules (Node itself runs them fine). | Stripped shebangs from all 15 scripts — safe because every script is invoked via `node script.mjs`, never directly executed. |
+| `protectedWriteExecution.test.ts` — 3 assertions got `expired` instead of `unauthorized_approver`/`unknown_tool`/`invalid_input` | **Time bomb:** shared fixture `expiresAt: "2026-08-21T00:00:00.000Z"` expired on the day of the run; calls that don't pass an explicit `now` clock hit the expiry guard first. | Fixture default moved to far-future `2099-01-01`; the dedicated expiry case already overrides `expiresAt` + passes a fixed clock. |
+| `quickLoginNoor.test.tsx` — 5 navigation assertions | Our branch had edited expected nav targets (`/student/profile` etc.) while the LoginPage component (unchanged on main) still navigates to `/student/dashboard`. | Reverted the test file to origin/main's version — component behavior is authoritative. |
+
+**Gates after fixes (all green):**
+- `npm run lint` — 0 warnings
+- `npx tsc --noEmit` — clean
+- `npx vitest --run` — **690 files / 6376 tests passed**
+
+Pushed as `3e03c75` ("fix(tests): strip shebangs from runtime scripts and defuse expiry time-bomb").
+PR #271 re-verified **MERGEABLE** (BLOCKED = required checks running on the new head).
+
+> Note for main: the shebang + time-bomb fixes should be cherry-picked to main, since main's CI
+> is currently red for the same reasons.
