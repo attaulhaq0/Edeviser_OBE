@@ -172,3 +172,14 @@ NICE-TO-HAVE for read-only phase; **REQUIRED before A3 low-risk automation** (ag
 
 - **NEEDED to make the PDF real:** dup-audit #1, #5, #9, (2.x before A3); pbf #20 (+14 optional), Z gates on those PRs; rls-consolidation before A3; dashboard E/31 optionally; pfr only as the mounting surface decision (build AI UI design-system-native now).
 - **NOT required / safely removable from this vision:** dup-audit #4, #6, #7, #8, #11, #13, #14; pbf #13, #21; nearly all dashboard-perf items; all ui-prototype-migration remnants except 0.6; prototype-frontend-rebuild P3/P5 (independent track).
+
+---
+
+## Post-review addendum (2026-08-22)
+
+This report documents the **pre-PR baseline**. Status corrections after PR #271 commits `a712262` / `50f783c`:
+
+- The 9 outcome read tools ARE registered (`supabase/functions/_shared/ai/tools/registry.ts`) and now have full `authorizeScope` + `executeRead` dispatch implementations in `supabase/functions/agent-orchestrator/data-source.ts` (verified against live schema: learning_outcomes.type ∈ {ILO,PLO,CLO}, outcome_attainment.scope ∈ {student_course,program,course}).
+- A0–A3 autonomy policy engine exists (`supabase/functions/_shared/ai/policy/autonomy.ts`, tested by `agentAutonomyPolicy.test.ts`).
+- MockProvider exists (`supabase/functions/_shared/ai/providers/mock-provider.ts`, property-tested).
+- Mapping-direction regression tests exist (`outcomeMappingDirection.property.test.ts`).

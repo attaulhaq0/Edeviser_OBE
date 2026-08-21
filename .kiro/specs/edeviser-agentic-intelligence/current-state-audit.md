@@ -46,3 +46,13 @@
 Local branch lacked: tools/registry.ts, write-tools/, proactive-worker.ts; contained superseded
 OBE migration files. Live DB contained MCP-applied OBE remediations not present as local files.
 Resolution: task 8.4 (sync + regen types); standing rule — verify DB claims against live schema.
+---
+
+## Post-review addendum (2026-08-22)
+
+This report documents the **pre-PR baseline**. Status corrections after PR #271 commits `a712262` / `50f783c`:
+
+- The 9 outcome read tools ARE registered (`supabase/functions/_shared/ai/tools/registry.ts`) and now have full `authorizeScope` + `executeRead` dispatch implementations in `supabase/functions/agent-orchestrator/data-source.ts` (verified against live schema: learning_outcomes.type ∈ {ILO,PLO,CLO}, outcome_attainment.scope ∈ {student_course,program,course}).
+- A0–A3 autonomy policy engine exists (`supabase/functions/_shared/ai/policy/autonomy.ts`, tested by `agentAutonomyPolicy.test.ts`).
+- MockProvider exists (`supabase/functions/_shared/ai/providers/mock-provider.ts`, property-tested).
+- Mapping-direction regression tests exist (`outcomeMappingDirection.property.test.ts`).
