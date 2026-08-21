@@ -10,7 +10,7 @@ import {
   assembleOutcomeChain,
   type AssembleOutcomeChainInput,
   type RawChainOutcome,
-} from "../../lib/outcomeChain";
+} from "@/lib/outcomeChain";
 
 const uuid = fc.uuid();
 
