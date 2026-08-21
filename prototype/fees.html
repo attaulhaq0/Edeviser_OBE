@@ -13,7 +13,7 @@
      due_date), fee_payments (status pending/paid/overdue, payment_method,
      receipt_number), useFeeStructures/useStudentFees/useRecordPayment,
      useGenerateFeeReceipt (generate-fee-receipt edge fn). Role detected like
-     announcements.html: student sees "Pay now", parent sees "Pay for Maya". */
+     announcements.html: student sees "Pay now", parent sees "Pay for Sarah". */
   html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
   .fe-grid{display:block}
   html.mode-laptop .fe-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
@@ -95,8 +95,8 @@
     const back={student:'profile.html',parent:'parent-profile.html'};
     document.getElementById('backlink').href=back[role];
     if(role==='parent'){
-      document.getElementById('fe-sub').textContent="Maya's tuition, labs & academic fees";
-      document.querySelectorAll('button').forEach(b=>{ if(b.textContent.includes('Pay now')) b.textContent='💳 Pay for Maya'; });
+      document.getElementById('fe-sub').textContent="Sarah's tuition, labs & academic fees";
+      document.querySelectorAll('button').forEach(b=>{ if(b.textContent.includes('Pay now')) b.textContent='💳 Pay for Sarah'; });
     }
     const TABS={
       student:[['dashboard.html','🏠','Home','home'],['learn.html','📚','Learn','learn'],['tutor.html','🤖','Tutor','tutor'],['progress.html','📈','Progress','progress'],['profile.html','👤','Me','me']],

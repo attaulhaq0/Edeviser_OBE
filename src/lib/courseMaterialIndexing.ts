@@ -12,10 +12,9 @@
 // component) so the material create/update hooks can call it after a successful
 // write.
 //
-// Graceful degradation: embedding requires an embeddings provider
-// (`OPENAI_API_KEY` Supabase secret, or an OpenRouter-compatible embedding
-// model) configured on the Edge Function. When no provider is configured the
-// function returns an error and no embeddings are populated, but the upload
+// Graceful degradation: embedding uses the Supabase-native Edge Runtime
+// provider. If native inference is unavailable the function returns a safe
+// error and no embeddings are populated, but the upload
 // itself still succeeds and the tutor continues to answer from persona + CLO
 // context. This call is therefore fire-and-forget: errors are caught and logged
 // (never thrown) so the upload UX is never blocked on indexing.

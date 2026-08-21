@@ -1,4 +1,12 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { getAgenticConfig } from "../_shared/ai/config.ts";
+import { validateCitationMarkers } from "../_shared/ai/citations.ts";
+import {
+  AIProviderError,
+  type AICompletionResponse,
+} from "../_shared/ai/provider.ts";
+import { createAIProvider } from "../_shared/ai/provider-factory.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -56,8 +64,6 @@ interface RetrievedChunk {
 const DEFAULT_DAILY_MESSAGE_LIMIT = 50;
 const DEFAULT_DAILY_TOKEN_BUDGET = 50000;
 const WARNING_THRESHOLD = 0.8; // 80%
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY_MS = 1000;
 const SIMILARITY_THRESHOLD = 0.7;
 const TOP_K_CHUNKS = 5;
 const MAX_CONTEXT_MESSAGES = 10;
@@ -165,6 +171,14 @@ function validateRequest(
 
   if (b.message.length > 2000) {
     return { valid: false, error: "message cannot exceed 2000 characters" };
+  }
+
+  if (
+    b.clo_scope !== undefined &&
+    (!Array.isArray(b.clo_scope) ||
+      !b.clo_scope.every((id: unknown) => typeof id === "string"))
+  ) {
+    return { valid: false, error: "clo_scope must be an array of strings" };
   }
 
   // conversation_id or course_id required
@@ -413,196 +427,6 @@ function autoSelectPersona(bigFiveProfile: {
   return { persona, toneModifier };
 }
 
-// ─── Retry Logic with Exponential Backoff (3.1.11) ──────────────────────────
-
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function fetchWithRetry(
-  url: string,
-  options: RequestInit,
-  maxRetries: number = MAX_RETRIES,
-  initialDelay: number = INITIAL_RETRY_DELAY_MS
-): Promise<{ response: Response; retryCount: number }> {
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, options);
-      if (response.ok || response.status < 500) {
-        return { response, retryCount: attempt };
-      }
-      lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
-    } catch (err) {
-      lastError = err as Error;
-    }
-
-    if (attempt < maxRetries - 1) {
-      const delay = initialDelay * Math.pow(2, attempt);
-      await sleep(delay);
-    }
-  }
-
-  throw lastError ?? new Error("All retry attempts exhausted");
-}
-
-// ─── Gemini API Helpers ─────────────────────────────────────────────────────
-
-/**
- * Fetches an image from a URL and returns it as a base64-encoded inline_data
- * part for the Gemini API. Supports JPEG, PNG, GIF, and WebP.
- * Returns null if the fetch fails (non-fatal — message is sent without image).
- */
-async function fetchImageAsGeminiPart(
-  imageUrl: string
-): Promise<{ inline_data: { mime_type: string; data: string } } | null> {
-  try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      console.error(`Failed to fetch image ${imageUrl}: ${response.status}`);
-      return null;
-    }
-
-    const contentType = response.headers.get("content-type") ?? "image/jpeg";
-    // Normalize mime type to supported Gemini formats
-    let mimeType = contentType.split(";")[0].trim();
-    const supportedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-    ];
-    if (!supportedTypes.includes(mimeType)) {
-      mimeType = "image/jpeg"; // fallback
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-
-    return { inline_data: { mime_type: mimeType, data: base64 } };
-  } catch (err) {
-    console.error(
-      `Image fetch failed for ${imageUrl}: ${(err as Error).message}`
-    );
-    return null;
-  }
-}
-
-/**
- * Fetches a document URL and returns it as a Gemini-compatible inline_data
- * part. Supports PDF and common document types.
- */
-async function fetchDocumentAsGeminiPart(
-  documentUrl: string
-): Promise<{ inline_data: { mime_type: string; data: string } } | null> {
-  try {
-    const response = await fetch(documentUrl);
-    if (!response.ok) {
-      console.error(
-        `Failed to fetch document ${documentUrl}: ${response.status}`
-      );
-      return null;
-    }
-
-    const contentType =
-      response.headers.get("content-type") ?? "application/pdf";
-    let mimeType = contentType.split(";")[0].trim();
-    // Gemini supports PDF natively
-    const supportedDocTypes = [
-      "application/pdf",
-      "text/plain",
-      "text/html",
-      "text/csv",
-    ];
-    if (!supportedDocTypes.includes(mimeType)) {
-      mimeType = "application/pdf"; // fallback
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-
-    return { inline_data: { mime_type: mimeType, data: base64 } };
-  } catch (err) {
-    console.error(
-      `Document fetch failed for ${documentUrl}: ${(err as Error).message}`
-    );
-    return null;
-  }
-}
-
-// Gemini content part types
-type GeminiTextPart = { text: string };
-type GeminiInlineDataPart = {
-  inline_data: { mime_type: string; data: string };
-};
-type GeminiPart = GeminiTextPart | GeminiInlineDataPart;
-interface GeminiContent {
-  role: "user" | "model";
-  parts: GeminiPart[];
-}
-
-/**
- * Converts our internal message format + attachments into the Gemini
- * `contents` array with multimodal parts.
- */
-async function buildGeminiContents(
-  systemPrompt: string,
-  contextMessages: Array<{ role: string; content: string }>,
-  currentMessage: string,
-  imageUrls?: string[],
-  documentUrl?: string
-): Promise<{
-  systemInstruction: { parts: GeminiPart[] };
-  contents: GeminiContent[];
-}> {
-  // System instruction is separate in Gemini API
-  const systemInstruction = {
-    parts: [{ text: systemPrompt }] as GeminiPart[],
-  };
-
-  // Build contents array (conversation history + current message)
-  const contents: GeminiContent[] = [];
-
-  // Add conversation context
-  for (const msg of contextMessages) {
-    contents.push({
-      role: msg.role === "assistant" ? "model" : "user",
-      parts: [{ text: msg.content }],
-    });
-  }
-
-  // Build current user message with multimodal parts
-  const currentParts: GeminiPart[] = [];
-
-  // Add images as inline_data parts (Gemini processes them natively)
-  if (imageUrls && imageUrls.length > 0) {
-    const imageParts = await Promise.all(
-      imageUrls.map((url) => fetchImageAsGeminiPart(url))
-    );
-    for (const part of imageParts) {
-      if (part) {
-        currentParts.push(part);
-      }
-    }
-  }
-
-  // Add document as inline_data part (Gemini processes PDF natively)
-  if (documentUrl) {
-    const docPart = await fetchDocumentAsGeminiPart(documentUrl);
-    if (docPart) {
-      currentParts.push(docPart);
-    }
-  }
-
-  // Add text content last (after visual/document context)
-  currentParts.push({ text: currentMessage });
-
-  contents.push({ role: "user", parts: currentParts });
-
-  return { systemInstruction, contents };
-}
-
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -666,16 +490,18 @@ serve(async (req) => {
   // user-controlled at signup and must never determine AI tenant scope.
   const { data: callerProfile, error: profileError } = await supabase
     .from("profiles")
-    .select("institution_id, role, is_active")
+    .select("institution_id, role, is_active, status")
     .eq("id", studentId)
     .maybeSingle();
   if (
     profileError ||
     !callerProfile?.institution_id ||
-    callerProfile.is_active !== true
+    callerProfile.is_active !== true ||
+    callerProfile.status !== "active" ||
+    callerProfile.role !== "student"
   ) {
     return new Response(
-      JSON.stringify({ error: "Forbidden: active profile required" }),
+      JSON.stringify({ error: "Forbidden: active student profile required" }),
       {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -704,6 +530,21 @@ serve(async (req) => {
   }
 
   const chatReq = validation.data;
+  if ((chatReq.image_urls?.length ?? 0) > 0 || chatReq.document_url) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "Attachments are not supported by the configured text-only provider",
+        message:
+          "Attachments are not supported by the configured text-only provider",
+        code: "UNSUPPORTED_MODALITY",
+      }),
+      {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 
   // Determine course_id from conversation or request
   let courseId = chatReq.course_id ?? null;
@@ -733,13 +574,47 @@ serve(async (req) => {
     courseId = conv.course_id as string;
   }
 
-  // Verify course enrollment
+  // Verify the authoritative course tenant and active enrollment before any
+  // usage/conversation writes. The course's institution comes only from
+  // courses → programs, never from request or JWT metadata.
   if (courseId) {
+    const { data: course, error: courseError } = await supabase
+      .from("courses")
+      .select("id, program_id, programs!inner(institution_id)")
+      .eq("id", courseId)
+      .maybeSingle();
+    const courseRow = course as {
+      programs:
+        | { institution_id: string }
+        | { institution_id: string }[]
+        | null;
+    } | null;
+    const program = courseRow
+      ? Array.isArray(courseRow.programs)
+        ? courseRow.programs[0]
+        : courseRow.programs
+      : null;
+    if (
+      courseError ||
+      !courseRow ||
+      !program?.institution_id ||
+      program.institution_id !== institutionId
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: course institution mismatch" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { data: enrollment, error: enrollErr } = await supabase
       .from("student_courses")
       .select("id")
       .eq("student_id", studentId)
       .eq("course_id", courseId)
+      .eq("status", "active")
       .maybeSingle();
 
     if (enrollErr || !enrollment) {
@@ -753,6 +628,85 @@ serve(async (req) => {
         }
       );
     }
+  }
+
+  // Validate every requested CLO before usage/conversation writes or RAG.
+  const requestedCloScope =
+    chatReq.clo_scope ?? (existingConversation?.clo_scope as string[]) ?? [];
+  if (requestedCloScope.length > 0) {
+    if (!courseId) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: CLO scope requires a course" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const uniqueCloIds = [...new Set(requestedCloScope)];
+    const { data: scopedOutcomes, error: cloError } = await supabase
+      .from("learning_outcomes")
+      .select("id, type, course_id, institution_id")
+      .in("id", uniqueCloIds);
+    if (
+      cloError ||
+      !scopedOutcomes ||
+      scopedOutcomes.length !== uniqueCloIds.length ||
+      scopedOutcomes.some(
+        (outcome: {
+          type: string;
+          course_id: string | null;
+          institution_id: string;
+        }) =>
+          outcome.type !== "CLO" ||
+          outcome.course_id !== courseId ||
+          outcome.institution_id !== institutionId
+      )
+    ) {
+      return new Response(
+        JSON.stringify({
+          error: "Forbidden: CLO scope is outside this course",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+  }
+
+  // Authorization must be complete before configuration state is disclosed.
+  // This remains ahead of usage accounting, RAG, and provider work so disabled
+  // AI is still fail-closed without consuming or persisting runtime activity.
+  let agenticConfig: ReturnType<typeof getAgenticConfig>;
+  try {
+    agenticConfig = getAgenticConfig(Deno.env);
+  } catch {
+    return new Response(
+      JSON.stringify({
+        error: "E Deviser Intelligence configuration is unavailable",
+        message: "E Deviser Intelligence configuration is unavailable",
+        code: "AI_CONFIGURATION_ERROR",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  if (!agenticConfig.enabled) {
+    return new Response(
+      JSON.stringify({
+        error: "E Deviser Intelligence is not enabled",
+        message: "E Deviser Intelligence is not enabled",
+        code: "AI_FEATURE_DISABLED",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   // ── 3.1.2: Rate Limit and Token Budget Check ─────────────────────────
@@ -961,8 +915,7 @@ serve(async (req) => {
   let cloAutonomy: AutonomyLevel | null = null;
 
   // Check if conversation is scoped to CLOs that have autonomy settings
-  const cloScope =
-    chatReq.clo_scope ?? (existingConversation?.clo_scope as string[]) ?? [];
+  const cloScope = requestedCloScope;
 
   // Fetch assignment autonomy level if CLOs are scoped to an assignment
   if (cloScope.length > 0 && courseId) {
@@ -1022,52 +975,20 @@ serve(async (req) => {
 
   const integrityCheck = detectIntegrityViolation(chatReq.message);
 
-  // ── 3.1.3: Query Embedding Generation via OpenAI API (OPTIONAL) ───────
-  // RAG retrieval requires an embedding model. Gemini does not expose an
-  // embeddings endpoint via the same API, so we use OpenAI text-embedding-ada-002
-  // for vector search. When OPENAI_API_KEY is absent (or embedding fails) we
-  // gracefully skip vector retrieval and answer from persona + CLO context +
-  // conversation history. The tutor still works without RAG.
-
-  const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+  // ── 3.1.3: Supabase-native query embedding (OPTIONAL RAG context) ──────
+  // Generation and embeddings remain separate provider boundaries. A native
+  // embedding outage removes RAG context but never routes data to another vendor.
   let queryEmbedding: number[] | null = null;
-
-  if (openaiApiKey) {
-    try {
-      const embeddingResponse = await fetch(
-        "https://api.openai.com/v1/embeddings",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${openaiApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "text-embedding-ada-002",
-            input: chatReq.message,
-          }),
-        }
-      );
-
-      if (!embeddingResponse.ok) {
-        throw new Error(
-          `Embedding API error: ${embeddingResponse.status} ${embeddingResponse.statusText}`
-        );
-      }
-
-      const embeddingData = await embeddingResponse.json();
-      queryEmbedding = embeddingData.data[0].embedding;
-    } catch (err) {
-      // Non-fatal: log and continue without RAG context.
-      console.error(
-        "Embedding generation failed (continuing without RAG):",
-        (err as Error).message
-      );
-      queryEmbedding = null;
-    }
-  } else {
-    console.warn(
-      "OPENAI_API_KEY not set — tutor answering without course-material RAG retrieval."
+  let embeddingVersion: number | null = null;
+  try {
+    const embeddingResult = await createConfiguredEmbeddingProvider().embed({
+      inputs: [chatReq.message],
+    });
+    queryEmbedding = [...embeddingResult.vectors[0]!];
+    embeddingVersion = embeddingResult.metadata.version;
+  } catch {
+    console.error(
+      "Supabase-native embedding unavailable; continuing without RAG context"
     );
   }
 
@@ -1078,8 +999,15 @@ serve(async (req) => {
   if (courseId && queryEmbedding) {
     const matchCloIds = cloScope.length > 0 ? cloScope : null;
 
-    const { data: chunks, error: searchErr } = await supabase.rpc(
-      "search_course_materials",
+    // Use the caller JWT for RAG. SECURITY INVOKER then evaluates the
+    // corrected embedding policies for this exact student instead of allowing
+    // the service-role client to bypass them.
+    const searchRpc =
+      embeddingVersion === 3
+        ? "search_course_materials_v3"
+        : "search_course_materials_v2";
+    const { data: chunks, error: searchErr } = await userClient.rpc(
+      searchRpc,
       {
         query_embedding: JSON.stringify(queryEmbedding),
         match_course_ids: [courseId],
@@ -1291,161 +1219,70 @@ serve(async (req) => {
       "After the encouragement, still answer their question helpfully.";
   }
 
-  // ── 3.1.6: LLM Streaming via Google Gemini with SSE Response ────────────
-
-  const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!geminiApiKey) {
-    return new Response(
-      JSON.stringify({ error: "Gemini API key not configured" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  // Model selection: prefer TUTOR_PRIMARY_MODEL env override, default to gemini-2.0-flash
-  const geminiModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? "gemini-2.0-flash";
-  const fallbackGeminiModel =
-    Deno.env.get("TUTOR_FALLBACK_MODEL") ?? "gemini-2.0-flash-lite";
-
-  // Build Gemini contents with multimodal support (images + documents)
-  const { systemInstruction, contents: geminiContents } =
-    await buildGeminiContents(
-      systemPrompt,
-      contextMessages ?? [],
-      chatReq.message,
-      chatReq.image_urls,
-      chatReq.document_url
-    );
-
-  const geminiRequestBody = {
-    system_instruction: systemInstruction,
-    contents: geminiContents,
-    generationConfig: {
-      maxOutputTokens: 2048,
-      temperature: 0.7,
-      topP: 0.95,
-      topK: 40,
-    },
-    safetySettings: [
-      {
-        category: "HARM_CATEGORY_HARASSMENT",
-        threshold: "BLOCK_ONLY_HIGH",
-      },
-      {
-        category: "HARM_CATEGORY_HATE_SPEECH",
-        threshold: "BLOCK_ONLY_HIGH",
-      },
-      {
-        category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        threshold: "BLOCK_ONLY_HIGH",
-      },
-      {
-        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-        threshold: "BLOCK_ONLY_HIGH",
-      },
-    ],
-  };
-
+  // ── 3.1.6: Canonical AIProvider generation via DeepSeek ────────────────
   const startTime = Date.now();
-  const geminiStreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
-
-  let llmResponse: Response;
-  let modelUsed = geminiModel;
-  let retryCount: number;
-
-  // 3.1.11: Retry logic with exponential backoff and model fallback
+  const provider = createAIProvider(agenticConfig, { env: Deno.env });
+  let providerResult: AICompletionResponse;
   try {
-    const result = await fetchWithRetry(
-      geminiStreamUrl,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(geminiRequestBody),
-      },
-      MAX_RETRIES,
-      INITIAL_RETRY_DELAY_MS
-    );
-
-    llmResponse = result.response;
-    retryCount = result.retryCount;
-  } catch (primaryErr) {
-    // Primary model failed — try fallback model
-    console.error(
-      `Primary Gemini model (${geminiModel}) failed:`,
-      (primaryErr as Error).message
-    );
-
-    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${fallbackGeminiModel}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
-
-    try {
-      const fallbackResult = await fetchWithRetry(
-        fallbackUrl,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(geminiRequestBody),
-        },
-        2, // fewer retries for fallback
-        INITIAL_RETRY_DELAY_MS
-      );
-
-      llmResponse = fallbackResult.response;
-      modelUsed = fallbackGeminiModel;
-      retryCount = fallbackResult.retryCount + MAX_RETRIES;
-    } catch (fallbackErr) {
-      const latencyMs = Date.now() - startTime;
-
-      // Log the failed LLM call
-      await supabase.from("tutor_llm_logs").insert({
-        institution_id: institutionId,
-        student_id: studentId,
-        conversation_id: conversationId,
-        model_used: geminiModel,
-        prompt_tokens: 0,
-        completion_tokens: 0,
-        total_tokens: 0,
-        latency_ms: latencyMs,
-        status: "error",
-        error_message: (fallbackErr as Error).message,
-      });
-
-      return new Response(
-        JSON.stringify({
-          error:
-            "The AI Tutor is temporarily unavailable. Please try again in a few minutes.",
-          code: "LLM_UNAVAILABLE",
-        }),
-        {
-          status: 503,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-  }
-
-  if (!llmResponse.ok) {
+    providerResult = await provider.complete({
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...(contextMessages ?? []).map(
+          (message: { role: string; content: string }) => ({
+            role:
+              message.role === "assistant"
+                ? ("assistant" as const)
+                : ("user" as const),
+            content: message.content,
+          })
+        ),
+        { role: "user", content: chatReq.message },
+      ],
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+    });
+  } catch (error: unknown) {
     const latencyMs = Date.now() - startTime;
-    const errorText = await llmResponse.text();
-
+    const errorClassification =
+      error instanceof AIProviderError ? error.kind : "provider";
     await supabase.from("tutor_llm_logs").insert({
       institution_id: institutionId,
       student_id: studentId,
       conversation_id: conversationId,
-      model_used: modelUsed,
+      model_used: agenticConfig.deepSeek.primaryModel,
       prompt_tokens: 0,
       completion_tokens: 0,
       total_tokens: 0,
       latency_ms: latencyMs,
       status: "error",
-      error_message: `HTTP ${llmResponse.status}: ${errorText.slice(0, 500)}`,
+      error_message: errorClassification,
     });
-
     return new Response(
       JSON.stringify({
-        error: "Failed to generate response. Please try again.",
-        code: "LLM_ERROR",
+        error:
+          "The AI Tutor is temporarily unavailable. Please try again later.",
+        code: "PROVIDER_UNAVAILABLE",
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+  const modelUsed = providerResult.model;
+
+  const citationValidation = validateCitationMarkers(
+    providerResult.content,
+    retrievedChunks.length
+  );
+  if (!citationValidation.valid) {
+    console.error(
+      "Model response contained citations outside the authorized retrieval set"
+    );
+    return new Response(
+      JSON.stringify({
+        error: "The AI Tutor returned invalid source citations.",
+        code: "INVALID_CITATION",
       }),
       {
         status: 502,
@@ -1457,9 +1294,9 @@ serve(async (req) => {
   // ── Stream SSE response ───────────────────────────────────────────────
 
   const encoder = new TextEncoder();
-  let fullAssistantContent = "";
-  let promptTokens = 0;
-  let completionTokens = 0;
+  let fullAssistantContent = providerResult.content;
+  let promptTokens = providerResult.usage?.inputTokens ?? 0;
+  let completionTokens = providerResult.usage?.outputTokens ?? 0;
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -1497,71 +1334,20 @@ serve(async (req) => {
           );
         }
 
-        // Parse SSE stream from Gemini API
-        const reader = llmResponse.body?.getReader();
-        if (!reader) {
-          controller.enqueue(
-            encoder.encode(
-              sseErrorEvent("STREAM_ERROR", "No response stream available")
-            )
-          );
-          controller.close();
-          return;
-        }
-
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
-            if (!data || data === "[DONE]") continue;
-
-            try {
-              const parsed = JSON.parse(data);
-
-              // Gemini SSE format: candidates[0].content.parts[0].text
-              const candidate = parsed.candidates?.[0];
-              if (candidate?.content?.parts) {
-                for (const part of candidate.content.parts) {
-                  if (part.text) {
-                    fullAssistantContent += part.text;
-                    controller.enqueue(
-                      encoder.encode(sseEvent("token", part.text))
-                    );
-                  }
-                }
-              }
-
-              // Capture usage metadata from Gemini response
-              if (parsed.usageMetadata) {
-                promptTokens =
-                  parsed.usageMetadata.promptTokenCount ?? promptTokens;
-                completionTokens =
-                  parsed.usageMetadata.candidatesTokenCount ?? completionTokens;
-              }
-            } catch {
-              // Skip malformed SSE chunks
-            }
-          }
-        }
+        // Preserve the existing browser SSE contract while generation itself
+        // goes through the canonical non-streaming AIProvider boundary.
+        controller.enqueue(
+          encoder.encode(sseEvent("token", fullAssistantContent))
+        );
 
         // ── Post-stream processing ────────────────────────────────────
 
         const latencyMs = Date.now() - startTime;
         const totalTokens = promptTokens + completionTokens;
 
-        // Estimate tokens if usage metadata not provided by Gemini
+        // Estimate tokens if provider usage metadata is unavailable.
         if (totalTokens === 0) {
-          // Gemini uses ~4 chars per token (similar to GPT tokenizers)
+          // Conservative fallback when provider usage metadata is unavailable.
           promptTokens = Math.ceil(systemPrompt.length / 4);
           completionTokens = Math.ceil(fullAssistantContent.length / 4);
         }

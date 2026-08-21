@@ -1,0 +1,224 @@
+dashboard-and-ux-performance	1. **Capture baselines** (Req 1)
+dashboard-and-ux-performance	1.1 Per role dashboard: DevTools Network request-count on mount, LCP, INP,
+dashboard-and-ux-performance	1.2 `npm run analyze` initial gzipped chunk sizes; `npm run lighthouse`
+dashboard-and-ux-performance	1.3 Supabase Reports API p50/p95 per hot endpoint; `EXPLAIN (ANALYZE, BUFFERS)`
+dashboard-and-ux-performance	1.4 Store under `audit/baselines/ux-perf/*.before.*` for later diffing.
+dashboard-and-ux-performance	2. **Student dashboard aggregate RPC** (Req 2, 3) — prove the pattern
+dashboard-and-ux-performance	2.5 Remove `useDeferredMount(500)` + `deferredStudentId` gating from
+dashboard-and-ux-performance	2.8 **Measure:** Network request count on mount ~27 → ~1; record `*.after.*`.
+dashboard-and-ux-performance	8.2 Seed fetched profile into the query cache so consumers don't refetch.
+dashboard-and-ux-performance	10.2 Verify via function logs; measure cold-vs-warm first-request delta; confirm
+dashboard-and-ux-performance	R. **Re-measure** after Tier 1 + 1.5; compare to Task 1 baseline. Decide whether
+dashboard-and-ux-performance	11.2 Measure INP before/after; confirm no regression.
+dashboard-and-ux-performance	12. **Per-user query-cache persistence** (Req 12) — gated, only after Tasks 2–4
+dashboard-and-ux-performance	12.1 Add persister keyed by `user.id`; purge on sign-out and user switch.
+dashboard-and-ux-performance	12.2 **Leakage test:** sign in A → persist → sign in B → assert no A data
+dashboard-and-ux-performance	13. **RLS permissive-policy consolidation** (Req 13) — own gated effort, table-by-table
+dashboard-and-ux-performance	13.1 Per hot table (`profiles`, `habit_logs`, `student_gamification`,
+dashboard-and-ux-performance	13.2 Per table: before/after `EXPLAIN ANALYZE`; full deny-side `npm run test:rls`
+dashboard-and-ux-performance	13.3 Do NOT ship any table without its deny-side tests green.
+dashboard-and-ux-performance	14. **Index hygiene** (Req 14)
+dashboard-and-ux-performance	14.1 Confirm the 2 FK covering indexes (owned by `production-bug-fixes` Req 11)
+dashboard-and-ux-performance	14.2 Produce a keep/candidate-drop table for the ~60 unused indexes; drop only
+dashboard-and-ux-performance	15. **Heavy-dep & list-render hygiene** (Req 15)
+dashboard-and-ux-performance	15.1 Lazy-import the chart component (not just the route) on `recharts` pages.
+dashboard-and-ux-performance	15.3 Virtualize big tables (attendance, xp_transactions) via
+dashboard-and-ux-performance	15.4 Verify realtime subscriptions are filter-scoped + torn down on unmount.
+dashboard-and-ux-performance	15.5 Justify each with a bundle-report/Lighthouse number; skip off-critical-path.
+dashboard-and-ux-performance	17. **Tutor Analytics / Teams "failed to fetch analytics"**
+dashboard-and-ux-performance	17.1 `fetchTutorAnalytics` (`src/lib/tutorApi.ts`) calls the `tutor-analytics`
+dashboard-and-ux-performance	17.2 Confirm whether the teacher **Teams** "failed to fetch analytics" is the
+dashboard-and-ux-performance	18. **Gradebook "page failed to load"**
+dashboard-and-ux-performance	18.1 `useGradebookMatrix` queries are schema-valid (grade_categories,
+dashboard-and-ux-performance	19. **Slow teacher pages: Tutor Analytics, Tutor Handoffs, Baseline Tests**
+dashboard-and-ux-performance	19.1 Measure each (Network request count + waterfall on mount). Collapse
+dashboard-and-ux-performance	E. **Scope realtime** (Fix E) — audit the 17 published tables; ensure student
+dashboard-and-ux-performance	F. **Wrap the two bare `submissions` policies** (`submissions_parent_read`,
+dashboard-and-ux-performance	G. **Confirm the timeout stops** — re-query Postgres logs for `57014` after A–D land.
+dashboard-and-ux-performance	23. **Collapse in-hook N+1 / serial chains into batched queries or one RPC.**
+dashboard-and-ux-performance	25. **Parallelize the auth gate** (Req 8 follow-through): start role-routing + the first
+dashboard-and-ux-performance	26. **Pre-bundle the 5 role layout shells** (remove their `React.lazy`) so the first
+dashboard-and-ux-performance	27. **Scope realtime + audit always-on header queries.** Filter the teacher `submissions`
+dashboard-and-ux-performance	28. **Per-user query persistence** (Req 12): `@tanstack/query-persist-client` keyed by
+dashboard-and-ux-performance	29. **RLS permissive-policy consolidation** (Req 13) + `SECURITY DEFINER` aggregate paths,
+dashboard-and-ux-performance	30. **Compute decision (stakeholder).** Document that the SQL is ~18 ms warm and the
+dashboard-and-ux-performance	31. **Baselines for all roles (Req 1, gate).** Per role dashboard: DevTools mount
+dashboard-and-ux-performance	37. **Maintained summary tables (Appendix C.1) — only for baseline-proven-hot numbers.**
+dashboard-and-ux-performance	38. **Materialized views (Appendix C.2) — admin/coordinator heavy analytics only.**
+dashboard-and-ux-performance	39. **Cheaper counts (Appendix C.3).** Switch large-table KPI `count: 'exact'` →
+dashboard-and-ux-performance	40. **Query prefetch-on-hover (Appendix C.5 / Task 21 remainder).** Add
+dashboard-and-ux-performance	41. **Re-measure all roles** vs Task 31 baselines. Only then decide Tier-2 gated items
+duplication-audit-verification	1. AI-2 fix: correct `select-adaptive-question`'s attainment column read
+duplication-audit-verification	2. DB-4 corrected rollout: continue RLS policy consolidation on the
+duplication-audit-verification	2.1 `mastery_recovery_pathways` (3 SELECT policies: coordinator/student/teacher)
+duplication-audit-verification	2.2 `ai_feedback` (3 SELECT: admin/student/teacher)
+duplication-audit-verification	2.3 `attendance_records` (3 SELECT: admin/own/parent)
+duplication-audit-verification	2.4 `outcome_mappings` (3 ALL: admin/coordinator/teacher write)
+duplication-audit-verification	2.5 `baseline_attainment` (3 SELECT: admin/student/teacher)
+duplication-audit-verification	2.6 `blooms_progression` (3 SELECT: admin/student/teacher)
+duplication-audit-verification	2.7 `challenge_progress` (3 SELECT: parent/student/teacher)
+duplication-audit-verification	2.8 `course_material_embeddings` (3 SELECT + separate 2 ALL: admin/coordinator/student read, admin/teacher write)
+duplication-audit-verification	2.9 `deadline_extensions` (3 SELECT: admin/student/teacher)
+duplication-audit-verification	2.10 `evidence` (3 SELECT: parent/staff/student)
+duplication-audit-verification	2.11 `learning_outcomes` (3 ALL: admin/coordinator/teacher write)
+duplication-audit-verification	2.12 `social_challenges` (3 SELECT: admin/student ×2)
+duplication-audit-verification	2.13 `tutor_usage_limits` (3 SELECT: admin/student ×2)
+duplication-audit-verification	2.14 `xp_purchases` (3 SELECT: admin/parent/student)
+duplication-audit-verification	2.15 Re-run the live duplicate-policy SQL query from design.md §2.2
+duplication-audit-verification	4. CFG-1: untrack committed diagnostic/capture files
+duplication-audit-verification	5. AI-1: shared, provider-agnostic query-embedding helper
+duplication-audit-verification	6. FE-2: single `useStudentGamification` source hook
+duplication-audit-verification	7. FE-5: pick one league-tier model
+duplication-audit-verification	8. FE-7: delete the dead `useBadgeSpotlight.ts` re-export shim
+duplication-audit-verification	9. BE-1: migrate 2-3 more edge functions to `_shared/auth.ts`
+duplication-audit-verification	11. RT-1: widen the realtime-filter scanner scope
+duplication-audit-verification	13. Dead-code cleanup batch
+duplication-audit-verification	14. Re-verify AI-3 (embedding idempotency), AI-4 (persona
+production-bug-fixes	A.7 **Track A gate & PR:** full local gate; open PR; CI + Preview green; confirm
+production-bug-fixes	7.1 Build the function inventory from `get_advisors(security)`; classify each as
+production-bug-fixes	7.2 For each internal candidate, grep `src/` for an `rpc('<fn>'` client caller;
+production-bug-fixes	7.3 Migration: guarded `REVOKE EXECUTE … FROM anon` (and `authenticated` where
+production-bug-fixes	7.4 Verify: re-run `get_advisors(security)` → targeted warnings cleared; smoke
+production-bug-fixes	8.1 Enable HaveIBeenPwned check in Auth settings (production project).
+production-bug-fixes	B.13 **Track B gate & PR:** `db:check-replay` + full local gate; PR; CI + Supabase
+production-bug-fixes	13. **`process-onboarding` health** (Req 13)
+production-bug-fixes	13.1 Confirm deployed + responding for a real payload (preview/staging student,
+production-bug-fixes	13.2 If unhealthy, redeploy per `docs/Edge-Function-Deployment-Guide.md`; no
+production-bug-fixes	13.3 Confirm client errors reach Sentry and never block the student (ties to 2).
+production-bug-fixes	14. **`student_profiles` uniqueness audit** (Req 14)
+production-bug-fixes	14.1 Read-only duplicate audit query in production.
+production-bug-fixes	14.2 IF duplicates: migration de-dupe (keep most recent) + `UNIQUE (student_id)`,
+production-bug-fixes	14.3 IF a constraint is added: switch writer to upsert on `student_id`.
+production-bug-fixes	14.4 IF no risk: document "no change needed" and close.
+production-bug-fixes	20. **Attainment scope mismatch & outcome-weight invariant** (Req 20)
+production-bug-fixes	20.1 Read-only live audit: `SELECT scope, count(*) FROM outcome_attainment GROUP
+production-bug-fixes	20.2 IF mismatch confirmed AND fix is small/guarded: align readers to writer
+production-bug-fixes	20.3 Weight invariant: choose 0–100; add shared zod `superRefine` sum check +
+production-bug-fixes	21. **Gamification engine defects — triage & promote** (Req 21)
+production-bug-fixes	21.1 Record B-1/H-1/H-2/H-3/H-4/H-5/M-1 with severity + fix direction.
+production-bug-fixes	21.2 Create `gamification-engine-remediation` spec for the interdependent set
+production-bug-fixes	21.3 Quick wins only if safe in isolation, each with a test: M-1 cap→2; optional
+production-bug-fixes	Z.1 Full local gate: `npm run lint`, `npx tsc --noEmit`, `npm test`
+production-bug-fixes	Z.2 Open the track/item PR; ensure CI (lint, types, tests, SQL replay,
+production-bug-fixes	Z.3 Confirm the dev-only quick-login panel remains `import.meta.env.DEV`-gated and
+production-bug-fixes	Z.4 After deploy, smoke-test on production: ILO statuses, onboarding complete,
+prototype-frontend-rebuild	0.9 **Capture prototype reference baselines** (`npm run test:visual:capture`) on a
+prototype-frontend-rebuild	1.0.2 **Desktop (≥ `xl`/1280) = 3-column grid** `[sidebar --app-sidebar-w] [content 1fr]
+prototype-frontend-rebuild	1.0.3 **Laptop (`lg` 1024–1279)** = 2-column `[sidebar] [content 1fr]` (rail hidden/below);
+prototype-frontend-rebuild	1.0.4 **Correctness (all layouts):** RTL via logical props (`ms/me/ps/pe`, `start/end`);
+prototype-frontend-rebuild	1.0.5 **Chrome-suppression rules** (from `shared.js` body flags): `data-immersive` screens
+prototype-frontend-rebuild	1.1.1 **Brand** (left) + **⌘K global search** (`.top-search` → `SearchCommand`
+prototype-frontend-rebuild	1.1.2 **Notifications** bell + panel (`.notif-bell`/`.notif-panel`, unread badge,
+prototype-frontend-rebuild	1.1.3 **Role stat chips** (`.top-stats`, `ROLE_STATS`): student `🔥streak · 💎XP`;
+prototype-frontend-rebuild	1.1.4 **Profile chip** (`.hdr-profile`: name + sub + avatar initial) via
+prototype-frontend-rebuild	1.1.5 **"Why am I seeing this?" popover** (`whyPop`, all roles) — explainability
+prototype-frontend-rebuild	1.2.1 **Primary nav + FAB** (`ROLE_NAV`; mobile bottom-bar = these 4–5 tabs, one
+prototype-frontend-rebuild	1.2.2 **"MORE" secondary links** (`.side-label` + `ROLE_MORE.links`, desktop sidebar):
+prototype-frontend-rebuild	1.2.3 **Student-only sidebar extras**: "Upgrade to Premium" card (`.side-upgrade` →
+prototype-frontend-rebuild	1.3.1 **Teacher rail**: `🤖 AI prepared your day` (workload checklist),
+prototype-frontend-rebuild	1.3.2 **Parent rail**: `🌱 This week` (study days / wellbeing / focus balance),
+prototype-frontend-rebuild	1.3.3 **Coordinator rail**: `📉 Attainment alerts` (×2, `useCoordinatorOutcomeAttainment`),
+prototype-frontend-rebuild	1.3.4 **Admin rail**: `🏛️ Institution` (learners / weekly-active / retention),
+prototype-frontend-rebuild	1.3.5 **Student per-page contextual rails** (rail changes by page, `railHTML`):
+prototype-frontend-rebuild	1.4.1 **Role layouts** (admin/coordinator/teacher/student/parent) rebuilt in `src/app`
+prototype-frontend-rebuild	1.5.2 **Onboarding + entry** (`index.html` wizard, `start.html`, `roles.html` role picker):
+prototype-frontend-rebuild	1.7.1 **Hero carousel** (`.hero-carousel`/`.hero-slides`/`.hero-dots`, `initHeroCarousel`:
+prototype-frontend-rebuild	1.7.2 **Gamification celebration & reward overlays** (event-triggered, cross-cutting). Components
+prototype-frontend-rebuild	1.7.3 **AI suggestion approve/dismiss pattern** (`data-ai-card` + `aiApprove`/`aiDismiss`:
+prototype-frontend-rebuild	1.7.4 **Global feedback host**: Sonner `toast()` matched to the prototype `.edv-toast`; the
+prototype-frontend-rebuild	1.7.5 **Reusable overlays/controls** used by settings/profile/onboarding + any CRUD screen:
+prototype-frontend-rebuild	Remaining for DoD on all four: `rebuilt:true` + `test:visual` green (references exist for security/notifications/fees/transcript). No legacy to delete (net-new).
+prototype-frontend-rebuild	Courses (`learn.html`) + Course detail (`course.html`) + Materials — Dt, St
+prototype-frontend-rebuild	Assignments list + **Assignment detail** (`assignment.html`) — submit/upload Mo, St
+prototype-frontend-rebuild	Adaptive quiz (`lesson.html`, focus/full-screen) + Post-quiz review (`review.html`) — St
+prototype-frontend-rebuild	Mastery recovery (`/courses/:courseId/recovery/:cloId`) — Focus/Dt, St
+prototype-frontend-rebuild	Today (`path.html`) + Planner + Starter-week — **W**, Mo, St
+prototype-frontend-rebuild	Focus mode (`focus.html`, outside shell) — Focus, St
+prototype-frontend-rebuild	Journal (`journal.html`) — **F** entry dialog, Dt, St
+prototype-frontend-rebuild	Tutor (`tutor.html`) — autonomy L1–L3 + persona + source Mo + history, St
+prototype-frontend-rebuild	Habits + Habits analytics (`wellness.html`) — log Mo, analytics St
+prototype-frontend-rebuild	Leaderboard (`leaderboard.html`) — St; **preserve anonymity opt-out + min-cohort lock + polling**
+prototype-frontend-rebuild	Challenges list + detail (`quests.html`) — Dt, join Mo, St
+prototype-frontend-rebuild	Team + Team profile + Create team (`team.html`) — **F**, Dt, invite Mo, St
+prototype-frontend-rebuild	Marketplace + My items + History (`marketplace.html`) — purchase-confirm Mo, Dt, St
+prototype-frontend-rebuild	Portfolio (`portfolio.html`) — public-share toggle Mo (preserve permission gate), St
+prototype-frontend-rebuild	Progress (`progress.html`) — analytics St
+prototype-frontend-rebuild	Badges (`badges.html`), Learning profile (`learning-profile.html`) — St
+prototype-frontend-rebuild	Calendar (`calendar.html`) + Timetable — St
+prototype-frontend-rebuild	Content — **F**, Del, St
+prototype-frontend-rebuild	Surveys — **F** respond, St
+prototype-frontend-rebuild	Announcement detail — Dt, St
+prototype-frontend-rebuild	Discussions + thread (`discussions.html`) — **F** post, Dt, St
+prototype-frontend-rebuild	Onboarding wizard + Complete-profile — **W** multi-step, St
+prototype-frontend-rebuild	Settings: profile (`profile.html` / `settings.html`), reassessment, notification-prefs, sessions — **F**, revoke-session Del, St
+prototype-frontend-rebuild	**Student Triage** (`teacher-students.html`) — the "Students" primary-nav screen: priority
+prototype-frontend-rebuild	CLOs list/detail/form + Sub-CLOs (`teacher-curriculum.html`) — **F**, Del, **Dt**, St
+prototype-frontend-rebuild	Rubrics list + builder (`teacher-rubrics.html`) — **F/W** criteria builder, Del, St
+prototype-frontend-rebuild	Assignments list/form — **F**, Del, St
+prototype-frontend-rebuild	Grading queue + **Grading interface** (`teacher-grading.html`) — Dt (grade UI + AI draft) Mo, St
+prototype-frontend-rebuild	Gradebook (`teacher-gradebook.html`) — cell-edit Mo, St
+prototype-frontend-rebuild	Baseline list/config/results/question-form — **F**, **W** config, analytics St
+prototype-frontend-rebuild	Quiz generation: generate (`teacher-questions.html`) / review-queue / question-bank / explanation-review — **W**, approve Mo, Dt, St
+prototype-frontend-rebuild	Quiz analytics (question / quiz-CLO correlation) — analytics St
+prototype-frontend-rebuild	Quizzes form/edit — **F**, St
+prototype-frontend-rebuild	Modules (`teacher-materials.html`) — **F**, Del, reorder Mo, St
+prototype-frontend-rebuild	Announcements editor — **F**, Del, St
+prototype-frontend-rebuild	Attendance marker + report (`teacher-attendance.html`) — mark Mo, analytics St
+prototype-frontend-rebuild	Teams + manage/form/health (`coordinator-teams.html` pattern) — **F**, Del, **Dt**, analytics St
+prototype-frontend-rebuild	Challenges list/form — **F**, Del, St
+prototype-frontend-rebuild	Tutor analytics + Tutor handoffs (`teacher-handoffs.html`) — Dt handoff, analytics St
+prototype-frontend-rebuild	Content review — approve/reject Mo, St
+prototype-frontend-rebuild	Discussions moderation, Calendar, Timetable, Profile (`teacher-profile.html`) — **F**, St
+prototype-frontend-rebuild	PLOs list/form (`coordinator-outcomes.html`) — **F**, Del, St
+prototype-frontend-rebuild	Curriculum matrix (`coordinator-curriculum.html`) — cell-detail Mo, St
+prototype-frontend-rebuild	Sankey, Trends, Cohort comparison, Outcome chain — analytics St
+prototype-frontend-rebuild	Gap analysis, Coverage heatmap — cell Mo, St
+prototype-frontend-rebuild	CQI manager (`coordinator-cqi.html`) — **F** action-plan, Del, Dt, status-transition Mo, St
+prototype-frontend-rebuild	Course-file generator (`coordinator-course-file.html`) — **W** generate, Dt, St
+prototype-frontend-rebuild	**Accreditation** (`coordinator-accreditation.html`) — the "Accredit" primary-nav screen:
+prototype-frontend-rebuild	Competencies (`coordinator-competencies.html`), Timetable, Profile (`coordinator-profile.html`) — **F**, St
+prototype-frontend-rebuild	Users list + form + **import wizard** + invite + parent-invite + pending-onboarding (`admin-users.html`) — **F**, **W**, Del, Dt, St
+prototype-frontend-rebuild	Programs, Courses (+ enrollment roster Mo), Semesters, Departments — **F**, Del, St
+prototype-frontend-rebuild	ILOs list/form (`admin-structure.html`) — **F**, Del, Dt, St
+prototype-frontend-rebuild	Reports (`admin-analytics.html`) — export Mo, St (fill "weekly active learners" chart)
+prototype-frontend-rebuild	Audit log — filters, Dt drawer, St
+prototype-frontend-rebuild	Bonus events, Badge spotlight, **Badge Definitions** (`admin-badges.html` — badge CRUD, condition/threshold editor, distinct from spotlight) — **F**, Del, Dt, St
+prototype-frontend-rebuild	Marketplace mgmt/sales/analytics/quests/economist (`admin-marketplace.html`) — **F**, Del, Dt, analytics St
+prototype-frontend-rebuild	Fees, Data-import wizard, Surveys (+results), Graduate attributes, Competency frameworks, Historical evidence, Outcome chain — **F**/**W**, Del, St
+prototype-frontend-rebuild	AI Governance (`admin-governance.html`) — neutralize colored top, roadmap-labeled, St
+prototype-frontend-rebuild	Institution settings + Profile (`admin-profile.html`) — sectioned **F**, toggles, St
+prototype-frontend-rebuild	Children (`parent-progress.html` chrome) — Dt, link-child Mo, St
+prototype-frontend-rebuild	Progress (`parent-progress.html`) — analytics St
+prototype-frontend-rebuild	Attendance — analytics St
+prototype-frontend-rebuild	Planner + per-student (`parent-support.html`) — Mo, St
+prototype-frontend-rebuild	Profile (`parent-profile.html`) — **F**, St
+prototype-frontend-rebuild	Public portfolio (`/portfolio/:student_id`) — public empty/not-shared/404 St
+prototype-frontend-rebuild	Terms, Privacy — prose layout
+prototype-frontend-rebuild	4.1 Keep a live parity ledger: as each screen lands, flip its `visual/screen-map.ts`
+prototype-frontend-rebuild	5.1 Remove any remaining feature flags / old-vs-new split wrappers → one component per route.
+prototype-frontend-rebuild	5.2 Delete the reskinned `*DashboardNew` + superseded `src/pages/**` + `src/components/shared/*`
+prototype-frontend-rebuild	5.3 Triage the ~34 orphaned `shared/*` feature widgets (product decision: wire a screen or delete).
+prototype-frontend-rebuild	5.4 **RETAIN `prototype/`** (owner decision) — living design reference, never imported by `src/`.
+prototype-frontend-rebuild	5.5 Final green bar: `tsc --noEmit` · `knip` · `npm run lint` · `npm test` · `npm run test:visual` (all rows) · e2e.
+prototype-frontend-rebuild	G.1 No edits to `supabase/**`, `src/hooks/**` behavior, `queryKeys.ts`, `supabase.ts`,
+prototype-frontend-rebuild	G.2 No `prototype/` imports, no CDN Tailwind, no `shared.css`/`shared.js` in `src/`. (R2.7)
+prototype-frontend-rebuild	G.3 Components consume hooks only; never `supabase.*` directly. (R1.2)
+prototype-frontend-rebuild	G.4 No new backend/tables/RLS/roles. (Non-goals)
+prototype-frontend-rebuild	G.5 **Supabase is the ONLY source of truth (data-binding rule).** Every screen / section /
+rls-consolidation-and-infra-health	2.1 **Follow-up (low priority):** live-test `scripts/infra-health-report.sh` on
+rls-consolidation-and-infra-health	10.3 Supabase Preview green on the PR — PENDING (requires opening the actual
+ui-prototype-migration	0.6 Reconcile the duplicate profile language field (`preferred_language` vs `language_preference`) to one canonical field; document; no user-visible change. (Ref R7.4)
+ui-prototype-migration	2.6 Parity gate each dashboard: visual + functional + en/ar + light/dark + a11y + perf. (Ref R9, R10, R11, R12)
+ui-prototype-migration	3.7 **Coverage matrix:** the full route enumeration + classification is authored in **`coverage-matrix.md`** (every route → P / P\* / D + archetype + reuse-data + preservation notes, with per-role tables and summary counts). P3 uses it as the checklist: confirm every row is migrated, gated, and off the legacy style; update each row's status as its flag flips on. (Ref R16.1, R16.5) → see `#[[file:coverage-matrix.md]]`
+ui-prototype-migration	V.1 Regression matrix: for every migrated feature verify works-before vs works-after — routes, APIs, mutations, forms, uploads, AI, realtime, notifications, caching, permissions. (Ref R13.3)
+ui-prototype-migration	V.2 Role verification: student/teacher/parent/coordinator/admin each see correct nav, dashboard, permitted actions; cannot reach unauthorized routes (guard redirects intact). (Ref R4)
+ui-prototype-migration	V.3 i18n: en+ar per screen, no hardcoded strings, logical props only, no missing-Arabic-key markers. (Ref R7)
+ui-prototype-migration	V.4 Theme: light+dark per screen. (Ref R8)
+ui-prototype-migration	V.5 A11y: axe/Lighthouse, keyboard, focus order, contrast, touch targets, reduced motion, skip link. (Ref R10)
+ui-prototype-migration	V.6 Performance: route bundle + TTI ≥ baseline; no duplicate queries/providers; no CDN Tailwind. (Ref R11)
+ui-prototype-migration	V.7 Responsive matrix (per screen): viewports 360/768/1024/1440 × {touch, pointer} × {LTR, RTL} × {light, dark}; verify sidebar↔bottom-tab swap at `lg`, table→card degradation, ≥44px targets on coarse pointers, `100dvh`/safe-area. No device toggle/UA sniffing anywhere. (Ref R12, R18)
+ui-prototype-migration	V.8 Coverage: no route renders in the legacy style; each derived screen conforms to its §15 archetype and preserves its original function. (Ref R16)
+ui-prototype-migration	G.1 No edits to `supabase/**`, `src/hooks/**` (existing behavior), `queryKeys.ts`, `supabase.ts`, `queryClient.ts`, `auditLogger.ts`, `AuthProvider` logic, `RouteGuard`, `database.ts`, route paths/guards. (Ref R1, design §13)
+ui-prototype-migration	G.2 No `prototype/` imports, no CDN Tailwind, no `shared.css`/`shared.js` in `src/`. (Ref R15.2)
+ui-prototype-migration	G.3 Components consume hooks only; never `supabase.*` directly. (Ref R1.2)
+ui-prototype-migration	G.4 Each module behind a feature flag; old component retained until parity signed off; reversible. (Ref R13.2, R13.1)

@@ -1,6 +1,10 @@
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
+import { authenticateRequest } from "../_shared/auth.ts";
+import { EmbeddingProviderError } from "../_shared/ai/embedding.ts";
+import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Buffer } from "node:buffer";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +28,7 @@ interface EmbedRequest {
   bloom_level?: string;
   material_type: MaterialType;
   source_filename: string;
-  source_material_id?: string;
+  source_material_id: string;
   institution_id?: string;
   reindex?: boolean;
 }
@@ -57,18 +61,28 @@ interface TextChunk {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002";
-const EMBEDDING_DIMENSIONS = 1536;
-// Embeddings provider config (OpenAI-compatible). Defaults to OpenAI, but the
-// base URL / model can be overridden via env so any OpenAI-compatible
-// embeddings endpoint works without a code change. The `course_material_embeddings.embedding`
-// column is `vector(1536)`, so the configured model MUST return 1536-dim vectors
-// (text-embedding-ada-002 / text-embedding-3-small both do); a mismatched
-// dimension is rejected by validateEmbeddingDimensions() before any insert.
-const EMBEDDINGS_BASE_URL =
-  Deno.env.get("EMBEDDINGS_BASE_URL") ?? "https://api.openai.com/v1";
-const EMBEDDING_MODEL =
-  Deno.env.get("EMBEDDINGS_MODEL") ?? OPENAI_EMBEDDING_MODEL;
+const embeddingProvider = createConfiguredEmbeddingProvider();
+const replacementRpc =
+  embeddingProvider.metadata.version === 3
+    ? "replace_course_material_embeddings_v3"
+    : "replace_course_material_embeddings_v2";
+type LooseTable = {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: [];
+};
+type LooseDatabase = {
+  public: {
+    Tables: Record<string, LooseTable>;
+    Views: Record<string, LooseTable>;
+    Functions: Record<
+      string,
+      { Args: Record<string, unknown>; Returns: unknown }
+    >;
+  };
+};
+type UntypedSupabaseClient = ReturnType<typeof createClient<LooseDatabase>>;
 const EMBEDDING_BATCH_SIZE = 100;
 const MAX_TOKENS_PER_CHUNK = 500;
 const MIN_TOKENS_PER_CHUNK = 200;
@@ -255,8 +269,8 @@ async function extractText(
  */
 async function extractTextFromPDF(fileBytes: Uint8Array): Promise<string> {
   // Dynamic import for Deno Edge Function environment
-  const pdfParse = (await import("https://esm.sh/pdf-parse@1.1.1")).default;
-  const result = await pdfParse(fileBytes);
+  const { default: pdfParse } = await import("https://esm.sh/pdf-parse@1.1.1");
+  const result = await pdfParse(Buffer.from(fileBytes));
   return result.text ?? "";
 }
 
@@ -266,62 +280,22 @@ async function extractTextFromPDF(fileBytes: Uint8Array): Promise<string> {
  */
 async function extractTextFromDOCX(fileBytes: Uint8Array): Promise<string> {
   const mammoth = await import("https://esm.sh/mammoth@1.6.0");
-  const result = await mammoth.extractRawText({ buffer: fileBytes });
+  const result = await mammoth.extractRawText({
+    arrayBuffer: fileBytes.slice().buffer as ArrayBuffer,
+  });
   return result.value ?? "";
 }
 
-// ─── OpenAI Embedding Generation ────────────────────────────────────────────
+// ─── Supabase-native Embedding Generation ───────────────────────────────────
 
-async function generateEmbeddings(
-  texts: string[],
-  apiKey: string
-): Promise<number[][]> {
+async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
-
   const results: number[][] = [];
-
-  // Process in batches of EMBEDDING_BATCH_SIZE
   for (let i = 0; i < texts.length; i += EMBEDDING_BATCH_SIZE) {
     const batch = texts.slice(i, i + EMBEDDING_BATCH_SIZE);
-
-    const response = await fetch(`${EMBEDDINGS_BASE_URL}/embeddings`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        input: batch,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`Embedding API error (${response.status}): ${errorBody}`);
-    }
-
-    const data = await response.json();
-    const embeddings = data.data
-      .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
-      .map((item: { embedding: number[] }) => item.embedding);
-
-    // Defensive dimension check: the pgvector column is vector(1536). A provider
-    // / model returning a different dimension would corrupt the column, so fail
-    // loudly here rather than on insert.
-    for (const emb of embeddings) {
-      if (!Array.isArray(emb) || emb.length !== EMBEDDING_DIMENSIONS) {
-        throw new Error(
-          `Embedding dimension mismatch: model "${EMBEDDING_MODEL}" returned ${
-            Array.isArray(emb) ? emb.length : "non-array"
-          }, expected ${EMBEDDING_DIMENSIONS}. Configure EMBEDDINGS_MODEL to a 1536-dim model.`
-        );
-      }
-    }
-
-    results.push(...embeddings);
+    const response = await embeddingProvider.embed({ inputs: batch });
+    results.push(...response.vectors.map((vector) => [...vector]));
   }
-
   return results;
 }
 
@@ -368,6 +342,13 @@ function validatePayload(
     };
   }
 
+  if (!req.source_material_id || typeof req.source_material_id !== "string") {
+    return {
+      valid: false,
+      error: "source_material_id is required and must be a string",
+    };
+  }
+
   if (req.clo_ids !== undefined) {
     if (
       !Array.isArray(req.clo_ids) ||
@@ -390,7 +371,7 @@ function validatePayload(
       bloom_level: req.bloom_level as string | undefined,
       material_type: req.material_type as MaterialType,
       source_filename: req.source_filename as string,
-      source_material_id: req.source_material_id as string | undefined,
+      source_material_id: req.source_material_id as string,
       institution_id: req.institution_id as string | undefined,
       reindex: req.reindex === true,
     },
@@ -534,7 +515,7 @@ function assembleAutoIndexText(req: AutoIndexRequest): string {
 // ─── Notification Helper ────────────────────────────────────────────────────
 
 async function notifyTeacher(
-  supabase: ReturnType<typeof createClient>,
+  supabase: UntypedSupabaseClient,
   teacherId: string,
   institutionId: string,
   title: string,
@@ -555,6 +536,129 @@ async function notifyTeacher(
   }
 }
 
+interface AuthorizedCourse {
+  institutionId: string;
+  teacherId: string;
+}
+
+/**
+ * Resolve the course tenant from courses → programs → institutions and require
+ * the authenticated teacher to own the course.  Request metadata is never an
+ * authority for either tenant or ownership.
+ */
+async function authorizeTeacherCourse(
+  supabase: UntypedSupabaseClient,
+  courseId: string,
+  callerId: string
+): Promise<
+  | { authorized: true; course: AuthorizedCourse }
+  | { authorized: false; status: 403 | 404; error: string }
+> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("id, teacher_id, programs!inner(institution_id)")
+    .eq("id", courseId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { authorized: false, status: 404, error: "Course not found" };
+  }
+
+  const row = data as unknown as {
+    teacher_id: string | null;
+    programs: { institution_id: string } | { institution_id: string }[] | null;
+  };
+  const program = Array.isArray(row.programs) ? row.programs[0] : row.programs;
+  const teacherId = row.teacher_id;
+
+  if (!program?.institution_id || !teacherId || teacherId !== callerId) {
+    return {
+      authorized: false,
+      status: 403,
+      error: "Forbidden: assigned teacher access required",
+    };
+  }
+
+  return {
+    authorized: true,
+    course: {
+      institutionId: program.institution_id,
+      teacherId,
+    },
+  };
+}
+
+/** Validate every requested CLO against the authoritative course scope. */
+async function validateCloScope(
+  supabase: UntypedSupabaseClient,
+  courseId: string,
+  institutionId: string,
+  cloIds: string[]
+): Promise<string | null> {
+  const uniqueCloIds = [...new Set(cloIds)];
+  if (uniqueCloIds.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from("learning_outcomes")
+    .select("id, type, course_id, institution_id")
+    .in("id", uniqueCloIds);
+
+  if (
+    error ||
+    !data ||
+    data.length !== uniqueCloIds.length ||
+    data.some((outcome) => {
+      const row = outcome as Record<string, unknown>;
+      return (
+        row.type !== "CLO" ||
+        row.course_id !== courseId ||
+        row.institution_id !== institutionId
+      );
+    })
+  ) {
+    return "Forbidden: every CLO must belong to the requested course";
+  }
+
+  return null;
+}
+
+/**
+ * Resolve the requested storage object through its authoritative material row.
+ * The service-role client must never turn a caller-supplied path into a
+ * cross-course or cross-tenant read.
+ */
+async function authorizeSourceMaterial(
+  supabase: UntypedSupabaseClient,
+  sourceMaterialId: string,
+  courseId: string,
+  requestedFilePath: string
+): Promise<boolean> {
+  if (
+    !requestedFilePath.startsWith(`${courseId}/`) ||
+    requestedFilePath.includes("..") ||
+    requestedFilePath.includes("\\") ||
+    requestedFilePath.startsWith("/") ||
+    /^[a-z][a-z\d+.-]*:/i.test(requestedFilePath)
+  ) {
+    return false;
+  }
+
+  const { data, error } = await supabase
+    .from("course_materials")
+    .select("id, file_path, course_modules!inner(course_id)")
+    .eq("id", sourceMaterialId)
+    .eq("file_path", requestedFilePath)
+    .eq("course_modules.course_id", courseId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      `Source-material authorization lookup failed: ${error.message}`
+    );
+  }
+  return Boolean(data);
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -566,29 +670,31 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = getManagedServerKey();
-    // Embeddings API key: prefer a dedicated EMBEDDINGS_API_KEY, fall back to
-    // OPENAI_API_KEY (the default provider is OpenAI). When neither is set the
-    // function returns a clear, structured 503 and the tutor continues to
-    // degrade gracefully (RAG block skipped) — embeddings simply do not populate
-    // until a provider key is provisioned.
-    const openaiApiKey =
-      Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
 
-    if (!openaiApiKey) {
+    // JWT → auth.getUser() → canonical profiles row.  A service-role client is
+    // created only after the caller is authenticated; all side effects below
+    // remain behind the role/course/CLO checks.
+    const auth = await authenticateRequest(req);
+    if (!auth.user) {
       return new Response(
-        JSON.stringify({
-          error:
-            "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
-          indexing_status: "provider_unconfigured",
-        }),
+        JSON.stringify({ error: auth.error ?? "Unauthorized" }),
         {
-          status: 503,
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    if (auth.user.role !== "teacher") {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: teacher role required" }),
+        {
+          status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    // Create service-role client (bypasses RLS for server-side operations)
+    // Service-role access is restricted to the authorized server-side path.
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // ── Parse and validate request ──────────────────────────────────────
@@ -613,39 +719,31 @@ serve(async (req) => {
 
       const autoReq = autoValidation.data;
 
-      // Resolve institution_id from course
-      let autoInstitutionId = autoReq.institution_id;
-      let autoTeacherId: string | null = null;
-
-      const { data: autoCourseData, error: autoCourseError } = await supabase
-        .from("courses")
-        .select("institution_id, teacher_id")
-        .eq("id", autoReq.course_id)
-        .maybeSingle();
-
-      if (autoCourseError || !autoCourseData) {
-        return new Response(JSON.stringify({ error: "Course not found" }), {
-          status: 404,
+      const authorizedCourse = await authorizeTeacherCourse(
+        supabase,
+        autoReq.course_id,
+        auth.user.id
+      );
+      if (!authorizedCourse.authorized) {
+        return new Response(JSON.stringify({ error: authorizedCourse.error }), {
+          status: authorizedCourse.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      autoInstitutionId = autoInstitutionId ?? autoCourseData.institution_id;
-      autoTeacherId = autoCourseData.teacher_id;
-
-      // Delete old chunks for re-indexing (always re-index for auto-indexed content)
-      if (autoReq.source_material_id) {
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_material_id", autoReq.source_material_id)
-          .eq("course_id", autoReq.course_id);
-      } else {
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_filename", autoReq.source_filename)
-          .eq("course_id", autoReq.course_id);
+      const autoInstitutionId = authorizedCourse.course.institutionId;
+      const autoTeacherId = authorizedCourse.course.teacherId;
+      const cloError = await validateCloScope(
+        supabase,
+        autoReq.course_id,
+        autoInstitutionId,
+        autoReq.clo_ids ?? []
+      );
+      if (cloError) {
+        return new Response(JSON.stringify({ error: cloError }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       // Assemble text from assignment/rubric fields
@@ -684,10 +782,21 @@ serve(async (req) => {
       let autoEmbeddings: number[][];
       try {
         autoEmbeddings = await generateEmbeddings(
-          autoChunks.map((c) => c.text),
-          openaiApiKey
+          autoChunks.map((c) => c.text)
         );
       } catch (embeddingError) {
+        if (
+          embeddingError instanceof EmbeddingProviderError &&
+          embeddingError.kind === "configuration"
+        ) {
+          return new Response(
+            JSON.stringify({ error: "Embedding provider is not configured" }),
+            {
+              status: 503,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
         if (autoTeacherId) {
           await notifyTeacher(
             supabase,
@@ -713,7 +822,18 @@ serve(async (req) => {
         institution_id: autoInstitutionId,
         course_id: autoReq.course_id,
         chunk_text: chunk.text,
-        embedding: JSON.stringify(autoEmbeddings[index]),
+        embedding_v2:
+          embeddingProvider.metadata.version === 2
+            ? JSON.stringify(autoEmbeddings[index])
+            : null,
+        embedding_v3:
+          embeddingProvider.metadata.version === 3
+            ? JSON.stringify(autoEmbeddings[index])
+            : null,
+        embedding_provider: embeddingProvider.metadata.provider,
+        embedding_model: embeddingProvider.metadata.model,
+        embedding_dimensions: embeddingProvider.metadata.dimensions,
+        embedding_version: embeddingProvider.metadata.version,
         source_filename: autoReq.source_filename,
         material_type: autoReq.material_type,
         clo_ids: autoReq.clo_ids ?? [],
@@ -724,18 +844,16 @@ serve(async (req) => {
         indexing_status: "indexed",
       }));
 
-      const AUTO_INSERT_BATCH_SIZE = 50;
-      for (let i = 0; i < autoInsertRows.length; i += AUTO_INSERT_BATCH_SIZE) {
-        const batch = autoInsertRows.slice(i, i + AUTO_INSERT_BATCH_SIZE);
-        const { error: insertError } = await supabase
-          .from("course_material_embeddings")
-          .insert(batch);
-
-        if (insertError) {
-          throw new Error(
-            `Failed to insert auto-index chunks: ${insertError.message}`
-          );
-        }
+      const { data: autoInsertedCount, error: autoReplaceError } =
+        await supabase.rpc(replacementRpc, {
+          p_institution_id: autoInstitutionId,
+          p_course_id: autoReq.course_id,
+          p_source_material_id: autoReq.source_material_id ?? null,
+          p_source_filename: autoReq.source_filename,
+          p_rows: autoInsertRows,
+        });
+      if (autoReplaceError || autoInsertedCount !== autoInsertRows.length) {
+        throw new Error("Failed to atomically replace auto-index chunks");
       }
 
       return new Response(
@@ -764,142 +882,77 @@ serve(async (req) => {
 
     const embedReq = validation.data;
 
-    // ── Resolve institution_id from course ──────────────────────────────
-    let institutionId = embedReq.institution_id;
-    let teacherId: string | null = null;
-
-    const { data: courseData, error: courseError } = await supabase
-      .from("courses")
-      .select("institution_id, teacher_id")
-      .eq("id", embedReq.course_id)
-      .maybeSingle();
-
-    if (courseError || !courseData) {
-      return new Response(JSON.stringify({ error: "Course not found" }), {
-        status: 404,
+    const authorizedCourse = await authorizeTeacherCourse(
+      supabase,
+      embedReq.course_id,
+      auth.user.id
+    );
+    if (!authorizedCourse.authorized) {
+      return new Response(JSON.stringify({ error: authorizedCourse.error }), {
+        status: authorizedCourse.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    institutionId = institutionId ?? courseData.institution_id;
-    teacherId = courseData.teacher_id;
+    const institutionId = authorizedCourse.course.institutionId;
+    const teacherId = authorizedCourse.course.teacherId;
+    const cloError = await validateCloScope(
+      supabase,
+      embedReq.course_id,
+      institutionId,
+      embedReq.clo_ids ?? []
+    );
+    if (cloError) {
+      return new Response(JSON.stringify({ error: cloError }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // ── Delete old chunks for re-indexing ────────────────────────────────
-    // (Task 3.2.7: Re-indexing — delete old chunks before inserting new ones)
-    // Always delete old chunks when source_material_id is provided or reindex is true
-    if (embedReq.reindex || embedReq.source_material_id) {
-      if (embedReq.source_material_id) {
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_material_id", embedReq.source_material_id)
-          .eq("course_id", embedReq.course_id);
-      } else {
-        // Fall back to matching by filename + course
-        await supabase
-          .from("course_material_embeddings")
-          .delete()
-          .eq("source_filename", embedReq.source_filename)
-          .eq("course_id", embedReq.course_id);
-      }
-    } else {
-      // Default behavior: delete by filename + course to prevent duplicates
-      await supabase
-        .from("course_material_embeddings")
-        .delete()
-        .eq("source_filename", embedReq.source_filename)
-        .eq("course_id", embedReq.course_id);
+    const sourceMaterialAuthorized = await authorizeSourceMaterial(
+      supabase,
+      embedReq.source_material_id,
+      embedReq.course_id,
+      embedReq.file_url
+    ).catch((error: unknown) => {
+      console.error("Source-material authorization lookup failed:", error);
+      return null;
+    });
+    if (sourceMaterialAuthorized === null) {
+      return new Response(JSON.stringify({ error: "Internal server error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!sourceMaterialAuthorized) {
+      return new Response(
+        JSON.stringify({
+          error: "Forbidden: material file is outside the requested course",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // ── Download file from Supabase Storage ─────────────────────────────
     // (Task 3.2.1: File download and text extraction)
     let fileBytes: Uint8Array;
 
-    if (embedReq.file_url.startsWith("http")) {
-      // ── SSRF Protection: validate URL against allowlist ────────────────
-      // Only allow fetching from the project's own Supabase Storage URL.
-      // Block private IP ranges, localhost, and cloud metadata endpoints.
-      const parsedUrl = new URL(embedReq.file_url);
-      const allowedHost = new URL(supabaseUrl).hostname;
-      const hostname = parsedUrl.hostname.toLowerCase();
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from("course-materials")
+      .download(embedReq.file_url);
 
-      // Block private/internal IP ranges and metadata endpoints
-      const blockedPatterns = [
-        /^localhost$/i,
-        /^127\./,
-        /^10\./,
-        /^172\.(1[6-9]|2\d|3[01])\./,
-        /^192\.168\./,
-        /^169\.254\./,
-        /^0\./,
-        /^\[::1\]$/,
-        /^metadata\.google\.internal$/i,
-      ];
-
-      const isBlocked = blockedPatterns.some((pattern) =>
-        pattern.test(hostname)
+    if (downloadError || !fileData) {
+      throw new Error(
+        `Failed to download file from storage: ${
+          downloadError?.message ?? "Unknown error"
+        }`
       );
-      if (isBlocked) {
-        return new Response(
-          JSON.stringify({
-            error: "Forbidden: URL points to a private or internal address",
-          }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Only allow the project's own Supabase domain
-      if (hostname !== allowedHost) {
-        return new Response(
-          JSON.stringify({
-            error: `Forbidden: only URLs from ${allowedHost} are allowed`,
-          }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Direct URL — fetch the file
-      const fileResponse = await fetch(embedReq.file_url);
-      if (!fileResponse.ok) {
-        throw new Error(`Failed to download file: HTTP ${fileResponse.status}`);
-      }
-      fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
-    } else {
-      // ── Path Traversal Protection for storage paths ───────────────────
-      if (embedReq.file_url.includes("..")) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Invalid file path: path traversal sequences are not allowed",
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Supabase Storage path — download via storage API
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from("course-materials")
-        .download(embedReq.file_url);
-
-      if (downloadError || !fileData) {
-        throw new Error(
-          `Failed to download file from storage: ${
-            downloadError?.message ?? "Unknown error"
-          }`
-        );
-      }
-
-      fileBytes = new Uint8Array(await fileData.arrayBuffer());
     }
+
+    fileBytes = new Uint8Array(await fileData.arrayBuffer());
 
     // ── Extract text ────────────────────────────────────────────────────
     let extractedText: string;
@@ -912,7 +965,11 @@ serve(async (req) => {
           institution_id: institutionId,
           course_id: embedReq.course_id,
           chunk_text: "",
-          embedding: Array(EMBEDDING_DIMENSIONS).fill(0),
+          embedding_v2: null,
+          embedding_provider: embeddingProvider.metadata.provider,
+          embedding_model: embeddingProvider.metadata.model,
+          embedding_dimensions: embeddingProvider.metadata.dimensions,
+          embedding_version: embeddingProvider.metadata.version,
           source_filename: embedReq.source_filename,
           material_type: embedReq.material_type,
           chunk_index: 0,
@@ -1007,21 +1064,34 @@ serve(async (req) => {
     }
 
     // ── Generate embeddings ─────────────────────────────────────────────
-    // (Task 3.2.3: Batch embedding generation via OpenAI API)
+    // (Task 3.2.3: Supabase-native, versioned batch embeddings)
     let embeddings: number[][];
     try {
-      embeddings = await generateEmbeddings(
-        chunks.map((c) => c.text),
-        openaiApiKey
-      );
+      embeddings = await generateEmbeddings(chunks.map((c) => c.text));
     } catch (embeddingError) {
+      if (
+        embeddingError instanceof EmbeddingProviderError &&
+        embeddingError.kind === "configuration"
+      ) {
+        return new Response(
+          JSON.stringify({ error: "Embedding provider is not configured" }),
+          {
+            status: 503,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
       // Mark as failed and notify teacher
       if (embedReq.source_material_id) {
         await supabase.from("course_material_embeddings").insert({
           institution_id: institutionId,
           course_id: embedReq.course_id,
           chunk_text: "",
-          embedding: Array(EMBEDDING_DIMENSIONS).fill(0),
+          embedding_v2: null,
+          embedding_provider: embeddingProvider.metadata.provider,
+          embedding_model: embeddingProvider.metadata.model,
+          embedding_dimensions: embeddingProvider.metadata.dimensions,
+          embedding_version: embeddingProvider.metadata.version,
           source_filename: embedReq.source_filename,
           material_type: embedReq.material_type,
           chunk_index: 0,
@@ -1058,7 +1128,18 @@ serve(async (req) => {
       institution_id: institutionId,
       course_id: embedReq.course_id,
       chunk_text: chunk.text,
-      embedding: JSON.stringify(embeddings[index]),
+      embedding_v2:
+        embeddingProvider.metadata.version === 2
+          ? JSON.stringify(embeddings[index])
+          : null,
+      embedding_v3:
+        embeddingProvider.metadata.version === 3
+          ? JSON.stringify(embeddings[index])
+          : null,
+      embedding_provider: embeddingProvider.metadata.provider,
+      embedding_model: embeddingProvider.metadata.model,
+      embedding_dimensions: embeddingProvider.metadata.dimensions,
+      embedding_version: embeddingProvider.metadata.version,
       source_filename: embedReq.source_filename,
       material_type: embedReq.material_type,
       clo_ids: embedReq.clo_ids ?? [],
@@ -1069,17 +1150,18 @@ serve(async (req) => {
       indexing_status: "indexed",
     }));
 
-    // Insert in batches to avoid payload size limits
-    const INSERT_BATCH_SIZE = 50;
-    for (let i = 0; i < insertRows.length; i += INSERT_BATCH_SIZE) {
-      const batch = insertRows.slice(i, i + INSERT_BATCH_SIZE);
-      const { error: insertError } = await supabase
-        .from("course_material_embeddings")
-        .insert(batch);
-
-      if (insertError) {
-        throw new Error(`Failed to insert chunks: ${insertError.message}`);
+    const { data: insertedCount, error: replaceError } = await supabase.rpc(
+      replacementRpc,
+      {
+        p_institution_id: institutionId,
+        p_course_id: embedReq.course_id,
+        p_source_material_id: embedReq.source_material_id ?? null,
+        p_source_filename: embedReq.source_filename,
+        p_rows: insertRows,
       }
+    );
+    if (replaceError || insertedCount !== insertRows.length) {
+      throw new Error("Failed to atomically replace material chunks");
     }
 
     // ── Notify teacher on completion for large documents ────────────────

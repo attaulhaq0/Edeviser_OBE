@@ -83,7 +83,7 @@
 > when it could precede CREATE on a fresh replay; `npm run db:check-replay` clean;
 > Supabase Preview green; regenerate types via `scripts/regen-types.ps1` if signatures change.
 
-- [ ] 7. **Restrict EXECUTE on internal SECURITY DEFINER functions** (Req 7)
+- [x] 7. **Restrict EXECUTE on internal SECURITY DEFINER functions** (Req 7) — **verified implemented:** `20260504032951_revoke_anon_execute_on_security_definer_functions.sql` plus ~36 further `REVOKE EXECUTE` statements across migrations.
 
   - [ ] 7.1 Build the function inventory from `get_advisors(security)`; classify each as
         public-by-design (keep) or internal (candidate revoke).

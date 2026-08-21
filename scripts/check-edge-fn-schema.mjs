@@ -69,6 +69,9 @@ const IGNORED_TABLES = new Set([
   // migration is applied and database.ts is regenerated.
   "email_deliveries",
   "email_delivery_events",
+  // Added by auth_onboarding_hardening; generated database.ts is immutable and
+  // will be refreshed after the forward migration is applied.
+  "admin_bootstrap_requests",
 ]);
 
 // Pending approved production migration fields. The invitation functions are

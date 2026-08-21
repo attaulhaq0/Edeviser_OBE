@@ -75,6 +75,25 @@ describe("tenant operations safety", () => {
       options.outputPath,
     ]);
     expect(parsed.mode).toBe("dry-run");
+    expect(
+      parseTenantOperationArgs([
+        "--project-ref",
+        options.projectRef,
+        "--institution-id",
+        options.institutionId,
+        "--expected-name",
+        options.expectedName,
+        "--expected-slug",
+        options.expectedSlug,
+        "--operation",
+        "reset",
+        "--run-id",
+        options.runId,
+        "--output-path",
+        options.outputPath,
+        "--dry-run",
+      ]).mode
+    ).toBe("dry-run");
     expect(() => parseTenantOperationArgs(["--unknown", "value"])).toThrow(
       /Unknown/
     );
@@ -120,6 +139,7 @@ describe("tenant operations safety", () => {
     const executeOptions = { ...options, mode: "execute" as const };
     executeOptions.confirmationToken =
       expectedConfirmationToken(executeOptions);
+    executeOptions.confirmInstitutionId = executeOptions.institutionId;
     expect(() =>
       assertTenantOperationSafety(
         executeOptions,
@@ -144,6 +164,14 @@ describe("tenant operations safety", () => {
     ).toThrow(/Exact confirmation token/);
     executeOptions.confirmationToken =
       expectedConfirmationToken(executeOptions);
+    expect(() =>
+      assertTenantOperationSafety(
+        executeOptions,
+        executeOptions.projectRef,
+        snapshot.institution
+      )
+    ).toThrow(/confirm-institution-id/);
+    executeOptions.confirmInstitutionId = executeOptions.institutionId;
     expect(() =>
       assertTenantOperationSafety(
         executeOptions,

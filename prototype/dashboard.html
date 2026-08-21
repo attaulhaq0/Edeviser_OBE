@@ -7,8 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="student-refinement.css"/>
 </head>
-<body class="bg-slate-50" data-role="student">
+<body class="bg-slate-50" data-role="student" data-dashboard="true">
 
 <!-- App Header -->
 <header class="app-header">
@@ -106,7 +107,7 @@
   <!-- TODAY · close your weakest gap — OBE drives the next action (the core loop). Compacted: one row, no separate coach line. -->
   <a href="lesson.html" class="feed-wide block pcard pcard-tap overflow-hidden" style="background:linear-gradient(135deg,#0f766e,#0382bd)">
     <div class="p-3.5 text-white relative">
-      <span class="why" style="position:absolute;top:10px;right:10px;font-size:10px" onclick="event.preventDefault();event.stopPropagation();whyPop('You\\'re seeing this because <b>Normalization (CLO3)</b> is your lowest outcome right now (62%, Developing) and it\\'s assessed by a task due soon. Closing it first gives the biggest gain for the least time — that\\'s the whole idea: your outcomes decide your next action.')">🛡️ why</span>
+      <button type="button" class="student-ai-why" data-student-ai-open style="position:absolute;top:10px;right:10px;font-size:10px">Why this focus?</button>
       <p class="text-[9px] font-black tracking-widest uppercase text-white/70">Today · weakest outcome</p>
       <div class="flex items-center gap-3 mt-1.5">
         <div class="relative h-10 w-10 shrink-0">
@@ -129,9 +130,9 @@
       <div class="flex items-center gap-3">
         <div class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">📝</span></div>
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5"><p class="text-[9px] font-black tracking-widest uppercase text-gray-400">Next step</p><span class="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">⏰ 4h</span></div>
+          <div class="flex items-center gap-1.5"><p class="text-[9px] font-black tracking-widest uppercase text-gray-400">Next step</p><span class="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">⏰ Due in 2 days</span></div>
           <h3 class="text-sm font-black text-gray-900 leading-tight truncate">Database Assignment 3</h3>
-          <p class="text-[11px] text-gray-500 truncate">Normalization · <span class="text-amber-600 font-bold">+25 XP</span> · ~30 min</p>
+          <p class="text-[11px] text-gray-500 truncate">Normalize a Schema · <span class="text-amber-600 font-bold">+25 XP</span> · ~30 min</p><p class="text-[10px] text-teal-700 mt-0.5">Practices your current CLO focus.</p>
         </div>
       </div>
       <div class="flex gap-2 mt-2.5">
@@ -185,43 +186,62 @@
     </div>
   </div>
 
-  <div class="lg-row lg-row-2 space-y-4">
+  <div class="lg-row lg-row-2 space-y-4 dashboard-learning-grid">
   <!-- Continue your Learning Path — clean white header (no green fill) -->
-  <a href="path.html" class="block pcard pcard-tap p-4">
+  <a href="path.html" class="block pcard pcard-tap p-4 path-card">
     <div class="sec-h"><span class="chip">🗺️</span><p class="t">Continue Your Path</p><span class="ml-auto text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Unit 3</span></div>
-    <div class="flex items-center gap-3">
-      <div class="h-11 w-11 rounded-xl flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">📝</span></div>
-      <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Normalization</p><p class="text-xs text-gray-500">Applying level · 3 of 5 lessons</p><div class="mt-1.5 h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:60%;background:var(--brand-gradient)"></div></div></div>
-      <svg class="h-5 w-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    <div class="path-card-main">
+      <div class="path-topic">
+        <div class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">📝</span></div>
+        <div class="min-w-0"><p class="text-sm font-black text-gray-900 truncate">Normalization</p><p class="text-xs text-gray-500">Level 3 · Apply</p></div>
+      </div>
+      <div class="path-evidence">
+        <span>Next evidence</span>
+        <strong>Assignment 3</strong>
+        <small>Normalize a Schema</small>
+      </div>
+    </div>
+    <div class="learning-path-mini" aria-label="Learning path: Remember and Understand complete, Apply current, Analyze, Evaluate and Create upcoming">
+      <div class="path-stage done"><span>✓</span><small>Remember</small></div>
+      <div class="path-stage done"><span>✓</span><small>Understand</small></div>
+      <div class="path-stage current"><span>●</span><small>Apply</small></div>
+      <div class="path-stage"><span>○</span><small>Analyze</small></div>
+      <div class="path-stage"><span>○</span><small>Evaluate</small></div>
+      <div class="path-stage"><span>○</span><small>Create</small></div>
+    </div>
+    <div class="path-progress-row">
+      <div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2 text-[10px]"><span class="font-bold text-gray-600">Current · 3 / 5 lessons</span><span class="font-bold text-teal-700">65% mastery</span></div><div class="mt-1.5 h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:60%;background:var(--brand-gradient)"></div></div></div>
+      <span class="path-continue">Continue →</span>
     </div>
   </a>
 
   <!-- Today's Habits -->
-  <div class="pcard p-4">
+  <div class="pcard p-4 habits-card">
     <div class="sec-h"><span class="chip">🔥</span><p class="t">Today's Habits</p><span class="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">2/4</span></div>
-    <div class="flex justify-around">
-      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-green-500 flex items-center justify-center shadow-sm"><svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg></div><span class="text-[10px] text-gray-600">Login</span></div>
-      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-green-500 flex items-center justify-center shadow-sm"><svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg></div><span class="text-[10px] text-gray-600">Submit</span></div>
-      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center"><span class="text-gray-400 text-sm">📝</span></div><span class="text-[10px] text-gray-400">Journal</span></div>
-      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center"><span class="text-gray-400 text-sm">📖</span></div><span class="text-[10px] text-gray-400">Read</span></div>
+    <div class="habits-grid">
+      <div class="habit-item is-done"><div class="habit-status"><svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg></div><span>Login</span></div>
+      <div class="habit-item is-done"><div class="habit-status"><svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg></div><span>Submit</span></div>
+      <div class="habit-item"><div class="habit-status">○</div><span>Journal</span></div>
+      <div class="habit-item"><div class="habit-status">○</div><span>Read</span></div>
     </div>
     <!-- Pengu habit coach — purposeful: nudges toward Perfect Day without guilt -->
     <div class="mt-3 flex items-center gap-2.5 bg-amber-50 rounded-lg px-3 py-2 border border-amber-100">
       <img src="characters/penguin/penguin-blushing.png" alt="Pengu cheering you on" class="chr chr-sm" draggable="false"/>
-      <p class="text-xs font-medium text-amber-700 leading-tight">Just <b>2 more</b> for a <b>Perfect Day (+50 XP)</b> — you're so close!</p>
+      <p class="text-xs font-medium text-amber-700 leading-tight"><b>2 more</b> complete your learning routine <span>·</span> <b>+50 XP Perfect Day</b></p>
     </div>
   </div>
 
   </div>
 
-  <div class="lg-row lg-row-2 space-y-4">
+  <div class="lg-row lg-row-2 space-y-4 dashboard-learning-grid dashboard-evidence-grid">
   <!-- Daily Review — spaced repetition (review_schedules: interval_days 1/3/7,
        grouped by CLO). Redesigned with a header, streak chip, CLO breakdown and
        a full-width CTA so it carries the same visual weight as its neighbor
        instead of one thin icon+text+badge row. -->
-  <a href="review.html" class="block pcard pcard-tap p-4">
+  <a href="review.html" class="block pcard pcard-tap p-4 review-card">
     <div class="sec-h"><span class="chip">🔁</span><p class="t">Daily Review</p><span class="ml-auto text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">🔥 6-day streak</span></div>
-    <p class="text-xs text-gray-500 -mt-1 mb-2.5">5 cards due · adaptive spacing strengthens your weakest CLOs</p>
+    <p class="text-xs text-gray-500 -mt-1 mb-2.5">Adaptive review reinforces concepts that are becoming harder to recall.</p>
+    <div class="review-context"><span>Supports current focus</span><strong>Normalization · CLO 3</strong></div>
     <div class="flex flex-wrap gap-1.5 mb-3">
       <span class="text-[10px] font-bold text-red-700 bg-red-50 border border-red-100 px-2 py-1 rounded-full">Normalization ×2</span>
       <span class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-1 rounded-full">Indexing ×2</span>
@@ -237,8 +257,13 @@
        profile.html) adds real new information: consistency across the week,
        which "Today's Habits" above doesn't show. Fri = today (in progress);
        Sat/Sun are ahead, correctly empty. -->
-  <a href="progress.html" class="block pcard pcard-tap p-4">
+  <section class="pcard p-4 activity-card">
     <div class="sec-h"><span class="chip">📊</span><p class="t">This Week's Activity</p><a href="progress.html" class="more">Trends →</a></div>
+    <div class="activity-summary" aria-label="18 learning actions across 5 active days; best day Wednesday">
+      <div><strong>18</strong><span>learning actions</span></div>
+      <div><strong>5</strong><span>active days</span></div>
+      <div><strong>Wed</strong><span>best day</span></div>
+    </div>
     <div class="wk-grid">
       <div class="wk-col"><span class="wk-lbl">M</span><span class="wk-tile l3" title="Mon · 4 activities">4</span></div>
       <div class="wk-col"><span class="wk-lbl">T</span><span class="wk-tile l2" title="Tue · 2 activities">2</span></div>
@@ -249,18 +274,18 @@
       <div class="wk-col"><span class="wk-lbl">S</span><span class="wk-tile wk-empty" title="Sun · upcoming">–</span></div>
     </div>
     <div class="wk-foot">
-      <p class="text-xs text-gray-500">Mon–Thu done · best day <b class="text-gray-700">Wed</b></p>
+      <p class="text-xs text-gray-500">Consistent participation across the study week.</p>
       <span class="wk-legend">Less <i style="background:#a7f3d0"></i><i style="background:#34d399"></i><i style="background:#10b981"></i><i style="background:#047857"></i> More</span>
     </div>
-  </a>
+  </section>
 
   </div>
 
   <!-- Announcement -->
-  <div class="pcard p-4">
-    <div class="sec-h"><span class="chip">📢</span><p class="t">Announcements</p></div>
-    <div class="flex items-start gap-3"><div class="h-2 w-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div><div><p class="text-sm font-medium text-gray-900">Final exam schedule released</p><p class="text-xs text-gray-500 mt-0.5">Check timetable for updated timings — Prof. Ahmed</p><p class="text-[10px] text-gray-400 mt-1">2h ago</p></div></div>
-  </div>
+  <section class="pcard p-4 dashboard-announcement">
+    <div class="sec-h"><span class="chip">📢</span><p class="t">Announcements</p><a href="announcements.html" class="more">View all →</a></div>
+    <div class="announcement-item"><div class="h-2 w-2 rounded-full bg-amber-400 shrink-0"></div><div class="announcement-copy"><p class="text-sm font-semibold text-gray-900">Final exam schedule released</p><p class="text-xs text-gray-500">Check timetable for updated timings.</p></div><p class="announcement-meta">Prof. Ahmed · 2h ago</p></div>
+  </section>
 
   <!-- design helper: preview + copy the student accent (CTA) and activity heatmap options -->
   <a href="student-variations.html" class="block text-center py-2 text-xs font-semibold text-teal-700 hover:text-teal-800">🎨 Try other accent &amp; activity colors →</a>
@@ -277,6 +302,7 @@
 </nav>
 
 <script src="shared.js"></script>
+<script src="demo-data.js"></script><script src="student-refinement.js"></script>
 <script>
   // ── Living hero: Foxi's emotion + greeting adapt to time-of-day & streak ──
   // Prototype context (would come from real data in the app). Flip these flags

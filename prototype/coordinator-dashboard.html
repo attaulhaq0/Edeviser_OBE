@@ -43,111 +43,49 @@
   body[data-role="coordinator"] .rail-check .rc-box.mi{background:#fef3c7;color:#d97706}
 </style>
 </head>
-<body class="bg-slate-50" data-role="coordinator">
+<body class="bg-slate-50" data-role="coordinator" data-dashboard="true">
 <header class="app-header">
   <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
   <div class="flex items-center gap-2"><a href="coordinator-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">K</a></div>
 </header>
 <div class="page-content space-y-4 no-scrollbar">
 
-  <!-- Program-health hero — switchable carousel (status → PLO alert →
-       accreditation readiness). Dots + auto-advance + swipe. -->
-  <div id="hero-car" class="hero-carousel rounded-2xl text-white shadow-lg" style="background:var(--hero-gradient)">
-    <div class="hero-slides">
-
-      <!-- Slide 1: greeting + one-click action chips -->
-      <div class="hero-slide">
-        <div class="hs-pad relative">
-          <span class="why" onclick="whyPop('This program briefing aggregates outcome attainment across all courses in the CS program, compares this term to last, and flags curriculum gaps (outcomes with no mapped assessment) and accreditation-evidence readiness. It is generated for you to review — no curriculum is changed automatically.')">🛡️ why am I seeing this</span>
-          <div class="flex items-center gap-3 pr-24">
-            <div class="h-11 w-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-xl shrink-0">🧭</div>
-            <div class="min-w-0"><h1 class="text-lg font-bold tracking-tight">Program health, prepared</h1><p class="text-[12px] text-white/75">Computer Science · this term vs last. Two things need your attention.</p></div>
-          </div>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <button type="button" class="act-chip" onclick="document.getElementById('alerts-sec').scrollIntoView({behavior:'smooth',block:'start'})">📉 Review PLO2 drop <span class="arw">→</span></button>
-            <a href="coordinator-curriculum.html" class="act-chip">🗂️ Open curriculum matrix <span class="arw">→</span></a>
-            <a href="coordinator-accreditation.html" class="act-chip">📋 Continue accreditation · 82% <span class="arw">→</span></a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slide 2: the PLO2 drop with decision context -->
-      <div class="hero-slide">
-        <div class="hs-pad">
-          <p class="text-[10px] font-black tracking-widest uppercase text-white/60">📉 Needs your attention</p>
-          <div class="flex items-center gap-2 mt-2 flex-wrap">
-            <h2 class="text-base font-bold">PLO2 — Apply engineering principles</h2>
-            <span class="text-[10px] font-black bg-red-400/25 text-red-100 border border-red-300/40 px-2 py-0.5 rounded-full">67% ↓ 6</span>
-          </div>
-          <p class="text-[12px] text-white/75 mt-1.5">Down 6 pts vs last term across CS205 §1–2 · CS301 §1 — likely driven by weak CLO5 (REST APIs, 48%) feeding the roll-up.</p>
-          <button type="button" class="act-chip mt-3" onclick="document.getElementById('alerts-sec').scrollIntoView({behavior:'smooth',block:'start'})">Review &amp; draft a CQI plan <span class="arw">→</span></button>
-        </div>
-      </div>
-
-      <!-- Slide 3: accreditation readiness at a glance -->
-      <div class="hero-slide">
-        <div class="hs-pad">
-          <p class="text-[10px] font-black tracking-widest uppercase text-white/60">📋 Accreditation readiness</p>
-          <div class="flex items-center gap-3 mt-2.5">
-            <span class="hero-kfig">82%</span>
-            <div class="flex-1 min-w-0">
-              <div class="h-2 rounded-full bg-white/15 overflow-hidden"><div class="h-full rounded-full" style="width:82%;background:linear-gradient(90deg,#2dd4bf,#38bdf8)"></div></div>
-              <p class="text-[11px] text-white/70 mt-1.5">Only <b>CQI documentation</b> is outstanding before the pack can be generated · next deadline Dec 2.</p>
-            </div>
-          </div>
-          <a href="coordinator-accreditation.html" class="act-chip mt-3" style="display:inline-flex">Open accreditation pack <span class="arw">→</span></a>
-        </div>
-      </div>
-
-    </div>
-    <div class="hero-dots pb-2.5"></div>
+  <div class="feed-wide rounded-2xl text-white shadow-lg p-5" style="background:var(--hero-gradient)">
+    <div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black tracking-widest uppercase text-white/60">Program priority</p><h1 class="text-xl font-black mt-1">PLO2 — Apply Engineering Principles</h1><p class="text-sm text-white/80 mt-1">67% · Target 75% · ↓6 pts this term</p></div><button type="button" class="act-chip shrink-0" onclick="whyPop('PLO2 is below target across CS205 and CS301. The evidence is sufficient across 3 sections, so this is presented as a program pattern—not a causal conclusion.')">Why this?</button></div>
+    <p class="text-[12px] text-white/75 mt-3">The decline appears across CS205 and CS301. CLO5 — REST APIs is the strongest repeated contributing signal.</p>
+    <div class="flex flex-wrap gap-2 mt-3 text-[11px] font-bold"><span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/20">3 courses contribute</span><span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/20">Evidence confidence: High</span><span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/20">CQI draft available</span></div>
+    <div class="mt-4 flex flex-wrap gap-2"><a href="#pattern" class="act-chip">Review pattern →</a><a href="coordinator-cqi.html" class="act-chip">Open CQI draft →</a></div>
   </div>
 
   <!-- KPI cards double as filters — each drills straight into the outcomes,
        matrix or accreditation view scoped to what the number represents. -->
   <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
     <a href="coordinator-profile.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Programs</p><p class="text-2xl font-black text-gray-900 mt-0.5">3</p><span class="flt">Manage <span>→</span></span></a>
-    <a href="coordinator-outcomes.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Avg PLO</p><p class="text-2xl font-black text-blue-600 mt-0.5">73%</p><span class="flt">All outcomes <span>→</span></span></a>
-    <a href="coordinator-outcomes.html?filter=below" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Below target</p><p class="text-2xl font-black text-amber-600 mt-0.5">2</p><span class="flt">Filter below-target <span>→</span></span></a>
-    <a href="coordinator-accreditation.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Accred. ready</p><p class="text-2xl font-black text-green-600 mt-0.5">82%</p><span class="flt">Open pack <span>→</span></span></a>
+    <a href="coordinator-outcomes.html?filter=below" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Outcomes need attention</p><p class="text-2xl font-black text-amber-600 mt-0.5">2</p><span class="flt">Program-level <span>→</span></span></a>
+    <a href="coordinator-curriculum.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Curriculum gaps</p><p class="text-2xl font-black text-red-600 mt-0.5">2</p><span class="flt">Need coverage decision <span>→</span></span></a>
+    <a href="coordinator-cqi.html" class="pcard pcard-tap p-3.5 kpi-filter"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">CQI actions open</p><p class="text-2xl font-black text-blue-600 mt-0.5">3</p><span class="flt">1 awaiting approval <span>→</span></span></a>
   </div>
 
   <!-- Attainment alerts — each now carries decision context (trend vs last
        term, affected courses/sections, suspected root cause, priority) so the
        "why" is clear before the coordinator acts. -->
-  <div class="feed-wide" id="alerts-sec">
-    <div class="sec-h"><span class="chip">📉</span><p class="t">Attainment alerts</p><a href="coordinator-outcomes.html" class="more">All outcomes →</a></div>
+  <div class="feed-wide" id="pattern">
+    <div class="sec-h"><span class="chip">📉</span><p class="t">Program pattern</p><a href="coordinator-outcomes.html" class="more">Open evidence →</a></div>
     <div class="space-y-3">
       <div class="pcard p-4" data-ai-card>
         <div class="flex items-start gap-3">
           <div class="lead sev-high">📉</div>
-          <div class="flex-1"><div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">PLO2 — Apply engineering principles</p><span class="pill pill-red">67% ↓6</span><span class="pill pill-red">High priority</span></div>
+          <div class="flex-1"><div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">PLO2 — Apply engineering principles</p><span class="pill pill-red">67% / 75% target</span><span class="pill pill-red">↓6 this term</span></div>
           <div class="meta-row">
             <span class="meta">📉 Trend <b>73% → 67%</b></span>
             <span class="meta">↔ vs last term <b>−6 pts</b></span>
             <span class="meta">🏫 Affected <b>CS205 §1–2 · CS301 §1</b></span>
           </div>
-          <div class="rootcause">🔍 <b>Suspected root cause:</b> weak <b>CLO5 (REST APIs, 48%)</b> in CS205 plus a lower-entry CS301 cohort dragging the weighted PLO2 roll-up.</div>
+          <div class="rootcause">🔍 <b>Contributing pattern:</b> application-level evidence is weaker than concept recall across 3 courses. CLO5 (REST APIs, 48%) is the strongest repeated signal.</div>
           <div class="flex flex-wrap gap-2 mt-3">
-            <button onclick="aiApprove(this,'CQI action plan drafted for PLO2')" class="btn3d sm">📝 Draft CQI plan</button>
+            <a href="coordinator-cqi.html" class="btn3d sm">📝 Review CQI draft</a>
             <a href="coordinator-outcomes.html" class="btn3d sm b-soft">Drill down</a>
             <button onclick="aiApprove(this,'PLO2 added to your follow-up list')" class="btn3d sm b-ghost">🔖 Follow up</button>
-          </div></div>
-        </div>
-      </div>
-      <div class="pcard p-4" data-ai-card>
-        <div class="flex items-start gap-3">
-          <div class="lead sev-med">🎯</div>
-          <div class="flex-1"><div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">CLO5 — REST APIs</p><span class="pill pill-amber">48% ↓9</span><span class="pill pill-amber">Needs attention</span></div>
-          <div class="meta-row">
-            <span class="meta">📉 Trend <b>57% → 48%</b></span>
-            <span class="meta">🏫 Affected <b>CS205 §1–2</b></span>
-            <span class="meta">🔗 Feeds <b>PLO2</b></span>
-          </div>
-          <p class="text-xs text-gray-600 mt-2">Suggested remediation (REST-verbs micro-lesson + retrieval check) already sent to the teacher for approval.</p>
-          <div class="flex flex-wrap gap-2 mt-3">
-            <a href="coordinator-outcomes.html" class="btn3d sm b-soft">Drill down</a>
-            <button onclick="aiApprove(this,'CLO5 added to your follow-up list')" class="btn3d sm b-ghost">🔖 Follow up</button>
           </div></div>
         </div>
       </div>
@@ -163,20 +101,11 @@
       <span class="inline-block mt-3 text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:#0382bd">Open matrix →</span></div>
   </a>
 
-  <!-- Accreditation — readiness now broken into an evidence checklist so the
-       single missing artifact is obvious at a glance, not hidden behind a %. -->
+  <!-- Home keeps readiness brief; the full evidence workflow lives in Accreditation. -->
   <div class="pcard p-4">
-    <div class="sec-h"><span class="chip">📋</span><p class="t">Accreditation evidence</p><a href="coordinator-accreditation.html" class="more">Open →</a></div>
+    <div class="sec-h"><span class="chip">📋</span><p class="t">Readiness</p><a href="coordinator-accreditation.html" class="more">Review blocker →</a></div>
     <div class="flex items-center gap-3 mb-2"><div class="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-blue-500" style="width:82%"></div></div><span class="text-sm font-black text-blue-600">82%</span></div>
-    <div class="mb-2">
-      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">CLO mapping</span><span class="rc-time text-green-600">Complete</span></div>
-      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Student samples</span><span class="rc-time text-green-600">Complete</span></div>
-      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Assessment analysis</span><span class="rc-time text-green-600">Complete</span></div>
-      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Faculty reflection</span><span class="rc-time text-green-600">Complete</span></div>
-      <div class="rail-check"><span class="rc-box mi">!</span><span class="rc-t">CQI documentation</span><span class="rc-time text-amber-600">Missing</span></div>
-    </div>
-    <p class="text-xs text-gray-600">AI drafted the <b>CS301 course file</b>; only <b>CQI documentation</b> is outstanding before the pack can be generated.</p>
-    <button onclick="aiApprove(this,'Course file CS301 approved')" class="mt-2 text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:var(--brand-gradient)">Review &amp; approve draft</button>
+    <p class="text-sm font-bold text-gray-900">1 blocker · Concurrency evidence</p><p class="text-xs text-gray-600 mt-1">Resolve the PLO4 assessment gap before generating an evidence-pack preview.</p>
   </div>
 
   </div>
@@ -209,30 +138,7 @@
 
   </div>
 
-  <!-- Recovery pathways — PROTOTYPE-ONLY concept. No coordinator recovery backend exists yet
-       (useMasteryRecovery is student-scoped); flagged as gap P1 in the prototype-backend-parity spec.
-       Marked "Concept" so it is not mistaken for a wired feature (R17 don't-fake). -->
-  <div class="feed-wide pcard p-4">
-    <div class="sec-h"><span class="chip">🧭</span><p class="t">Recovery pathways</p><span class="pill" style="background:#f1f5f9;color:#64748b;border-color:#e2e8f0">Concept</span></div>
-    <p class="text-xs text-gray-500 mb-3">Turns each below-target outcome into a concrete, sequenced remediation route across courses — diagnostic → targeted lessons → re-assessment.</p>
-    <div class="space-y-2.5">
-      <div class="rounded-xl border border-gray-100 p-3">
-        <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-900">PLO4 · Design — 63%</p><span class="pill pill-amber">Developing</span></div>
-        <div class="flex items-center gap-2 mt-2 text-xs text-gray-600 flex-wrap"><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">1 · Diagnostic quiz</span><span class="text-gray-300">→</span><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">2 · Targeted micro-lessons</span><span class="text-gray-300">→</span><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">3 · Re-assessment</span></div>
-      </div>
-      <div class="rounded-xl border border-gray-100 p-3">
-        <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-900">PLO7 · Ethics — 55%</p><span class="pill pill-amber">Developing</span></div>
-        <div class="flex items-center gap-2 mt-2 text-xs text-gray-600 flex-wrap"><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">1 · Case-study seminar</span><span class="text-gray-300">→</span><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">2 · Reflective journal</span><span class="text-gray-300">→</span><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">3 · Rubric re-score</span></div>
-      </div>
-      <div class="rounded-xl border border-gray-100 p-3">
-        <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-900">PLO5 · Concurrency — 47%</p><span class="pill pill-red">Not yet</span></div>
-        <div class="flex items-center gap-2 mt-2 text-xs text-gray-600 flex-wrap"><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">1 · Add assessment (coverage gap)</span><span class="text-gray-300">→</span><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">2 · Lab worked-examples</span><span class="text-gray-300">→</span><span class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">3 · Re-assessment</span></div>
-      </div>
-    </div>
-  </div>
-
 </div>
 <script src="shared.js"></script>
-<script>initHeroCarousel('hero-car');</script>
 </body>
 </html>

@@ -21,6 +21,69 @@ export type AuditRole =
   | "student"
   | "parent";
 
+interface StoredLocalStorageEntry {
+  name: string;
+  value: string;
+}
+
+interface StoredOrigin {
+  origin: string;
+  localStorage: StoredLocalStorageEntry[];
+}
+
+interface StoredState {
+  cookies: Parameters<BrowserContext["addCookies"]>[0];
+  origins: StoredOrigin[];
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const hasAccessToken = (value: string): boolean => {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!isRecord(parsed)) return false;
+    if (typeof parsed.access_token === "string") return true;
+    return (
+      isRecord(parsed.session) &&
+      typeof parsed.session.access_token === "string"
+    );
+  } catch {
+    return false;
+  }
+};
+
+export function assertUsableStorageState(
+  value: unknown,
+  role: AuditRole
+): asserts value is StoredState {
+  if (!isRecord(value) || !Array.isArray(value.cookies)) {
+    throw new Error(`[auth] ${role} storageState has an invalid cookie list`);
+  }
+  if (!Array.isArray(value.origins)) {
+    throw new Error(`[auth] ${role} storageState has an invalid origin list`);
+  }
+
+  const hasSupabaseSession = value.origins.some((origin) => {
+    if (!isRecord(origin) || !Array.isArray(origin.localStorage)) return false;
+    return origin.localStorage.some(
+      (entry) =>
+        isRecord(entry) &&
+        typeof entry.name === "string" &&
+        typeof entry.value === "string" &&
+        entry.name.startsWith("sb-") &&
+        entry.name.endsWith("-auth-token") &&
+        hasAccessToken(entry.value)
+    );
+  });
+
+  if (!hasSupabaseSession) {
+    throw new Error(
+      `[auth] ${role} storageState does not contain a Supabase session`
+    );
+  }
+}
+
 /**
  * Decode a JWT payload without verifying the signature.
  * Used only for test assertions — never for auth decisions.
@@ -75,13 +138,15 @@ export const assertRoleClaim = async (
     return null;
   });
 
-  if (!token) {
-    // No token found — skip the role assertion (unauthenticated state)
-    return;
-  }
+  expect(
+    token,
+    `Expected an authenticated ${expectedRole} session`
+  ).not.toBeNull();
+  if (!token) throw new Error(`Missing ${expectedRole} access token`);
 
   const payload = decodeJwtPayload(token);
-  if (!payload) return;
+  expect(payload, `Expected a valid JWT for ${expectedRole}`).not.toBeNull();
+  if (!payload) throw new Error(`Invalid ${expectedRole} access token`);
 
   const role =
     (payload.user_metadata as Record<string, unknown> | undefined)?.role ??
@@ -101,16 +166,18 @@ export const loadStorageState = async (
 ): Promise<void> => {
   const path = resolve(STORAGE_STATES_DIR, `${role}.json`);
   if (!existsSync(path)) {
-    console.warn(
-      `[auth] storageState for ${role} not found at ${path} — context will be unauthenticated`
-    );
-    return;
+    throw new Error(`[auth] storageState for ${role} not found at ${path}`);
   }
-  const state = JSON.parse(readFileSync(path, "utf8")) as {
-    cookies: unknown[];
-    origins: unknown[];
-  };
-  await context.addCookies(
-    state.cookies as Parameters<typeof context.addCookies>[0]
-  );
+  const state: unknown = JSON.parse(readFileSync(path, "utf8"));
+  assertUsableStorageState(state, role);
+
+  if (state.cookies.length > 0) await context.addCookies(state.cookies);
+  await context.addInitScript((origins: StoredOrigin[]) => {
+    const stateForOrigin = origins.find(
+      ({ origin }) => origin === window.location.origin
+    );
+    for (const entry of stateForOrigin?.localStorage ?? []) {
+      window.localStorage.setItem(entry.name, entry.value);
+    }
+  }, state.origins);
 };

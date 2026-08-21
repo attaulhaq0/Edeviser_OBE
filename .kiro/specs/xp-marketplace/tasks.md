@@ -110,60 +110,60 @@
 ## 12. Property-Based Tests
 
 - [x] 12.1 `src/__tests__/properties/xpBalance.property.test.ts` — P1: balance computation, P2: non-negativity
-- [ ] 12.2 `src/__tests__/properties/transactionHistory.property.test.ts` — P3: ordering, P4: required fields, P5: filtering
-- [ ] 12.3 `src/__tests__/properties/purchaseValidator.property.test.ts` — P6: purchase validation correctness
-- [ ] 12.4 `src/__tests__/properties/salePriceCalculator.property.test.ts` — P7: sale price resolution, highest discount wins
-- [ ] 12.5 `src/__tests__/properties/cosmeticResolver.property.test.ts` — P8: CSS resolution, P9: equip/unequip round-trip, P10: one per slot
-- [ ] 12.6 `src/__tests__/properties/leaderboardCosmetics.property.test.ts` — P11: anonymous mode hides cosmetics, P12: extra quiz attempt
-- [ ] 12.7 `src/__tests__/properties/deadlineExtension.property.test.ts` — P13: 24h extension, P14: revocation restores original, P15: one per assignment
-- [ ] 12.8 `src/__tests__/properties/hintTokens.property.test.ts` — P16: allowance computation, P17: midnight UTC expiry
-- [ ] 12.9 `src/__tests__/properties/xpMultiplier.property.test.ts` — P18: stacking formula
-- [ ] 12.10 `src/__tests__/properties/boostAndStreak.property.test.ts` — P19: one active boost, P20: streak shield cap
-- [ ] 12.11 `src/__tests__/properties/marketplaceAdmin.property.test.ts` — P21: price change immutability, P22: discount validation, P23: analytics aggregation
-- [ ] 12.12 `src/__tests__/properties/inventoryStatus.property.test.ts` — P24: status resolution, P25: display fields
+- [x] 12.2 `src/__tests__/properties/transactionHistory.property.test.ts` — P3: ordering, P4: required fields, P5: filtering
+- [x] 12.3 `src/__tests__/properties/purchaseValidator.property.test.ts` — P6: purchase validation correctness
+- [x] 12.4 `src/__tests__/properties/salePriceCalculator.property.test.ts` — P7: sale price resolution, highest discount wins
+- [x] 12.5 `src/__tests__/properties/cosmeticResolver.property.test.ts` — P8: CSS resolution, P9: equip/unequip round-trip, P10: one per slot
+- [x] 12.6 `src/__tests__/properties/leaderboardCosmetics.property.test.ts` — P11: anonymous mode hides cosmetics, P12: extra quiz attempt
+- [x] 12.7 `src/__tests__/properties/deadlineExtension.property.test.ts` — P13: 24h extension, P14: revocation restores original, P15: one per assignment
+- [x] 12.8 `src/__tests__/properties/hintTokens.property.test.ts` — P16: allowance computation, P17: midnight UTC expiry
+- [x] 12.9 `src/__tests__/properties/xpMultiplier.property.test.ts` — P18: stacking formula
+- [x] 12.10 `src/__tests__/properties/boostAndStreak.property.test.ts` — P19: one active boost, P20: streak shield cap
+- [x] 12.11 `src/__tests__/properties/marketplaceAdmin.property.test.ts` — P21: price change immutability, P22: discount validation, P23: analytics aggregation
+- [x] 12.12 `src/__tests__/properties/inventoryStatus.property.test.ts` — P24: status resolution, P25: display fields
 
 ## 13. Unit Tests
 
-- [ ] 13.1 `src/__tests__/unit/marketplaceSchemas.test.ts` — Zod schema validation for all marketplace schemas
-- [ ] 13.2 `src/__tests__/unit/purchaseConfirmDialog.test.tsx` — Confirmation dialog rendering and error states
-- [ ] 13.3 `src/__tests__/unit/itemCard.test.tsx` — Item card: locked, owned, sale, out-of-stock states
-- [ ] 13.4 `src/__tests__/unit/xpBalanceBadge.test.tsx` — Balance badge rendering, zero balance, loading
-- [ ] 13.5 `src/__tests__/unit/activeBoostIndicator.test.tsx` — Countdown timer, expired state
-- [ ] 13.6 `src/__tests__/unit/marketplaceAdmin.test.tsx` — Admin CRUD form validation, item list
-- [ ] 13.7 `src/__tests__/unit/saleEventForm.test.tsx` — Sale event form validation, date range
-- [ ] 13.8 `src/__tests__/unit/processPurchase.test.ts` — Edge Function: success path, each error code
-- [ ] 13.9 `src/__tests__/unit/awardXpBoost.test.ts` — Modified award-xp: boost lookup, multiplier, metadata
+- [x] 13.1 `src/__tests__/unit/marketplaceSchemas.test.ts` — Zod schema validation for all marketplace schemas
+- [x] 13.2 `src/__tests__/unit/purchaseConfirmDialog.test.tsx` — Confirmation dialog rendering and error states
+- [x] 13.3 `src/__tests__/unit/itemCard.test.tsx` — Item card: locked, owned, sale, out-of-stock states
+- [x] 13.4 `src/__tests__/unit/xpBalanceBadge.test.tsx` — Balance badge rendering, zero balance, loading
+- [x] 13.5 `src/__tests__/unit/activeBoostIndicator.test.tsx` — Countdown timer, expired state
+- [x] 13.6 `src/__tests__/unit/marketplaceAdmin.test.tsx` — Admin CRUD form validation, item list
+- [x] 13.7 `src/__tests__/unit/saleEventForm.test.tsx` — Sale event form validation, date range
+- [x] 13.8 `src/__tests__/unit/processPurchase.test.ts` — Edge Function: success path, each error code
+- [x] 13.9 `src/__tests__/unit/awardXpBoost.test.ts` — Modified award-xp: boost lookup, multiplier, metadata
 
 ## 14. Database Schema — Creative Expression & Unpredictability (Gap 1)
 
-- [ ] 14.1 Create migration: `student_content` table with content_type enum, status enum, reviewer fields, and indexes
-- [ ] 14.2 Create migration: `knowledge_quests` table with quest_type enum, reward fields, date range constraint, and indexes
-- [ ] 14.3 Create migration: `student_quest_progress` table with unique constraint on (student_id, quest_id)
-- [ ] 14.4 Create migration: RLS policies for `student_content`, `knowledge_quests`, `student_quest_progress`
-- [ ] 14.5 Add Zod schemas to `src/lib/marketplaceSchemas.ts`: `createKnowledgeQuestSchema`, `createStudentContentSchema`, `reviewStudentContentSchema`
+- [x] 14.1 Create migration: `student_content` table with content_type enum, status enum, reviewer fields, and indexes
+- [x] 14.2 Create migration: `knowledge_quests` table with quest_type enum, reward fields, date range constraint, and indexes
+- [x] 14.3 Create migration: `student_quest_progress` table with unique constraint on (student_id, quest_id)
+- [x] 14.4 Create migration: RLS policies for `student_content`, `knowledge_quests`, `student_quest_progress`
+- [x] 14.5 Add Zod schemas to `src/lib/marketplaceSchemas.ts`: `createKnowledgeQuestSchema`, `createStudentContentSchema`, `reviewStudentContentSchema`
 
 ## 15. Database Schema — XP Economy Health (Gap 2)
 
-- [ ] 15.1 Create migration: add `dynamic_price_override` column to `marketplace_items`
-- [ ] 15.2 Create migration: `class_donations` table with goal tracking and status
-- [ ] 15.3 Create migration: `class_donation_contributions` table with FK to donations and xp_purchases
-- [ ] 15.4 Create migration: `get_earn_spend_ratio` PL/pgSQL function
-- [ ] 15.5 Create migration: `recalculate_dynamic_prices` PL/pgSQL function
-- [ ] 15.6 Create migration: pg_cron job for daily dynamic price recalculation at midnight UTC
-- [ ] 15.7 Create migration: RLS policies for `class_donations`, `class_donation_contributions`
-- [ ] 15.8 Add Zod schemas to `src/lib/marketplaceSchemas.ts`: `classDonationSchema`, `classDonationContributionSchema`, `bonusQuestionProbabilitySchema`, `mysteryBoxProbabilitySchema`
+- [x] 15.1 Create migration: add `dynamic_price_override` column to `marketplace_items`
+- [x] 15.2 Create migration: `class_donations` table with goal tracking and status
+- [x] 15.3 Create migration: `class_donation_contributions` table with FK to donations and xp_purchases
+- [x] 15.4 Create migration: `get_earn_spend_ratio` PL/pgSQL function
+- [x] 15.5 Create migration: `recalculate_dynamic_prices` PL/pgSQL function
+- [x] 15.6 Create migration: pg_cron job for daily dynamic price recalculation at midnight UTC
+- [x] 15.7 Create migration: RLS policies for `class_donations`, `class_donation_contributions`
+- [x] 15.8 Add Zod schemas to `src/lib/marketplaceSchemas.ts`: `classDonationSchema`, `classDonationContributionSchema`, `bonusQuestionProbabilitySchema`, `mysteryBoxProbabilitySchema`
 
 ## 16. Database Schema — Inclusive Leaderboard (Gap 3)
 
-- [ ] 16.1 Create migration: add `league_tier` column (enum: bronze, silver, gold, diamond) to `student_gamification`
-- [ ] 16.2 Create migration: `recalculate_league_tiers` PL/pgSQL function
-- [ ] 16.3 Create migration: pg_cron job for weekly league tier recalculation (Sunday midnight UTC)
+- [x] 16.1 Create migration: add `league_tier` column (enum: bronze, silver, gold, diamond) to `student_gamification`
+- [x] 16.2 Create migration: `recalculate_league_tiers` PL/pgSQL function
+- [x] 16.3 Create migration: pg_cron job for weekly league tier recalculation (Sunday midnight UTC)
 
 ## 17. Database Schema — Badge Progression (Gap 4)
 
-- [ ] 17.1 Create migration: add `tier` column (enum: bronze, silver, gold) to `student_badges`
-- [ ] 17.2 Create migration: add `tier_conditions` (jsonb) and `is_archived` (boolean) columns to `badge_definitions`
-- [ ] 17.3 Create migration: `get_badge_spotlight` PL/pgSQL function (deterministic rotation)
+- [x] 17.1 Create migration: add `tier` column (enum: bronze, silver, gold) to `student_badges`
+- [x] 17.2 Create migration: add `tier_conditions` (jsonb) and `is_archived` (boolean) columns to `badge_definitions`
+- [x] 17.3 Create migration: `get_badge_spotlight` PL/pgSQL function (deterministic rotation)
 
 ## 18. Shared Library Code — Gap Analysis Features
 

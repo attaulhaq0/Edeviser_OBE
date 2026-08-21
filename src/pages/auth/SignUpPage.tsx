@@ -33,7 +33,7 @@ const SignUpPage = () => {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
   const { signUp } = useAuth();
-  const { data: institutions, isLoading: institutionsLoading } =
+  const { data: institutions, isLoading: institutionsLoading, error: institutionsError } =
     useInstitutionBrowse();
 
   const [step, setStep] = useState<SignUpStep>("institution");
@@ -61,20 +61,34 @@ const SignUpPage = () => {
     (i) => i.id === selectedInstitution
   );
 
+  const resolvedStep = currentInstitution ? step : "institution";
+
   // Determine if signup is allowed based on join_mode
   const canSignUp =
     currentInstitution?.join_mode === "open" ||
     currentInstitution?.join_mode === "domain_restricted";
 
   const handleInstitutionSelect = (institutionId: string) => {
-    setSelectedInstitution(institutionId);
-    form.setValue("institutionId", institutionId);
+    const institution = institutions?.find((item) => item.id === institutionId);
+    if (!institution || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(institution.id)) {
+      setSelectedInstitution(null);
+      form.setValue("institutionId", "");
+      setStep("institution");
+      return;
+    }
+    setSelectedInstitution(institution.id);
+    form.setValue("institutionId", institution.id, { shouldValidate: true });
     setStep("account");
   };
 
   const onSubmit = async (data: SignUpFormData) => {
-    if (!currentInstitution) {
+    if (!currentInstitution || data.institutionId !== currentInstitution.id) {
       setError(t("signup.selectInstitution"));
+      return;
+    }
+
+    if (currentInstitution.join_mode === "invite_only") {
+      setError(t("signup.inviteOnlyWarning"));
       return;
     }
 
@@ -118,7 +132,7 @@ const SignUpPage = () => {
       {/* Header */}
       <div className="mb-5">
         <h1 className="text-lg font-black tracking-tight text-slate-900">
-          {step === "institution"
+          {resolvedStep === "institution"
             ? t("signup.chooseInstitution")
             : t("signup.createAccount")}
         </h1>
@@ -130,12 +144,16 @@ const SignUpPage = () => {
       </div>
 
       {/* Step 1: Institution Selection */}
-      {step === "institution" && (
+      {resolvedStep === "institution" && (
         <div className="space-y-4">
           {institutionsLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
             </div>
+          ) : institutionsError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{t("signup.noInstitutionsAvailable")}</AlertDescription>
+            </Alert>
           ) : institutions && institutions.length > 0 ? (
             <div className="space-y-2">
               <label className="mb-1.5 block text-xs font-bold text-slate-600">
@@ -212,6 +230,9 @@ const SignUpPage = () => {
               variant="tactile"
               className="h-11 flex-1"
               disabled={!canSignUp || !currentInstitution}
+              onClick={() => {
+                if (currentInstitution) setStep("account");
+              }}
             >
               {t("signup.continue")}
             </Button>
@@ -220,7 +241,7 @@ const SignUpPage = () => {
       )}
 
       {/* Step 2: Account Form */}
-      {step === "account" && currentInstitution && (
+      {resolvedStep === "account" && currentInstitution && (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}

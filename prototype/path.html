@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="student-refinement.css"/>
 <style>
   .bloom-label{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8;margin-bottom:16px}
   /* View switcher (Journey ↔ Knowledge Tree) */
@@ -49,9 +50,11 @@
      large empty void on the right on wide screens. Match its specificity
      (body[data-norail]) so this override actually wins, then the detail panel
      sits with comfortable right padding instead of a void. */
-  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
-  html.mode-laptop .path-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:28px;align-items:start}
-  html.mode-laptop .detail-panel{position:sticky;top:78px}
+  @media(min-width:640px){
+    html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+    html.mode-laptop .path-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:28px;align-items:start}
+    html.mode-laptop .detail-panel{position:sticky;top:78px}
+  }
   .concept-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9}
   .concept-row:last-child{border-bottom:none}
   .c-ic{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
@@ -226,6 +229,7 @@
   <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
 </nav>
 <script src="shared.js"></script>
+<script src="demo-data.js"></script><script src="student-refinement.js"></script>
 <script>
   // View switcher (Journey ↔ Knowledge Tree) — remembers last choice.
   (function(){

@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="teacher-refinement.css"/>
 </head>
 <body class="bg-slate-50" data-role="teacher">
 <header class="app-header">
@@ -42,7 +43,7 @@
 const SUBS=[
   {id:1,n:"Aisha K.",score:92,band:"green",fb:"Strong, complete 3NF decomposition — your table for loans cleanly separates member and book entities. To push toward excellence, add a one-line justification for why each table avoids transitive dependencies; that makes your reasoning visible, not just your result.",clo:"CLO3 Normalization → Excellent"},
   {id:2,n:"Yousef M.",score:64,band:"amber",fb:"You've clearly grasped 1NF and 2NF — atomic values and the composite-key split are correct. The gap is 3NF: 'publisher_country' is transitively dependent on 'publisher'. Revisit the 3NF micro-lesson and try the worked example; you're one step away.",clo:"CLO3 Normalization → Developing"},
-  {id:3,n:"Sara A.",score:48,band:"red",fb:"Let's rebuild the foundation together. Your schema still has repeating groups (comma-separated authors), which breaks 1NF. Start with the '1NF' micro-lesson, then bring me your revised table — I'll walk through 2NF with you. You've got this.",clo:"CLO3 Normalization → Not Yet"},
+  {id:3,n:"Sarah Ahmed",score:81,band:"amber",fb:"Your schema shows strong concept understanding. For independent application, point out the transitive dependency before you decompose it, then explain why the new relation removes it. Bring that explanation to our short check-in before Friday.",clo:"Assignment score 81% · CLO3 Normalization → Developing (62% mastery)"},
   {id:4,n:"Hassan R.",score:81,band:"green",fb:"Solid 3NF design with sensible keys. Consider whether denormalizing the 'category' lookup would help read performance for your use case — a great instinct to develop.",clo:"CLO3 Normalization → Satisfactory"},
 ];
 const pill=b=>`<span class="pill pill-${b}">${b==='green'?'Excellent':b==='amber'?'Developing':'Not Yet'}</span>`;
@@ -62,17 +63,17 @@ function load(id){
     <div class="flex items-center gap-2 mb-2">
       <label class="text-xs font-semibold text-gray-500">Score</label>
       <input type="number" value="${s.score}" class="w-16 border border-gray-200 rounded-lg px-2 py-1 text-sm font-bold"/>
-      <span class="text-[11px] text-gray-400">AI suggested from rubric</span>
+      <span class="text-[11px] text-gray-400">Draft suggested from rubric · Teacher must approve any change</span>
     </div>
     <textarea class="w-full border border-gray-200 rounded-xl p-3 text-sm text-gray-700 leading-relaxed" rows="6">${s.fb}</textarea>
     <div class="flex gap-2 mt-3 flex-wrap">
-      <button onclick="toast('Feedback released to ${s.n}','✅')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">✅ Approve &amp; release</button>
+      <button onclick="toast('Teacher-approved feedback released to ${s.n}','✅')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">✅ Approve &amp; release</button>
       <button onclick="toast('Regenerating draft…','🔄')" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">🔄 Regenerate</button>
       <button onclick="toast('Saved as draft','💾')" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">💾 Save draft</button>
     </div>`;
 }
 drawQueue();
 </script>
-<script src="shared.js"></script>
+<script src="teacher-data.js"></script><script src="shared.js"></script><script src="teacher-refinement.js"></script>
 </body>
 </html>

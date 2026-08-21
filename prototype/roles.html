@@ -1,99 +1,131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Edeviser — Choose a Role</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
-<style>*{font-family:'Noto Sans',sans-serif}body{margin:0;background:radial-gradient(circle at 50% 0%,#1e293b,#0f172a);min-height:100vh}</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E Deviser — Prototype Dashboard</title>
+  <link rel="stylesheet" href="roles-launcher.css">
 </head>
-<body class="flex items-center justify-center p-6">
-<div class="w-full max-w-5xl">
-  <div class="text-center mb-8">
-    <div class="inline-flex items-center gap-2 mb-3">
-      <div class="h-9 w-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(93.65deg,#14B8A6,#0382BD)"><span class="text-white text-lg">✦</span></div>
-      <span class="text-xl font-black text-white">Edeviser</span>
+<body>
+  <main class="launcher-shell">
+    <header class="launcher-header">
+      <a class="launcher-brand" href="roles.html" aria-label="E Deviser prototype dashboard">
+        <img src="brand/edeviser-logo.png" alt="E Deviser">
+      </a>
+      <span class="prototype-badge">Prototype only · Local data</span>
+    </header>
+
+    <section class="launcher-intro" aria-labelledby="launcher-title">
+      <p class="eyebrow">One platform · five perspectives</p>
+      <h1 id="launcher-title">Choose a profile to explore</h1>
+      <p>Select the preview device once, then open any profile. Presenter controls stay here and will not cover individual role screens.</p>
+    </section>
+
+    <section class="profile-grid" aria-label="Available prototype profiles">
+      <a class="profile-card student" href="dashboard.html" data-role-link="dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🎓</span>
+        <span class="profile-type">Learner</span>
+        <h2>Student</h2>
+        <p>A mission-first learning headquarters connecting outcomes, evidence, goals, deadlines and habits.</p>
+        <span class="profile-features"><i>Daily Mission</i><i>Learning Intelligence</i><i>AI Tutor</i></span>
+        <strong>Open Student <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card teacher" href="teacher-dashboard.html" data-role-link="teacher-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🧑‍🏫</span>
+        <span class="profile-type">Educator</span>
+        <h2>Teacher</h2>
+        <p>Prepared student triage, teacher-controlled AI feedback and outcome-linked curriculum tools.</p>
+        <span class="profile-features"><i>Student Triage</i><i>Feedback Drafts</i><i>Curriculum AI</i></span>
+        <strong>Open Teacher <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card parent" href="parent-dashboard.html" data-role-link="parent-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">👨‍👩‍👧</span>
+        <span class="profile-type">Family</span>
+        <h2>Parent</h2>
+        <p>A supportive weekly story focused on growth, wellbeing and useful conversations.</p>
+        <span class="profile-features"><i>Growth</i><i>Wellbeing</i><i>Support</i></span>
+        <strong>Open Parent <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card coordinator" href="coordinator-dashboard.html" data-role-link="coordinator-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🧭</span>
+        <span class="profile-type">Program leadership</span>
+        <h2>Coordinator</h2>
+        <p>Program attainment, curriculum-gap detection, CQI planning and accreditation evidence.</p>
+        <span class="profile-features"><i>Attainment</i><i>Curriculum</i><i>Accreditation</i></span>
+        <strong>Open Coordinator <span aria-hidden="true">→</span></strong>
+      </a>
+
+      <a class="profile-card admin" href="admin-dashboard.html" data-role-link="admin-dashboard.html">
+        <span class="profile-icon" aria-hidden="true">🏛️</span>
+        <span class="profile-type">Institution</span>
+        <h2>Admin</h2>
+        <p>Institution-wide trends, people, retention signals and transparent AI governance.</p>
+        <span class="profile-features"><i>Analytics</i><i>Operations</i><i>Governance</i></span>
+        <strong>Open Admin <span aria-hidden="true">→</span></strong>
+      </a>
+    </section>
+
+    <section class="loop-note" aria-label="Shared product architecture">
+      <span aria-hidden="true">↻</span>
+      <div><strong>One learning loop, five perspectives.</strong><p>Outcome → next action → evidence → feedback → improvement.</p></div>
+    </section>
+  </main>
+
+  <div class="launcher-dock" aria-label="Prototype launcher controls">
+    <span class="launcher-label">Preview</span>
+    <div class="device-seg" aria-label="Device preview">
+      <button class="device-btn" type="button" data-launch-mode="mobile" aria-pressed="false">📱 Mobile</button>
+      <button class="device-btn" type="button" data-launch-mode="laptop" aria-pressed="false">💻 Laptop</button>
     </div>
-    <h1 class="text-3xl font-black text-white">Choose a role to explore</h1>
-    <p class="text-sm text-slate-400 mt-2">Every role opens on what the AI has <b class="text-slate-200">already prepared</b>. Toggle 📱 Mobile / 💻 Laptop from the dock inside. Frontend prototype — mock data, no backend.</p>
+    <label class="visually-hidden" for="role-launch">Choose profile</label>
+    <select class="role-launch" id="role-launch" aria-label="Choose profile">
+      <option value="dashboard.html">🎓 Student</option>
+      <option value="teacher-dashboard.html">🧑‍🏫 Teacher</option>
+      <option value="parent-dashboard.html">👨‍👩‍👧 Parent</option>
+      <option value="coordinator-dashboard.html">🧭 Coordinator</option>
+      <option value="admin-dashboard.html">🏛️ Admin / Institution</option>
+    </select>
+    <button class="open-role" id="open-role" type="button">Open profile <span aria-hidden="true">→</span></button>
   </div>
 
-  <div class="grid md:grid-cols-3 gap-5">
-    <!-- Student -->
-    <a href="dashboard.html" class="block bg-white rounded-2xl p-6 shadow-xl hover:scale-[1.02] transition">
-      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3" style="background:linear-gradient(93.65deg,#14B8A6,#0382BD)">🎓</div>
-      <h2 class="text-lg font-black text-gray-900">Student</h2>
-      <p class="text-sm text-gray-500 mt-1">Opens on <b>Today</b>: your weakest outcome + the one 10-minute action that moves it. Learn loop, spaced review, AI tutor companion.</p>
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">Mastery-first</span>
-        <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Learn loop</span>
-        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">AI tutor</span>
-      </div>
-      <span class="inline-block mt-4 text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:linear-gradient(93.65deg,#14B8A6,#0382BD)">Open Student →</span>
-      <p class="text-[11px] text-gray-400 mt-2">Or start from <a href="index.html" class="underline">onboarding →</a></p>
-    </a>
-
-    <!-- Teacher -->
-    <a href="teacher-dashboard.html" class="block bg-white rounded-2xl p-6 shadow-xl hover:scale-[1.02] transition">
-      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3" style="background:linear-gradient(120deg,#0f766e,#0382bd)">🧑‍🏫</div>
-      <h2 class="text-lg font-black text-gray-900">Teacher</h2>
-      <p class="text-sm text-gray-500 mt-1">Opens on a prepared triage list, AI-drafted feedback awaiting approval, and a Curriculum Studio that turns uploads into micro-lessons.</p>
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <span class="text-[10px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-full">At-risk triage</span>
-        <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">AI drafts</span>
-        <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Curriculum AI</span>
-      </div>
-      <span class="inline-block mt-4 text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:linear-gradient(120deg,#0f766e,#0382bd)">Open Teacher →</span>
-    </a>
-
-    <!-- Parent -->
-    <a href="parent-dashboard.html" class="block bg-white rounded-2xl p-6 shadow-xl hover:scale-[1.02] transition">
-      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3" style="background:linear-gradient(135deg,#16a34a,#0382bd)">👨‍👩‍👧</div>
-      <h2 class="text-lg font-black text-gray-900">Parent</h2>
-      <p class="text-sm text-gray-500 mt-1">A weekly <b>growth &amp; wellbeing</b> story — strengths, consistency, and one supportive conversation prompt. Never raw grades.</p>
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <span class="text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Growth</span>
-        <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">Wellbeing</span>
-        <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Support</span>
-      </div>
-      <span class="inline-block mt-4 text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:linear-gradient(135deg,#16a34a,#0382bd)">Open Parent →</span>
-    </a>
-
-    <!-- Coordinator -->
-    <a href="coordinator-dashboard.html" class="block bg-white rounded-2xl p-6 shadow-xl hover:scale-[1.02] transition">
-      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3" style="background:linear-gradient(120deg,#7c3aed,#0382bd)">🧭</div>
-      <h2 class="text-lg font-black text-gray-900">Coordinator</h2>
-      <p class="text-sm text-gray-500 mt-1">Program CLO/PLO attainment, curriculum-gap detection, and draft accreditation evidence — generated and awaiting sign-off.</p>
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Attainment</span>
-        <span class="text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">Curriculum</span>
-        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Accreditation</span>
-      </div>
-      <span class="inline-block mt-4 text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:linear-gradient(120deg,#7c3aed,#0382bd)">Open Coordinator →</span>
-    </a>
-
-    <!-- Admin -->
-    <a href="admin-dashboard.html" class="block bg-white rounded-2xl p-6 shadow-xl hover:scale-[1.02] transition">
-      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3" style="background:linear-gradient(135deg,#0f172a,#1e3a8a)">🏛️</div>
-      <h2 class="text-lg font-black text-gray-900">Admin / Institution</h2>
-      <p class="text-sm text-gray-500 mt-1">Institution-wide trends, retention risk, department comparison, and <b>AI governance</b> — autonomy tiers, explainability, audit.</p>
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Trends</span>
-        <span class="text-[10px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-full">Retention</span>
-        <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">AI governance</span>
-      </div>
-      <span class="inline-block mt-4 text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:linear-gradient(135deg,#0f172a,#1e3a8a)">Open Admin →</span>
-    </a>
-
-    <!-- Vision note -->
-    <div class="rounded-2xl p-6 border border-slate-700 bg-slate-800/40">
-      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3 bg-slate-700">🧭</div>
-      <h2 class="text-lg font-black text-white">One loop, five lenses</h2>
-      <p class="text-sm text-slate-300 mt-1">Every role sees the same spine — <b>outcome → next action → evidence → back</b> — from its own vantage point. The AI prepares each person's day; humans stay in control.</p>
-      <p class="text-[11px] text-slate-400 mt-3">Prototype only · mock data · no backend touched.</p>
-    </div>
-  </div>
-</div>
+  <script>
+  (function(){
+    var savedMode='laptop';
+    try{savedMode=localStorage.getItem('edv-mode')||'laptop';}catch(e){}
+    function paint(mode){
+      savedMode=mode;
+      try{localStorage.setItem('edv-mode',mode);}catch(e){}
+      document.querySelectorAll('[data-launch-mode]').forEach(function(button){
+        var active=button.dataset.launchMode===mode;
+        button.classList.toggle('on',active);
+        button.setAttribute('aria-pressed',String(active));
+      });
+    }
+    document.querySelectorAll('[data-launch-mode]').forEach(function(button){
+      button.addEventListener('click',function(){paint(button.dataset.launchMode);});
+    });
+    function openPreview(url){
+      if(savedMode==='mobile' && window.innerWidth>700){
+        var preview=window.open(url,'edeviser-mobile-preview','popup,width=430,height=900,resizable=yes,scrollbars=yes');
+        if(preview){preview.focus();return;}
+      }
+      window.location.href=url;
+    }
+    document.querySelectorAll('[data-role-link]').forEach(function(link){
+      link.addEventListener('click',function(event){
+        event.preventDefault();
+        document.getElementById('role-launch').value=link.dataset.roleLink;
+        openPreview(link.dataset.roleLink);
+      });
+    });
+    document.getElementById('open-role').addEventListener('click',function(){
+      openPreview(document.getElementById('role-launch').value);
+    });
+    paint(savedMode);
+  })();
+  </script>
 </body>
 </html>

@@ -17,12 +17,9 @@ export const waitForGradePropagation = async (
 ): Promise<number> => {
   return pollUntil(
     async () => {
-      await studentPage.goto("/student/xp");
+      await studentPage.goto("/student/xp-history");
       await studentPage.waitForLoadState("networkidle");
-      const xpText = await studentPage
-        .getByTestId("xp-total")
-        .textContent()
-        .catch(() => null);
+      const xpText = await studentPage.getByTestId("xp-total").textContent();
       if (!xpText) return false;
       const xp = parseInt(xpText.replace(/[^0-9]/g, ""), 10) || 0;
       return xp > baselineXp ? xp : false;

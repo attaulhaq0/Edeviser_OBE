@@ -62,8 +62,8 @@
         </ul>
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
-        <button onclick="aiApprove(this,'AI drafted a Concurrency assessment for SE310')" class="btn3d sm">✨ Draft an assessment</button>
-        <button onclick="toast('Flagged to SE310 teacher','📌')" class="btn3d sm b-ghost">📌 Flag to teacher</button>
+        <button onclick="toast('Teacher proposal prepared for SE310','📨')" class="btn3d sm">Prepare Teacher proposal</button>
+        <button onclick="toast('Coverage decision saved for review','📌')" class="btn3d sm b-ghost">Review proposal</button>
       </div></div>
     </div>
   </div>
@@ -83,8 +83,9 @@ const cov=cells=>Math.round(cells.reduce((t,s)=>t+(s==='a'?1:s==='p'?0.5:0),0)/c
 const covC=v=>'#3b82f6'; // single blue shade for all coverage bars (per design direction, matches coordinator-outcomes)
 document.getElementById('matrix').innerHTML=M.map(([name,cells])=>{
   const v=cov(cells);
-  return `<tr><td><b style="color:#0f172a">${name}</b></td>${cells.map(s=>`<td style="text-align:center">${s==='g'?'<span class="pill pill-red">GAP</span>':`<span title="${lbl(s)}" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${dot(s)}"></span>`}</td>`).join('')}<td style="text-align:center"><div style="display:flex;align-items:center;gap:6px;justify-content:center"><div style="width:52px" class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full" style="width:${v}%;background:${covC(v)}"></div></div><b style="color:${covC(v)};font-size:12px;width:32px;text-align:right">${v}%</b></div></td></tr>`;
+  return `<tr><td><b style="color:#0f172a">${name}</b></td>${cells.map((s,i)=>`<td style="text-align:center;cursor:pointer" onclick="showCoverage('${name}','${['CS301','CS205','AI101','SE310'][i]}','${lbl(s)}')">${s==='g'?'<span class="pill pill-red">GAP</span>':`<span title="${lbl(s)}" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${dot(s)}"></span>`}</td>`).join('')}<td style="text-align:center"><div style="display:flex;align-items:center;gap:6px;justify-content:center"><div style="width:52px" class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full" style="width:${v}%;background:${covC(v)}"></div></div><b style="color:${covC(v)};font-size:12px;width:32px;text-align:right">${v}%</b></div></td></tr>`;
 }).join('');
+function showCoverage(plo,course,status){toast(`${course} × ${plo}: ${status}. Opened coverage evidence.`,status==='GAP'?'⚠️':'🗂️');}
 </script>
 <script src="shared.js"></script>
 </body>

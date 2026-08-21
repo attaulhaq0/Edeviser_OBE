@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
 <link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="student-refinement.css"/>
 </head>
 <body class="bg-white flex flex-col h-dvh" data-role="student">
   <!-- BACKEND GROUNDING · hooks: useTutorConversations, useTutorMessages, useTutorUsage, useTutorAutonomy | tables: tutor_conversations, tutor_messages, tutor_usage_limits, tutor_llm_logs -->
@@ -48,11 +49,14 @@
     </div>
     <button onclick="whyPop('<b>Hints only (L1):</b> I only ask guiding questions — best while an assignment is open (protects academic integrity). <b>Guided (L2):</b> scaffolded hints + partial steps. <b>Direct (L3):</b> full explanations — best in review/practice. You choose; on graded work I default to hints.')" class="text-[11px] font-bold text-blue-600">?</button>
   </div>
+  <div class="pcard p-3" style="border-color:#ccfbf1">
+    <div class="flex items-start gap-2"><span>🛡️</span><div><p class="text-[10px] font-black tracking-widest uppercase text-teal-700">Action permission</p><p class="text-xs text-gray-600 mt-0.5"><b>Suggestions only · A1</b> — Owlie guides with questions, hints and examples; it does not complete Sarah’s assignment.</p><button type="button" class="student-ai-why mt-1" data-student-ai-open>How this help is governed</button></div></div>
+  </div>
 
   <!-- Proactive, memory-aware opener -->
   <div class="flex items-start gap-3">
     <img src="characters/owl/owl-wise.png" alt="Owlie looking wise" class="chr chr-xs chr-in shrink-0" draggable="false"/>
-    <div class="bubble-ai max-w-[280px]"><p class="text-sm text-gray-800">Morning, Sarah 👋 Two things stand out today: your <b>Normalization</b> outcome slipped to 62% and it's on tonight's assignment, and you've got <b>5 reviews</b> due. Want to spend 10 minutes closing that gap first?</p></div>
+    <div class="bubble-ai max-w-[280px]"><p class="text-sm text-gray-800">Morning, Sarah 👋 Your <b>Normalization</b> mastery is 62% and Assignment 3 is due Friday. You also have <b>5 reviews</b> due. Want a guided 10-minute practice first?</p></div>
   </div>
 
   <!-- Suggested Actions (memory-driven) -->
@@ -94,6 +98,7 @@
 </nav>
 
 <script src="shared.js"></script>
+<script src="demo-data.js"></script><script src="student-refinement.js"></script>
 <script>
 let autonomy='L2';
 function setTier(el,t){autonomy=t;document.querySelectorAll('#tier button').forEach(b=>b.classList.remove('on'));el.classList.add('on');toast('Teaching style: '+({L1:'Hints only',L2:'Guided',L3:'Direct'})[t],'🎚️');}
