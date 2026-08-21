@@ -22,7 +22,7 @@ test.describe("Admin a11y", () => {
   });
 
   test("5.1.4 — admin ILO list page passes axe-core scan", async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin/outcomes/ilos`);
+    await page.goto(`${BASE_URL}/admin/outcomes`);
     await page.waitForLoadState("networkidle");
 
     await scanPage(page, { role: "admin", label: "ilo-list" });

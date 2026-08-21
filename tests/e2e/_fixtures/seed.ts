@@ -11,8 +11,14 @@ import { chromium, type FullConfig } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
+import {
+  assertLiveAuthenticatedUser,
+  assertRoleClaim,
+  type AuditRole,
+} from "../_helpers/auth.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
+const AUDIT_INSTITUTION_ID = "audit-inst";
 
 const STORAGE_STATES_DIR = resolve(
   "tests",
@@ -21,31 +27,57 @@ const STORAGE_STATES_DIR = resolve(
   "storage-states"
 );
 
-const SEED_CREDENTIALS: Record<string, { email: string; password: string }> = {
-  admin: { email: "audit+admin@edeviser.test", password: "AuditSeed2024!" },
-  coordinator: {
+interface SeedCredential {
+  storageName: string;
+  role: AuditRole;
+  email: string;
+  password: string;
+}
+
+const SEED_CREDENTIALS: SeedCredential[] = [
+  {
+    storageName: "admin",
+    role: "admin",
+    email: "audit+admin@edeviser.test",
+    password: "AuditSeed2024!",
+  },
+  {
+    storageName: "coordinator",
+    role: "coordinator",
     email: "audit+coordinator@edeviser.test",
     password: "AuditSeed2024!",
   },
-  teacher: {
+  {
+    storageName: "teacher",
+    role: "teacher",
     email: "audit+teacher@edeviser.test",
     password: "AuditSeed2024!",
   },
-  student: {
+  {
+    storageName: "student",
+    role: "student",
     email: "audit+student@edeviser.test",
     password: "AuditSeed2024!",
   },
-  parent: {
+  {
+    storageName: "parent",
+    role: "parent",
     email: "audit+parent-linked@edeviser.test",
     password: "AuditSeed2024!",
   },
-};
+  {
+    storageName: "parent-unlinked",
+    role: "parent",
+    email: "audit+parent-unlinked@edeviser.test",
+    password: "AuditSeed2024!",
+  },
+];
 
 const writeEmptyStorageStates = (): void => {
   mkdirSync(STORAGE_STATES_DIR, { recursive: true });
-  for (const role of Object.keys(SEED_CREDENTIALS)) {
+  for (const { storageName } of SEED_CREDENTIALS) {
     writeFileSync(
-      resolve(STORAGE_STATES_DIR, `${role}.json`),
+      resolve(STORAGE_STATES_DIR, `${storageName}.json`),
       JSON.stringify({ cookies: [], origins: [] }),
       "utf8"
     );
@@ -73,104 +105,95 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 
   mkdirSync(STORAGE_STATES_DIR, { recursive: true });
 
-  // Step 1: Provision seed data via audit-fixtures Edge Function.
-  // This is best-effort — if the function is not deployed (local dev without
-  // staging), we skip seeding and rely on pre-existing seed data.
-  try {
-    const seedRes = await fetch(`${auditFixturesUrl}/seed`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${anonKey}`,
-        apikey: anonKey,
-      },
-      body: JSON.stringify({
-        runId,
-        roles: ["admin", "coordinator", "teacher", "student", "parent"],
-      }),
-    });
-    if (!seedRes.ok) {
-      const text = await seedRes.text();
-      console.warn(
-        `[globalSetup] audit-fixtures/seed returned ${
-          seedRes.status
-        }: ${text.slice(0, 200)}`
-      );
-    } else {
-      const data = (await seedRes.json()) as { ok: boolean; errors?: string[] };
-      if (data.errors?.length) {
-        console.warn(
-          `[globalSetup] seed partial errors: ${data.errors.join(", ")}`
-        );
-      } else {
-        console.log(`[globalSetup] Seed complete. runId=${runId}`);
-      }
-    }
-  } catch (err) {
-    console.warn(
-      `[globalSetup] Could not reach audit-fixtures (${
-        err instanceof Error ? err.message : String(err)
-      }) — proceeding without seed`
+  // Step 1: Preview fixture runs are invalid unless every requested entity is
+  // provisioned. A missing fixture capability is a hard failure, never a skip.
+  const seedRes = await fetch(`${auditFixturesUrl}/seed`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${anonKey}`,
+      apikey: anonKey,
+    },
+    body: JSON.stringify({
+      runId,
+      roles: ["admin", "coordinator", "teacher", "student", "parent"],
+    }),
+  });
+  if (!seedRes.ok) {
+    const responseText = await seedRes.text();
+    throw new Error(
+      `[globalSetup] audit-fixtures/seed returned ${
+        seedRes.status
+      }: ${responseText.slice(0, 500)}`
     );
   }
 
+  const seedData: unknown = await seedRes.json();
+  if (
+    typeof seedData !== "object" ||
+    seedData === null ||
+    !("ok" in seedData) ||
+    seedData.ok !== true
+  ) {
+    throw new Error(
+      `[globalSetup] audit-fixtures/seed reported an incomplete seed: ${JSON.stringify(
+        seedData
+      )}`
+    );
+  }
+  console.log(`[globalSetup] Seed complete. runId=${runId}`);
+
   // Step 2: Sign in as each role and persist storageState.
   const browser = await chromium.launch();
-
-  for (const [role, creds] of Object.entries(SEED_CREDENTIALS)) {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    try {
-      // Navigate to login page
-      await page.goto(`${BASE_URL}/login`, {
-        waitUntil: "domcontentloaded",
-        timeout: 30_000,
-      });
-
-      // Fill credentials
-      await page
-        .locator('input[type="email"], input[name="email"]')
-        .fill(creds.email);
-      await page
-        .locator('input[type="password"], input[name="password"]')
-        .fill(creds.password);
-      await page
-        .locator(
-          'button[type="submit"], button:has-text("Sign in"), button:has-text("Login")'
-        )
-        .click();
-
-      // Wait for redirect away from login
-      await page
-        .waitForURL((url) => !url.pathname.includes("/login"), {
-          timeout: 15_000,
-        })
-        .catch(() => {
-          console.warn(
-            `[globalSetup] ${role}: login redirect did not occur — storageState may be empty`
-          );
+  try {
+    for (const credential of SEED_CREDENTIALS) {
+      const { storageName, role, email, password } = credential;
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      try {
+        // Navigate to login page
+        await page.goto(`${BASE_URL}/login`, {
+          waitUntil: "domcontentloaded",
+          timeout: 30_000,
         });
 
-      const storageStatePath = resolve(STORAGE_STATES_DIR, `${role}.json`);
-      await context.storageState({ path: storageStatePath });
-      console.log(`[globalSetup] ${role}: storageState saved`);
-    } catch (err) {
-      console.warn(
-        `[globalSetup] ${role}: login failed (${
-          err instanceof Error ? err.message : String(err)
-        }) — writing empty storageState`
-      );
-      // Write empty storageState so Playwright doesn't crash on missing file
-      writeFileSync(
-        resolve(STORAGE_STATES_DIR, `${role}.json`),
-        JSON.stringify({ cookies: [], origins: [] }),
-        "utf8"
-      );
-    } finally {
-      await context.close();
-    }
-  }
+        // Fill credentials
+        await page
+          .locator('input[type="email"], input[name="email"]')
+          .fill(email);
+        await page
+          .locator('input[type="password"], input[name="password"]')
+          .fill(password);
+        await page
+          .locator(
+            'button[type="submit"], button:has-text("Sign in"), button:has-text("Login")'
+          )
+          .click();
 
-  await browser.close();
+        // Wait for redirect away from login
+        await page.waitForURL((url) => !url.pathname.includes("/login"), {
+          timeout: 15_000,
+        });
+        await assertRoleClaim(page, role);
+        await assertLiveAuthenticatedUser(page, {
+          role,
+          email,
+          institutionId: AUDIT_INSTITUTION_ID,
+        });
+
+        const storageStatePath = resolve(
+          STORAGE_STATES_DIR,
+          `${storageName}.json`
+        );
+        await context.storageState({ path: storageStatePath });
+        console.log(
+          `[globalSetup] ${storageName}: authenticated storageState saved`
+        );
+      } finally {
+        await context.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
 }

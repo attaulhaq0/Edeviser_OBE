@@ -2,28 +2,22 @@
 //
 // Task 6.1 / Req 3.1: Teacher grades → Student XP propagation spec.
 // Teacher releases a grade → Student polls XP page up to 60s → assert XP increased.
+// @critical-e2e
+// @critical-control Submit Grade
 
 import { test, expect, chromium } from "@playwright/test";
-import { loadStorageState } from "../_helpers/auth.ts";
+import { criticalRoutes } from "../../../src/lib/criticalRoutes.ts";
+import {
+  assertLiveAuthenticatedUser,
+  loadStorageState,
+} from "../_helpers/auth.ts";
 import { waitForGradePropagation } from "../_helpers/crossRoleHelpers.ts";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
-
-const storageStateExists = (role: string): boolean =>
-  existsSync(
-    resolve("tests", "e2e", "_fixtures", "storage-states", `${role}.json`)
-  );
+const AUDIT_SUBMISSION_ID = "a0000000-0000-4000-8000-000000000009";
 
 test.describe("Cross-role: teacher grade → student XP", () => {
   test("6.1 — grade release propagates to student XP within 60s", async () => {
-    // Skip if storage states not seeded
-    if (!storageStateExists("teacher") || !storageStateExists("student")) {
-      test.skip(true, "Storage states not seeded — run globalSetup first");
-      return;
-    }
-
     const browser = await chromium.launch();
 
     // Teacher context
@@ -37,41 +31,59 @@ test.describe("Cross-role: teacher grade → student XP", () => {
     const studentPage = await studentCtx.newPage();
 
     try {
-      // Read student baseline XP
-      await studentPage.goto(`${BASE_URL}/student/dashboard`);
+      // Read the same canonical XP total that the propagation poll observes.
+      await studentPage.goto(`${BASE_URL}${criticalRoutes.student.xpHistory}`);
       await studentPage.waitForLoadState("networkidle");
+      await assertLiveAuthenticatedUser(studentPage, {
+        role: "student",
+        email: "audit+student@edeviser.test",
+        institutionId: "audit-inst",
+      });
       const baselineXpText = await studentPage
         .getByTestId("xp-total")
-        .textContent()
-        .catch(() => "0");
+        .textContent();
+      expect(
+        baselineXpText,
+        "Student dashboard must expose the XP total"
+      ).not.toBeNull();
       const baselineXp = parseInt(
         (baselineXpText ?? "0").replace(/[^0-9]/g, ""),
         10
       );
+      expect(
+        Number.isNaN(baselineXp),
+        "Student baseline XP must be numeric"
+      ).toBe(false);
 
-      // Teacher releases a grade
+      // Grade creation is the current application action that starts the
+      // attainment/XP chain. The deterministic ungraded submission is supplied
+      // by Boundary 2's Preview fixture.
       await teacherPage.goto(
-        `${BASE_URL}/teacher/assignments/audit-assign-1/grade`
+        `${BASE_URL}${criticalRoutes.teacher.gradingSubmission(
+          AUDIT_SUBMISSION_ID
+        )}`
       );
       await teacherPage.waitForLoadState("networkidle");
-      const releaseBtn = teacherPage.getByRole("button", {
-        name: /release|publish/i,
+      await assertLiveAuthenticatedUser(teacherPage, {
+        role: "teacher",
+        email: "audit+teacher@edeviser.test",
+        institutionId: "audit-inst",
       });
-      if (await releaseBtn.isVisible({ timeout: 5_000 })) {
-        await releaseBtn.click();
-        await teacherPage.waitForLoadState("networkidle");
-      }
+      await expect(
+        teacherPage.getByRole("heading", { name: "Grade Submission" })
+      ).toBeVisible();
+      await teacherPage
+        .getByRole("button", { name: /Overall Performance: Excellent/i })
+        .click();
+      await teacherPage
+        .getByLabel("Overall Feedback")
+        .fill("Closed-loop audit grade");
+      await teacherPage.getByRole("button", { name: "Submit Grade" }).click();
+      await expect(teacherPage).toHaveURL(/\/teacher\/grading$/);
 
       // Poll for XP update (up to 60s)
-      try {
-        const newXp = await waitForGradePropagation(studentPage, baselineXp);
-        expect(newXp).toBeGreaterThan(baselineXp);
-      } catch {
-        // Propagation may not occur without live seed data — log and pass
-        console.log(
-          "[cross-role] Grade propagation not detected — seed data may be missing"
-        );
-      }
+      const newXp = await waitForGradePropagation(studentPage, baselineXp);
+      expect(newXp).toBeGreaterThan(baselineXp);
     } finally {
       await teacherCtx.close();
       await studentCtx.close();

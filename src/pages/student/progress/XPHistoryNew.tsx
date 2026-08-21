@@ -207,14 +207,16 @@ const XPHistoryNew = () => {
         <>
           {/* KPI row */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            <KPICard
-              icon={Coins}
-              label="Total XP"
-              value={runningTotal.toLocaleString()}
-              iconBgClass="bg-amber-50"
-              iconColorClass="text-amber-500"
-              valueClassName="text-amber-600"
-            />
+            <div data-testid="xp-total">
+              <KPICard
+                icon={Coins}
+                label="Total XP"
+                value={runningTotal.toLocaleString()}
+                iconBgClass="bg-amber-50"
+                iconColorClass="text-amber-500"
+                valueClassName="text-amber-600"
+              />
+            </div>
             <KPICard
               icon={TrendingUp}
               label="Transactions"

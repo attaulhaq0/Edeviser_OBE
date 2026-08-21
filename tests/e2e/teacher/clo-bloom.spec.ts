@@ -19,26 +19,14 @@ test.describe("Teacher CLO Bloom levels", () => {
   test("5.3.2 — CLO form has all six Bloom levels as options", async ({
     page,
   }) => {
-    await page.goto(`${BASE_URL}/teacher/outcomes/clos`);
+    await page.goto(`${BASE_URL}/teacher/clos/new`);
     await page.waitForLoadState("networkidle");
 
-    const createBtn = page.getByRole("button", { name: /add|create|new/i });
-    if (await createBtn.first().isVisible({ timeout: 5_000 })) {
-      await createBtn.first().click();
-      await page.waitForLoadState("networkidle");
-
-      // Check that Bloom level selector exists
-      const bloomSelect = page.getByLabel(/bloom/i);
-      if (await bloomSelect.isVisible({ timeout: 5_000 })) {
-        const options = await bloomSelect.locator("option").allTextContents();
-        const hasAllLevels = BLOOM_LEVELS.every((level) =>
-          options.some((opt) => opt.toLowerCase().includes(level.toLowerCase()))
-        );
-        expect(hasAllLevels).toBe(true);
-      }
+    const bloomSelect = page.getByRole("combobox", { name: /bloom/i });
+    await expect(bloomSelect).toBeVisible();
+    await bloomSelect.click();
+    for (const level of BLOOM_LEVELS) {
+      await expect(page.getByRole("option", { name: level })).toBeVisible();
     }
-
-    // At minimum, the page should render
-    await expect(page).toHaveURL(/teacher/);
   });
 });
