@@ -374,5 +374,39 @@ test.describe("Intelligence Layer - agent guardrails", () => {
     await expect(
       probeCard.getByRole("button", { name: /reject proposal/i }),
     ).toBeVisible();
+
+    // Execute the rejection and verify it PERSISTS server-side.
+    // (Newest pending proposal belongs to this probe - it was just created.)
+    const pendingBefore = await apiGet<{ id: string; status: string }>(
+      page,
+      "agent_action_proposals?select=id,status&status=eq.pending&order=created_at.desc&limit=1",
+    );
+    expect(
+      pendingBefore.length,
+      "No pending proposal found after triggering the protected action",
+    ).toBeGreaterThan(0);
+    const probeProposalId = pendingBefore[0].id;
+    await probeCard.getByRole("button", { name: /reject proposal/i }).click();
+    let rejected = false;
+    for (let i = 0; i < 15 && !rejected; i += 1) {
+      await page.waitForTimeout(2000);
+      const rows = await apiGet<{ id: string; status: string }>(
+        page,
+        `agent_action_proposals?select=id,status&id=eq.${probeProposalId}`,
+      );
+      rejected = rows[0]?.status === "rejected";
+    }
+    expect(
+      rejected,
+      `Proposal ${probeProposalId} did not reach rejected status - rejection did not persist`,
+    ).toBe(true);
+
+    // After rejection the card must no longer offer either decision control.
+    await expect(
+      probeCard.getByRole("button", { name: /approve proposal/i }),
+    ).toHaveCount(0);
+    await expect(
+      probeCard.getByRole("button", { name: /reject proposal/i }),
+    ).toHaveCount(0);
   });
 });
