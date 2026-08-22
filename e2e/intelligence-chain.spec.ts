@@ -3,8 +3,7 @@
 //
 // Auth contract: every test authenticates through the real login flow with
 // seeded demo credentials (overridable via E2E_* env vars), then verifies the
-// LIVE Supabase session identity (email) - not just a client-side redirect -
-// before touching protected pages or data.
+// LIVE Supabase session (email AND live token accepted by /auth/v1/user).
 // Test-integrity contract: NO conditional skips. Every fixture-dependent
 // assertion fails with an explicit message when required setup is missing.
 import { test, expect, type Page } from "@playwright/test";
@@ -36,43 +35,15 @@ interface SessionUser {
   email?: string;
 }
 
-async function readSessionUser(page: Page): Promise<SessionUser> {
-  const raw = await page.evaluate(() => {
-    const key = Object.keys(window.localStorage).find((k) =>
-      k.endsWith("-auth-token"),
-    );
-    return key ? window.localStorage.getItem(key) : null;
-  });
-  if (!raw)
-    throw new Error(
-      "No Supabase session found after login - authentication failed.",
-    );
-  const parsed = JSON.parse(raw) as { user?: SessionUser };
-  return parsed.user ?? {};
-}
-
-/** Login through the real form, land on the role dashboard, and verify the
- * live session belongs to the expected user (not a stale/misrouted session). */
-async function loginAs(page: Page, role: Role): Promise<void> {
-  const creds = CREDENTIALS[role];
-  await page.goto("/login", { waitUntil: "networkidle" });
-  await page.getByLabel(/email/i).fill(creds.email);
-  await page.getByLabel(/password/i).fill(creds.password);
-  await page.getByRole("button", { name: /sign in|log in|login/i }).click();
-  await page.waitForURL(creds.landing, { timeout: 30000 });
-  const user = await readSessionUser(page);
-  expect(user.email, `live session must belong to ${creds.email}`).toBe(
-    creds.email,
-  );
-}
-
-/** Authenticated REST GET against Supabase using the browser's live token. */
-async function apiGet<T>(page: Page, path: string): Promise<T[]> {
+function requireSupabaseEnv(): void {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error(
-      "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY must be set for data-fixture assertions.",
+      "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY must be set for live-session and data-fixture assertions.",
     );
   }
+}
+
+async function readAccessToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => {
     const key = Object.keys(window.localStorage).find((k) =>
       k.endsWith("-auth-token"),
@@ -83,8 +54,56 @@ async function apiGet<T>(page: Page, path: string): Promise<T[]> {
     ) as { access_token?: string };
     return parsed.access_token ?? null;
   });
-  if (!token)
-    throw new Error("No access token in session - cannot verify data fixtures.");
+  expect(token, "No access token in browser session").toBeTruthy();
+  return token as string;
+}
+
+/** Login through the real form, land on the role dashboard, verify the live
+ * session: the stored email matches AND Supabase accepts the live token. */
+async function loginAs(page: Page, role: Role): Promise<void> {
+  requireSupabaseEnv();
+  const creds = CREDENTIALS[role];
+  await page.goto("/login", { waitUntil: "networkidle" });
+  await page.getByLabel(/email/i).fill(creds.email);
+  await page.getByLabel(/password/i).fill(creds.password);
+  await page.getByRole("button", { name: /sign in|log in|login/i }).click();
+  await page.waitForURL(creds.landing, { timeout: 30000 });
+
+  const raw = await page.evaluate(() => {
+    const key = Object.keys(window.localStorage).find((k) =>
+      k.endsWith("-auth-token"),
+    );
+    return key ? window.localStorage.getItem(key) : null;
+  });
+  if (!raw)
+    throw new Error(
+      "No Supabase session found after login - authentication failed.",
+    );
+  const stored = JSON.parse(raw) as { user?: SessionUser };
+  expect(stored.user?.email, `session must belong to ${creds.email}`).toBe(
+    creds.email,
+  );
+
+  // The token itself must be LIVE - Supabase must accept it right now.
+  const token = await readAccessToken(page);
+  const me = await page.request.get(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+  });
+  expect(
+    me.ok(),
+    `Live session token rejected by Supabase auth: ${me.status()}`,
+  ).toBeTruthy();
+  const meBody = (await me.json()) as SessionUser;
+  expect(
+    meBody.email,
+    "Supabase auth identity must match the logged-in user",
+  ).toBe(creds.email);
+}
+
+/** Authenticated REST GET against Supabase using the browser's live token. */
+async function apiGet<T>(page: Page, path: string): Promise<T[]> {
+  requireSupabaseEnv();
+  const token = await readAccessToken(page);
   const res = await page.request.get(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
       apikey: SUPABASE_ANON_KEY,
@@ -148,40 +167,68 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
     await expect(page).not.toHaveURL(/\/edit$/);
   });
 
-  test("Coordinator curriculum matrix renders canonical parent->child fixtures", async ({
+  test("Coordinator matrix renders a known canonical PLO->ILO mapping fixture", async ({
     page,
   }) => {
     await loginAs(page, "coordinator");
-    // Fixture: seeded PLOs for the coordinator's program (RLS-scoped).
-    const plos = await apiGet<{ id: string; code: string | null; title: string | null }>(
-      page,
-      "learning_outcomes?select=id,code,title&type=eq.PLO&limit=10",
-    );
+
+    // Resolve a KNOWN canonical PLO->ILO mapping from seeded data.
+    const outcomes = await apiGet<{
+      id: string;
+      type: string;
+      code: string | null;
+      title: string | null;
+    }>(page, "learning_outcomes?select=id,type,code,title&limit=500");
+    const mappings = await apiGet<{
+      source_outcome_id: string;
+      target_outcome_id: string;
+    }>(page, "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500");
+    const byId = new Map(outcomes.map((o) => [o.id, o]));
+    const canonical = mappings
+      .map((m) => ({
+        src: byId.get(m.source_outcome_id),
+        tgt: byId.get(m.target_outcome_id),
+      }))
+      .find((m) => m.src?.type === "PLO" && m.tgt?.type === "ILO");
     expect(
-      plos.length,
-      "Seed data missing: no PLOs visible to the coordinator",
-    ).toBeGreaterThan(0);
+      canonical,
+      "Seed data missing: no canonical PLO->ILO mapping found",
+    ).toBeTruthy();
 
     await page.goto("/coordinator/matrix", { waitUntil: "networkidle" });
     const heading = page.locator("h1, h2").first();
     await expect(heading).toBeVisible();
     const body = (await page.locator("body").innerText()).toLowerCase();
     expect(body).not.toContain("reverse mapping");
-    // At least one seeded PLO identifier must appear on the rendered matrix,
-    // proving the matrix renders this program's canonical PLO rows.
-    const labels = plos
-      .map((p) => [p.code, p.title].filter(Boolean).join(" ").trim().toLowerCase())
-      .filter(Boolean);
-    const rendered = labels.some((label) => body.includes(label));
+    // At least one endpoint label of the known canonical mapping must render.
+    const srcLabel = [
+      canonical?.src?.code,
+      canonical?.src?.title,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim()
+      .toLowerCase();
+    const tgtLabel = [
+      canonical?.tgt?.code,
+      canonical?.tgt?.title,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim()
+      .toLowerCase();
+    const rendered =
+      (srcLabel.length > 0 && body.includes(srcLabel)) ||
+      (tgtLabel.length > 0 && body.includes(tgtLabel));
     expect(
       rendered,
-      `None of the seeded PLOs (${labels.slice(0, 3).join(", ")}...) appear on the matrix`,
+      `Known canonical mapping endpoints ("${srcLabel}" / "${tgtLabel}") do not render on the matrix`,
     ).toBe(true);
   });
 });
 
 test.describe("Intelligence Layer - attainment cascade", () => {
-  test("Cascade: PLO attainment maps into ILO targets (canonical direction)", async ({
+  test("Cascade: ILO aggregate attainment is backed by PLO->ILO mappings", async ({
     page,
   }) => {
     await loginAs(page, "admin");
@@ -195,25 +242,38 @@ test.describe("Intelligence Layer - attainment cascade", () => {
       "Seed data missing: no outcome_attainment rows",
     ).toBeGreaterThan(0);
 
-    // Canonical direction proof: every ILO aggregate row's outcome must be the
-    // TARGET of at least one PLO->ILO mapping (source=PLO, target=ILO).
+    // UNCONDITIONAL: at least one ILO aggregate fixture must exist.
     const iloRows = attainment.filter((r) => r.student_id === null);
-    if (iloRows.length > 0) {
-      const mappings = await apiGet<{
-        source_outcome_id: string;
-        target_outcome_id: string;
-      }>(
-        page,
-        "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500",
-      );
-      const iloIds = new Set(iloRows.map((r) => r.outcome_id));
-      const mappedTargets = new Set(mappings.map((m) => m.target_outcome_id));
-      const unmapped = [...iloIds].filter((id) => !mappedTargets.has(id));
-      expect(
-        unmapped,
-        `ILO aggregate attainment without PLO->ILO mapping: ${unmapped.length} row(s)`,
-      ).toHaveLength(0);
-    }
+    expect(
+      iloRows.length,
+      "Seed data missing: no ILO aggregate attainment rows (student_id IS NULL)",
+    ).toBeGreaterThan(0);
+
+    // Every ILO aggregate row's outcome must be the TARGET of a mapping whose
+    // SOURCE is a PLO (canonical direction only).
+    const outcomes = await apiGet<{ id: string; type: string }>(
+      page,
+      "learning_outcomes?select=id,type&limit=500",
+    );
+    const typeById = new Map(outcomes.map((o) => [o.id, o.type]));
+    const mappings = await apiGet<{
+      source_outcome_id: string;
+      target_outcome_id: string;
+    }>(
+      page,
+      "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500",
+    );
+    const mappedTargets = new Set(
+      mappings
+        .filter((m) => typeById.get(m.source_outcome_id) === "PLO")
+        .map((m) => m.target_outcome_id),
+    );
+    const iloIds = new Set(iloRows.map((r) => r.outcome_id));
+    const unmapped = [...iloIds].filter((id) => !mappedTargets.has(id));
+    expect(
+      unmapped,
+      `${unmapped.length} ILO aggregate attainment row(s) without a PLO->ILO mapping`,
+    ).toHaveLength(0);
 
     // UI: analytics renders attainment surfaces and never claims official mastery.
     await page.goto("/admin/analytics", { waitUntil: "networkidle" });
@@ -259,24 +319,31 @@ test.describe("Intelligence Layer - agent guardrails", () => {
     }
   });
 
-  test("Agent executions always reference an approved proposal (no auto-execution)", async ({
+  test("Agent execution records are service-role only (no client bypass)", async ({
     page,
   }) => {
     await loginAs(page, "admin");
-    // Data-level invariant: an execution row WITHOUT a proposal would mean a
-    // protected action ran without the approval flow - fail closed on it.
-    const executions = await apiGet<{ id: string; proposal_id: string | null }>(
-      page,
-      "agent_action_executions?select=id,proposal_id&limit=200",
+    // agent_action_executions is revoked from `authenticated` by design: the
+    // no-auto-execution invariant is enforced server-side. A client token
+    // MUST NOT be able to read (and therefore never bypass) this table.
+    requireSupabaseEnv();
+    const token = await readAccessToken(page);
+    const res = await page.request.get(
+      `${SUPABASE_URL}/rest/v1/agent_action_executions?select=id,proposal_id&limit=10`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
-    const orphaned = executions.filter((e) => !e.proposal_id);
     expect(
-      orphaned,
-      `${orphaned.length} agent execution(s) without an approval proposal`,
-    ).toHaveLength(0);
+      [401, 403, 404],
+      `agent_action_executions must not be readable with an authenticated client token (got ${res.status()})`,
+    ).toContain(res.status());
   });
 
-  test("Protected action surfaces an approval card with BOTH decision controls", async ({
+  test("Protected action surfaces an approval card bound to the probe with BOTH decision controls", async ({
     page,
   }) => {
     test.setTimeout(180000);
@@ -294,16 +361,18 @@ test.describe("Intelligence Layer - agent guardrails", () => {
     );
     await page.getByRole("button", { name: /ask intelligence/i }).click();
 
-    // UNCONDITIONAL: the approval card MUST appear with BOTH decision controls.
-    // If the protected action does not reach the approval surface, this fails.
+    // UNCONDITIONAL: an approval card BOUND TO THIS PROBE must appear, with
+    // BOTH decision controls inside it. No conditional skips.
+    const probeCard = page
+      .locator("div.rounded-xl")
+      .filter({ hasText: /E2E Approval Probe Goal/i })
+      .first();
+    await expect(probeCard).toBeVisible({ timeout: 150000 });
     await expect(
-      page.getByText(/your approval is required/i).first(),
-    ).toBeVisible({ timeout: 150000 });
-    await expect(
-      page.getByRole("button", { name: /approve proposal/i }).first(),
+      probeCard.getByRole("button", { name: /approve proposal/i }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /reject proposal/i }).first(),
+      probeCard.getByRole("button", { name: /reject proposal/i }),
     ).toBeVisible();
   });
 });

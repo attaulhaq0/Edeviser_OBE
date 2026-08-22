@@ -49,6 +49,9 @@ const EDeviserIntelligencePanel = () => {
   const [approvedIds, setApprovedIds] = useState<ReadonlySet<string>>(
     new Set()
   );
+  const [rejectedIds, setRejectedIds] = useState<ReadonlySet<string>>(
+    new Set()
+  );
   const [executedIds, setExecutedIds] = useState<ReadonlySet<string>>(
     new Set()
   );
@@ -87,11 +90,7 @@ const EDeviserIntelligencePanel = () => {
   const reject = async (proposalId: string) => {
     try {
       await decision.mutateAsync({ proposalId, decision: "reject" });
-      setApprovedIds((current) => {
-        const next = new Set(current);
-        next.delete(proposalId);
-        return next;
-      });
+      setRejectedIds((current) => new Set(current).add(proposalId));
       toast.success(t("intelligence.rejected"));
     } catch {
       toast.error(t("intelligence.actionFailed"));
@@ -170,7 +169,8 @@ const EDeviserIntelligencePanel = () => {
                         {t("intelligence.execute")}
                       </Button>
                     ) : proposal.status === "pending" &&
-                      !approvedIds.has(proposal.id) ? (
+                      !approvedIds.has(proposal.id) &&
+                      !rejectedIds.has(proposal.id) ? (
                       <div className="flex gap-2">
                         <Button
                           size="sm"
@@ -238,7 +238,8 @@ const EDeviserIntelligencePanel = () => {
                     {t("intelligence.execute")}
                   </Button>
                 ) : proposal.status === "pending" &&
-                  !approvedIds.has(proposal.id) ? (
+                  !approvedIds.has(proposal.id) &&
+                  !rejectedIds.has(proposal.id) ? (
                   <div className="flex gap-2">
                     <Button
                       size="sm"
