@@ -194,7 +194,9 @@ const EDeviserIntelligencePanel = () => {
                           proposalStatusKey(
                             executedIds.has(proposal.id)
                               ? "executed"
-                              : proposal.status
+                              : rejectedIds.has(proposal.id)
+                                ? "rejected"
+                                : proposal.status
                           )
                         )}
                       </p>
@@ -263,7 +265,9 @@ const EDeviserIntelligencePanel = () => {
                       proposalStatusKey(
                         executedIds.has(proposal.id)
                           ? "executed"
-                          : proposal.status
+                          : rejectedIds.has(proposal.id)
+                            ? "rejected"
+                            : proposal.status
                       )
                     )}
                   </p>
