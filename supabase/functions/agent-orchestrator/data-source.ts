@@ -375,23 +375,25 @@ export class SupabaseToolDataSource
       tool === "get_unmapped_program_outcomes"
     ) {
       const iloId = stringInput(input, "iloId");
-      if (iloId) {
-        const { data: ilo, error } = await this.reader
-          .from("learning_outcomes")
-          .select("id,institution_id")
-          .eq("id", iloId)
-          .eq("type", "ILO")
-          .maybeSingle();
-        if (error || !ilo) return false;
-        if (
-          (ilo as Record<string, unknown>).institution_id !==
-          context.identity.institutionId
-        ) {
+      if (context.identity.role === "coordinator") {
+        // Fail-closed: coordinators MUST scope every ILO read to one of their
+        // own programs; institution-wide ILO reads are admin-only.
+        if (!programId || !(await this.programScope(programId, context))) {
           return false;
         }
+        if (iloId && !(await this.iloInInstitution(iloId, context))) {
+          return false;
+        }
+        return true;
       }
-      if (programId) return this.programScope(programId, context);
-      return context.identity.role === "admin";
+      if (context.identity.role !== "admin") return false;
+      if (iloId && !(await this.iloInInstitution(iloId, context))) {
+        return false;
+      }
+      if (programId && !(await this.programScope(programId, context))) {
+        return false;
+      }
+      return true;
     }
     if (studentId && !(await this.studentScope(studentId, context, courseId)))
       return false;
@@ -662,13 +664,23 @@ export class SupabaseToolDataSource
           .select("source_outcome_id,target_outcome_id,weight")
           .eq("source_outcome_id", iloId!)
           .limit(200);
+        const allMappings = safeData(mappings ?? [], mappingError);
+        // Program-scoped callers only see mappings whose target PLO belongs
+        // to their authorized program.
+        const allowedTargets = programId
+          ? new Set(await this.scopedIloPloIds(iloId!, programId, context))
+          : null;
         return {
           ilo: iloRow,
-          ploMappings: safeData(mappings ?? [], mappingError),
+          ploMappings: allowedTargets
+            ? allMappings.filter((m: Record<string, unknown>) =>
+                allowedTargets.has(m.target_outcome_id as string)
+              )
+            : allMappings,
         };
       }
       case "get_ilo_attainment": {
-        const ploIds = await this.iloPloTargetIds(iloId!);
+        const ploIds = await this.scopedIloPloIds(iloId!, programId, context);
         if (ploIds.length === 0) {
           return { iloId, derivedFrom: "canonical_plo_mappings", ploAttainment: [] };
         }
@@ -687,7 +699,7 @@ export class SupabaseToolDataSource
         };
       }
       case "get_ilo_attainment_trend": {
-        const ploIds = await this.iloPloTargetIds(iloId!);
+        const ploIds = await this.scopedIloPloIds(iloId!, programId, context);
         if (ploIds.length === 0) return { iloId, trend: [] };
         const { data, error } = await this.reader
           .from("outcome_attainment")
@@ -743,7 +755,7 @@ export class SupabaseToolDataSource
         };
       }
       case "get_ilo_program_contributions": {
-        const ploIds = await this.iloPloTargetIds(iloId!);
+        const ploIds = await this.scopedIloPloIds(iloId!, programId, context);
         if (ploIds.length === 0) return { iloId, contributions: [] };
         const { data, error } = await this.reader
           .from("learning_outcomes")
@@ -754,7 +766,7 @@ export class SupabaseToolDataSource
         return { iloId, contributions: safeData(data ?? [], error) };
       }
       case "get_ilo_evidence_summary": {
-        const ploIds = await this.iloPloTargetIds(iloId!);
+        const ploIds = await this.scopedIloPloIds(iloId!, programId, context);
         if (ploIds.length === 0) return { iloId, evidence: [] };
         const { data, error } = await this.reader
           .from("outcome_attainment")
@@ -851,6 +863,49 @@ export class SupabaseToolDataSource
       .limit(200);
     return safeData(data ?? [], error)
       .map((m: Record<string, unknown>) => m.target_outcome_id)
+      .filter((id: unknown): id is string => typeof id === "string");
+  }
+
+  private async iloInInstitution(
+    iloId: string,
+    context: AgentExecutionContext
+  ): Promise<boolean> {
+    const { data } = await this.reader
+      .from("learning_outcomes")
+      .select("id,institution_id")
+      .eq("id", iloId)
+      .eq("type", "ILO")
+      .maybeSingle();
+    if (!data) return false;
+    return (
+      (data as Record<string, unknown>).institution_id ===
+      context.identity.institutionId
+    );
+  }
+
+  /**
+   * PLO targets of an ILO restricted to the caller scope: program-scoped
+   * callers only receive PLOs of their authorized program; admins receive the
+   * full institution-wide target set.
+   */
+  private async scopedIloPloIds(
+    iloId: string,
+    programId: string | undefined,
+    context: AgentExecutionContext
+  ): Promise<string[]> {
+    const targets = await this.iloPloTargetIds(iloId);
+    if (targets.length === 0) return [];
+    let query = this.reader
+      .from("learning_outcomes")
+      .select("id")
+      .eq("type", "PLO")
+      .in("id", targets);
+    query = programId
+      ? query.eq("program_id", programId)
+      : query.eq("institution_id", context.identity.institutionId);
+    const { data, error } = await query;
+    return safeData(data ?? [], error)
+      .map((row: Record<string, unknown>) => row.id)
       .filter((id: unknown): id is string => typeof id === "string");
   }
 }

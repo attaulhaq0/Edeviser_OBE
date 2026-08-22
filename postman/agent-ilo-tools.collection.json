@@ -15,14 +15,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"List all institution learning outcomes for this institution.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -58,14 +74,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Show me the detail for ILO {{ilo_id}} including its PLO mappings.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -101,14 +133,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"What is the current attainment level for ILO {{ilo_id}} in program {{program_id}}?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/attainment\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -144,14 +192,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Show me the attainment trend over time for ILO {{ilo_id}} in program {{program_id}}.\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/trend\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -182,14 +246,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"What is the ILO-to-PLO mapping coverage and are there any gaps for ILO {{ilo_id}} in program {{program_id}}?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/coverage\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -220,14 +300,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Which programs contribute to ILO {{ilo_id}} and by how much?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/programs\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -258,14 +354,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"How much evidence exists for ILO {{ilo_id}} attainment in program {{program_id}} and how confident is the calculation?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/ilos/{{ilo_id}}/evidence\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -296,14 +408,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Which PLOs in program {{program_id}} are not mapped to any ILO?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/coordinator/programs/{{program_id}}/outcomes\",\n    \"programId\": \"{{program_id}}\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -334,14 +462,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json", "type": "text" }
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Are there any orphaned outcomes, invalid mapping pairs, or weight anomalies in the institution's outcome hierarchy?\",\n  \"specialist\": \"institutional_outcomes\",\n  \"context\": {\n    \"route\": \"/admin/outcomes/health\"\n  },\n  \"requestId\": \"{{$guid}}\",\n  \"sessionId\": \"{{$guid}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/functions/v1/agent-orchestrator",
@@ -375,7 +519,58 @@
     }
   ],
   "variable": [
-    { "key": "ilo_id", "value": "REPLACE_WITH_REAL_ILO_UUID", "description": "A valid ILO UUID from your institution" },
-    { "key": "program_id", "value": "REPLACE_WITH_REAL_PROGRAM_UUID", "description": "A valid program UUID the authenticated user can access" }
+    {
+      "key": "ilo_id",
+      "value": "REPLACE_WITH_REAL_ILO_UUID",
+      "description": "A valid ILO UUID from your institution"
+    },
+    {
+      "key": "program_id",
+      "value": "REPLACE_WITH_REAL_PROGRAM_UUID",
+      "description": "A valid program UUID the authenticated user can access"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// FAIL-CLOSED ENVIRONMENT GUARD - do not remove.",
+          "// This collection may ONLY run against a Supabase Preview (or local) target.",
+          "// Production and malformed targets are rejected before any request is sent.",
+          "const rawUrl = (pm.variables.get(\"base_url\") || \"\").trim();",
+          "const declaredRef = (pm.variables.get(\"supabase_project_ref\") || \"\").trim();",
+          "const productionRef = (pm.variables.get(\"production_project_ref\") || \"\").trim();",
+          "if (!rawUrl) {",
+          "  throw new Error(\"GUARD: base_url is not set. Select the Edeviser Preview environment and fill in the Git-linked Preview URL.\");",
+          "}",
+          "let parsed;",
+          "try { parsed = new URL(rawUrl); } catch (_) {",
+          "  throw new Error(\"GUARD: base_url is not a valid URL: \" + rawUrl);",
+          "}",
+          "const isLocal = parsed.hostname === \"localhost\" || parsed.hostname === \"127.0.0.1\" || parsed.hostname === \"[::1]\";",
+          "if (!isLocal && parsed.protocol !== \"https:\") {",
+          "  throw new Error(\"GUARD: non-local targets must use HTTPS: \" + rawUrl);",
+          "}",
+          "const supabaseHostRe = /^([a-z0-9]{20})\\.(supabase\\.co|supabase\\.red)$/;",
+          "const hostMatch = supabaseHostRe.exec(parsed.hostname);",
+          "if (!isLocal && !hostMatch) {",
+          "  throw new Error(\"GUARD: base_url must be an exact Supabase project host or localhost: \" + parsed.hostname);",
+          "}",
+          "const derivedRef = hostMatch ? hostMatch[1] : \"\";",
+          "const refsToCheck = [declaredRef, derivedRef].filter(Boolean);",
+          "for (const ref of refsToCheck) {",
+          "  if (productionRef && ref === productionRef) {",
+          "    throw new Error(\"GUARD: production project ref rejected: \" + ref);",
+          "  }",
+          "}",
+          "if (/prod/i.test(rawUrl) || refsToCheck.some(function (ref) { return /prod/i.test(ref); })) {",
+          "  throw new Error(\"GUARD: production-looking target rejected: \" + rawUrl);",
+          "}",
+          "console.log(\"GUARD: preview target accepted:\", rawUrl);"
+        ]
+      }
+    }
   ]
 }
