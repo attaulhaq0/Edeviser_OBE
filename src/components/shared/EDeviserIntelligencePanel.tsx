@@ -84,6 +84,20 @@ const EDeviserIntelligencePanel = () => {
     }
   };
 
+  const reject = async (proposalId: string) => {
+    try {
+      await decision.mutateAsync({ proposalId, decision: "reject" });
+      setApprovedIds((current) => {
+        const next = new Set(current);
+        next.delete(proposalId);
+        return next;
+      });
+      toast.success(t("intelligence.rejected"));
+    } catch {
+      toast.error(t("intelligence.actionFailed"));
+    }
+  };
+
   const execute = async (proposalId: string) => {
     try {
       await execution.mutateAsync({ proposalId });
@@ -157,13 +171,23 @@ const EDeviserIntelligencePanel = () => {
                       </Button>
                     ) : proposal.status === "pending" &&
                       !approvedIds.has(proposal.id) ? (
-                      <Button
-                        size="sm"
-                        onClick={() => void approve(proposal.id)}
-                        disabled={decision.isPending}
-                      >
-                        {t("intelligence.approve")}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => void approve(proposal.id)}
+                          disabled={decision.isPending}
+                        >
+                          {t("intelligence.approve")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => void reject(proposal.id)}
+                          disabled={decision.isPending}
+                        >
+                          {t("intelligence.reject")}
+                        </Button>
+                      </div>
                     ) : (
                       <p className="text-xs text-muted-foreground">
                         {t(
@@ -215,13 +239,23 @@ const EDeviserIntelligencePanel = () => {
                   </Button>
                 ) : proposal.status === "pending" &&
                   !approvedIds.has(proposal.id) ? (
-                  <Button
-                    size="sm"
-                    onClick={() => void approve(proposal.id)}
-                    disabled={decision.isPending}
-                  >
-                    {t("intelligence.approve")}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => void approve(proposal.id)}
+                      disabled={decision.isPending}
+                    >
+                      {t("intelligence.approve")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void reject(proposal.id)}
+                      disabled={decision.isPending}
+                    >
+                      {t("intelligence.reject")}
+                    </Button>
+                  </div>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     {t(

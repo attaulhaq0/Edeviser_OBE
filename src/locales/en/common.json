@@ -1238,6 +1238,7 @@
     "ask": "Ask Intelligence",
     "approvalRequired": "Your approval is required",
     "approve": "Approve proposal",
+    "reject": "Reject proposal",
     "execute": "Execute approved action",
     "approved": "Proposal approved. Nothing was executed yet.",
     "approvedAwaiting": "Approved. This action remains pending until a registered executor is available.",
