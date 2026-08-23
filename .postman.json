@@ -15,5 +15,13 @@
       "uid": "52595471-975f0249-7871-47ed-a80a-77b7845cbf8b",
       "name": "Local Development"
     }
+  },
+  "localCollectionFiles": {
+    "agentIloTools": "postman/agent-ilo-tools.collection.json",
+    "agenticPlatformTables": "postman/agentic-platform-tables.collection.json"
+  },
+  "importScripts": {
+    "agentIloTools": "postman/add-ilo-requests.ps1",
+    "agenticPlatformTables": "postman/add-agentic-platform-requests.ps1"
   }
 }

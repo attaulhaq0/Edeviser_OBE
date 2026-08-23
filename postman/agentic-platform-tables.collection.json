@@ -1,0 +1,1969 @@
+{
+  "info": {
+    "name": "Edeviser – Agentic Platform Tables",
+    "description": "CRUD requests for the 9 new tables introduced by migration 20260831000002_agentic_platform_tables.sql.\n\nAll PostgREST endpoints:\n  {{base_url}}/rest/v1/<table>\n  apikey: {{anon_key}}\n  Authorization: Bearer {{access_token}}\n\nFolders: agent_conversations, agent_messages, agent_tasks, agent_feedback,\nagent_evaluations, learning_interventions, intervention_outcomes,\nlearning_state_events, student_support_states.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "edeviser-agentic-platform-tables-v1"
+  },
+  "item": [
+    {
+      "name": "agent_conversations",
+      "description": "Conversation threads between a user and an AI specialist.",
+      "item": [
+        {
+          "name": "List agent_conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_conversations?order=last_message_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_conversations"],
+              "query": [
+                { "key": "order", "value": "last_message_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Fetch the 20 most recent conversations for the authenticated actor (RLS-scoped)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Row has expected keys', () => {",
+                  "    pm.expect(rows[0]).to.have.all.keys('id','institution_id','actor_user_id','actor_role','specialist','created_at');",
+                  "  });",
+                  "  pm.collectionVariables.set('conv_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create agent_conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"actor_user_id\": \"{{user_id}}\",\n  \"actor_role\": \"student\",\n  \"specialist\": \"tutor\",\n  \"title\": \"Test conversation\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_conversations",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_conversations"]
+            },
+            "description": "Create a new conversation. Returns the created row."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('Has id', () => pm.expect(rows[0].id).to.be.a('string'));",
+                  "pm.collectionVariables.set('conv_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get agent_conversation by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_conversations?id=eq.{{conv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_conversations"],
+              "query": [{ "key": "id", "value": "eq.{{conv_id}}" }]
+            },
+            "description": "Fetch a single conversation by its UUID."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('ID matches', () => pm.expect(pm.response.json()[0].id).to.eql(pm.collectionVariables.get('conv_id')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update agent_conversation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated conversation title\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_conversations?id=eq.{{conv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_conversations"],
+              "query": [{ "key": "id", "value": "eq.{{conv_id}}" }]
+            },
+            "description": "Update the title of a conversation (actor owns it via RLS)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns updated row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('Title updated', () => pm.expect(pm.response.json()[0].title).to.eql('Updated conversation title'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete agent_conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_conversations?id=eq.{{conv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_conversations"],
+              "query": [{ "key": "id", "value": "eq.{{conv_id}}" }]
+            },
+            "description": "Delete the conversation created in this test run."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "agent_messages",
+      "description": "Individual messages within a conversation thread.",
+      "item": [
+        {
+          "name": "List agent_messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_messages?conversation_id=eq.{{conv_id}}&order=created_at.asc",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_messages"],
+              "query": [
+                { "key": "conversation_id", "value": "eq.{{conv_id}}" },
+                { "key": "order", "value": "created_at.asc" }
+              ]
+            },
+            "description": "List all messages for a given conversation (RLS-scoped)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Row has role and content', () => {",
+                  "    pm.expect(rows[0]).to.include.all.keys('id','conversation_id','role','content');",
+                  "  });",
+                  "  pm.collectionVariables.set('msg_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create agent_message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversation_id\": \"{{conv_id}}\",\n  \"role\": \"user\",\n  \"content\": \"Hello, can you help me understand CLO attainment?\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_messages",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_messages"]
+            },
+            "description": "Insert a user message into a conversation."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('role is user', () => pm.expect(rows[0].role).to.eql('user'));",
+                  "pm.collectionVariables.set('msg_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get agent_message by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_messages?id=eq.{{msg_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_messages"],
+              "query": [{ "key": "id", "value": "eq.{{msg_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('ID matches', () => pm.expect(pm.response.json()[0].id).to.eql(pm.collectionVariables.get('msg_id')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update agent_message",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated message content.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_messages?id=eq.{{msg_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_messages"],
+              "query": [{ "key": "id", "value": "eq.{{msg_id}}" }]
+            },
+            "description": "Note: messages are append-only in production. This endpoint is provided for admin correction flows only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete agent_message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_messages?id=eq.{{msg_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_messages"],
+              "query": [{ "key": "id", "value": "eq.{{msg_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 204, 403]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "agent_tasks",
+      "description": "Actionable tasks assigned to users by the agent.",
+      "item": [
+        {
+          "name": "List agent_tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_tasks?order=due_at.asc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_tasks"],
+              "query": [
+                { "key": "order", "value": "due_at.asc" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Row has status field', () => pm.expect(rows[0]).to.have.property('status'));",
+                  "  pm.collectionVariables.set('task_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create agent_task",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"assignee_user_id\": \"{{user_id}}\",\n  \"assignee_role\": \"teacher\",\n  \"task_type\": \"review_clo_attainment\",\n  \"payload\": {\"course_id\": \"{{course_id}}\"}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_tasks",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_tasks"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('Status is pending', () => pm.expect(rows[0].status).to.eql('pending'));",
+                  "pm.collectionVariables.set('task_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get agent_task by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_tasks?id=eq.{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_tasks"],
+              "query": [{ "key": "id", "value": "eq.{{task_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update agent_task (mark done)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\",\n  \"completed_at\": \"{{$isoTimestamp}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_tasks?id=eq.{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_tasks"],
+              "query": [{ "key": "id", "value": "eq.{{task_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status updated to done', () => pm.expect(pm.response.json()[0].status).to.eql('done'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete agent_task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_tasks?id=eq.{{task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_tasks"],
+              "query": [{ "key": "id", "value": "eq.{{task_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "agent_feedback",
+      "description": "User ratings and qualitative feedback on agent responses.",
+      "item": [
+        {
+          "name": "List agent_feedback",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_feedback?order=created_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_feedback"],
+              "query": [
+                { "key": "order", "value": "created_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Rating is 1-5', () => {",
+                  "    pm.expect(rows[0].rating).to.be.within(1, 5);",
+                  "  });",
+                  "  pm.collectionVariables.set('feedback_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create agent_feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"user_id\": \"{{user_id}}\",\n  \"rating\": 4,\n  \"comment\": \"Helpful response, could be more concise.\",\n  \"categories\": {\"relevance\": true, \"clarity\": false}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_feedback",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_feedback"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('Rating matches', () => pm.expect(rows[0].rating).to.eql(4));",
+                  "pm.collectionVariables.set('feedback_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get agent_feedback by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_feedback?id=eq.{{feedback_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_feedback"],
+              "query": [{ "key": "id", "value": "eq.{{feedback_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update agent_feedback",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Actually very helpful!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_feedback?id=eq.{{feedback_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_feedback"],
+              "query": [{ "key": "id", "value": "eq.{{feedback_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete agent_feedback",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_feedback?id=eq.{{feedback_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_feedback"],
+              "query": [{ "key": "id", "value": "eq.{{feedback_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "agent_evaluations",
+      "description": "Automated quality evaluation scores for agent runs (task 7.4 harness sink).",
+      "item": [
+        {
+          "name": "List agent_evaluations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_evaluations?order=evaluated_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_evaluations"],
+              "query": [
+                { "key": "order", "value": "evaluated_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Has overall_score', () => pm.expect(rows[0]).to.have.property('overall_score'));",
+                  "  pm.collectionVariables.set('eval_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create agent_evaluation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"run_id\": \"{{run_id}}\",\n  \"evaluator_version\": \"v1.0.0\",\n  \"citation_score\": 0.9,\n  \"integrity_score\": 0.95,\n  \"tool_correctness_score\": 0.85,\n  \"overall_score\": 0.9,\n  \"passed\": true,\n  \"details\": {\"notes\": \"All citations valid\"}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_evaluations",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_evaluations"]
+            },
+            "description": "Insert an evaluation record from the task 7.4 eval harness. Typically service-role only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 or 403', () => pm.expect(pm.response.code).to.be.oneOf([201, 403]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "if (pm.response.code === 201) {",
+                  "  const rows = pm.response.json();",
+                  "  pm.test('overall_score between 0 and 1', () => {",
+                  "    pm.expect(rows[0].overall_score).to.be.within(0, 1);",
+                  "  });",
+                  "  pm.collectionVariables.set('eval_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get agent_evaluation by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_evaluations?id=eq.{{eval_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_evaluations"],
+              "query": [{ "key": "id", "value": "eq.{{eval_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update agent_evaluation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passed\": false,\n  \"details\": {\"notes\": \"Revised after manual review\"}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_evaluations?id=eq.{{eval_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_evaluations"],
+              "query": [{ "key": "id", "value": "eq.{{eval_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete agent_evaluation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_evaluations?id=eq.{{eval_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_evaluations"],
+              "query": [{ "key": "id", "value": "eq.{{eval_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 204, 403]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "learning_interventions",
+      "description": "Structured interventions proposed or active for a student.",
+      "item": [
+        {
+          "name": "List learning_interventions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_interventions?order=created_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_interventions"],
+              "query": [
+                { "key": "order", "value": "created_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Has status field', () => pm.expect(rows[0]).to.have.property('status'));",
+                  "  pm.test('Status is valid enum', () => pm.expect(['draft','proposed','approved','active','completed','cancelled']).to.include(rows[0].status));",
+                  "  pm.collectionVariables.set('intervention_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create learning_intervention",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"student_id\": \"{{student_id}}\",\n  \"intervention_type\": \"peer_tutoring\",\n  \"source\": \"agent\",\n  \"status\": \"proposed\",\n  \"payload\": {\"recommended_by\": \"tutor_agent\"}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_interventions",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_interventions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('Status is proposed', () => pm.expect(rows[0].status).to.eql('proposed'));",
+                  "pm.collectionVariables.set('intervention_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get learning_intervention by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_interventions?id=eq.{{intervention_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_interventions"],
+              "query": [{ "key": "id", "value": "eq.{{intervention_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update learning_intervention (approve)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"approved_by\": \"{{user_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_interventions?id=eq.{{intervention_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_interventions"],
+              "query": [{ "key": "id", "value": "eq.{{intervention_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('Status updated to approved', () => pm.expect(pm.response.json()[0].status).to.eql('approved'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete learning_intervention",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_interventions?id=eq.{{intervention_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_interventions"],
+              "query": [{ "key": "id", "value": "eq.{{intervention_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "intervention_outcomes",
+      "description": "Measured outcome metrics linked to a learning intervention.",
+      "item": [
+        {
+          "name": "List intervention_outcomes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/intervention_outcomes?intervention_id=eq.{{intervention_id}}&order=measured_at.asc",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "intervention_outcomes"],
+              "query": [
+                { "key": "intervention_id", "value": "eq.{{intervention_id}}" },
+                { "key": "order", "value": "measured_at.asc" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Has metric field', () => pm.expect(rows[0]).to.have.property('metric'));",
+                  "  pm.collectionVariables.set('outcome_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create intervention_outcome",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"intervention_id\": \"{{intervention_id}}\",\n  \"metric\": \"clo_attainment_pct\",\n  \"baseline\": 55.0,\n  \"value\": 72.0,\n  \"delta\": 17.0,\n  \"sample_count\": 1,\n  \"notes\": \"Post-tutoring session measurement\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/intervention_outcomes",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "intervention_outcomes"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('Delta matches', () => pm.expect(rows[0].delta).to.eql(17));",
+                  "pm.collectionVariables.set('outcome_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get intervention_outcome by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/intervention_outcomes?id=eq.{{outcome_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "intervention_outcomes"],
+              "query": [{ "key": "id", "value": "eq.{{outcome_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update intervention_outcome",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Revised after second measurement.\",\n  \"sample_count\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/intervention_outcomes?id=eq.{{outcome_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "intervention_outcomes"],
+              "query": [{ "key": "id", "value": "eq.{{outcome_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete intervention_outcome",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/intervention_outcomes?id=eq.{{outcome_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "intervention_outcomes"],
+              "query": [{ "key": "id", "value": "eq.{{outcome_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "learning_state_events",
+      "description": "Immutable event stream of student digital-twin state changes.",
+      "item": [
+        {
+          "name": "List learning_state_events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_state_events?student_id=eq.{{student_id}}&order=created_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_state_events"],
+              "query": [
+                { "key": "student_id", "value": "eq.{{student_id}}" },
+                { "key": "order", "value": "created_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('Has event_type', () => pm.expect(rows[0]).to.have.property('event_type'));",
+                  "  pm.collectionVariables.set('lse_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create learning_state_event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"student_id\": \"{{student_id}}\",\n  \"event_type\": \"clo_mastery_updated\",\n  \"payload\": {\"clo_id\": \"{{clo_id}}\", \"attainment\": 0.78}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_state_events",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_state_events"]
+            },
+            "description": "Append-only: events are immutable once written. No UPDATE or DELETE policies exist."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "const rows = pm.response.json();",
+                  "pm.test('Returns created row', () => pm.expect(rows).to.be.an('array').with.lengthOf(1));",
+                  "pm.test('event_type matches', () => pm.expect(rows[0].event_type).to.eql('clo_mastery_updated'));",
+                  "pm.collectionVariables.set('lse_id', rows[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get learning_state_event by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_state_events?id=eq.{{lse_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_state_events"],
+              "query": [{ "key": "id", "value": "eq.{{lse_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update learning_state_event (expect 403 — immutable)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_type\": \"tampered_event\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_state_events?id=eq.{{lse_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_state_events"],
+              "query": [{ "key": "id", "value": "eq.{{lse_id}}" }]
+            },
+            "description": "This table has no UPDATE policy. Expect 403 Forbidden — verifies immutability."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Immutable — UPDATE denied (403)', () => pm.response.to.have.status(403));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete learning_state_event (expect 403 — immutable)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/learning_state_events?id=eq.{{lse_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "learning_state_events"],
+              "query": [{ "key": "id", "value": "eq.{{lse_id}}" }]
+            },
+            "description": "This table has no DELETE policy. Expect 403 Forbidden — verifies immutability."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Immutable — DELETE denied (403)', () => pm.response.to.have.status(403));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "student_support_states",
+      "description": "Current support tier for a student (none / watch / supported / escalated).",
+      "item": [
+        {
+          "name": "List student_support_states",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/student_support_states?order=updated_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "student_support_states"],
+              "query": [
+                { "key": "order", "value": "updated_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const rows = pm.response.json();",
+                  "if (rows.length > 0) {",
+                  "  pm.test('support_level is valid enum', () => {",
+                  "    pm.expect(['none','watch','supported','escalated']).to.include(rows[0].support_level);",
+                  "  });",
+                  "  pm.collectionVariables.set('sss_id', rows[0].id);",
+                  "  pm.collectionVariables.set('sss_student_id', rows[0].student_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create student_support_state",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": \"{{institution_id}}\",\n  \"student_id\": \"{{student_id}}\",\n  \"support_level\": \"watch\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/student_support_states",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "student_support_states"]
+            },
+            "description": "student_id has a UNIQUE constraint — only one row per student. Use PATCH to update."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 or 409', () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "if (pm.response.code === 201) {",
+                  "  const rows = pm.response.json();",
+                  "  pm.test('support_level is watch', () => pm.expect(rows[0].support_level).to.eql('watch'));",
+                  "  pm.collectionVariables.set('sss_id', rows[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get student_support_state by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/student_support_states?id=eq.{{sss_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "student_support_states"],
+              "query": [{ "key": "id", "value": "eq.{{sss_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns exactly one row', () => pm.expect(pm.response.json()).to.be.an('array').with.lengthOf(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update student_support_state (escalate)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"support_level\": \"escalated\",\n  \"last_reviewed_at\": \"{{$isoTimestamp}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/student_support_states?id=eq.{{sss_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "student_support_states"],
+              "query": [{ "key": "id", "value": "eq.{{sss_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('support_level escalated', () => pm.expect(pm.response.json()[0].support_level).to.eql('escalated'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete student_support_state",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/student_support_states?id=eq.{{sss_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "student_support_states"],
+              "query": [{ "key": "id", "value": "eq.{{sss_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "agent_tool_calls (view)",
+      "description": "Security-invoker view over agent_tool_attempts — read-only, no DML.",
+      "item": [
+        {
+          "name": "List agent_tool_calls",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}", "type": "text" },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/agent_tool_calls?order=created_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "agent_tool_calls"],
+              "query": [
+                { "key": "order", "value": "created_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Read-only security_invoker view. Returns rows from agent_tool_attempts scoped by caller's RLS."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "conv_id", "value": "", "type": "string" },
+    { "key": "msg_id", "value": "", "type": "string" },
+    { "key": "task_id", "value": "", "type": "string" },
+    { "key": "feedback_id", "value": "", "type": "string" },
+    { "key": "eval_id", "value": "", "type": "string" },
+    { "key": "intervention_id", "value": "", "type": "string" },
+    { "key": "outcome_id", "value": "", "type": "string" },
+    { "key": "lse_id", "value": "", "type": "string" },
+    { "key": "sss_id", "value": "", "type": "string" }
+  ]
+}

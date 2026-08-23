@@ -296,7 +296,13 @@ export const protectedWriteVersionForAction = (
 ): ProtectedWriteToolVersion | undefined =>
   actionType === "create_goal" ||
   actionType === "create_planner_session" ||
-  actionType === "create_cqi_action"
+  actionType === "create_cqi_action" ||
+  // Task 6.2 — Admin ILO governance proposals share the 1.0.0 boundary
+  // version; execution is routed through typed outcome-governance handlers.
+  actionType === "create_ilo" ||
+  actionType === "update_ilo" ||
+  actionType === "delete_ilo" ||
+  actionType === "reorder_ilos"
     ? "1.0.0"
     : undefined;
 
