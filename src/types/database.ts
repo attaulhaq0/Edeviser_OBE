@@ -608,6 +608,251 @@ export type Database = {
           },
         ]
       }
+      agent_conversations: {
+        Row: {
+          actor_role: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          institution_id: string
+          last_message_at: string | null
+          specialist: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          actor_role: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          institution_id: string
+          last_message_at?: string | null
+          specialist?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actor_role?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          institution_id?: string
+          last_message_at?: string | null
+          specialist?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_conversations_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_conversations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_conversations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_evaluations: {
+        Row: {
+          citation_score: number | null
+          created_at: string
+          details: Json
+          evaluated_at: string
+          evaluator_version: string
+          id: string
+          institution_id: string
+          integrity_score: number | null
+          overall_score: number | null
+          passed: boolean | null
+          run_id: string
+          tool_correctness_score: number | null
+        }
+        Insert: {
+          citation_score?: number | null
+          created_at?: string
+          details?: Json
+          evaluated_at?: string
+          evaluator_version: string
+          id?: string
+          institution_id: string
+          integrity_score?: number | null
+          overall_score?: number | null
+          passed?: boolean | null
+          run_id: string
+          tool_correctness_score?: number | null
+        }
+        Update: {
+          citation_score?: number | null
+          created_at?: string
+          details?: Json
+          evaluated_at?: string
+          evaluator_version?: string
+          id?: string
+          institution_id?: string
+          integrity_score?: number | null
+          overall_score?: number | null
+          passed?: boolean | null
+          run_id?: string
+          tool_correctness_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_evaluations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_evaluations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_evaluations_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_feedback: {
+        Row: {
+          categories: Json
+          comment: string | null
+          created_at: string
+          id: string
+          institution_id: string
+          message_id: string | null
+          rating: number
+          run_id: string | null
+          user_id: string
+        }
+        Insert: {
+          categories?: Json
+          comment?: string | null
+          created_at?: string
+          id?: string
+          institution_id: string
+          message_id?: string | null
+          rating: number
+          run_id?: string | null
+          user_id: string
+        }
+        Update: {
+          categories?: Json
+          comment?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string
+          message_id?: string | null
+          rating?: number
+          run_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_feedback_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "agent_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_messages: {
+        Row: {
+          citations: Json
+          content: string
+          conversation_id: string
+          created_at: string
+          evidence: Json
+          id: string
+          role: string
+          run_id: string | null
+        }
+        Insert: {
+          citations?: Json
+          content: string
+          conversation_id: string
+          created_at?: string
+          evidence?: Json
+          id?: string
+          role: string
+          run_id?: string | null
+        }
+        Update: {
+          citations?: Json
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          evidence?: Json
+          id?: string
+          role?: string
+          run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_messages_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_runs: {
         Row: {
           actor_role: string
@@ -686,6 +931,120 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_tasks: {
+        Row: {
+          assignee_role: string
+          assignee_user_id: string
+          completed_at: string | null
+          course_id: string | null
+          created_at: string
+          due_at: string | null
+          id: string
+          institution_id: string
+          payload: Json
+          program_id: string | null
+          proposal_id: string | null
+          source_run_id: string | null
+          status: string
+          student_id: string | null
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_role: string
+          assignee_user_id: string
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          institution_id: string
+          payload?: Json
+          program_id?: string | null
+          proposal_id?: string | null
+          source_run_id?: string | null
+          status?: string
+          student_id?: string | null
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_role?: string
+          assignee_user_id?: string
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          institution_id?: string
+          payload?: Json
+          program_id?: string | null
+          proposal_id?: string | null
+          source_run_id?: string | null
+          status?: string
+          student_id?: string | null
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tasks_assignee_user_id_fkey"
+            columns: ["assignee_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "agent_action_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4301,6 +4660,61 @@ export type Database = {
           },
         ]
       }
+      institution_autonomy_settings: {
+        Row: {
+          auto_execute_low_risk: boolean
+          created_at: string
+          evaluation_thresholds: Json
+          institution_id: string
+          operational_autonomy_ceiling: string
+          rollback_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          auto_execute_low_risk?: boolean
+          created_at?: string
+          evaluation_thresholds?: Json
+          institution_id: string
+          operational_autonomy_ceiling?: string
+          rollback_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          auto_execute_low_risk?: boolean
+          created_at?: string
+          evaluation_thresholds?: Json
+          institution_id?: string
+          operational_autonomy_ceiling?: string
+          rollback_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institution_autonomy_settings_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: true
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_autonomy_settings_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: true
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_autonomy_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institution_contacts: {
         Row: {
           contact_name: string
@@ -4586,6 +5000,70 @@ export type Database = {
           },
         ]
       }
+      intervention_outcomes: {
+        Row: {
+          baseline: number | null
+          created_at: string
+          delta: number | null
+          id: string
+          institution_id: string
+          intervention_id: string
+          measured_at: string
+          metric: string
+          notes: string | null
+          sample_count: number
+          value: number | null
+        }
+        Insert: {
+          baseline?: number | null
+          created_at?: string
+          delta?: number | null
+          id?: string
+          institution_id: string
+          intervention_id: string
+          measured_at?: string
+          metric: string
+          notes?: string | null
+          sample_count?: number
+          value?: number | null
+        }
+        Update: {
+          baseline?: number | null
+          created_at?: string
+          delta?: number | null
+          id?: string
+          institution_id?: string
+          intervention_id?: string
+          measured_at?: string
+          metric?: string
+          notes?: string | null
+          sample_count?: number
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intervention_outcomes_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intervention_outcomes_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intervention_outcomes_intervention_id_fkey"
+            columns: ["intervention_id"]
+            isOneToOne: false
+            referencedRelation: "learning_interventions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -4812,6 +5290,120 @@ export type Database = {
           },
         ]
       }
+      learning_interventions: {
+        Row: {
+          approved_by: string | null
+          completed_at: string | null
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          institution_id: string
+          intervention_type: string
+          payload: Json
+          program_id: string | null
+          proposal_id: string | null
+          source: string
+          started_at: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          institution_id: string
+          intervention_type: string
+          payload?: Json
+          program_id?: string | null
+          proposal_id?: string | null
+          source?: string
+          started_at?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          institution_id?: string
+          intervention_type?: string
+          payload?: Json
+          program_id?: string | null
+          proposal_id?: string | null
+          source?: string
+          started_at?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_interventions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "agent_action_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_interventions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_outcomes: {
         Row: {
           blooms_level: Database["public"]["Enums"]["blooms_level"] | null
@@ -4950,6 +5542,61 @@ export type Database = {
             columns: ["prerequisite_node_id"]
             isOneToOne: false
             referencedRelation: "learning_path_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_state_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          institution_id: string
+          learning_state_version: number | null
+          payload: Json
+          state_hash: string | null
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          institution_id: string
+          learning_state_version?: number | null
+          payload?: Json
+          state_hash?: string | null
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          institution_id?: string
+          learning_state_version?: number | null
+          payload?: Json
+          state_hash?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_state_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_state_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_state_events_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -8075,6 +8722,7 @@ export type Database = {
           student_id: string
           updated_at: string
           version: number
+          versions: Json
         }
         Insert: {
           active_interventions: Json
@@ -8096,6 +8744,7 @@ export type Database = {
           student_id: string
           updated_at?: string
           version?: number
+          versions?: Json
         }
         Update: {
           active_interventions?: Json
@@ -8117,6 +8766,7 @@ export type Database = {
           student_id?: string
           updated_at?: string
           version?: number
+          versions?: Json
         }
         Relationships: [
           {
@@ -8246,6 +8896,58 @@ export type Database = {
             foreignKeyName: "student_quest_progress_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_support_states: {
+        Row: {
+          id: string
+          institution_id: string
+          last_reviewed_at: string | null
+          open_support_cases: Json
+          student_id: string
+          support_level: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          institution_id: string
+          last_reviewed_at?: string | null
+          open_support_cases?: Json
+          student_id: string
+          support_level?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          institution_id?: string
+          last_reviewed_at?: string | null
+          open_support_cases?: Json
+          student_id?: string
+          support_level?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_support_states_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_support_states_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_support_states_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -9822,6 +10524,120 @@ export type Database = {
       }
     }
     Views: {
+      agent_tool_calls: {
+        Row: {
+          actor_role: string | null
+          actor_user_id: string | null
+          approval_state: string | null
+          completed_at: string | null
+          created_at: string | null
+          error_classification: string | null
+          evidence_hash: string | null
+          id: string | null
+          idempotency_key: string | null
+          institution_id: string | null
+          latency_ms: number | null
+          model: string | null
+          proposal_id: string | null
+          provider: string | null
+          request_id: string | null
+          risk_classification: string | null
+          run_id: string | null
+          session_id: string | null
+          specialist: string | null
+          started_at: string | null
+          status: string | null
+          tool_name: string | null
+          tool_version: string | null
+        }
+        Insert: {
+          actor_role?: string | null
+          actor_user_id?: string | null
+          approval_state?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_classification?: string | null
+          evidence_hash?: string | null
+          id?: string | null
+          idempotency_key?: string | null
+          institution_id?: string | null
+          latency_ms?: number | null
+          model?: string | null
+          proposal_id?: string | null
+          provider?: string | null
+          request_id?: string | null
+          risk_classification?: string | null
+          run_id?: string | null
+          session_id?: string | null
+          specialist?: string | null
+          started_at?: string | null
+          status?: string | null
+          tool_name?: string | null
+          tool_version?: string | null
+        }
+        Update: {
+          actor_role?: string | null
+          actor_user_id?: string | null
+          approval_state?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_classification?: string | null
+          evidence_hash?: string | null
+          id?: string | null
+          idempotency_key?: string | null
+          institution_id?: string | null
+          latency_ms?: number | null
+          model?: string | null
+          proposal_id?: string | null
+          provider?: string | null
+          request_id?: string | null
+          risk_classification?: string | null
+          run_id?: string | null
+          session_id?: string | null
+          specialist?: string | null
+          started_at?: string | null
+          status?: string | null
+          tool_name?: string | null
+          tool_version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tool_attempts_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tool_attempts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tool_attempts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tool_attempts_proposal_fk"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "agent_action_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tool_attempts_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institutions_public: {
         Row: {
           id: string | null
@@ -10322,6 +11138,7 @@ export type Database = {
           student_id: string
           updated_at: string
           version: number
+          versions: Json
         }
         SetofOptions: {
           from: "*"
