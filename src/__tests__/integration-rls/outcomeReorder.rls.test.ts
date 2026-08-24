@@ -89,7 +89,6 @@ run("admin ILO reorder RPC (task 1.8)", () => {
       .from("learning_outcomes")
       .insert({
         institution_id: foreignInstitutionId,
-        program_id: foreignProgramId,
         title: `Reorder Foreign ILO ${ctx.runId}`,
         type: "ILO",
       })
