@@ -1,4 +1,5 @@
 # E Deviser — Master Codex Goal
+
 ## Production Agentic Learning Operating System + OBE/ILO Remediation + Proactive Closed Loop
 
 > **Use this as the primary implementation goal for Codex/Kiro.**
@@ -679,13 +680,7 @@ interface AgentTool<TInput, TOutput> {
   description: string;
   allowedRoles: EdeviserRole[];
   actionType: "read" | "suggest" | "draft" | "write";
-  approval:
-    | "none"
-    | "actor"
-    | "student"
-    | "teacher"
-    | "coordinator"
-    | "admin";
+  approval: "none" | "actor" | "student" | "teacher" | "coordinator" | "admin";
   dataCategories: string[];
   inputSchema: ZodSchema<TInput>;
   execute(input: TInput, context: AgentContext): Promise<TOutput>;

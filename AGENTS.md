@@ -1,8 +1,38 @@
 # Agent Instructions for Edeviser
 
+> **Universal entry point.** This file follows the [AGENTS.md](https://agents.md) open standard.
+> Canonical rules live HERE and in `.kiro/steering/*.md`. Tool-specific config files are thin
+> pointers — never duplicate rules into them. When editing inside `src/` or `supabase/`, also
+> read the nearest nested `AGENTS.md` (closest file wins).
+
+## Agent Tool Map
+
+| Tool               | Reads automatically                                  | Status                                                         |
+| ------------------ | ---------------------------------------------------- | -------------------------------------------------------------- |
+| Kiro (primary IDE) | `.kiro/steering/*`, `.kiro/specs/*`, `.kiro/hooks/*` | Canonical knowledge base — keep authoritative                  |
+| OpenAI Codex       | `AGENTS.md` (this file)                              | Native, nothing needed                                         |
+| Google Jules       | `AGENTS.md` (this file)                              | Native, nothing needed                                         |
+| Claude Code        | `CLAUDE.md`                                          | Thin pointer → this file + `.claude/settings.json` permissions |
+| Cline              | `.clinerules/`                                       | See `.clinerules/00-read-first.md` pointer                     |
+
 ## Project Overview
 
 Edeviser is a Human-Centric OBE (Outcome-Based Education) + Gamification platform for higher education. It targets the Qatar market with full Arabic/English bilingual support.
+
+## Repository Map
+
+```
+src/          React SPA (app shell, features, components/ui+shared, hooks, lib,
+              locales/{en,ar}, pages/{role}, types)          → see src/AGENTS.md
+supabase/     migrations (⛔ manual edits), functions/ (Deno),
+              seeds/, tests/ (pgTAP RLS)                     → see supabase/AGENTS.md
+scripts/      Deterministic gates — every check is one named command
+docs/         product/, investor/, agent/, adr/, architecture/, audits/
+.kiro/        steering (conventions), specs (36 feature specs), hooks, settings
+e2e/, tests/  Playwright E2E / integration suites
+prototype/    HTML fidelity references for UI work
+archive/      Quarantined legacy artifacts (do not grep-index mentally; ignore)
+```
 
 ## Tech Stack
 
@@ -84,7 +114,36 @@ main and the live database (migrations applied via MCP). Record the verification
 ## File Structure
 
 - Components: `src/components/ui/` (Shadcn), `src/components/shared/` (custom)
+- Features: `src/features/<domain>/` — colocated hooks/lib/schemas/components per domain, exported via barrel `index.ts` only (new code preferred here)
 - Pages: `src/pages/{role}/` (admin, coordinator, teacher, student, parent)
-- Hooks: `src/hooks/` (TanStack Query hooks)
-- Lib: `src/lib/` (utilities, schemas, business logic)
+- Hooks: `src/hooks/` (global cross-feature TanStack Query hooks)
+- Lib: `src/lib/` (utilities, schemas, business logic — framework-free)
 - Locales: `src/locales/{en,ar}/` (i18n JSON files)
+
+## Verification Commands (self-check before finishing any task)
+
+| Command                                          | Gate                               |
+| ------------------------------------------------ | ---------------------------------- |
+| `npm run lint`                                   | ESLint, zero warnings              |
+| `npx tsc --noEmit`                               | Type safety                        |
+| `npm test`                                       | Vitest unit suite (`vitest --run`) |
+| `npm run test:rls`                               | pgTAP/integration RLS suite        |
+| `npm run i18n:check`                             | en/ar locale key parity            |
+| `npm run db:check-replay` · `db:check-dup-names` | Migration replay integrity         |
+| `npm run check:runtime-dependencies`             | Runtime deployment impact closure  |
+
+An agent task is complete only when every gate relevant to its change passes locally.
+
+## Nested Agent Instructions
+
+- `src/AGENTS.md` — frontend layering, component/hook/i18n rules
+- `supabase/AGENTS.md` — migration policy, Edge Function & RLS rules
+  Closest file wins when working inside those trees.
+
+## Documentation Index
+
+- `docs/product/` — one-pager, complete product overview, tech-stack & security overview (+ PDFs)
+- `docs/investor/` — investor pack & live-demo storyboard
+- `docs/agent/` — AI-agent context pack, codebase structure blueprint
+- `docs/adr/` — architecture decision records
+- `.kiro/specs/<feature>/` — requirements/design/tasks per shipped or planned feature
