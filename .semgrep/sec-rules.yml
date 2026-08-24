@@ -69,9 +69,7 @@ rules:
         - src/**
     patterns:
       - pattern: 'dangerouslySetInnerHTML={{ __html: $HTML }}'
-      - metavariable-pattern:
-          metavariable: $HTML
-          pattern-not: sanitizeHtml(...)
+      - pattern-not: 'dangerouslySetInnerHTML={{ __html: sanitizeHtml(...) }}'
 
   - id: edge-fn-unbounded-response-array
     message: >-
