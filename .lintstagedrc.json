@@ -1,4 +1,4 @@
 {
-  "*.{ts,tsx}": ["eslint --max-warnings 0 --no-warn-ignored"],
-  "*.{ts,tsx,json,md,yml,yaml}": ["prettier --check"]
+  "*.{ts,tsx}": ["npx eslint --max-warnings 0 --no-warn-ignored"],
+  "*.{ts,tsx,json,md,yml,yaml}": ["npx prettier --check"]
 }
