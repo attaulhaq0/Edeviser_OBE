@@ -1,4 +1,4 @@
-﻿// Feature: Specialist protocols + strict parsers (tasks.md 4.3-4.6).
+// Feature: Specialist protocols + strict parsers (tasks.md 4.3-4.6).
 // Guardrail properties: derived-alignment-only ILO labeling, no invented habit
 // metrics (every signal cites evidence), numeric risk scores forbidden, and
 // intervention drafts always approval-gated.

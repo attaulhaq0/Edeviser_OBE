@@ -1,4 +1,4 @@
-﻿# Security Checklist — 36-Point Verification (Edeviser Agentic Platform)
+# Security Checklist — 36-Point Verification (Edeviser Agentic Platform)
 
 Status legend: ✅ automated test · 🌐 live-DB verification · 📄 documented control.
 Automated suites: `src/__tests__/security/*.security.test.ts` +

@@ -1,4 +1,4 @@
-﻿// Feature: Outcome Context Builder (tasks.md 5.3). Properties:
+// Feature: Outcome Context Builder (tasks.md 5.3). Properties:
 // canonical hierarchy ordering (ILO > PLO > CLO > SUB_CLO), parent->child
 // mapping direction only, derived-alignment labeling for ILO rows, and pure
 // reshaping of tool-produced evidence (never computes attainment).

@@ -1,4 +1,4 @@
-﻿// Security checks 10, 11, 12, 19, 21, 22, 27, 36 (security-checklist.md):
+// Security checks 10, 11, 12, 19, 21, 22, 27, 36 (security-checklist.md):
 // prod debug tools, log leaks, verbose errors, XSS, upload hardening, path
 // traversal, permissive CORS, exposed source maps.
 import { readFileSync, readdirSync, statSync } from "node:fs";

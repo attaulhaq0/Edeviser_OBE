@@ -1,4 +1,4 @@
-﻿# Edeviser
+# Edeviser
 
 **Human-Centric OBE + Gamification platform for higher education** - built for the Qatar
 market with full Arabic/English bilingual support (RTL/LTR), accreditation-grade evidence

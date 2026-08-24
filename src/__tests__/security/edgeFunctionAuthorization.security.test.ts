@@ -1,4 +1,4 @@
-﻿// Security checks 4, 5, 9, 16, 34 (security-checklist.md):
+// Security checks 4, 5, 9, 16, 34 (security-checklist.md):
 // weak auth, missing authorization checks, unprotected admin routes, input
 // validation. Proves the WHOLE Edge Function surface is either behind the
 // Supabase JWT gateway or performs in-handler authorization, and that the

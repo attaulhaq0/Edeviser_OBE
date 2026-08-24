@@ -1,4 +1,4 @@
-﻿// Security checks 7, 15, 25, 32, 33 (security-checklist.md):
+// Security checks 7, 15, 25, 32, 33 (security-checklist.md):
 // open DB permissions (existence proof for the RLS suite wall), client-only
 // security boundaries, session management, FE payment checks, IDOR/BOLA.
 import { readFileSync, readdirSync } from "node:fs";

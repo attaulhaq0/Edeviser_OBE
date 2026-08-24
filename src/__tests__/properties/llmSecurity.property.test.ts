@@ -1,4 +1,4 @@
-﻿// Feature: LLM application security (OWASP Top 10 for LLM Apps 2025),
+// Feature: LLM application security (OWASP Top 10 for LLM Apps 2025),
 // mapped to the Edeviser agentic architecture. Complements the generic
 // 36-check suite with AI-specific invariants:
 //   LLM01 Prompt Injection        - untrusted-evidence framing is mandatory

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tasks 7.4 + 8.2 (edeviser-agentic-intelligence) - agent-evaluation-jobs.
  *
  * System batch evaluator for the agentic platform. Selects COMPLETED

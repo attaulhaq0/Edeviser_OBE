@@ -1,4 +1,4 @@
-﻿// Security checks 1, 2, 3, 13, 14 (security-checklist.md):
+// Security checks 1, 2, 3, 13, 14 (security-checklist.md):
 // exposed DB credentials, public .env files, hardcoded secrets, secrets in
 // git, secrets in the client JS bundle. Static hygiene proofs over every
 // tracked source tree - failures here mean credentials could leak to anyone

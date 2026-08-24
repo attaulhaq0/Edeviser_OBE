@@ -1,4 +1,4 @@
-﻿# Edeviser security rules (Supabase Edge Functions / Deno / React SPA).
+# Edeviser security rules (Supabase Edge Functions / Deno / React SPA).
 # Runs alongside the p/typescript registry in security-gates.yml.
 rules:
   - id: edge-fn-hardcoded-fallback-secret
@@ -68,7 +68,7 @@ rules:
       include:
         - src/**
     patterns:
-      - pattern: dangerouslySetInnerHTML={{ __html: $HTML }}
+      - pattern: 'dangerouslySetInnerHTML={{ __html: $HTML }}'
       - metavariable-pattern:
           metavariable: $HTML
           pattern-not: sanitizeHtml(...)

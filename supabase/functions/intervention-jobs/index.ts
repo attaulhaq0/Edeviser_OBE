@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tasks 4.7 + 8.2 (edeviser-agentic-intelligence) - intervention-jobs.
  *
  * Background loop for the closed intervention cycle:

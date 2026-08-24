@@ -1,4 +1,4 @@
-﻿// Feature: Agent Evaluation Harness (tasks.md 7.4). Property coverage:
+// Feature: Agent Evaluation Harness (tasks.md 7.4). Property coverage:
 // deterministic scoring of citation validity, academic integrity, and tool
 // correctness with weighted overall score and threshold-gated pass/fail.
 import { describe, expect, it } from "vitest";

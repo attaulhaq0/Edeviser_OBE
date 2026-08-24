@@ -1,4 +1,4 @@
-﻿// Feature: Intervention loop jobs (tasks.md 4.7 + 8.2). Contract properties:
+// Feature: Intervention loop jobs (tasks.md 4.7 + 8.2). Contract properties:
 // system-caller-only auth, bounded batches, deterministic official metrics
 // (no LLM in the loop), SKIP LOCKED claims with bounded attempts and
 // dead-lettering, weekly idempotent generation, and no duplicate cron names.

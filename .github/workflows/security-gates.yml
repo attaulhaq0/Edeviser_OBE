@@ -129,7 +129,7 @@ jobs:
       - name: Aggregate gate verdict
         shell: bash
         run: |
-          results='${{ join(needs.*.result, '"'"' '"') }}'
+          results='${{ join(needs.*.result, ' ') }}'
           echo "Job results: ${results}"
           if echo "${results}" | grep -Eq 'failure|cancelled'; then
             echo "::error::One or more security gates failed";

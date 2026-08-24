@@ -1,4 +1,4 @@
-﻿-- Tasks 4.7 + 8.2 (edeviser-agentic-intelligence): intervention loop jobs.
+-- Tasks 4.7 + 8.2 (edeviser-agentic-intelligence): intervention loop jobs.
 --
 -- GENERATION (intervention-generation-jobs): enqueues intervention-specialist
 -- proactive jobs for FRESH low-mastery risk signals, routed to the course
