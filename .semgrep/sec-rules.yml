@@ -67,9 +67,7 @@ rules:
     paths:
       include:
         - src/**
-    patterns:
-      - pattern: 'dangerouslySetInnerHTML={{ __html: $HTML }}'
-      - pattern-not: 'dangerouslySetInnerHTML={{ __html: sanitizeHtml(...) }}'
+    pattern-regex: 'dangerouslySetInnerHTML\s*=\s*\{\{'
 
   - id: edge-fn-unbounded-response-array
     message: >-
