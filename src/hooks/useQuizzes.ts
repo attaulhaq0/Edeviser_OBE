@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import type {
   CreateQuizFormData,
   QuizQuestionFormData,
@@ -472,6 +473,10 @@ export const useSubmitQuizAttempt = () => {
       return data as QuizAttempt;
     },
     onSuccess: (_data, variables) => {
+      captureAnalyticsEvent("quiz_attempt_submitted", {
+        attempt_number: variables.attempt_number,
+        answer_count: Object.keys(variables.answers).length,
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.quizAttempts.list({ quizId: variables.quiz_id }),
       });

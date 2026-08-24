@@ -1,8 +1,9 @@
-import type {
-  AgentRisk,
-  OperationalAutonomy,
-} from "../contracts.ts";
+import type { AgentRisk, OperationalAutonomy } from "../contracts.ts";
 import { requiresHumanApproval } from "../contracts.ts";
+
+// Re-export for consumers (tests, orchestrator) that treat this policy module
+// as the single import surface for autonomy types.
+export type { AgentRisk, OperationalAutonomy } from "../contracts.ts";
 
 /**
  * Operational autonomy levels (PDF §23):

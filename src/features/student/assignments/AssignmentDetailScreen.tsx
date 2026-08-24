@@ -45,6 +45,7 @@ import { XP_SCHEDULE, LATE_SUBMISSION_XP } from "@/lib/xpSchedule";
 import { logActivity } from "@/lib/activityLogger";
 import { useOptimisticXP } from "@/hooks/useOptimisticXP";
 import { getSignedUrl } from "@/lib/storageUrl";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 const FILE_LIMIT_LABEL = "PDF, DOCX, PPTX, TXT up to 10MB";
 
@@ -234,6 +235,9 @@ const AssignmentDetailScreen = () => {
 
       createSubmission.mutate(payload, {
         onSuccess: () => {
+          captureAnalyticsEvent("assignment_submitted", {
+            is_late: deadlineStatus.isLate,
+          });
           setSelectedFile(null);
           draftManager.clearDraft(`submission-draft-${id ?? "unknown"}`);
           void submissions.refetch();

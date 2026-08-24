@@ -7,6 +7,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { getEdgeFunctionUrl, getAuthHeaders } from "@/lib/tutorApi";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -63,7 +64,12 @@ export const usePurchaseItem = () => {
 
       return result as PurchaseResponse;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      captureAnalyticsEvent("marketplace_item_purchased", {
+        item_category: data.item_category,
+        item_sub_category: data.item_sub_category,
+        xp_cost: data.xp_cost,
+      });
       // Invalidate balance, inventory, and items queries
       if (user?.id) {
         queryClient.invalidateQueries({

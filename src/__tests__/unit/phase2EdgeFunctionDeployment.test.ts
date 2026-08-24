@@ -42,7 +42,10 @@ describe("Phase 2 production Edge Function deployment scope", () => {
       manifest.runtimeGroups.find(
         (group) => group.name === "tutor-intelligence"
       )?.functions
-    ).toHaveLength(6);
+      // Manifest evolved from 6 → 7 when agent-evaluation-jobs and
+      // intervention-jobs joined the tutor-intelligence runtime group
+      // (commit 74685a4); the closure contract tracks the live manifest.
+    ).toHaveLength(7);
   });
 
   it("does not treat frontend-only changes as a production function trigger", () => {

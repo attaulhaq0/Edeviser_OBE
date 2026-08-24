@@ -32,6 +32,7 @@ import { PracticeModeToggle } from "@/components/shared/PracticeModeToggle";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { InlineNoCLOs } from "@/components/shared/EmptyState";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 // ─── Shared form fields ──────────────────────────────────────────────────────
 
@@ -504,6 +505,12 @@ const CreateQuizForm = () => {
   const onSubmit = (data: CreateQuizFormData) => {
     createMutation.mutate(data, {
       onSuccess: () => {
+        captureAnalyticsEvent("quiz_created", {
+          is_adaptive: data.is_adaptive,
+          is_published: data.is_published,
+          max_attempts: data.max_attempts,
+          practice_mode_enabled: data.practice_mode_enabled,
+        });
         toast.success("Quiz created successfully");
         navigate(-1);
       },
@@ -596,6 +603,12 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
       { id: quizId, ...data },
       {
         onSuccess: () => {
+          captureAnalyticsEvent("quiz_updated", {
+            is_adaptive: data.is_adaptive,
+            is_published: data.is_published,
+            max_attempts: data.max_attempts,
+            practice_mode_enabled: data.practice_mode_enabled,
+          });
           toast.success("Quiz updated successfully");
           navigate(-1);
         },

@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { sendTutorMessage, rateTutorMessage } from "@/lib/tutorApi";
 import { toast } from "sonner";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import type {
   TutorMessage,
   SendMessageInput,
@@ -177,6 +178,12 @@ export const useSendMessage = () => {
           queryClient.invalidateQueries({
             queryKey: queryKeys.tutorUsage.all,
           });
+          captureAnalyticsEvent("tutor_message_sent", {
+            tokens_used: data.tokens_used,
+            has_attachments:
+              (input.image_urls?.length ?? 0) > 0 ||
+              Boolean(input.document_url),
+          });
           onDone?.(data);
         },
         onError: (error) => {
@@ -222,6 +229,9 @@ export const useRateMessage = () => {
       });
     },
     onSuccess: (_data, variables) => {
+      captureAnalyticsEvent("tutor_response_rated", {
+        rating: variables.rating,
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.tutorMessages.byConversation(
           variables.conversationId

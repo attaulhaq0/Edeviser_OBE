@@ -33,6 +33,11 @@ import {
 } from "@/lib/profileCache";
 import { clearCachedDashboard } from "@/lib/dashboardCache";
 import { mapSignupError } from "@/lib/authErrors";
+import {
+  hasAnalyticsConsent,
+  identifyAnalyticsUser,
+  resetAnalyticsUser,
+} from "@/lib/analyticsConsent";
 
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
@@ -113,6 +118,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Req 8.1). A token rotation does not change the profile, so re-fetching it on
   // every refresh is a pure round-trip cost.
   const currentUserIdRef = useRef<string | null>(null);
+  const identifiedAnalyticsUserIdRef = useRef<string | null>(null);
+
+  const identifyAuthenticatedUser = useCallback(
+    (authenticatedUser: User, authenticatedProfile: Profile | null): void => {
+      if (
+        !hasAnalyticsConsent() ||
+        identifiedAnalyticsUserIdRef.current === authenticatedUser.id
+      ) {
+        return;
+      }
+
+      identifyAnalyticsUser(authenticatedUser.id, {
+        email: authenticatedProfile?.email ?? authenticatedUser.email,
+        fullName: authenticatedProfile?.full_name,
+        role: authenticatedProfile?.role,
+        institutionId: authenticatedProfile?.institution_id,
+      });
+      identifiedAnalyticsUserIdRef.current = authenticatedUser.id;
+    },
+    []
+  );
 
   // -------------------------------------------------------------------
   // Fetch profile from `profiles` table
@@ -147,6 +173,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // can never be hydrated for an unauthenticated (or subsequent) user.
         clearCachedProfile();
         clearCachedDashboard();
+        resetAnalyticsUser();
+        identifiedAnalyticsUserIdRef.current = null;
         setUser(null);
         setProfile(null);
         setIsLoading(false);
@@ -166,6 +194,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (cached) {
         setProfile(cached.profile);
         applyProfileLanguage(cached.profile);
+        identifyAuthenticatedUser(session.user, cached.profile);
         setIsLoading(false);
 
         // Freshly cached (e.g. the profiles SELECT that signIn just ran) — skip
@@ -182,6 +211,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setProfile(fresh);
             writeCachedProfile(uid, fresh);
             applyProfileLanguage(fresh);
+            identifyAuthenticatedUser(session.user, fresh);
           }
         })();
         return;
@@ -194,9 +224,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile(userProfile);
       if (userProfile) writeCachedProfile(uid, userProfile);
       applyProfileLanguage(userProfile);
+      identifyAuthenticatedUser(session.user, userProfile);
       setIsLoading(false);
     },
-    [fetchProfile]
+    [fetchProfile, identifyAuthenticatedUser]
   );
 
   // -------------------------------------------------------------------
@@ -225,6 +256,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // can never hydrate the previous user's data (cross-user no-leak).
           clearCachedProfile();
           clearCachedDashboard();
+          resetAnalyticsUser();
+          identifiedAnalyticsUserIdRef.current = null;
           currentUserIdRef.current = null;
           setUser(null);
           setProfile(null);
@@ -294,6 +327,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [syncSession]);
 
+  useEffect(() => {
+    const identifyAfterConsent = () => {
+      if (user) identifyAuthenticatedUser(user, profile);
+    };
+
+    window.addEventListener("analytics-consent-granted", identifyAfterConsent);
+    identifyAfterConsent();
+    return () =>
+      window.removeEventListener(
+        "analytics-consent-granted",
+        identifyAfterConsent
+      );
+  }, [identifyAuthenticatedUser, profile, user]);
+
   // -------------------------------------------------------------------
   // signIn
   // -------------------------------------------------------------------
@@ -356,6 +403,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       currentUserIdRef.current = data.user.id;
       setUser(data.user);
       setProfile(userProfile);
+      identifyAuthenticatedUser(data.user, userProfile);
       // Do not depend on the asynchronous SIGNED_IN subscription callback to
       // release RouteGuard. The profile request above has already completed, so
       // leaving this true can strand a successful local sign-in on its loading
@@ -451,7 +499,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { success: true, redirectTo };
     },
-    [fetchProfile]
+    [fetchProfile, identifyAuthenticatedUser]
   );
 
   // -------------------------------------------------------------------
@@ -522,6 +570,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         currentUserIdRef.current = data.user.id;
         setUser(data.user);
         setProfile(userProfile);
+        identifyAuthenticatedUser(data.user, userProfile);
         if (userProfile) writeCachedProfile(data.user.id, userProfile);
 
         const redirectTo = userProfile?.role
@@ -532,7 +581,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { success: true };
     },
-    [fetchProfile]
+    [fetchProfile, identifyAuthenticatedUser]
   );
 
   // -------------------------------------------------------------------
@@ -542,6 +591,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
     clearCachedProfile();
     clearCachedDashboard();
+    resetAnalyticsUser();
+    identifiedAnalyticsUserIdRef.current = null;
     currentUserIdRef.current = null;
     setUser(null);
     setProfile(null);
