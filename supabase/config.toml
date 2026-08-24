@@ -411,7 +411,10 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-email-notification]
-verify_jwt = true
+# Server-to-server callers (weekly-summary-cron, streak-risk-cron) present the
+# managed secret key (non-JWT), so gateway JWT verification must stay OFF; the
+# in-handler gate below enforces service-key OR admin-JWT.
+verify_jwt = false
 
 # Cron targets are invoked server-to-server with a managed Supabase secret key
 # and enforce that key/CRON_SECRET in-handler. The health probe retains gateway
@@ -453,6 +456,11 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.weekly-summary-cron]
+verify_jwt = false
+
+[functions.generate-starter-week]
+# Invoked server-to-server by process-onboarding with the managed secret key
+# (non-JWT); mirrors the cron-target convention (see send-email-notification).
 verify_jwt = false
 
 [functions.health]
