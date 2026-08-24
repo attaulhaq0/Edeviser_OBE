@@ -138,9 +138,11 @@
     "vitest-axe": "^0.1.0"
   },
   "overrides": {
-    "hono": "4.12.21",
+    "hono": "4.13.4",
     "@vercel/node": {
-      "undici": "^5.29.0"
-    }
+      "undici": "6.28.0",
+      "path-to-regexp": "6.3.0"
+    },
+    "tmp": "0.2.7"
   }
 }

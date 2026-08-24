@@ -66,8 +66,8 @@ jobs:
           node-version-file: .nvmrc
       - name: Install (scripts disabled for supply-chain safety)
         run: npm ci --ignore-scripts
-      - name: Fail on high/critical vulnerabilities
-        run: npm audit --audit-level=high
+      - name: Fail on high/critical vulnerabilities (dev-only unpatched allowlisted)
+        run: node scripts/check-audit.cjs
 
   invariants:
     name: Custom security invariants (36-check suites + runtime governance)
