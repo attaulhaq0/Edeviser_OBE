@@ -129,7 +129,7 @@ main and the live database (migrations applied via MCP). Record the verification
 | `npm test`                                       | Vitest unit suite (`vitest --run`) |
 | `npm run test:rls`                               | pgTAP/integration RLS suite        |
 | `npm run i18n:check`                             | en/ar locale key parity            |
-| `npm run db:check-replay` · `db:check-dup-names` | Migration replay integrity         |
+| `npm run db:check-replay` · `npm run db:check-dup-names` | Migration replay integrity         |
 | `npm run check:runtime-dependencies`             | Runtime deployment impact closure  |
 
 An agent task is complete only when every gate relevant to its change passes locally.
