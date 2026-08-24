@@ -173,24 +173,24 @@ ALTER TABLE public.student_support_states ENABLE ROW LEVEL SECURITY;
 -- agent_conversations
 CREATE POLICY agent_conversations_select ON public.agent_conversations
 FOR SELECT USING (
-  actor_user_id = auth.uid()
+  actor_user_id = (select auth.uid())
   OR EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = agent_conversations.institution_id
       AND p.role IN ('admin','coordinator')
   )
 );
 CREATE POLICY agent_conversations_insert ON public.agent_conversations
 FOR INSERT WITH CHECK (
-  actor_user_id = auth.uid()
-  AND institution_id = (SELECT p.institution_id FROM public.profiles p WHERE p.id = auth.uid())
+  actor_user_id = (select auth.uid())
+  AND institution_id = (SELECT p.institution_id FROM public.profiles p WHERE p.id = (select auth.uid()))
 );
 CREATE POLICY agent_conversations_update ON public.agent_conversations
-FOR UPDATE USING (actor_user_id = auth.uid())
-WITH CHECK (actor_user_id = auth.uid());
+FOR UPDATE USING (actor_user_id = (select auth.uid()))
+WITH CHECK (actor_user_id = (select auth.uid()));
 CREATE POLICY agent_conversations_delete ON public.agent_conversations
-FOR DELETE USING (actor_user_id = auth.uid());
+FOR DELETE USING (actor_user_id = (select auth.uid()));
 
 -- agent_messages (participant-scoped)
 CREATE POLICY agent_messages_select ON public.agent_messages
@@ -199,10 +199,10 @@ FOR SELECT USING (
     SELECT 1 FROM public.agent_conversations c
     WHERE c.id = agent_messages.conversation_id
       AND (
-        c.actor_user_id = auth.uid()
+        c.actor_user_id = (select auth.uid())
         OR EXISTS (
           SELECT 1 FROM public.profiles p
-          WHERE p.id = auth.uid() AND p.is_active = true
+          WHERE p.id = (select auth.uid()) AND p.is_active = true
             AND p.institution_id = c.institution_id
             AND p.role IN ('admin','coordinator')
         )
@@ -213,17 +213,17 @@ CREATE POLICY agent_messages_insert ON public.agent_messages
 FOR INSERT WITH CHECK (
   EXISTS (
     SELECT 1 FROM public.agent_conversations c
-    WHERE c.id = agent_messages.conversation_id AND c.actor_user_id = auth.uid()
+    WHERE c.id = agent_messages.conversation_id AND c.actor_user_id = (select auth.uid())
   )
 );
 
 -- agent_tasks (recipient + institutional staff read; writes via service role)
 CREATE POLICY agent_tasks_select ON public.agent_tasks
 FOR SELECT USING (
-  assignee_user_id = auth.uid()
+  assignee_user_id = (select auth.uid())
   OR EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = agent_tasks.institution_id
       AND p.role IN ('admin','coordinator')
   )
@@ -232,18 +232,18 @@ FOR SELECT USING (
 -- agent_feedback (author writes own; author + admin read)
 CREATE POLICY agent_feedback_select ON public.agent_feedback
 FOR SELECT USING (
-  user_id = auth.uid()
+  user_id = (select auth.uid())
   OR EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = agent_feedback.institution_id
       AND p.role = 'admin'
   )
 );
 CREATE POLICY agent_feedback_insert ON public.agent_feedback
 FOR INSERT WITH CHECK (
-  user_id = auth.uid()
-  AND institution_id = (SELECT p.institution_id FROM public.profiles p WHERE p.id = auth.uid())
+  user_id = (select auth.uid())
+  AND institution_id = (SELECT p.institution_id FROM public.profiles p WHERE p.id = (select auth.uid()))
 );
 
 -- agent_evaluations (institutional quality staff read; writes service-role)
@@ -251,7 +251,7 @@ CREATE POLICY agent_evaluations_select ON public.agent_evaluations
 FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = agent_evaluations.institution_id
       AND p.role IN ('admin','coordinator')
   )
@@ -260,10 +260,10 @@ FOR SELECT USING (
 -- learning_interventions (subject, course teacher, program coordinator, admin)
 CREATE POLICY learning_interventions_select ON public.learning_interventions
 FOR SELECT USING (
-  student_id = auth.uid()
+  student_id = (select auth.uid())
   OR EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = learning_interventions.institution_id
       AND (
         p.role = 'admin'
@@ -286,10 +286,10 @@ FOR SELECT USING (
     SELECT 1 FROM public.learning_interventions li
     WHERE li.id = intervention_outcomes.intervention_id
       AND (
-        li.student_id = auth.uid()
+        li.student_id = (select auth.uid())
         OR EXISTS (
           SELECT 1 FROM public.profiles p
-          WHERE p.id = auth.uid() AND p.is_active = true
+          WHERE p.id = (select auth.uid()) AND p.is_active = true
             AND p.institution_id = intervention_outcomes.institution_id
             AND (
               p.role = 'admin'
@@ -310,10 +310,10 @@ FOR SELECT USING (
 -- learning_state_events (subject + institutional staff)
 CREATE POLICY learning_state_events_select ON public.learning_state_events
 FOR SELECT USING (
-  student_id = auth.uid()
+  student_id = (select auth.uid())
   OR EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = learning_state_events.institution_id
       AND p.role IN ('admin','coordinator')
   )
@@ -322,10 +322,10 @@ FOR SELECT USING (
 -- student_support_states (subject + institutional staff)
 CREATE POLICY student_support_states_select ON public.student_support_states
 FOR SELECT USING (
-  student_id = auth.uid()
+  student_id = (select auth.uid())
   OR EXISTS (
     SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid() AND p.is_active = true
+    WHERE p.id = (select auth.uid()) AND p.is_active = true
       AND p.institution_id = student_support_states.institution_id
       AND p.role IN ('admin','coordinator')
   )

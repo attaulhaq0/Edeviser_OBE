@@ -6,11 +6,30 @@
       "name": "tutor-intelligence",
       "deploymentOwner": "platform-runtime",
       "functions": [
-        { "slug": "chat-with-tutor", "verifyJwt": true },
-        { "slug": "embed-course-material", "verifyJwt": true },
-        { "slug": "generate-plan-update", "verifyJwt": true },
-        { "slug": "agent-worker", "verifyJwt": false },
-        { "slug": "agent-orchestrator", "verifyJwt": true }
+        {
+          "slug": "chat-with-tutor",
+          "verifyJwt": true
+        },
+        {
+          "slug": "embed-course-material",
+          "verifyJwt": true
+        },
+        {
+          "slug": "generate-plan-update",
+          "verifyJwt": true
+        },
+        {
+          "slug": "agent-worker",
+          "verifyJwt": false
+        },
+        {
+          "slug": "agent-orchestrator",
+          "verifyJwt": true
+        },
+        {
+          "slug": "agent-evaluation-jobs",
+          "verifyJwt": false
+        }
       ],
       "runtimeDependencyPaths": [
         "supabase/functions/_shared/ai/**",
@@ -24,11 +43,26 @@
       "name": "identity-runtime",
       "deploymentOwner": "platform-runtime",
       "functions": [
-        { "slug": "accept-invitation", "verifyJwt": false },
-        { "slug": "bootstrap-first-admin", "verifyJwt": true },
-        { "slug": "invitation-preview", "verifyJwt": false },
-        { "slug": "resend-webhook", "verifyJwt": false },
-        { "slug": "send-invitation-email", "verifyJwt": true }
+        {
+          "slug": "accept-invitation",
+          "verifyJwt": false
+        },
+        {
+          "slug": "bootstrap-first-admin",
+          "verifyJwt": true
+        },
+        {
+          "slug": "invitation-preview",
+          "verifyJwt": false
+        },
+        {
+          "slug": "resend-webhook",
+          "verifyJwt": false
+        },
+        {
+          "slug": "send-invitation-email",
+          "verifyJwt": true
+        }
       ],
       "runtimeDependencyPaths": [
         "supabase/functions/_shared/auth.ts",

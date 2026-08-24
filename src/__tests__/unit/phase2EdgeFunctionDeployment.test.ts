@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -42,7 +42,7 @@ describe("Phase 2 production Edge Function deployment scope", () => {
       manifest.runtimeGroups.find(
         (group) => group.name === "tutor-intelligence"
       )?.functions
-    ).toHaveLength(5);
+    ).toHaveLength(6);
   });
 
   it("does not treat frontend-only changes as a production function trigger", () => {
