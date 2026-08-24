@@ -116,10 +116,36 @@ async function gradeSubmission(
     title: string;
     cloWeights: Array<{ clo_id: string; weight: number }>;
     scorePercent: number;
+    allowGradeFailure?: false;
+  }
+): Promise<{ assignmentId: string; submissionId: string; gradeId: string }>;
+async function gradeSubmission(
+  admin: AdminClient,
+  params: {
+    ctx: SeededCtx;
+    title: string;
+    cloWeights: Array<{ clo_id: string; weight: number }>;
+    scorePercent: number;
     /**
      * When true, a FAILED grade insert is returned instead of thrown — used by
      * fail-closed cases that assert the rollup aborts the transaction.
      */
+    allowGradeFailure: true;
+  }
+): Promise<{
+  assignmentId: string;
+  submissionId: string;
+  gradeId: null;
+  gradeError: { message: string };
+}>;
+async function gradeSubmission(
+  admin: AdminClient,
+  params: {
+    ctx: SeededCtx;
+    title: string;
+    cloWeights: Array<{ clo_id: string; weight: number }>;
+    scorePercent: number;
+    /** Discriminator for the fail-closed overload (see overloads above). */
     allowGradeFailure?: boolean;
   }
 ): Promise<{
