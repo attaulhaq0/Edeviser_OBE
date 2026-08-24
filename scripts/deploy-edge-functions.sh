@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # =============================================================================
 # Deploy ALL Edge Functions â€” Batch Script (bash)
 # =============================================================================
@@ -48,6 +48,7 @@ CRITICAL_FUNCTIONS=(
 # check-badges call each other server-to-server, so both require this.
 NO_VERIFY_JWT_FUNCTIONS=(
   "agent-evaluation-jobs"
+  "intervention-jobs"
   "agent-worker"
   "award-xp"
   "check-badges"
@@ -116,6 +117,7 @@ done
 # supabase functions deploy generate-transcript
 # supabase functions deploy import-competency-csv
 # supabase functions deploy improvement-bonus-check
+# supabase functions deploy intervention-jobs
 # supabase functions deploy leaderboard-refresh
 # supabase functions deploy notification-digest
 # supabase functions deploy perfect-day-prompt

@@ -1,4 +1,4 @@
-﻿# For detailed configuration reference documentation, visit:
+# For detailed configuration reference documentation, visit:
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
@@ -426,6 +426,9 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.agent-evaluation-jobs]
+verify_jwt = false
+
+[functions.intervention-jobs]
 verify_jwt = false
 
 [functions.compute-at-risk-signals]

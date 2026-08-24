@@ -29,7 +29,8 @@
         {
           "slug": "agent-evaluation-jobs",
           "verifyJwt": false
-        }
+        },
+        { "slug": "intervention-jobs", "verifyJwt": false }
       ],
       "runtimeDependencyPaths": [
         "supabase/functions/_shared/ai/**",
