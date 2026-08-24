@@ -193,7 +193,7 @@ export const useDeleteILO = () => {
   });
 };
 
-// ─── useReorderILOs — batch update sort_order ───────────────────────────────
+// ─── useReorderILOs — atomic validated reorder via reorder_learning_outcomes ─
 
 export const useReorderILOs = () => {
   const queryClient = useQueryClient();
@@ -201,19 +201,16 @@ export const useReorderILOs = () => {
 
   return useMutation({
     mutationFn: async (data: ReorderFormData): Promise<void> => {
-      await Promise.all(
-        data.items.map(async (item, index) => {
-          const { error } = await supabase
-            .from("learning_outcomes")
-            .update({ sort_order: index })
-            .eq("id", item.id)
-            .eq("type", "ILO")
-            .select("id")
-            .single();
+      // Task 1.8: the reorder MUST be atomic and validated DB-side. The
+      // `reorder_learning_outcomes` RPC applies every sort_order in ONE
+      // statement, rejects duplicate/foreign/wrong-type ids, and aborts the
+      // whole call on any violation (no partial reorder). RLS additionally
+      // gates each updated row (SECURITY INVOKER).
+      const { error } = await supabase.rpc("reorder_learning_outcomes", {
+        p_items: data.items,
+      });
 
-          if (error) throw error;
-        })
-      );
+      if (error) throw error;
 
       await logAuditEvent({
         action: "reorder",

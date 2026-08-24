@@ -357,8 +357,8 @@ allow_dynamic_registration = false
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
-# `per_worker` (default) — enables hot reload during local development.
-# `oneshot` — fallback mode if hot reload causes issues (e.g. in large repos or with symlinks).
+# `per_worker` (default) â€” enables hot reload during local development.
+# `oneshot` â€” fallback mode if hot reload causes issues (e.g. in large repos or with symlinks).
 policy = "per_worker"
 # Port to attach the Chrome inspector for debugging edge functions.
 inspector_port = 8083
@@ -424,6 +424,12 @@ verify_jwt = false
 
 [functions.agent-orchestrator]
 verify_jwt = true
+
+[functions.agent-evaluation-jobs]
+verify_jwt = false
+
+[functions.intervention-jobs]
+verify_jwt = false
 
 [functions.compute-at-risk-signals]
 verify_jwt = false

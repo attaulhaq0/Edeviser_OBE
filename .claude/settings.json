@@ -1,0 +1,27 @@
+{
+  "//": "Committed Claude Code permissions for Edeviser. Safe read/build/test commands are pre-approved to reduce interruptions. Personal overrides go in settings.local.json (uncommitted).",
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Bash(npm run lint*)",
+      "Bash(npm test*)",
+      "Bash(npm run test:rls)",
+      "Bash(npm run i18n:check)",
+      "Bash(npm run db:check-replay)",
+      "Bash(npm run db:check-dup-names)",
+      "Bash(npm run check:runtime-dependencies)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch --show-current)"
+    ],
+    "deny": [
+      "Read(./.env.local)",
+      "Read(./.env)",
+      "Edit(./supabase/migrations/**)",
+      "Edit(./src/types/database.ts)",
+      "Edit(./.kiro/**)"
+    ]
+  }
+}

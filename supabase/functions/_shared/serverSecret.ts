@@ -1,7 +1,10 @@
+/** Fallback entry name inside SUPABASE_SECRET_KEYS when none is configured. */
+const DEFAULT_SECRET_KEY_NAME = "default";
+
 /** Resolve a server-only Supabase key without exposing it to browser code. */
 export function getManagedServerKey(): string {
   const configured = Deno.env.get("SUPABASE_SECRET_KEYS");
-  const keyName = Deno.env.get("SUPABASE_SECRET_KEY_NAME") ?? "default";
+  const keyName = Deno.env.get("SUPABASE_SECRET_KEY_NAME") ?? DEFAULT_SECRET_KEY_NAME;
 
   if (configured) {
     let parsed: unknown;

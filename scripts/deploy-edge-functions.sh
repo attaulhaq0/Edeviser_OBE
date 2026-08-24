@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Deploy ALL Edge Functions — Batch Script (bash)
+# Deploy ALL Edge Functions â€” Batch Script (bash)
 # =============================================================================
 # Deploys every edge function found under supabase/functions/ (except _shared
 # and audit-fixtures which are not deployable). Uses --no-verify-jwt only when
 # the function has been explicitly marked as such in code.
 #
 # Includes the 14 functions with security fixes from the audit (substring auth
-# pattern → exact match + ownership checks):
+# pattern â†’ exact match + ownership checks):
 #   award-xp, check-badges, process-streak, send-email-notification,
 #   calculate-attainment-rollup, ai-at-risk-prediction, ai-module-suggestion,
 #   check-login-rate, compute-at-risk-signals, compute-habit-correlations,
@@ -43,10 +43,12 @@ CRITICAL_FUNCTIONS=(
 # caller IN-HANDLER (service-role secret via x-internal-auth header, plus
 # user-ownership checks for student JWT callers). The platform `verify_jwt`
 # gateway gate is incompatible with server-to-server calls on this project
-# because the injected anon/service-role keys are the modern non-JWT `sb_…`
+# because the injected anon/service-role keys are the modern non-JWT `sb_â€¦`
 # format, which cannot pass `verify_jwt` as a bearer token. award-xp and
 # check-badges call each other server-to-server, so both require this.
 NO_VERIFY_JWT_FUNCTIONS=(
+  "agent-evaluation-jobs"
+  "intervention-jobs"
   "agent-worker"
   "award-xp"
   "check-badges"
@@ -80,6 +82,7 @@ done
 
 # Explicit per-function deploy commands (so the property test can grep them):
 # supabase functions deploy agent-worker
+# supabase functions deploy agent-evaluation-jobs
 # supabase functions deploy agent-orchestrator
 # supabase functions deploy ai-at-risk-prediction
 # supabase functions deploy ai-feedback-draft
@@ -114,6 +117,7 @@ done
 # supabase functions deploy generate-transcript
 # supabase functions deploy import-competency-csv
 # supabase functions deploy improvement-bonus-check
+# supabase functions deploy intervention-jobs
 # supabase functions deploy leaderboard-refresh
 # supabase functions deploy notification-digest
 # supabase functions deploy perfect-day-prompt
@@ -147,9 +151,9 @@ else
 fi
 
 echo ""
-echo "════════════════════════════════════════════════════════════"
-echo "  Edeviser — Edge Function Deployment"
-echo "════════════════════════════════════════════════════════════"
+echo "â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•"
+echo "  Edeviser â€” Edge Function Deployment"
+echo "â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•"
 echo ""
 echo "Mode    : $($DRY_RUN && echo 'DRY RUN' || echo 'DEPLOY')"
 echo "Scope   : $($CRITICAL && echo 'Critical only' || echo 'All discovered')"
@@ -164,7 +168,7 @@ if ! $DRY_RUN; then
     echo "Or set the SUPABASE_ACCESS_TOKEN env var."
     exit 1
   fi
-  echo "  ✓ Authenticated"
+  echo "  âœ“ Authenticated"
   echo ""
 fi
 
@@ -179,7 +183,7 @@ for fn in "${FUNCTIONS[@]}"; do
 
   function_path="supabase/functions/$fn/index.ts"
   if [[ ! -f "$function_path" ]]; then
-    echo "  ✗ Source file not found: $function_path"
+    echo "  âœ— Source file not found: $function_path"
     failed+=("$fn")
     continue
   fi
@@ -187,14 +191,14 @@ for fn in "${FUNCTIONS[@]}"; do
   if $DRY_RUN; then
     size=$(wc -c < "$function_path")
     size_kb=$((size / 1024))
-    echo "  → Would deploy (${size_kb} KB)"
+    echo "  â†’ Would deploy (${size_kb} KB)"
     succeeded+=("$fn")
     continue
   fi
 
   # Apply --no-verify-jwt for functions that authenticate in-handler and are
   # called server-to-server (the platform verify_jwt gateway gate is
-  # incompatible with this project's non-JWT sb_… service-role key).
+  # incompatible with this project's non-JWT sb_â€¦ service-role key).
   verify_flag=""
   for nvj in "${NO_VERIFY_JWT_FUNCTIONS[@]}"; do
     if [[ "$fn" == "$nvj" ]]; then
@@ -204,10 +208,10 @@ for fn in "${FUNCTIONS[@]}"; do
   done
 
   if npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" $verify_flag; then
-    echo "  ✓ Deployed${verify_flag:+ (--no-verify-jwt)}"
+    echo "  âœ“ Deployed${verify_flag:+ (--no-verify-jwt)}"
     succeeded+=("$fn")
   else
-    echo "  ✗ Failed"
+    echo "  âœ— Failed"
     failed+=("$fn")
   fi
 
@@ -215,9 +219,9 @@ for fn in "${FUNCTIONS[@]}"; do
 done
 
 echo ""
-echo "════════════════════════════════════════════════════════════"
+echo "â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•"
 echo "  Summary"
-echo "════════════════════════════════════════════════════════════"
+echo "â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•"
 echo ""
 echo "Succeeded : ${#succeeded[@]} / $total"
 
@@ -225,7 +229,7 @@ if [[ ${#failed[@]} -gt 0 ]]; then
   echo ""
   echo "Failed    : ${#failed[@]} / $total"
   for fn in "${failed[@]}"; do
-    echo "  ✗ $fn"
+    echo "  âœ— $fn"
   done
   exit 1
 fi

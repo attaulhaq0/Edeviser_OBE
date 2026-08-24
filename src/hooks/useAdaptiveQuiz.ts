@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ export const useStartAdaptiveQuiz = () => {
       return data;
     },
     onSuccess: () => {
+      captureAnalyticsEvent("adaptive_quiz_started");
       queryClient.invalidateQueries({
         queryKey: queryKeys.quizAttempts.lists(),
       });
@@ -131,7 +133,12 @@ export const useSubmitQuizAttempt = () => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      captureAnalyticsEvent("adaptive_quiz_submitted", {
+        answer_count: Object.keys(variables.answers).length,
+        mode: variables.mode ?? "graded",
+        score: variables.score,
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.quizAttempts.lists(),
       });

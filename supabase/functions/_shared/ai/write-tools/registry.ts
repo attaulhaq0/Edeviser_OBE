@@ -3,7 +3,11 @@ import type { AgentActionProposal, AuthenticatedRole } from "../contracts.ts";
 export type ProtectedWriteToolName =
   | "create_goal"
   | "create_planner_session"
-  | "create_cqi_action";
+  | "create_cqi_action"
+  | "create_ilo"
+  | "update_ilo"
+  | "delete_ilo"
+  | "reorder_ilos";
 export type ProtectedWriteToolVersion = "1.0.0";
 export type ProtectedWriteToolIdentifier =
   `${ProtectedWriteToolName}@${ProtectedWriteToolVersion}`;
@@ -259,6 +263,83 @@ const validateCqiOutput = (value: unknown): Record<string, unknown> => {
   return output;
 };
 
+// ---------------------------------------------------------------------------
+// Task 6.2 — Admin ILO governance protected writes. Payloads mirror the
+// proposal shapes produced by write-tools/outcome-governance.ts so an approved
+// proposal resolves through the registry instead of failing unknown_tool.
+// ---------------------------------------------------------------------------
+const optionalIloTextField = (
+  input: Record<string, unknown>,
+  field: string,
+  maximum: number
+): void => {
+  if (input[field] !== undefined) textField(input, field, maximum);
+};
+
+const validateCreateIlo = (value: unknown): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, ["title", "title_ar", "description"]);
+  textField(input, "title", 300);
+  optionalIloTextField(input, "title_ar", 300);
+  optionalIloTextField(input, "description", 2000);
+  return input;
+};
+
+const validateUpdateIlo = (value: unknown): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, ["ilo_id", "title", "title_ar", "description"]);
+  if (typeof input.ilo_id !== "string" || !uuidPattern.test(input.ilo_id)) {
+    throw new ProtectedWriteBoundaryError("invalid_input", "ilo_id must be a UUID");
+  }
+  optionalIloTextField(input, "title", 300);
+  optionalIloTextField(input, "title_ar", 300);
+  optionalIloTextField(input, "description", 2000);
+  return input;
+};
+
+const validateDeleteIlo = (value: unknown): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, ["ilo_id"]);
+  if (typeof input.ilo_id !== "string" || !uuidPattern.test(input.ilo_id)) {
+    throw new ProtectedWriteBoundaryError("invalid_input", "ilo_id must be a UUID");
+  }
+  return input;
+};
+
+const validateReorderIlos = (value: unknown): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, ["items"]);
+  const items = input.items;
+  if (!Array.isArray(items) || items.length === 0 || items.length > 500) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "items must be a non-empty array of at most 500 entries"
+    );
+  }
+  for (const entry of items) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "items[] entries must be objects"
+      );
+    }
+    const item = entry as Record<string, unknown>;
+    if (
+      Object.keys(item).some((key) => !["id", "sort_order"].includes(key)) ||
+      typeof item.id !== "string" ||
+      !uuidPattern.test(item.id) ||
+      typeof item.sort_order !== "number" ||
+      !Number.isSafeInteger(item.sort_order)
+    ) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "items[] entries require a UUID id and integer sort_order"
+      );
+    }
+  }
+  return input;
+};
+
 export const PROTECTED_WRITE_REGISTRY: Readonly<
   Record<ProtectedWriteToolIdentifier, ProtectedWriteToolDefinition>
 > = {
@@ -289,6 +370,44 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
     validateInput: validateCqiAction,
     validateOutput: validateCqiOutput,
   },
+  // Task 6.2 — Admin ILO governance: approval is ALWAYS required and the only
+  // permitted approver role is admin (platform spec guardrails).
+  "create_ilo@1.0.0": {
+    name: "create_ilo",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["admin"],
+    validateInput: validateCreateIlo,
+    validateOutput: validateCqiOutput,
+  },
+  "update_ilo@1.0.0": {
+    name: "update_ilo",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["admin"],
+    validateInput: validateUpdateIlo,
+    validateOutput: validateCqiOutput,
+  },
+  "delete_ilo@1.0.0": {
+    name: "delete_ilo",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["admin"],
+    validateInput: validateDeleteIlo,
+    validateOutput: validateCqiOutput,
+  },
+  "reorder_ilos@1.0.0": {
+    name: "reorder_ilos",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["admin"],
+    validateInput: validateReorderIlos,
+    validateOutput: validateCqiOutput,
+  },
 };
 
 export const protectedWriteVersionForAction = (
@@ -296,7 +415,13 @@ export const protectedWriteVersionForAction = (
 ): ProtectedWriteToolVersion | undefined =>
   actionType === "create_goal" ||
   actionType === "create_planner_session" ||
-  actionType === "create_cqi_action"
+  actionType === "create_cqi_action" ||
+  // Task 6.2 — Admin ILO governance proposals share the 1.0.0 boundary
+  // version; execution is routed through typed outcome-governance handlers.
+  actionType === "create_ilo" ||
+  actionType === "update_ilo" ||
+  actionType === "delete_ilo" ||
+  actionType === "reorder_ilos"
     ? "1.0.0"
     : undefined;
 

@@ -148,6 +148,13 @@ export const PROTECTED_ACTIONS = [
   "financial_action",
   "institution_communication",
   "acknowledge_child_support_plan",
+  // Task 6.2 — Admin ILO governance (PDF §18/§25): every official outcome
+  // mutation is a protected action requiring Admin approval. A3 NEVER
+  // bypasses these.
+  "create_ilo",
+  "update_ilo",
+  "delete_ilo",
+  "reorder_ilos",
 ] as const;
 
 export type ProtectedActionType = (typeof PROTECTED_ACTIONS)[number];
@@ -180,6 +187,11 @@ export const requiredApproverRole = (
   }
   if (["change_outcome_mapping", "create_cqi_action"].includes(action)) {
     return "coordinator";
+  }
+  if (
+    ["create_ilo", "update_ilo", "delete_ilo", "reorder_ilos"].includes(action)
+  ) {
+    return "admin";
   }
   if (action === "acknowledge_child_support_plan") {
     return "parent";

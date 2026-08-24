@@ -27,13 +27,42 @@ complete without its tests.
     { "id": 0, "tasks": ["0.1", "0.2", "0.3", "0.4", "0.5"] },
     { "id": 1, "tasks": ["1.1", "1.2", "1.3", "1.4", "1.5"], "after": 0 },
     { "id": 2, "tasks": ["1.6", "1.7", "1.8"], "after": 1 },
-    { "id": 3, "tasks": ["2.1", "2.2", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "2.12", "2.3"], "after": 2 },
-    { "id": 4, "tasks": ["3.1", "3.2", "3.3", "3.4", "3.5", "3.6"], "after": 3 },
-    { "id": 5, "tasks": ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8"], "after": 4 },
+    {
+      "id": 3,
+      "tasks": [
+        "2.1",
+        "2.2",
+        "2.4",
+        "2.5",
+        "2.6",
+        "2.7",
+        "2.8",
+        "2.9",
+        "2.10",
+        "2.11",
+        "2.12",
+        "2.3"
+      ],
+      "after": 2
+    },
+    {
+      "id": 4,
+      "tasks": ["3.1", "3.2", "3.3", "3.4", "3.5", "3.6"],
+      "after": 3
+    },
+    {
+      "id": 5,
+      "tasks": ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8"],
+      "after": 4
+    },
     { "id": 6, "tasks": ["5.1", "5.2", "5.3", "5.4"], "after": 5 },
     { "id": 7, "tasks": ["6.1", "6.2", "6.3", "6.4"], "after": 6 },
     { "id": 8, "tasks": ["7.1", "7.2", "7.3", "7.4"], "after": 7 },
-    { "id": 9, "tasks": ["8.1", "8.2", "8.3", "8.4", "8.5"], "parallelWithAll": true }
+    {
+      "id": 9,
+      "tasks": ["8.1", "8.2", "8.3", "8.4", "8.5"],
+      "parallelWithAll": true
+    }
   ]
 }
 ```
@@ -55,15 +84,15 @@ complete without its tests.
 - [x] 1.3 Database constraints — DONE & live: `learning_outcomes_canonical_shape_check`, weight CHECKs on learning_outcomes + outcome_mappings.
 - [x] 1.4 Mapping validation DB-side — DONE & live: `trg_validate_outcome_mapping_hierarchy`, `trg_outcome_mapping_weight_sum` (DEFERRABLE), `trg_guard_mapped_outcome_delete`, `trg_enforce_learning_outcome_scope`.
 - [x] 1.5 Outcome RLS remediation — DONE & live: split SELECT/INSERT/UPDATE/DELETE policies per role+type WITH CHECK; institution-scoped reads; canonical-direction mapping policies.
-- [ ] 1.6 Regression tests for Phase 1: mapping-direction regression test + data-level CLO→PLO→ILO cascade tests (one-to-one, one-to-many, many-to-one, weight changes, grade updates/reversal, empty evidence, duplicate mappings, institution isolation). *(PDF §17, §38)*
-- [x] 1.7 Archive the formal outcome-data reconciliation report artifact under `docs/audits/` (counts already captured; persist as dated document). *(DONE: docs/audits/OUTCOME-DATA-RECONCILIATION-2026-08-21.md)*
-- [ ] 1.8 **[PREREQUISITE — do before 6.2 write tools]** Verify Admin ILO reorder safety end-to-end (atomic validated reorder; no arbitrary-ID upsert) and delete-dependency direction (follows canonical mapping); add e2e coverage if gaps found. *(PDF §13–14)*
+- [x] 1.6 Regression tests for Phase 1: mapping-direction regression test + data-level CLO→PLO→ILO cascade tests (one-to-one, one-to-many, many-to-one, weight changes, grade updates/reversal, empty evidence, duplicate mappings, institution isolation). _(DONE: PR #273 — cascade regression suites incl. grade reversal / weight change / duplicate mappings / institution isolation + atomic validated reorder RPC.)_
+- [x] 1.7 Archive the formal outcome-data reconciliation report artifact under `docs/audits/` (counts already captured; persist as dated document). _(DONE: docs/audits/OUTCOME-DATA-RECONCILIATION-2026-08-21.md)_
+- [x] 1.8 **[PREREQUISITE — do before 6.2 write tools]** Verify Admin ILO reorder safety end-to-end (atomic validated reorder; no arbitrary-ID upsert) and delete-dependency direction (follows canonical mapping); add e2e coverage if gaps found. _(DONE: atomic reorder RPC + delete-dependency-direction suites — PR #273; prerequisite for 6.2 satisfied.)_(PDF §13–14)\*
 
 ## Phase 2 — DeepSeek provider, Tutor migration, orchestrator, read-only tools, logging
 
 - [x] 2.1 DeepSeekProvider — DONE: `_shared/ai/providers/deepseek.ts` (v4-flash/v4-pro, retries, timeout, cost estimation from official prices); provider factory is DeepSeek-only and config hard-fails on any other `AI_PROVIDER`.
 - [x] 2.2 Provider interface — DONE: `_shared/ai/provider.ts` (AIProvider/AICompletionRequest/Response/tool-calls/errors).
-- [x] 2.3 MockProvider for deterministic tests *(PDF §29)*. *(DONE: supabase/functions/_shared/ai/providers/mock-provider.ts + src/__tests__/unit/mockProvider.test.ts; never selectable in production — factory hard-fails on non-deepseek)*
+- [x] 2.3 MockProvider for deterministic tests _(PDF §29)_. _(DONE: supabase/functions/\_shared/ai/providers/mock-provider.ts + src/**tests**/unit/mockProvider.test.ts; never selectable in production — factory hard-fails on non-deepseek)_
 - [x] 2.4 Tutor migration — DONE (deployed chat-with-tutor v18): DeepSeek generation via canonical provider boundary; SSE contract preserved; enrollment/CLO-scope/institution authorization; usage limits; academic-integrity detection; server-authorized citation validation; independence nudges; handoff triggers; plan-update triggers; Big-Five persona auto-select; L1/L2/L3 autonomy with assignment>CLO precedence and teacher-ceiling cap.
 - [x] 2.5 Embeddings — DONE: Supabase-native gte-small provider (+ optional self-hosted bge-m3 multilingual), versioned metadata, pgvector RPCs v2/v3; RAG fail-closed (no uncited fallback); untrusted-evidence framing (prompt-injection resistance).
 - [x] 2.6 Shared orchestrator — DONE: `_shared/ai/orchestrator.ts` (431 lines) + deployed `agent-orchestrator` (v10) and `agent-worker` (v10) edge functions; SPECIALISTS_BY_ROLE routing; proposal store integration; audit sink.
@@ -86,39 +115,39 @@ complete without its tests.
 ## Phase 4 — Digital Twin breadth + Mastery/Habit/Risk agents + intervention loop
 
 - [ ] 4.1 Add calculation_version/policy_version/model_version fields to student_learning_states (or a versions jsonb) per PDF §28.
-- [x] 4.2 Decide snapshot strategy: keep single-table jsonb sections (documented deviation) or add student_mastery_snapshots/student_habit_snapshots/student_risk_snapshots; document decision in design.md/data-model.md. *(DECIDED: keep single-table jsonb sections; documented in design.md §Design decisions. Snapshots may be added later only if history queries demand it.)*
-- [ ] 4.3 Implement Mastery Agent (CLO/PLO analysis, derived-ILO alignment with "derived alignment" labeling, prerequisite gaps, trends, chain explanation) using read tools only.
-- [ ] 4.4 Implement Habit Agent (consistency, streaks, sessions, late-submission patterns, intervention acceptance, timing, recovery) — deterministic-evidence-based, no invented scores.
-- [ ] 4.5 Implement Risk Agent (deterministic signals from OBE+habit evidence, structured output, escalation recommendation).
-- [ ] 4.6 Implement Intervention Agent (next safe action selection using measured_intervention_effects; drafts; approval requests).
-- [ ] 4.7 Intervention loop jobs: intervention-generation-jobs + intervention-evaluation-jobs (idempotent, batched, dead-letter) — see 8.x.
+- [x] 4.2 Decide snapshot strategy: keep single-table jsonb sections (documented deviation) or add `student_mastery_snapshots`/`student_habit_snapshots`/`student_risk_snapshots`; document decision in design.md/data-model.md. *(DECIDED: keep single-table jsonb sections; documented in design.md §Design decisions. Snapshots may be added later only if history queries demand it.)\_
+- [~] 4.3 Implement Mastery Agent (CLO/PLO analysis, derived-ILO alignment with "derived alignment" labeling, prerequisite gaps, trends, chain explanation) using read tools only. _(PARTIAL: protocol block + strict parser + orchestrator wiring landed — PR #274; end-to-end certification pending 4.8.)_
+- [~] 4.4 Implement Habit Agent (consistency, streaks, sessions, late-submission patterns, intervention acceptance, timing, recovery) — deterministic-evidence-based, no invented scores. _(PARTIAL: protocol block + uncited-signal-rejecting parser + orchestrator wiring — PR #274.)_
+- [~] 4.5 Implement Risk Agent (deterministic signals from OBE+habit evidence, structured output, escalation recommendation). _(PARTIAL: categorical-levels-only parser (numeric scores forbidden) + orchestrator wiring — PR #274.)_
+- [~] 4.6 Implement Intervention Agent (next safe action selection using `measured_intervention_effects`; drafts; approval requests). *(PARTIAL: approvalRequired-enforcing plan parser + measured-effects protocol + orchestrator wiring — PR #274; loop jobs remain.)\_
+- [~] 4.7 Intervention loop jobs: intervention-generation-jobs + intervention-evaluation-jobs (idempotent, batched, dead-letter) — see 8.x. _(LARGELY DONE: migration 20260901000001 applied LIVE — enqueue_intervention_generation_jobs_v1 (weekly-idempotent, teacher-routed, A0-excluded) + claim/complete/fail evaluation RPCs (SKIP LOCKED, lease, 3-attempt dead-letter) + pg_cron schedules (evaluation _/15min, generation hourly); intervention-jobs edge function + 10 contract tests on feat/agentic-platform-tables. Remaining: deploy function post-merge.)\*
 - [ ] 4.8 Tests: agents produce derived-alignment language only; risk scores never invented; intervention proposals always require approval per PROTECTED_ACTIONS.
 
 ## Phase 5 — Teacher & Coordinator copilots + CQI drafts
 
 - [ ] 5.1 Teacher Agent: assigned-course students, misconceptions, draft feedback, intervention drafts, question generation, lesson adaptation (draft-only; publish requires approval).
 - [ ] 5.2 Coordinator Agent: PLO/ILO alignment reads, curriculum coverage, program trends, CQI drafts (cqi-draft.ts exists — wire into specialist), accreditation evidence summaries.
-- [ ] 5.3 ILO/PLO/CLO first-class context in agent prompts via outcome-context builder (context/ module).
+- [x] 5.3 ILO/PLO/CLO first-class context in agent prompts via outcome-context builder (context/ module). _(DONE: context/outcome-context-builder.ts wired into orchestrator + unit tests outcomeContextBuilder.test.ts.)_
 - [ ] 5.4 Tests: coordinator reads ILOs but cannot edit; teacher explains alignment but cannot edit ILO/PLO; CQI drafts never auto-apply.
 
 ## Phase 6 — Parent Agent, full Admin Agent, governance/cost dashboard
 
 - [ ] 6.1 Parent Agent: verified-child summary, deadlines, attendance, support suggestions, privacy-aware explanations (uses get_parent_child_progress tool).
-- [~] 6.2 Full Admin Agent: ILO governance tools per PDF §18 — READ TOOLS REGISTERED (get_institution_ilos, get_ilo_detail, get_ilo_attainment, get_ilo_attainment_trend, get_ilo_mapping_coverage, get_ilo_program_contributions, get_ilo_evidence_summary, get_unmapped_program_outcomes, get_outcome_hierarchy_health in _shared/ai/tools/registry.ts). REMAINING: draft_ilo, propose_create/update/delete_ilo, propose_reorder_ilos, draft_ilo_governance_report via write-tools boundary → agent_action_proposals requiring Admin approval (blocked on 1.8 prerequisite).
-*(MOVED TO DEFERRED — not required for spec completion; see Deferred section.)*
+- [~] 6.2 Full Admin Agent: ILO governance tools per PDF §18 — READ TOOLS REGISTERED (`get_institution_ilos`, get_ilo_detail, get_ilo_attainment, get_ilo_attainment_trend, get_ilo_mapping_coverage, get_ilo_program_contributions, get_ilo_evidence_summary, get_unmapped_program_outcomes, get_outcome_hierarchy_health in \_shared/ai/tools/registry.ts). WRITE TOOLS IMPLEMENTED: write-tools/outcome-governance.ts — draft_ilo, propose_create/update/delete_ilo, propose_reorder_ilos, draft_ilo_governance_report all routed through createHumanApprovalProposal → agent_action_proposals requiring Admin approval (1.8 prerequisite satisfied by PR #273). Pending: merge + execution-path e2e.
+  *(MOVED TO DEFERRED — not required for spec completion; see Deferred section.)\_
 - [ ] 6.4 Tests: Admin Agent cannot create ILO without approval; no role receives unauthorized tools (registry allow-list assertions).
 
 ## Phase 7 — Controlled A3 automation
 
-- [x] 7.1 A0–A3 operational autonomy policy engine (`policy/autonomy.ts`): effective autonomy = min(institution, role, page, tool, user preference, teacher/coordinator ceiling); users may lower, never exceed ceilings. L1–L3 pedagogical autonomy stays separate (already in Tutor). *(DONE: supabase/functions/_shared/ai/policy/autonomy.ts + src/__tests__/unit/agentAutonomyPolicy.test.ts incl. PROTECTED_ACTIONS invariant)*
+- [x] 7.1 A0–A3 operational autonomy policy engine (`policy/autonomy.ts`): effective autonomy = min(institution, role, page, tool, user preference, teacher/coordinator ceiling); users may lower, never exceed ceilings. L1–L3 pedagogical autonomy stays separate (already in Tutor). _(DONE: supabase/functions/\_shared/ai/policy/autonomy.ts + src/**tests**/unit/agentAutonomyPolicy.test.ts incl. PROTECTED_ACTIONS invariant)_
 - [ ] 7.2 Institution-level feature flags for A3; evaluation thresholds; rollback controls.
-- [~] 7.3 A3 may execute ONLY pre-approved low-risk action classes; PROTECTED_ACTIONS (§25 list) never bypassed — property test asserting this invariant. *(PARTIAL: unit-level invariant covered in agentAutonomyPolicy.test.ts via mayAutoExecute over all PROTECTED_ACTIONS; fast-check property sweep remains.)*
-- [ ] 7.4 Evaluation harness: agent_evaluations table + agent-evaluation-jobs; citation/integrity/tool-correctness scoring.
+- [~] 7.3 A3 may execute ONLY pre-approved low-risk action classes; `PROTECTED_ACTIONS` (§25 list) never bypassed — property test asserting this invariant. *(PARTIAL: unit-level invariant covered in agentAutonomyPolicy.test.ts via mayAutoExecute over all `PROTECTED_ACTIONS`; fast-check property sweep remains.)*
+- [~] 7.4 Evaluation harness: `agent_evaluations` table + agent-evaluation-jobs; citation/integrity/tool-correctness scoring. *(LARGELY DONE: harness pure functions + unit tests + agent-evaluation-jobs edge function on feat/agentic-platform-tables (PR #274); table live-verified. Remaining: deploy function + cron schedule + threshold wiring from `institution_autonomy_settings`.)*
 
 ## Cross-cutting — Observability, jobs, docs, hygiene
 
 - [ ] 8.1 Tables: agent_conversations, agent_messages, agent_tool_calls (agent_tool_attempts exists — reconcile naming), agent_tasks, agent_feedback, agent_evaluations, learning_interventions, intervention_outcomes, learning_state_events (+ student_support_states if product wants it). RLS on each; no secrets/tokens/raw PII/chain-of-thought logged.
-- [ ] 8.2 Background job families (audit existing cron first; no duplicates): student-risk-jobs, learning-state-update-jobs, teacher-summary-jobs, parent-summary-jobs, coordinator-analysis-jobs, institution-outcome-health-jobs, attainment-recalculation-jobs, agent-evaluation-jobs (+ intervention jobs in 4.7). Small batches, idempotency, retry limits, dead-letter, institution scope, audit logging.
+- [~] 8.2 Background job families (audit existing cron first; no duplicates): student-risk-jobs, learning-state-update-jobs, teacher-summary-jobs, parent-summary-jobs, coordinator-analysis-jobs, institution-outcome-health-jobs, attainment-recalculation-jobs, agent-evaluation-jobs (+ intervention jobs in 4.7). Small batches, idempotency, retry limits, dead-letter, institution scope, audit logging. _(PARTIAL: intervention-generation/evaluation families DONE (4.7) + agent-evaluation-jobs (7.4) + proactive queue (pre-existing). Remaining families: student-risk-jobs, learning-state-update-jobs, teacher/parent-summary-jobs, coordinator-analysis-jobs, institution-outcome-health-jobs, attainment-recalculation-jobs.)_
 - [ ] 8.3 Docs deliverables: deployment guide, DeepSeek secret-setup guide (Supabase secrets; never print values), rollback guide, known-limitations report.
 - [ ] 8.4 Hygiene: delete stale GEMINI_API_KEY/TUTOR_PRIMARY_MODEL lines from .env.example; sync local checkout with main/live (superseded local migration files caused false audit findings); regenerate src/types/database.ts.
 - [ ] 8.5 General gates before any merge: lint, tsc, unit, integration, RLS, edge-fn schema check, Playwright, visual, a11y, Arabic/RTL, migration replay, Security Advisor, Performance Advisor (use exact package.json script names).

@@ -1,0 +1,138 @@
+name: Security Gates (36+ point verification)
+
+# One-click PR security gate: every pull request runs the full security
+# battery in parallel and merges only through the aggregate security-gate
+# check (set it as a required status check in Branch protection).
+# Layers: secrets (gitleaks) -> SAST (semgrep) -> dependencies (npm audit)
+#         -> custom invariants (36-check vitest suites + migration/runtime
+#            governance) -> live Supabase posture (Management API advisors).
+# Blocking policy: any job failure blocks merge. Advisors block on ERROR-level
+# findings only; WARN/INFO are surfaced in the step summary with an allowlist
+# (scripts/advisors-error-baseline.json) for pre-existing ERROR items.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1" # weekly drift detection
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-gates-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Secrets scan (gitleaks, incl. git history)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast:
+    name: "SAST (semgrep: injection / XSS / SSRF / key leakage)"
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run project security rules + TypeScript audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          semgrep scan --config .semgrep/sec-rules.yml --config p/typescript \
+            --severity ERROR --error --metrics=off
+
+  dependencies:
+    name: Dependency audit (npm SCAs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install (scripts disabled for supply-chain safety)
+        run: npm ci --ignore-scripts
+      - name: Fail on high/critical vulnerabilities (dev-only unpatched allowlisted)
+        run: node scripts/check-audit.cjs
+
+  invariants:
+    name: Custom security invariants (36-check suites + runtime governance)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - name: 36-check security suites + agentic certification
+        run: |
+          npx vitest --run \
+            src/__tests__/security \
+            src/__tests__/properties/agentCertification.property.test.ts \
+            src/__tests__/properties/llmSecurity.property.test.ts
+      - name: Agentic runtime contracts
+        run: |
+          npx vitest --run \
+            src/__tests__/unit/interventionJobsSecurityContract.test.ts \
+            src/__tests__/unit/agentWorkerSecurityContract.test.ts \
+            src/__tests__/unit/serverSecret.test.ts \
+            src/__tests__/unit/agentAutonomyPolicy.test.ts
+      - name: Migration + runtime governance
+        run: |
+          npm run db:check-replay
+          npm run db:check-dup-names
+          npm run db:check-edge-schema
+          npm run check:runtime-dependencies
+
+  supabase-posture:
+    name: Live Supabase posture (Security Advisors)
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: cdlgtbvxlxjpcddjazzx
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch Security Advisors and block on new ERROR findings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN not configured"; exit 1; }
+          curl -sS -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/advisors/security" \
+            > advisors.json
+          node scripts/check-advisors.cjs advisors.json scripts/advisors-error-baseline.json
+
+  gate:
+    name: security-gate (required check)
+    needs: [secrets, sast, dependencies, invariants, supabase-posture]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate gate verdict
+        shell: bash
+        run: |
+          results='${{ join(needs.*.result, ' ') }}'
+          echo "Job results: ${results}"
+          if echo "${results}" | grep -Eq 'failure|cancelled'; then
+            echo "::error::One or more security gates failed";
+            exit 1;
+          fi
+          echo "All security gates passed."
