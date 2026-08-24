@@ -1,0 +1,11 @@
+{
+  "_comment": "Allowlist for dependency-audit CI gate (scripts/check-audit.cjs). ONLY dev-only advisories with no patched upstream release may be listed. Each entry must state the GHSA id, why it cannot be fixed, and a review-by date.",
+  "advisories": ["GHSA-jmr9-qjv8-65gv"],
+  "justifications": {
+    "GHSA-jmr9-qjv8-65gv": {
+      "package": "extract-zip (via @puppeteer/browsers <- lighthouse/@lhci/cli, devDependencies only)",
+      "reason": "No patched extract-zip release exists (all versions affected); upstream fix pending. Not bundled into production build; exploit requires running lighthouse extraction locally against a malicious zip.",
+      "review_by": "2026-11-30"
+    }
+  }
+}
