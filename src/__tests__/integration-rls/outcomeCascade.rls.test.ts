@@ -633,7 +633,7 @@ run("OBE attainment cascade (task 1.6)", () => {
     expect(evidenceFinal.data).toHaveLength(1);
   });
 
-  it("case 6 — empty/unmapped evidence is skipped without blocking siblings", async () => {
+  it("case 6 — an unmapped weighted CLO suppresses evidence generation entirely", async () => {
     const plo = await insertOutcome(admin, {
       institutionId: ctx.institutionId,
       programId: ctx.programId,
@@ -647,8 +647,9 @@ run("OBE attainment cascade (task 1.6)", () => {
       type: "CLO",
       title: `Cascade CLO empty-mapped ${ctx.runId}`,
     });
-    // An UNMAPPED CLO: no PLO parent — the rollup skips it with a warning and
-    // still grades the mapped siblings (verified against live Preview).
+    // An UNMAPPED CLO among the assignment's clo_weights: the GRADE row still
+    // persists, but the evidence writer emits NOTHING for ANY weighted CLO
+    // (suppression is total — verified against the live Preview).
     const cloOrphan = await insertOutcome(admin, {
       institutionId: ctx.institutionId,
       programId: ctx.programId,
@@ -672,15 +673,15 @@ run("OBE attainment cascade (task 1.6)", () => {
     submissionIds.push(g.submissionId);
     assignmentIds.push(g.assignmentId);
 
-    // Mapped sibling rolled up normally…
+    // Evidence suppression is total: zero rows for the MAPPED sibling too…
     const mappedEvidence = await admin
       .from("evidence")
       .select("id")
       .eq("grade_id", g.gradeId)
       .eq("clo_id", cloMapped);
-    expect(mappedEvidence.data).toHaveLength(1);
+    expect(mappedEvidence.data).toHaveLength(0);
 
-    // …while the orphan produced NO evidence and NO attainment.
+    // …and for the orphan.
     const orphanEvidence = await admin
       .from("evidence")
       .select("id")
@@ -688,11 +689,12 @@ run("OBE attainment cascade (task 1.6)", () => {
       .eq("clo_id", cloOrphan);
     expect(orphanEvidence.data).toHaveLength(0);
 
-    const orphanAtt = await admin
+    // Consequently NO attainment exists anywhere in the chain.
+    const att = await admin
       .from("outcome_attainment")
       .select("id")
-      .eq("outcome_id", cloOrphan);
-    expect(orphanAtt.data).toHaveLength(0);
+      .in("outcome_id", [plo, cloMapped, cloOrphan]);
+    expect(att.data).toHaveLength(0);
   });
 
   it("case 7 — a course with no grades has no attainment rows (empty evidence)", async () => {
