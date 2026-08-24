@@ -1,0 +1,87 @@
+﻿# Edeviser security rules (Supabase Edge Functions / Deno / React SPA).
+# Runs alongside the p/typescript registry in security-gates.yml.
+rules:
+  - id: edge-fn-hardcoded-fallback-secret
+    message: >-
+      An environment secret has a hardcoded fallback value. A missing secret
+      should fail closed, never fall back to a literal.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - supabase/functions/**
+    patterns:
+      - pattern: Deno.env.get($KEY) ?? $LITERAL
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (?i).*(key|secret|token|password).*
+      - metavariable-regex:
+          metavariable: $LITERAL
+          regex: ^["''][^"'']+["'']$
+
+  - id: edge-fn-logs-secret-value
+    message: >-
+      Logging an environment value can leak credentials into platform logs
+      (security checklist #11/#35). Log classifications, never values.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - supabase/functions/**
+    pattern-either:
+      - pattern: console.log(..., Deno.env.get(...), ...)
+      - pattern: console.error(..., Deno.env.get(...), ...)
+
+  - id: client-imports-server-secret
+    message: >-
+      Client code must never import the server secret module or reference
+      service-role credentials (security checklist #1/#14).
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - src/**
+    pattern-either:
+      - pattern: import ... from "...serverSecret..."
+      - pattern: import ... from "...timing-safe-equal..."
+
+  - id: edge-fn-template-fetch
+    message: >-
+      fetch() with an interpolated URL risks SSRF if any segment derives from
+      a request (security checklist #23). Fetch only constant/allow-listed
+      URLs.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - supabase/functions/**
+    pattern-regex: fetch\(\s*`[^`]*\$\{
+
+  - id: client-raw-html-injection
+    message: >-
+      dangerouslySetInnerHTML bypasses React auto-escaping and enables XSS
+      (security checklist #19). Render text nodes or a sanitized, reviewed
+      component instead.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - src/**
+    patterns:
+      - pattern: dangerouslySetInnerHTML={{ __html: $HTML }}
+      - metavariable-pattern:
+          metavariable: $HTML
+          pattern-not: sanitizeHtml(...)
+
+  - id: edge-fn-unbounded-response-array
+    message: >-
+      Returning a table query without .limit() can dump unbounded rows to any
+      authorized caller and enable consumption abuse (LLM10 / checklist #28).
+    severity: WARNING
+    languages: [typescript, javascript]
+    paths:
+      include:
+        - supabase/functions/**
+    pattern-either:
+      - pattern: $Q.from(...).select(...)
+      - pattern: $Q.from(...)

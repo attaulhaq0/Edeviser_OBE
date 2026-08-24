@@ -33,8 +33,8 @@ const walkTs = (dir: string, acc: string[] = []): string[] => {
 
 describe("check 19 - XSS is structurally prevented", () => {
   it("never renders raw HTML in React components", () => {
-    const offenders = walkTs("src").filter((f) =>
-      /dangerouslySetInnerHTML/.test(read(f))
+    const offenders = walkTs("src").filter(
+      (f) => !f.includes("__tests__") && /dangerouslySetInnerHTML/.test(read(f))
     );
     expect(offenders).toEqual([]);
   });
