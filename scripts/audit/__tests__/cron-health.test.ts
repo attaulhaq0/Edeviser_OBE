@@ -50,6 +50,11 @@ describe("cron health Vercel Preview protection", () => {
     ).toBe(60_000);
     expect(
       getProbeTimeoutMs(
+        "https://e-deviser-git-branch-attaulhaq0s-projects.vercel.app/api/cron/streak-reset"
+      )
+    ).toBe(60_000);
+    expect(
+      getProbeTimeoutMs(
         "https://e-deviser-git-branch-attaulhaq0s-projects.vercel.app/api/cron/leaderboard-refresh"
       )
     ).toBe(30_000);

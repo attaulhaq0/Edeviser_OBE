@@ -128,6 +128,11 @@ const TRUSTED_VERCEL_PREVIEW_HOST =
   /^e-deviser-git-[a-z0-9-]+-attaulhaq0s-projects\.vercel\.app$/;
 const DEFAULT_PROBE_TIMEOUT_MS = 30_000;
 const COMPUTE_AT_RISK_PROBE_TIMEOUT_MS = 60_000;
+// streak-reset iterates every active student's streak on a shared Preview
+// database that also serves concurrent audit stages (RLS Smoke, etc.); its
+// second idempotency probe exceeded 30s under that contention while the
+// first call completed in <8s. Mirrors the compute-at-risk allowance.
+const STREAK_RESET_PROBE_TIMEOUT_MS = 60_000;
 
 export const isVercelPreviewUrl = (url: string): boolean => {
   try {
@@ -159,9 +164,14 @@ export const buildProbeHeaders = (
 
 export const getProbeTimeoutMs = (url: string): number => {
   try {
-    return new URL(url).pathname === "/api/cron/compute-at-risk"
-      ? COMPUTE_AT_RISK_PROBE_TIMEOUT_MS
-      : DEFAULT_PROBE_TIMEOUT_MS;
+    const pathname = new URL(url).pathname;
+    if (pathname === "/api/cron/compute-at-risk") {
+      return COMPUTE_AT_RISK_PROBE_TIMEOUT_MS;
+    }
+    if (pathname === "/api/cron/streak-reset") {
+      return STREAK_RESET_PROBE_TIMEOUT_MS;
+    }
+    return DEFAULT_PROBE_TIMEOUT_MS;
   } catch {
     return DEFAULT_PROBE_TIMEOUT_MS;
   }
