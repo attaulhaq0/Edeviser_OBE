@@ -31,7 +31,7 @@ jobs:
         # is what this repo installs: @changesets/cli ^2.31.0). v1 input names
         # are title/commit/publish — the original inputs were correct; only the
         # action tag was wrong (@v2 requires CLI v3).
-        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
           title: "chore(release): version bump"
           commit: "chore(release): version bump"
