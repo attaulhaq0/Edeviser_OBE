@@ -1,22 +1,34 @@
--- Task 4.7 corrective follow-up: repair enqueue_intervention_generation_jobs_v1
--- (runtime defect caught by production cron monitoring).
+-- Task 4.7 corrective follow-up: repair + harden
+-- enqueue_intervention_generation_jobs_v1 (runtime defect caught by production
+-- cron monitoring; hardening from CodeRabbit review, all findings verified).
 --
--- Two defects made every hourly generation tick fail at first execution:
---   1) 42883: `(institution.settings->>'ai_proactive'->>'enabled')::boolean`
---      double-extracted text (`->>` yields text; a second `->>` on text has no
---      operator). Correct form path-extracts first: `->'ai_proactive'->>'enabled'`.
---   2) 42703: payloads referenced `scoped.learning_state_version`, but the live
---      student_learning_states column is `version`; the final SELECT fed
---      `payloads.learning_state_version` into proactive_agent_jobs.
---
--- Supersedes the registration from 20260901000001 (kept immutable). Verified
--- live: SELECT enqueue_intervention_generation_jobs_v1() -> 0 rows, no error.
+-- Original defects (live-verified):
+--   1) 42883: double text-extraction `->>'ai_proactive'->>'enabled'`
+--   2) 42703: non-existent learning_state_version column references
+-- CodeRabbit hardening:
+--   F2: NULL p_batch_size bypassed range validation
+--   F3: deterministic ORDER BY before LIMIT
+--   F4: fail-closed governance defaults (proactive OFF, autonomy A0 unless
+--       the institution explicitly configures otherwise)
+--   F6: tenant isolation — course institution via programs, teacher
+--       institution match, active student_courses enrollment required
+-- Rejected: F5 (relaxing programId) — the signal contract always emits it.
+-- Supersedes the registration from 20260901000001 (kept immutable).
 
-CREATE OR REPLACE FUNCTION public.enqueue_intervention_generation_jobs_v1
+CREATE OR REPLACE FUNCTION public.enqueue_intervention_generation_jobs_v1(
+  p_institution_id uuid DEFAULT NULL,
+  p_batch_size integer DEFAULT 50,
+  p_trigger_source text DEFAULT 'schedule'
+)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
 DECLARE
   v_inserted integer := 0;
 BEGIN
-  IF p_batch_size NOT BETWEEN 1 AND 100 THEN
+  IF p_batch_size IS NULL OR p_batch_size NOT BETWEEN 1 AND 100 THEN
     RAISE EXCEPTION 'Batch size must be between 1 and 100' USING ERRCODE = '22023';
   END IF;
   IF p_trigger_source NOT IN ('schedule', 'evidence_event') THEN
@@ -43,12 +55,12 @@ BEGIN
         THEN (institution.settings->>'ai_proactive_enabled')::boolean
         WHEN jsonb_typeof(institution.settings->'ai_proactive'->'enabled') = 'boolean'
         THEN (institution.settings->'ai_proactive'->>'enabled')::boolean
-        ELSE true
+        ELSE false
       END
       AND COALESCE(
         institution.settings->'ai_proactive'->>'autonomy',
         institution.settings->>'ai_operational_autonomy',
-        'A1'
+        'A0'
       ) <> 'A0'
   ),
   parsed AS (
@@ -60,6 +72,9 @@ BEGIN
         '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
         THEN (candidate.risk_signal->>'programId')::uuid END AS signal_program_id
     FROM candidate_states candidate
+    -- Signal contract (twin builder + specialist parsers) always emits all
+    -- three keys; requiring programId rejects malformed signals rather than
+    -- accepting them just because proactive_agent_jobs.program_id is nullable.
     WHERE candidate.risk_signal ?& ARRAY['courseId', 'programId', 'outcomeId']
       AND candidate.risk_signal->>'outcomeId' ~*
         '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
@@ -73,10 +88,21 @@ BEGIN
     JOIN public.courses course
       ON course.id = parsed.signal_course_id
      AND course.teacher_id IS NOT NULL
+    JOIN public.programs program
+      ON program.id = course.program_id
+     AND program.institution_id = parsed.institution_id
     JOIN public.profiles teacher
       ON teacher.id = course.teacher_id
      AND teacher.is_active = true
-    WHERE NOT EXISTS (
+     AND teacher.institution_id = parsed.institution_id
+    WHERE EXISTS (
+      SELECT 1
+      FROM public.student_courses sc
+      WHERE sc.student_id = parsed.student_id
+        AND sc.course_id = course.id
+        AND sc.status = 'active'
+    )
+    AND NOT EXISTS (
       SELECT 1
       FROM public.proactive_agent_jobs j
       WHERE j.institution_id = parsed.institution_id
@@ -86,13 +112,15 @@ BEGIN
         AND j.created_at > now() - interval '7 days'
         AND j.status <> 'suppressed'
     )
+    ORDER BY parsed.fresh_until DESC, parsed.student_id ASC,
+      parsed.risk_signal->>'outcomeId' ASC
     LIMIT p_batch_size
   ),
   payloads AS (
     SELECT scoped.*,
       jsonb_build_object(
         'contractVersion', 'intervention-generation-v1',
-        'learningStateVersion', scoped.learning_state_version,
+        'learningStateVersion', scoped.version,
         'studentId', scoped.student_id,
         'courseId', scoped.scoped_course_id,
         'programId', scoped.scoped_program_id,
@@ -131,9 +159,3 @@ BEGIN
   RETURN v_inserted;
 END;
 $function$;
-
-REVOKE ALL ON FUNCTION public.enqueue_intervention_generation_jobs_v1(uuid, integer, text)
-  FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.enqueue_intervention_generation_jobs_v1(uuid, integer, text)
-  TO service_role;
-
