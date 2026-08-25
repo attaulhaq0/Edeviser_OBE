@@ -533,6 +533,9 @@ jobs:
   report:
     name: Audit Report
     runs-on: ubuntu-latest
+    # Least privilege: aggregates stage results and uploads artifacts only.
+    permissions:
+      contents: read
     needs:
       - security
       - static-scanners
