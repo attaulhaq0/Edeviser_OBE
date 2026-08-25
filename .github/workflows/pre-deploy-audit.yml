@@ -343,6 +343,8 @@ jobs:
       (github.event_name != 'pull_request' || needs['preview-validation-relevance'].outputs.required == 'true')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: ${{ env.NODE_VERSION_FILE }}
@@ -606,7 +608,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           AUDIT_ENV: ${{ env.AUDIT_ENV }}
           REQUIRED_AUDIT_STAGE_RESULTS: >-
-            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs['static-scanners'].result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ github.event_name == 'pull_request' && needs['preview-validation-relevance'].outputs.required != 'true' && 'success' || needs.cron.result }}"}
+            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs['static-scanners'].result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ needs['preview-validation-relevance'].result == 'failure' && 'failure' || (github.event_name == 'pull_request' && needs['preview-validation-relevance'].outputs.required != 'true' && 'success' || needs.cron.result) }}"}
 
       - uses: actions/upload-artifact@v7
         if: always()
