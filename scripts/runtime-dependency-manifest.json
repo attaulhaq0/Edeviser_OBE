@@ -70,6 +70,23 @@
         "supabase/functions/_shared/invitation.ts",
         "supabase/functions/_shared/serverSecret.ts"
       ]
+    },
+    {
+      "name": "notifications-runtime",
+      "deploymentOwner": "platform-runtime",
+      "functions": [
+        { "slug": "send-email-notification", "verifyJwt": false },
+        { "slug": "weekly-summary-cron", "verifyJwt": false },
+        { "slug": "streak-risk-cron", "verifyJwt": false },
+        { "slug": "notification-digest", "verifyJwt": false },
+        { "slug": "perfect-day-prompt", "verifyJwt": false },
+        { "slug": "exam-period-notify", "verifyJwt": false },
+        { "slug": "compute-at-risk-signals", "verifyJwt": false }
+      ],
+      "runtimeDependencyPaths": [
+        "supabase/functions/_shared/invitation.ts",
+        "supabase/functions/_shared/serverSecret.ts"
+      ]
     }
   ]
 }

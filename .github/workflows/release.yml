@@ -27,10 +27,11 @@ jobs:
       - run: npm ci
 
       - name: Create Release PR or Publish
-        uses: changesets/action@v2
+        # Pinned to v2.1.1 commit (zizmor unpinned-uses policy).
+        uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
-          title: "chore(release): version bump"
-          commit: "chore(release): version bump"
-          publish: echo "No publish step — update version only"
+          commit-message: "chore(release): version bump"
+          pr-title: "chore(release): Version Packages"
+          publish-script: echo "No publish step — update version only"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

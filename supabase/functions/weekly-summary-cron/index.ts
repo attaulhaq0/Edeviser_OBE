@@ -125,8 +125,16 @@ serve(async (req) => {
                   .from("submissions")
                   .select("id", { count: "exact", head: true })
                   .eq("student_id", student.id)
-                  .gte("created_at", weekAgoISO),
+                  // submissions has NO created_at column (prod-log drift catch);
+                  // the real submission timestamp is submitted_at.
+                  .gte("submitted_at", weekAgoISO),
               ]);
+
+              const submissionsErr = submissionsResult.error;
+              if (submissionsErr) throw submissionsErr;
+              // Surface silent-degradation paths for the other aggregates too.
+              if (xpResult.error) throw xpResult.error;
+              if (badgesResult.error) throw badgesResult.error;
 
               const xpEarned = (xpResult.data ?? []).reduce(
                 (sum: number, row: { xp_amount: number }) =>

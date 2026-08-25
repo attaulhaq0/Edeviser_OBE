@@ -22,8 +22,15 @@ const functionJwtSetting = (name: string): string | null => {
 };
 
 describe("email function authentication contract", () => {
-  it("keeps both email endpoints behind the Supabase JWT gateway", () => {
-    expect(functionJwtSetting("send-email-notification")).toBe("true");
+  it("splits gateway policy by caller class (server pipeline off, admin UI on)", () => {
+    // send-email-notification is invoked server-to-server by
+    // weekly-summary-cron & streak-risk-cron using the managed secret key
+    // (non-JWT). Gateway JWT verification MUST stay OFF or every cron email
+    // 401s before the handler's own service/admin gate runs (prod incident
+    // 2026-08-24). Its in-handler gate is asserted below.
+    expect(functionJwtSetting("send-email-notification")).toBe("false");
+    // send-invitation-email is called from the admin bulk-import UI with a
+    // real user JWT, so the gateway keeps verifying.
     expect(functionJwtSetting("send-invitation-email")).toBe("true");
   });
 
