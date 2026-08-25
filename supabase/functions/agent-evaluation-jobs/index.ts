@@ -20,9 +20,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   evaluateRun,
   type CitationRecord,
+  type EvaluationThresholds,
   type IntegritySignal,
   type ToolCallRecord,
 } from "../_shared/ai/evaluation/harness.ts";
+import { parseEvaluationThresholds } from "../_shared/ai/evaluation/thresholds.ts";
 import { getManagedServerKey } from "../_shared/serverSecret.ts";
 import { timingSafeEqual } from "../_shared/timing-safe-equal.ts";
 
@@ -190,6 +192,7 @@ serve(async (req: Request) => {
         evaluated: 0,
         passed: 0,
         failed: 0,
+        skippedUnconfigured: 0,
       });
     }
 
@@ -208,10 +211,58 @@ serve(async (req: Request) => {
       .filter((id) => !alreadyEvaluated.has(id))
       .slice(0, request.batchSize);
 
+    // 3. Task 7.4 threshold wiring: institutions without configured
+    // evaluation_thresholds are skipped (fail-closed opt-in governance).
+    const institutionIdsOfPending = [
+      ...new Set(
+        pending
+          .map((id) => runRows.find((row) => row.id === id))
+          .map((row) => (row ? uuid(row.institution_id) : undefined))
+          .filter((id): id is string => id !== undefined)
+      ),
+    ];
+    const thresholdsByInstitution = new Map<
+      string,
+      EvaluationThresholds | null
+    >();
+    if (institutionIdsOfPending.length > 0) {
+      const { data: settingsRows, error: settingsError } = await admin
+        .from("institution_autonomy_settings")
+        .select("institution_id, evaluation_thresholds")
+        .in("institution_id", institutionIdsOfPending);
+      if (settingsError) throw new Error("Autonomy settings lookup failed");
+      const configured = new Set(
+        ((settingsRows ?? []) as Record<string, unknown>[])
+          .filter(
+            (row) =>
+              typeof row.institution_id === "string" &&
+              parseEvaluationThresholds(row.evaluation_thresholds) !== null
+          )
+          .map((row) => row.institution_id as string)
+      );
+      for (const institutionId of institutionIdsOfPending) {
+        if (!configured.has(institutionId)) continue;
+        const row = ((settingsRows ?? []) as Record<string, unknown>[]).find(
+          (candidate) => candidate.institution_id === institutionId
+        );
+        thresholdsByInstitution.set(
+          institutionId,
+          parseEvaluationThresholds(row?.evaluation_thresholds)
+        );
+      }
+    }
+    const eligible = pending.filter((runId) => {
+      const runRow = runRows.find((row) => row.id === runId);
+      const institutionId = runRow ? uuid(runRow.institution_id) : undefined;
+      return institutionId !== undefined &&
+        thresholdsByInstitution.has(institutionId);
+    });
+    const skippedUnconfigured = pending.length - eligible.length;
+
     let passedCount = 0;
     let failedCount = 0;
 
-    for (const runId of pending) {
+    for (const runId of eligible) {
       const runRow = runRows.find((row) => row.id === runId);
       const institutionId = runRow ? uuid(runRow.institution_id) : undefined;
       if (!runRow || !institutionId) continue;
@@ -256,11 +307,16 @@ serve(async (req: Request) => {
         toolCallRecordOf
       );
 
-      const result = evaluateRun({
-        citations,
-        integritySignals,
-        toolCalls: toolRecords,
-      });
+      const result = evaluateRun(
+        {
+          citations,
+          integritySignals,
+          toolCalls: toolRecords,
+        },
+        institutionId !== undefined
+          ? thresholdsByInstitution.get(institutionId) ?? undefined
+          : undefined
+      );
 
       const specialist =
         typeof runRow.specialist === "string" ? runRow.specialist : "unknown";
@@ -292,9 +348,10 @@ serve(async (req: Request) => {
     return json(200, {
       success: true,
       scanned: candidateIds.length,
-      evaluated: pending.length,
+      evaluated: eligible.length,
       passed: passedCount,
       failed: failedCount,
+      skippedUnconfigured,
     });
   } catch (error) {
     console.error(
