@@ -19,7 +19,7 @@ describe("pre-deployment audit artifact policy", () => {
       /Download cron health\r?\n\s+if: needs\.cron\.result != 'skipped'/
     );
     expect(workflow).toMatch(
-      /Download Nova Act logs\r?\n\s+if: needs\.nova-act\.result != 'skipped'/
+      /Download Nova Act logs\r?\n\s+if: (needs\.nova-act|needs\['nova-act'\])\.result != 'skipped'/
     );
   });
 
