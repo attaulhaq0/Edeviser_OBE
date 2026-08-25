@@ -81,7 +81,8 @@
         { "slug": "notification-digest", "verifyJwt": false },
         { "slug": "perfect-day-prompt", "verifyJwt": false },
         { "slug": "exam-period-notify", "verifyJwt": false },
-        { "slug": "compute-at-risk-signals", "verifyJwt": false }
+        { "slug": "compute-at-risk-signals", "verifyJwt": false },
+        { "slug": "generate-starter-week", "verifyJwt": false }
       ],
       "runtimeDependencyPaths": [
         "supabase/functions/_shared/invitation.ts",
