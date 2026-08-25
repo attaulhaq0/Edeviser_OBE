@@ -493,7 +493,7 @@ jobs:
     # silently skipping its cases.
     needs: [preview-validation-relevance, runtime-deployment-impact]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required == 'true'
+    if: github.event_name == 'pull_request' && needs['preview-validation-relevance'].outputs.required == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -597,10 +597,10 @@ jobs:
           done
 
       - name: Deploy exact manifest-derived Edge closure to isolated Preview
-        if: needs.runtime-deployment-impact.outputs.deployment_required == 'true'
+        if: needs['runtime-deployment-impact'].outputs.deployment_required == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          DEPLOYMENT_CLOSURE: ${{ needs.runtime-deployment-impact.outputs.deployment_closure }}
+          DEPLOYMENT_CLOSURE: ${{ needs['runtime-deployment-impact'].outputs.deployment_closure }}
         run: |
           set -euo pipefail
           test -n "$DEPLOYMENT_CLOSURE" || { echo "::error::runtime resolver selected an empty closure"; exit 1; }
