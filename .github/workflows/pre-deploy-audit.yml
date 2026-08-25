@@ -337,12 +337,18 @@ jobs:
   cron:
     name: Cron Health
     runs-on: ubuntu-latest
+    # Least privilege: checkout needs contents:read; comment lookup needs issues:read.
+    permissions:
+      contents: read
+      issues: read
     needs: [build, preflight, preview-validation-relevance]
     if: >-
       always() && needs.preflight.outputs.supabase_available == 'true' &&
-      (github.event_name != 'pull_request' || needs.preview-validation-relevance.outputs.required == 'true')
+      (github.event_name != 'pull_request' || needs['preview-validation-relevance'].outputs.required == 'true')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: ${{ env.NODE_VERSION_FILE }}
@@ -527,12 +533,16 @@ jobs:
   report:
     name: Audit Report
     runs-on: ubuntu-latest
+    # Least privilege: aggregates stage results and uploads artifacts only.
+    permissions:
+      contents: read
     needs:
       - security
       - static-scanners
       - connectivity
       - rls
       - cron
+      - preview-validation-relevance
       - e2e
       - nova-act
     if: always()
@@ -585,7 +595,7 @@ jobs:
           path: audit/output/
 
       - name: Download Nova Act logs
-        if: needs.nova-act.result != 'skipped'
+        if: needs['nova-act'].result != 'skipped'
         uses: actions/download-artifact@v8
         with:
           name: nova-act-session-logs
@@ -605,7 +615,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           AUDIT_ENV: ${{ env.AUDIT_ENV }}
           REQUIRED_AUDIT_STAGE_RESULTS: >-
-            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs.static-scanners.result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ github.event_name == 'pull_request' && needs.preview-validation-relevance.outputs.required != 'true' && 'success' || needs.cron.result }}"}
+            {"security":"${{ needs.security.result }}","static-scanners":"${{ needs['static-scanners'].result }}","connectivity":"${{ needs.connectivity.result }}","rls":"${{ needs.rls.result }}","cron":"${{ github.event_name == 'pull_request' && needs['preview-validation-relevance'].result != 'success' && 'failure' || (github.event_name == 'pull_request' && needs['preview-validation-relevance'].outputs.required != 'true' && 'success' || needs.cron.result) }}"}
 
       - uses: actions/upload-artifact@v7
         if: always()

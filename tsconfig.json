@@ -17,10 +17,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    // TS 6.0: baseUrl deprecated; paths now resolve relative to this config.
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
