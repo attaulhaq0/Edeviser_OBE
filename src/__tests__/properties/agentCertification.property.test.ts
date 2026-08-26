@@ -254,35 +254,64 @@ describe("Property 6 (6.4/5.4): role-scoped tool surfaces", () => {
   it("keeps coordinator CQI output draft-only (no execution path)", () => {
     expect(PROTECTED_ACTIONS).toContain("create_cqi_action");
 
-    const source = ts.createSourceFile(
-      "cqi-draft.ts",
-      read("supabase/functions/_shared/ai/cqi-draft.ts"),
-      ts.ScriptTarget.Latest,
-      true
-    );
+    // Fail-closed by construction: every invocation must be either (a) a
+    // call to something declared IN this file, or (b) a member call on a
+    // whitelisted pure global (JSON/Object/Array/Number/Set/String/Boolean).
+    // Anything else - fetch, Deno.*, globalThis aliases, Reflect.apply,
+    // Function constructors - fails. Aliasing cannot smuggle I/O through:
+    // binding to a prohibited global (e.g. `const s = globalThis.fetch`)
+    // is itself flagged, so the alias never binds cleanly.
+    const declared = new Set<string>();
+    const collectDeclared = (node: ts.Node): void => {
+      if (
+        ts.isFunctionDeclaration(node) &&
+        node.name &&
+        ts.isIdentifier(node.name)
+      )
+        declared.add(node.name.text);
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name))
+        declared.add(node.name.text);
+      if (ts.isParameter(node) && ts.isIdentifier(node.name))
+        declared.add(node.name.text);
+      node.forEachChild(collectDeclared);
+    };
+    collectDeclared(source);
+
+    const allowedGlobalRoots = new Set([
+      "JSON",
+      "Object",
+      "Array",
+      "Number",
+      "Set",
+      "String",
+      "Boolean",
+    ]);
     const offenders: string[] = [];
     const visit = (node: ts.Node): void => {
       if (ts.isImportDeclaration(node))
         offenders.push(`import: ${node.moduleSpecifier.getText()}`);
-      // Fail-closed: only `new Set(...)` is expected; any other constructor
-      // (WebSocket, Request, Headers, ...) is an outbound-operation risk.
+      if (
+        ts.isIdentifier(node) &&
+        (node.text === "globalThis" || node.text === "window")
+      )
+        offenders.push(`global reference: ${node.text}`);
       if (ts.isNewExpression(node)) {
         const target = node.expression.getText();
         if (target !== "Set") offenders.push(`new ${target}()`);
       }
       if (ts.isCallExpression(node)) {
         const e = node.expression;
-        // Fail-closed: computed/dynamic invocations (globalThis["fetch"](...),
-        // obj[name](...)) cannot be statically vetted -> reject outright.
         if (ts.isElementAccessExpression(e)) {
           offenders.push(`${e.getText()}() [dynamic invocation]`);
+        } else if (ts.isIdentifier(e)) {
+          if (!declared.has(e.text)) offenders.push(`${e.text}() [unknown]`);
         } else {
           const expr = e.getText();
+          const root = expr.split(".")[0];
           if (
-            /(^|\.)(fetch|rpc|insert|update|delete|upsert|remove|createClient)$/.test(
-              expr
-            ) ||
-            expr.startsWith("Deno.")
+            !declared.has(root) &&
+            !allowedGlobalRoots.has(root) &&
+            !expr.startsWith("this.")
           )
             offenders.push(expr);
         }
