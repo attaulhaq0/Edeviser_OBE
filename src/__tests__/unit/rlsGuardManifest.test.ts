@@ -54,6 +54,19 @@ describe("previewRefMismatchReason (#278)", () => {
     ).toContain("resolvable");
   });
 
+  it("rejects a lookalike suffixed Supabase host even over HTTPS", () => {
+    const env = {
+      dbEnv: "preview",
+      supabaseUrl:
+        "https://bbbbbbbbbbbbbbbbbbbbbb.supabase.co.attacker.example",
+      supabaseAnonKey: "k",
+      supabaseServiceRoleKey: "k",
+      previewRef: "bbbbbbbbbbbbbbbbbbbbbb",
+    } satisfies RlsEnv;
+    expect(extractProjectRef(env.supabaseUrl)).toBeNull();
+    expect(previewRefMismatchReason(env)).toContain("not a resolvable");
+  });
+
   it("rejects a cleartext HTTP URL even when the ref matches", () => {
     expect(
       previewRefMismatchReason({

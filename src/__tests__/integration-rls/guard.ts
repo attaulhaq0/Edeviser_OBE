@@ -73,13 +73,15 @@ export const readRlsEnv = (env: NodeJS.ProcessEnv = process.env): RlsEnv => ({
 /**
  * Extracts the Supabase project ref from a project URL.
  * `https://abcdefgh.supabase.co` -> `abcdefgh`. Returns `null` when the URL is
- * absent or not in the expected `<ref>.supabase.(co|in|...)` form.
+ * absent or not in the expected `<ref>.supabase.(co|in)` form. The public
+ * suffix is anchored strictly so lookalike hosts such as
+ * `ref.supabase.co.attacker.example` cannot resolve to a ref.
  */
 export const extractProjectRef = (url?: string): string | null => {
   if (!url) return null;
   try {
     const { hostname } = new URL(url);
-    const match = /^([a-z0-9]+)\.supabase\.[a-z.]+$/i.exec(hostname);
+    const match = /^([a-z0-9]+)\.supabase\.(?:co|in)$/i.exec(hostname);
     return match?.[1] ?? null;
   } catch {
     return null;
