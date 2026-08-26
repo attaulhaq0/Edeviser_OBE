@@ -37,7 +37,9 @@ import {
   parseHabitAnalysis,
   parseInterventionPlan,
   parseMasteryAnalysis,
+  parseParentChildSummary,
   parseRiskAssessment,
+  parseTeacherCopilotOutput,
   type HabitAnalysis,
   type InterventionPlan,
   type MasteryAnalysis,
@@ -177,6 +179,35 @@ const evidenceIds = (value: unknown, ids = new Set<string>()): Set<string> => {
       if (key === "id" && typeof entry === "string" && entry.length > 0)
         ids.add(entry);
       else evidenceIds(entry, ids);
+    }
+  }
+  return ids;
+};
+
+/**
+ * Task 6.1 — verified-child scope for the parent specialist. Collects the
+ * student/child ids that appear in the evidence packet; the packet is built
+ * exclusively from tool reads whose authorizeScope already enforced
+ * parent_student_links(verified)+institution+active for the caller. An empty
+ * set makes parseParentChildSummary reject every summary (fail-closed).
+ */
+const authorizedStudentIds = (
+  value: unknown,
+  ids = new Set<string>()
+): Set<string> => {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => authorizedStudentIds(entry, ids));
+  } else if (value && typeof value === "object") {
+    for (const [key, entry] of Object.entries(
+      value as Record<string, unknown>
+    )) {
+      if (
+        (key === "studentId" || key === "childId") &&
+        typeof entry === "string" &&
+        entry.length > 0
+      )
+        ids.add(entry);
+      else authorizedStudentIds(entry, ids);
     }
   }
   return ids;
@@ -327,6 +358,22 @@ export const runAgentOrchestrator = async (dependencies: {
           ? (() => {
               const plan = parseInterventionPlan(lastResponse.content);
               return plan ? { interventionPlan: plan } : {};
+            })()
+          : {}),
+        // Tasks 5.1 + 6.1 — strict deterministic parsers per specialist.
+        ...(specialist === "teacher"
+          ? (() => {
+              const output = parseTeacherCopilotOutput(lastResponse.content);
+              return output ? { copilotDrafts: output } : {};
+            })()
+          : {}),
+        ...(specialist === "parent"
+          ? (() => {
+              const summary = parseParentChildSummary(
+                lastResponse.content,
+                authorizedStudentIds(evidence)
+              );
+              return summary ? { childSummaries: summary } : {};
             })()
           : {}),
       };
