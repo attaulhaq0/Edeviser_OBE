@@ -14,6 +14,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import fc from "fast-check";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -37,6 +38,7 @@ import {
   parseInterventionPlan,
   parseRiskAssessment,
 } from "../../../supabase/functions/_shared/ai/specialists/protocols";
+import { parseAuthorizedCqiCoordinatorDraft } from "../../../supabase/functions/_shared/ai/cqi-draft";
 
 const read = (p: string): string =>
   readFileSync(resolve(process.cwd(), p), "utf8");
@@ -237,5 +239,122 @@ describe("Property 6 (6.4/5.4): role-scoped tool surfaces", () => {
     );
     expect(governance).toContain("createHumanApprovalProposal");
     expect(governance).toContain('"unauthorized_role"');
+  });
+
+  // Task 5.4 clause: CQI drafts NEVER auto-apply. Evidence tiers:
+  // (a) Policy behavior (executable): creating a CQI action is a
+  //     PROTECTED_ACTION, and Property 1's sweep proves mayAutoExecute ===
+  //     false for every protected action at every autonomy level;
+  //     proposalApproval tests execute the store-don't-execute sink.
+  // (b) AST call-site analysis (structural): the draft boundary imports
+  //     nothing and contains no network/mutation call sites, so a parsed
+  //     draft can only ever be data.
+  // (c) Executed boundary behavior: the parser fails closed on unauthorized
+  //     evidence citations.
+  it("keeps coordinator CQI output draft-only (no execution path)", () => {
+    expect(PROTECTED_ACTIONS).toContain("create_cqi_action");
+
+    // Fail-closed by construction: every invocation must be either (a) a
+    // call to something declared IN this file, or (b) a member call on a
+    // whitelisted pure global (JSON/Object/Array/Number/Set/String/Boolean).
+    // Anything else - fetch, Deno.*, globalThis aliases, Reflect.apply,
+    // Function constructors - fails. Aliasing cannot smuggle I/O through:
+    // binding to a prohibited global (e.g. `const s = globalThis.fetch`)
+    // is itself flagged, so the alias never binds cleanly.
+    const source = ts.createSourceFile(
+      "cqi-draft.ts",
+      read("supabase/functions/_shared/ai/cqi-draft.ts"),
+      ts.ScriptTarget.Latest,
+      true
+    );
+    const declared = new Set<string>();
+    const collectDeclared = (node: ts.Node): void => {
+      if (
+        ts.isFunctionDeclaration(node) &&
+        node.name &&
+        ts.isIdentifier(node.name)
+      )
+        declared.add(node.name.text);
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name))
+        declared.add(node.name.text);
+      if (ts.isParameter(node) && ts.isIdentifier(node.name))
+        declared.add(node.name.text);
+      node.forEachChild(collectDeclared);
+    };
+    collectDeclared(source);
+
+    const allowedGlobalRoots = new Set([
+      "JSON",
+      "Object",
+      "Array",
+      "Number",
+      "Set",
+      "String",
+      "Boolean",
+    ]);
+    const offenders: string[] = [];
+    const visit = (node: ts.Node): void => {
+      if (ts.isImportDeclaration(node))
+        offenders.push(`import: ${node.moduleSpecifier.getText()}`);
+      if (
+        ts.isIdentifier(node) &&
+        (node.text === "globalThis" || node.text === "window")
+      )
+        offenders.push(`global reference: ${node.text}`);
+      if (ts.isNewExpression(node)) {
+        const target = node.expression.getText();
+        if (target !== "Set") offenders.push(`new ${target}()`);
+      }
+      if (ts.isCallExpression(node)) {
+        const e = node.expression;
+        if (ts.isElementAccessExpression(e)) {
+          offenders.push(`${e.getText()}() [dynamic invocation]`);
+        } else if (ts.isIdentifier(e)) {
+          if (!declared.has(e.text)) offenders.push(`${e.text}() [unknown]`);
+        } else {
+          const expr = e.getText();
+          const root = expr.split(".")[0] ?? "";
+          if (
+            !declared.has(root) &&
+            !allowedGlobalRoots.has(root) &&
+            !expr.startsWith("this.")
+          )
+            offenders.push(expr);
+        }
+      }
+      node.forEachChild(visit);
+    };
+    visit(source);
+    expect(offenders).toEqual([]);
+
+    const draft = {
+      problemStatement: "PLO attainment below target",
+      outcomeContext: "Spring cohort",
+      baseline: 55,
+      target: 75,
+      proposedImprovement: "Add formative checkpoints",
+      rationale: "measured gap",
+      responsibleOwner: "coordinator-1",
+      measurementPlan: "midterm review",
+      measurementWindow: "6 weeks",
+      successCriterion: "+10 pts",
+      citations: ["ev-1"],
+    };
+    const authorized = new Set(["ev-1"]);
+    expect(
+      parseAuthorizedCqiCoordinatorDraft(JSON.stringify(draft), authorized)
+    ).not.toBeNull();
+    expect(
+      parseAuthorizedCqiCoordinatorDraft(
+        JSON.stringify({ ...draft, citations: ["unverified-id"] }),
+        authorized
+      )
+    ).toBeNull();
+
+    // Secondary structural evidence: orchestrator consumes drafts as
+    // response metadata only.
+    const orchestrator = read("supabase/functions/_shared/ai/orchestrator.ts");
+    expect(orchestrator).toContain("parseAuthorizedCqiCoordinatorDraft");
+    expect(orchestrator).toContain("{ cqiDraft: draft }");
   });
 });
