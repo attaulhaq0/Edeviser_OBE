@@ -261,6 +261,12 @@ describe("Property 6 (6.4/5.4): role-scoped tool surfaces", () => {
     // Function constructors - fails. Aliasing cannot smuggle I/O through:
     // binding to a prohibited global (e.g. `const s = globalThis.fetch`)
     // is itself flagged, so the alias never binds cleanly.
+    const source = ts.createSourceFile(
+      "cqi-draft.ts",
+      read("supabase/functions/_shared/ai/cqi-draft.ts"),
+      ts.ScriptTarget.Latest,
+      true
+    );
     const declared = new Set<string>();
     const collectDeclared = (node: ts.Node): void => {
       if (
@@ -307,7 +313,7 @@ describe("Property 6 (6.4/5.4): role-scoped tool surfaces", () => {
           if (!declared.has(e.text)) offenders.push(`${e.text}() [unknown]`);
         } else {
           const expr = e.getText();
-          const root = expr.split(".")[0];
+          const root = expr.split(".")[0] ?? "";
           if (
             !declared.has(root) &&
             !allowedGlobalRoots.has(root) &&
