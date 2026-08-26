@@ -615,5 +615,14 @@ jobs:
       - name: Run RLS insert/update smoke tests against the preview branch
         run: npm run test:rls
 
+      # Ledger #278 — per-file ran/skipped evidence for this preview-gate run.
+      - name: Upload RLS smoke skip-manifest
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rls-smoke-skip-manifest
+          path: audit/output/rls-smoke/
+          if-no-files-found: warn
+
       - name: Run HTTP runtime authorization smoke tests against the preview branch
         run: npm run test:preview-runtime-auth
