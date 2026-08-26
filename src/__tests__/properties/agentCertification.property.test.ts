@@ -14,6 +14,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import fc from "fast-check";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -37,6 +38,7 @@ import {
   parseInterventionPlan,
   parseRiskAssessment,
 } from "../../../supabase/functions/_shared/ai/specialists/protocols";
+import { parseAuthorizedCqiCoordinatorDraft } from "../../../supabase/functions/_shared/ai/cqi-draft";
 
 const read = (p: string): string =>
   readFileSync(resolve(process.cwd(), p), "utf8");
@@ -239,18 +241,70 @@ describe("Property 6 (6.4/5.4): role-scoped tool surfaces", () => {
     expect(governance).toContain('"unauthorized_role"');
   });
 
-  // Task 5.4 clause: CQI drafts NEVER auto-apply. Verified structurally:
-  // (a) creating a CQI action is a PROTECTED_ACTION (Property 1 already
-  //     proves it cannot auto-execute at any autonomy level);
-  // (b) the draft boundary is a pure parser with zero I/O primitives, so a
-  //     draft can only ever be attached to a response as data;
-  // (c) the orchestrator consumes it exclusively as response metadata.
+  // Task 5.4 clause: CQI drafts NEVER auto-apply. Evidence tiers:
+  // (a) Policy behavior (executable): creating a CQI action is a
+  //     PROTECTED_ACTION, and Property 1's sweep proves mayAutoExecute ===
+  //     false for every protected action at every autonomy level;
+  //     proposalApproval tests execute the store-don't-execute sink.
+  // (b) AST call-site analysis (structural): the draft boundary imports
+  //     nothing and contains no network/mutation call sites, so a parsed
+  //     draft can only ever be data.
+  // (c) Executed boundary behavior: the parser fails closed on unauthorized
+  //     evidence citations.
   it("keeps coordinator CQI output draft-only (no execution path)", () => {
     expect(PROTECTED_ACTIONS).toContain("create_cqi_action");
 
-    const cqi = read("supabase/functions/_shared/ai/cqi-draft.ts");
-    expect(cqi).not.toMatch(/\bfetch\s*\(|Deno\.|createClient|\.rpc\(/);
+    const source = ts.createSourceFile(
+      "cqi-draft.ts",
+      read("supabase/functions/_shared/ai/cqi-draft.ts"),
+      ts.ScriptTarget.Latest,
+      true
+    );
+    const offenders: string[] = [];
+    const visit = (node: ts.Node): void => {
+      if (ts.isImportDeclaration(node))
+        offenders.push(`import: ${node.moduleSpecifier.getText()}`);
+      if (ts.isCallExpression(node)) {
+        const expr = node.expression.getText();
+        if (
+          /(^|\.)(fetch|rpc|insert|update|delete|upsert|remove|createClient)$/.test(
+            expr
+          ) ||
+          expr.startsWith("Deno.")
+        )
+          offenders.push(expr);
+      }
+      node.forEachChild(visit);
+    };
+    visit(source);
+    expect(offenders).toEqual([]);
 
+    const draft = {
+      problemStatement: "PLO attainment below target",
+      outcomeContext: "Spring cohort",
+      baseline: 55,
+      target: 75,
+      proposedImprovement: "Add formative checkpoints",
+      rationale: "measured gap",
+      responsibleOwner: "coordinator-1",
+      measurementPlan: "midterm review",
+      measurementWindow: "6 weeks",
+      successCriterion: "+10 pts",
+      citations: ["ev-1"],
+    };
+    const authorized = new Set(["ev-1"]);
+    expect(
+      parseAuthorizedCqiCoordinatorDraft(JSON.stringify(draft), authorized)
+    ).not.toBeNull();
+    expect(
+      parseAuthorizedCqiCoordinatorDraft(
+        JSON.stringify({ ...draft, citations: ["unverified-id"] }),
+        authorized
+      )
+    ).toBeNull();
+
+    // Secondary structural evidence: orchestrator consumes drafts as
+    // response metadata only.
     const orchestrator = read("supabase/functions/_shared/ai/orchestrator.ts");
     expect(orchestrator).toContain("parseAuthorizedCqiCoordinatorDraft");
     expect(orchestrator).toContain("{ cqiDraft: draft }");
