@@ -111,7 +111,7 @@ export const assertNotProduction = (env: RlsEnv = readRlsEnv()): void => {
 };
 
 /**
- * Wrong-target guard. Returns a human-readable reason when BOTH the CI-resolved
+ * Wrong-target guard, fail-closed. Returns a human-readable blocking reason
  * Git-linked preview ref (`SUPABASE_PREVIEW_REF`) and a resolvable project ref
  * inside `SUPABASE_URL` are present but disagree. Absent `SUPABASE_PREVIEW_REF`
  * (local developer machine) never trips this gate — the production hard guard
@@ -123,8 +123,17 @@ export const assertNotProduction = (env: RlsEnv = readRlsEnv()): void => {
 export const previewRefMismatchReason = (
   env: RlsEnv = readRlsEnv()
 ): string | null => {
+  if (!env.previewRef) return null;
   const urlRef = extractProjectRef(env.supabaseUrl);
-  if (!urlRef || !env.previewRef) return null;
+  if (!urlRef && env.supabaseUrl) {
+    return (
+      'SUPABASE_URL "' +
+      env.supabaseUrl +
+      '" is not a resolvable Supabase project URL while SUPABASE_PREVIEW_REF ' +
+      "is set - refusing to target it"
+    );
+  }
+  if (!urlRef) return null;
   return urlRef.toLowerCase() !== env.previewRef.toLowerCase()
     ? `SUPABASE_URL project ref "${urlRef}" does not match the Git-linked ` +
         `preview ref "${env.previewRef}"`

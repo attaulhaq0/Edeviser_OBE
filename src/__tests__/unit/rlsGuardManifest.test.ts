@@ -6,7 +6,7 @@ import {
   previewRefMismatchReason,
   rlsSkipReason,
   type RlsEnv,
-} from "../../__tests__/integration-rls/guard";
+} from "@/__tests__/integration-rls/guard";
 
 // Feature: deferral-ledger #278 Wave D opener.
 // Property 1 — configured-but-invalid must fail loudly: half-valid credentials
@@ -40,6 +40,29 @@ describe("previewRefMismatchReason (#278)", () => {
 
   it("never trips when the CI-resolved ref is absent (local dev)", () => {
     expect(previewRefMismatchReason(env({}))).toBeNull();
+  });
+
+  it("fails closed on an unresolvable URL host while previewRef is set", () => {
+    expect(
+      previewRefMismatchReason({
+        dbEnv: "preview",
+        supabaseUrl: "https://api.example.com",
+        supabaseAnonKey: "k",
+        supabaseServiceRoleKey: "k",
+        previewRef: "bbbbbbbbbbbbbbbbbbbbbb",
+      })
+    ).toContain("resolvable");
+  });
+
+  it("stays silent for an unresolvable URL host without previewRef", () => {
+    expect(
+      previewRefMismatchReason({
+        dbEnv: "preview",
+        supabaseUrl: "https://api.example.com",
+        supabaseAnonKey: "k",
+        supabaseServiceRoleKey: "k",
+      })
+    ).toBeNull();
   });
 
   it("propagates into rlsSkipReason as a blocking reason", () => {
