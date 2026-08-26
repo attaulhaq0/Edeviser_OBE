@@ -387,13 +387,17 @@ const cappedText = (value: unknown, maximum: number): string | null =>
     ? value.trim()
     : null;
 
-/** Strict citation list: 1..100 non-empty string ids, deduplicated. */
+/**
+ * Strict citation list: 1..100 non-empty string ids, deduplicated.
+ * Whitespace-only values are rejected so a blank string can never masquerade
+ * as a real citation id (CodeRabbit finding on PR #288).
+ */
 const requiredCitationIds = (value: unknown): string[] | null => {
   if (!Array.isArray(value) || value.length === 0 || value.length > 100)
     return null;
   if (
     !value.every(
-      (id) => typeof id === "string" && id.length > 0 && id.length <= 200
+      (id) => typeof id === "string" && id.trim().length > 0 && id.length <= 200
     )
   )
     return null;

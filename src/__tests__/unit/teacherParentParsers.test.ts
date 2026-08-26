@@ -62,6 +62,20 @@ describe("parseTeacherCopilotOutput (5.1)", () => {
     ).toBeNull();
   });
 
+  it("rejects whitespace-only citation ids (fail-closed)", () => {
+    // Discriminating fixture: the blank id IS present in the authorized
+    // packet, so only the trim guard in requiredCitationIds can reject it -
+    // packet membership alone would let it through.
+    expect(
+      parseTeacherCopilotOutput(
+        JSON.stringify({
+          misconceptions: [teacherItem({ evidenceIds: ["   "] })],
+        }),
+        new Set([...EVIDENCE, "   "])
+      )
+    ).toBeNull();
+  });
+
   it("rejects items without evidence citations or empty text", () => {
     expect(
       parseTeacherCopilotOutput(
@@ -122,6 +136,18 @@ describe("parseParentChildSummary (6.1)", () => {
         payload([entry({ citations: ["hallucinated-id"] })]),
         authorized,
         EVIDENCE
+      )
+    ).toBeNull();
+  });
+
+  it("rejects whitespace-only citations (fail-closed)", () => {
+    // Same discriminating fixture as the teacher case: blank id present in
+    // the authorized packet - only the trim guard rejects it.
+    expect(
+      parseParentChildSummary(
+        payload([entry({ citations: ["   "] })]),
+        authorized,
+        new Set([...EVIDENCE, "   "])
       )
     ).toBeNull();
   });
