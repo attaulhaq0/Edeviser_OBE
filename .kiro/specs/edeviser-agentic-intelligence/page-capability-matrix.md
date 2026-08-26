@@ -24,10 +24,10 @@ matching. Fail-closed: a route with NO matching row renders NO assistant surface
 
 | Route | Surfaces | Read tools | Ceiling | Evidence sources |
 |---|---|---|---|---|
-| `/teacher/dashboard` | insight-cards, approval-inbox | get_teacher_course_context, get_at_risk_signals, get_habit_context | teacher | ai_feedback, learning_interventions, proactive_agent_jobs |
+| `/teacher/dashboard` | insight-cards, approval-inbox | get_teacher_course_context, get_at_risk_signals | teacher | ai_feedback, learning_interventions, proactive_agent_jobs |
 | `/teacher/gradebook/*` | insight-cards, conversation | get_teacher_course_context, get_at_risk_signals, get_assignment_context, get_outcome_chain | teacher | grades, submissions, ai_feedback |
 | `/teacher/outcomes/*` | insight-cards, conversation | get_teacher_course_context, get_outcome_chain, get_intervention_effects | teacher | clos, sub_clos, outcome_mappings |
-| `/teacher/students/:studentId` | insight-cards, suggestions, conversation | teacher context/at-risk/habit + get_student_learning_context, get_intervention_effects | teacher | student_learning_states, learning_interventions, attendance |
+| `/teacher/students/:studentId` | insight-cards, suggestions, conversation | teacher context/at-risk + get_student_learning_context, get_intervention_effects | teacher | student_learning_states, learning_interventions, attendance |
 
 ## Coordinator
 
@@ -62,8 +62,13 @@ matching. Fail-closed: a route with NO matching row renders NO assistant surface
   approval inbox and are still approval-gated per row ceiling.
 - Coordinator analytics/accreditation pages and the accreditation-report pages keep no dedicated
   rows yet; they inherit nothing (fail-closed) until a later wave inventories them explicitly.
-- Verified-link privacy for Parent rows is enforced by RLS (`parent_student_links`) — the matrix
-  only re-expresses what the backend already guarantees.
+- Verified-link privacy for Parent rows is enforced by the dependent-data RLS
+  policies, verified against the LIVE database (pg_policies):
+  `outcome_attainment.attainment_read` requires an explicit `parent_student_links`
+  row with `verified = true`, and `student_learning_states_parent_read` requires
+  `parent_has_verified_link(student_id)`. The `parent_student_links` table itself
+  only scopes parents to their own links (`parent_links_parent_read`), so it is
+  NOT by itself a verified-link gate.
 
 ## Mounting order & governance
 

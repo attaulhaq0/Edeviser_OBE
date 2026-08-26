@@ -24,6 +24,23 @@ const DOC = join(
   "edeviser-agentic-intelligence",
   "page-capability-matrix.md",
 );
+const BACKEND_SRC = readFileSync(
+  join(
+    process.cwd(),
+    "supabase",
+    "functions",
+    "_shared",
+    "ai",
+    "tools",
+    "registry.ts",
+  ),
+  "utf8",
+);
+const backendToolNames = new Set(
+  [...BACKEND_SRC.matchAll(/"(get_[a-z_]+|search_course_materials)"/g)].map(
+    (m) => m[1] ?? "",
+  ),
+);
 
 describe("Page capability resolver", () => {
   it("matches exact and parameterized patterns with longest-wins precedence", () => {
@@ -80,40 +97,69 @@ describe("Registry integrity", () => {
   });
 
   it("tool names mirror the backend ReadToolName registry exactly", () => {
-    const src = readFileSync(
-      join(
-        process.cwd(),
-        "supabase",
-        "functions",
-        "_shared",
-        "ai",
-        "tools",
-        "registry.ts",
-      ),
-      "utf8",
-    );
-    const backendTools = new Set(
-      [...src.matchAll(/"(get_[a-z_]+|search_course_materials)"/g)].map(
-        (m) => m[1],
-      ),
-    );
     for (const row of PAGE_CAPABILITY_ROWS) {
       for (const tool of row.tools) {
-        expect(backendTools.has(tool), `${row.pathPattern}: ${tool}`).toBe(
+        expect(backendToolNames.has(tool), `${row.pathPattern}: ${tool}`).toBe(
           true,
         );
+      }
+    }
+  });
+
+  it("every row role is authorized for each advertised tool by the backend registry", () => {
+    // Feature guard: rows may only advertise (role, tool) pairs the backend
+    // registry itself allows via allowedRoles — parsing define(name, …, roles…)
+    // declarations from supabase/functions/_shared/ai/tools/registry.ts.
+    const rolesByTool = new Map<string, Set<string>>();
+    for (const chunk of BACKEND_SRC.split("define(").slice(1)) {
+      const name = chunk.match(/"(get_[a-z_]+|search_course_materials)"/)?.[1];
+      const firstArray = chunk.match(/\[[^\]]*\]/)?.[0];
+      if (!name || !firstArray) continue;
+      const roles = new Set(
+        [...firstArray.matchAll(/"([a-z]+)"/g)].map((m) => m[1] ?? ""),
+      );
+      expect(roles.size, `${name} must declare allowedRoles`).toBeGreaterThan(0);
+      rolesByTool.set(name, roles);
+    }
+    expect(rolesByTool.size).toBeGreaterThanOrEqual(21);
+    for (const row of PAGE_CAPABILITY_ROWS) {
+      for (const role of row.roles) {
+        for (const tool of row.tools) {
+          expect(
+            rolesByTool.get(tool)?.has(role),
+            `${row.pathPattern} advertises ${tool} to ${role}`,
+          ).toBe(true);
+        }
       }
     }
   });
 });
 
 describe("Spec doc sync (page-capability-matrix.md)", () => {
-  it("documents every registered pattern", () => {
-    const doc = readFileSync(DOC, "utf8");
-    for (const row of PAGE_CAPABILITY_ROWS) {
-      expect(doc, `missing doc entry for ${row.pathPattern}`).toContain(
-        `\`${row.pathPattern}\``,
-      );
+  const doc = readFileSync(DOC, "utf8");
+
+  /** Backticked route patterns appearing in MATRIX TABLE rows only (prose excluded). */
+  const tableLines = doc.split("\n").filter((l) => l.startsWith("|"));
+  const docPatterns = [
+    ...new Set(
+      tableLines.flatMap((l) =>
+        [...l.matchAll(/`(\/[^`\s]+)`/g)].map((m) => m[1] ?? ""),
+      ),
+    ),
+  ].sort();
+
+  it("documents every registered pattern exactly once in the matrix tables", () => {
+    expect(docPatterns).toEqual([...patterns].sort());
+    for (const p of patterns) {
+      const occurrences = tableLines.filter((l) => l.includes(`\`${p}\``)).length;
+      expect(occurrences, `${p} appears ${occurrences}x`).toBe(1);
+    }
+  });
+
+  it("keeps explanatory prose out of the pattern set", () => {
+    // If prose gains backticked routes they must move into tables or stay unbackticked.
+    for (const p of docPatterns) {
+      expect(patterns).toContain(p);
     }
   });
 });

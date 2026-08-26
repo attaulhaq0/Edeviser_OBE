@@ -1,5 +1,10 @@
 // Feature: Page Capability Matrix (tasks.md 3.2).
 // Pure resolver: longest-pattern match wins; null = fail-closed (no assistant).
+//
+// DISPLAY/HINT ONLY — this resolver is NOT an authorization boundary. The
+// server tool registry independently enforces role, context, and scope
+// (authorizeScope) and RLS enforces data access; client capability data must
+// never be treated as access control.
 
 import PAGE_CAPABILITY_ROWS from "@/ai/capabilities/registry";
 import type { PageCapabilityRow } from "@/ai/capabilities/types";

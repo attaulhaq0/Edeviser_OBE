@@ -69,7 +69,7 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
     pathPattern: "/teacher/dashboard",
     roles: ["teacher"],
     surfaces: ["insight-cards", "approval-inbox"],
-    tools: ["get_teacher_course_context", "get_at_risk_signals", "get_habit_context"],
+    tools: ["get_teacher_course_context", "get_at_risk_signals"],
     approvalCeiling: "teacher",
     evidenceSources: ["ai_feedback", "learning_interventions", "proactive_agent_jobs"],
   },
@@ -101,7 +101,6 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
     tools: [
       "get_teacher_course_context",
       "get_at_risk_signals",
-      "get_habit_context",
       "get_student_learning_context",
       "get_intervention_effects",
     ],
