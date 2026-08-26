@@ -264,15 +264,28 @@ describe("Property 6 (6.4/5.4): role-scoped tool surfaces", () => {
     const visit = (node: ts.Node): void => {
       if (ts.isImportDeclaration(node))
         offenders.push(`import: ${node.moduleSpecifier.getText()}`);
+      // Fail-closed: only `new Set(...)` is expected; any other constructor
+      // (WebSocket, Request, Headers, ...) is an outbound-operation risk.
+      if (ts.isNewExpression(node)) {
+        const target = node.expression.getText();
+        if (target !== "Set") offenders.push(`new ${target}()`);
+      }
       if (ts.isCallExpression(node)) {
-        const expr = node.expression.getText();
-        if (
-          /(^|\.)(fetch|rpc|insert|update|delete|upsert|remove|createClient)$/.test(
-            expr
-          ) ||
-          expr.startsWith("Deno.")
-        )
-          offenders.push(expr);
+        const e = node.expression;
+        // Fail-closed: computed/dynamic invocations (globalThis["fetch"](...),
+        // obj[name](...)) cannot be statically vetted -> reject outright.
+        if (ts.isElementAccessExpression(e)) {
+          offenders.push(`${e.getText()}() [dynamic invocation]`);
+        } else {
+          const expr = e.getText();
+          if (
+            /(^|\.)(fetch|rpc|insert|update|delete|upsert|remove|createClient)$/.test(
+              expr
+            ) ||
+            expr.startsWith("Deno.")
+          )
+            offenders.push(expr);
+        }
       }
       node.forEachChild(visit);
     };
