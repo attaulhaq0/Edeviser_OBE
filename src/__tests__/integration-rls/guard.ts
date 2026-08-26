@@ -112,8 +112,10 @@ export const assertNotProduction = (env: RlsEnv = readRlsEnv()): void => {
 
 /**
  * Wrong-target guard, fail-closed. Returns a human-readable blocking reason
- * Git-linked preview ref (`SUPABASE_PREVIEW_REF`) and a resolvable project ref
- * inside `SUPABASE_URL` are present but disagree. Absent `SUPABASE_PREVIEW_REF`
+ * whenever `SUPABASE_PREVIEW_REF` is set and `SUPABASE_URL` cannot be proven
+ * safe to target: unresolvable URL shape, non-HTTPS scheme (cleartext service-
+ * role transport), or a resolved project ref that disagrees with the CI-resolved
+ * Git-linked preview ref. Absent `SUPABASE_PREVIEW_REF`
  * (local developer machine) never trips this gate — the production hard guard
  * above already covers the dangerous case there.
  *
@@ -134,6 +136,18 @@ export const previewRefMismatchReason = (
     );
   }
   if (!urlRef) return null;
+  let httpsOk = false;
+  try {
+    httpsOk = new URL(env.supabaseUrl ?? "").protocol === "https:";
+  } catch {
+    httpsOk = false;
+  }
+  if (!httpsOk) {
+    return (
+      "SUPABASE_URL must use HTTPS while SUPABASE_PREVIEW_REF is set - " +
+      "refusing to send the service-role key over cleartext transport"
+    );
+  }
   return urlRef.toLowerCase() !== env.previewRef.toLowerCase()
     ? `SUPABASE_URL project ref "${urlRef}" does not match the Git-linked ` +
         `preview ref "${env.previewRef}"`

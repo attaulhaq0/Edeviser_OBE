@@ -619,6 +619,10 @@ jobs:
       - name: Upload RLS smoke skip-manifest
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        # The service-role key is exported via $GITHUB_ENV for the deploy/test
+        # steps; mask it for this upload step (review 5034817372, CWE-522).
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ""
         with:
           name: rls-smoke-skip-manifest
           path: audit/output/rls-smoke/

@@ -54,6 +54,18 @@ describe("previewRefMismatchReason (#278)", () => {
     ).toContain("resolvable");
   });
 
+  it("rejects a cleartext HTTP URL even when the ref matches", () => {
+    expect(
+      previewRefMismatchReason({
+        dbEnv: "preview",
+        supabaseUrl: "http://bbbbbbbbbbbbbbbbbbbbbb.supabase.co",
+        supabaseAnonKey: "k",
+        supabaseServiceRoleKey: "k",
+        previewRef: "bbbbbbbbbbbbbbbbbbbbbb",
+      })
+    ).toContain("HTTPS");
+  });
+
   it("stays silent for an unresolvable URL host without previewRef", () => {
     expect(
       previewRefMismatchReason({
