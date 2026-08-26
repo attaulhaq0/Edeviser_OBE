@@ -377,3 +377,177 @@ export const parseInterventionPlan = (
     draftActions,
   };
 };
+
+// —— Teacher copilot & parent summary specialists (Tasks 5.1 + 6.1) ————————
+
+const cappedText = (value: unknown, maximum: number): string | null =>
+  typeof value === "string" &&
+  value.trim().length > 0 &&
+  value.length <= maximum
+    ? value.trim()
+    : null;
+
+/**
+ * Strict citation list: 1..100 non-empty string ids, deduplicated.
+ * Whitespace-only values are rejected so a blank string can never masquerade
+ * as a real citation id (CodeRabbit finding on PR #288).
+ */
+const requiredCitationIds = (value: unknown): string[] | null => {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 100)
+    return null;
+  if (
+    !value.every(
+      (id) => typeof id === "string" && id.trim().length > 0 && id.length <= 200
+    )
+  )
+    return null;
+  return [...new Set(value as string[])];
+};
+
+export interface TeacherCopilotItem {
+  topic: string;
+  content: string;
+  evidenceIds: string[];
+}
+
+export interface TeacherCopilotOutput {
+  misconceptions?: TeacherCopilotItem[];
+  feedbackDrafts?: TeacherCopilotItem[];
+  questionDrafts?: TeacherCopilotItem[];
+  lessonAdaptations?: TeacherCopilotItem[];
+}
+
+const TEACHER_SECTIONS: readonly string[] = [
+  "misconceptions",
+  "feedbackDrafts",
+  "questionDrafts",
+  "lessonAdaptations",
+];
+
+const citedTeacherItems = (
+  value: unknown,
+  authorizedEvidenceIds: ReadonlySet<string>
+): TeacherCopilotItem[] | null => {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 50)
+    return null;
+  const items: TeacherCopilotItem[] = [];
+  for (const entry of value) {
+    const row = asRecord(entry);
+    if (!row) return null;
+    if (
+      Object.keys(row).some(
+        (key) => !["topic", "content", "evidenceIds"].includes(key)
+      )
+    )
+      return null;
+    const topic = cappedText(row.topic, 300);
+    const content = cappedText(row.content, 4000);
+    const ids = requiredCitationIds(row.evidenceIds);
+    if (!topic || !content || !ids) return null;
+    // Citations must reference the authorized evidence packet - invented
+    // ids are rejected so unsupported claims cannot pose as cited drafts.
+    if (!ids.every((id) => authorizedEvidenceIds.has(id))) return null;
+    items.push({ topic, content, evidenceIds: ids });
+  }
+  return items;
+};
+
+/**
+ * Task 5.1 — fail-closed teacher copilot parser. Draft-only sections; every
+ * item must cite only ids from the authorized evidence packet; unknown
+ * sections/fields rejected.
+ */
+export const parseTeacherCopilotOutput = (
+  content: string,
+  authorizedEvidenceIds: ReadonlySet<string>
+): TeacherCopilotOutput | null => {
+  let value: unknown;
+  try {
+    value = JSON.parse(content);
+  } catch {
+    return null;
+  }
+  const row = asRecord(value);
+  if (!row) return null;
+  if (Object.keys(row).some((key) => !TEACHER_SECTIONS.includes(key)))
+    return null;
+  const output: TeacherCopilotOutput = {};
+  let anySection = false;
+  for (const section of TEACHER_SECTIONS) {
+    const raw = row[section];
+    if (raw === undefined) continue;
+    const items = citedTeacherItems(raw, authorizedEvidenceIds);
+    if (!items) return null;
+    output[section as keyof TeacherCopilotOutput] = items;
+    anySection = true;
+  }
+  return anySection ? output : null;
+};
+
+export interface ParentChildSummaryEntry {
+  childId: string;
+  progressSummary: string;
+  citations: string[];
+}
+
+export interface ParentChildSummary {
+  summaries: ParentChildSummaryEntry[];
+}
+
+const PRIVACY_BLOCKED_KEY = /rank|percentile|peer|compar/i;
+
+/**
+ * Task 6.1 — fail-closed parent summary parser. Only verified child ids
+ * (supplied by the caller from server-side scope data) may appear; privacy
+ * violating keys (rankings, peer comparisons) are rejected anywhere in the
+ * structure; every summary must cite evidence.
+ */
+export const parseParentChildSummary = (
+  content: string,
+  authorizedChildIds: ReadonlySet<string>,
+  authorizedEvidenceIds: ReadonlySet<string>
+): ParentChildSummary | null => {
+  let value: unknown;
+  try {
+    value = JSON.parse(content);
+  } catch {
+    return null;
+  }
+  const row = asRecord(value);
+  if (!row) return null;
+  const topKeys = Object.keys(row);
+  if (topKeys.some((key) => key !== "summaries")) return null;
+  if (topKeys.some((key) => PRIVACY_BLOCKED_KEY.test(key))) return null;
+  const list = row.summaries;
+  if (!Array.isArray(list) || list.length === 0 || list.length > 20)
+    return null;
+  const summaries: ParentChildSummaryEntry[] = [];
+  for (const entry of list) {
+    const item = asRecord(entry);
+    if (!item) return null;
+    const itemKeys = Object.keys(item);
+    if (
+      itemKeys.some(
+        (key) => !["childId", "progressSummary", "citations"].includes(key)
+      ) ||
+      itemKeys.some((key) => PRIVACY_BLOCKED_KEY.test(key))
+    )
+      return null;
+    const childId =
+      isNonEmptyString(item.childId) && item.childId.length <= 100
+        ? item.childId
+        : null;
+    const progressSummary = cappedText(item.progressSummary, 4000);
+    const citations = requiredCitationIds(item.citations);
+    if (
+      !childId ||
+      !authorizedChildIds.has(childId) ||
+      !progressSummary ||
+      !citations ||
+      !citations.every((id) => authorizedEvidenceIds.has(id))
+    )
+      return null;
+    summaries.push({ childId, progressSummary, citations });
+  }
+  return summaries.length > 0 ? { summaries } : null;
+};
