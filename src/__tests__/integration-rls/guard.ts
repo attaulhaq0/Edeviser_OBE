@@ -48,6 +48,14 @@ export interface RlsEnv {
   supabaseAnonKey?: string;
   supabaseServiceRoleKey?: string;
   dbEnv?: string;
+  /**
+   * Project ref of the Git-linked Supabase Preview resolved by CI
+   * (`SUPABASE_PREVIEW_REF`). Set only in the dedicated rls-smoke job; when
+   * present it must match the project ref embedded in SUPABASE_URL so the
+   * suite cannot run against an unrelated project that happens to hold valid
+   * credentials (deferral ledger #278: configured-but-invalid must fail loudly).
+   */
+  previewRef?: string;
 }
 
 /**
@@ -59,18 +67,21 @@ export const readRlsEnv = (env: NodeJS.ProcessEnv = process.env): RlsEnv => ({
   supabaseAnonKey: env.SUPABASE_ANON_KEY,
   supabaseServiceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
   dbEnv: env.SUPABASE_DB_ENV,
+  previewRef: env.SUPABASE_PREVIEW_REF,
 });
 
 /**
  * Extracts the Supabase project ref from a project URL.
  * `https://abcdefgh.supabase.co` -> `abcdefgh`. Returns `null` when the URL is
- * absent or not in the expected `<ref>.supabase.(co|in|...)` form.
+ * absent or not in the expected `<ref>.supabase.(co|in)` form. The public
+ * suffix is anchored strictly so lookalike hosts such as
+ * `ref.supabase.co.attacker.example` cannot resolve to a ref.
  */
 export const extractProjectRef = (url?: string): string | null => {
   if (!url) return null;
   try {
     const { hostname } = new URL(url);
-    const match = /^([a-z0-9]+)\.supabase\.[a-z.]+$/i.exec(hostname);
+    const match = /^([a-z0-9]+)\.supabase\.(?:co|in)$/i.exec(hostname);
     return match?.[1] ?? null;
   } catch {
     return null;
@@ -102,6 +113,50 @@ export const assertNotProduction = (env: RlsEnv = readRlsEnv()): void => {
 };
 
 /**
+ * Wrong-target guard, fail-closed. Returns a human-readable blocking reason
+ * whenever `SUPABASE_PREVIEW_REF` is set and `SUPABASE_URL` cannot be proven
+ * safe to target: unresolvable URL shape, non-HTTPS scheme (cleartext service-
+ * role transport), or a resolved project ref that disagrees with the CI-resolved
+ * Git-linked preview ref. Absent `SUPABASE_PREVIEW_REF`
+ * (local developer machine) never trips this gate — the production hard guard
+ * above already covers the dangerous case there.
+ *
+ * Ledger #278 trigger: without this check, half-valid credentials pointing at
+ * an unrelated project would run destructive seed/test traffic against it.
+ */
+export const previewRefMismatchReason = (
+  env: RlsEnv = readRlsEnv()
+): string | null => {
+  if (!env.previewRef) return null;
+  const urlRef = extractProjectRef(env.supabaseUrl);
+  if (!urlRef && env.supabaseUrl) {
+    return (
+      'SUPABASE_URL "' +
+      env.supabaseUrl +
+      '" is not a resolvable Supabase project URL while SUPABASE_PREVIEW_REF ' +
+      "is set - refusing to target it"
+    );
+  }
+  if (!urlRef) return null;
+  let httpsOk = false;
+  try {
+    httpsOk = new URL(env.supabaseUrl ?? "").protocol === "https:";
+  } catch {
+    httpsOk = false;
+  }
+  if (!httpsOk) {
+    return (
+      "SUPABASE_URL must use HTTPS while SUPABASE_PREVIEW_REF is set - " +
+      "refusing to send the service-role key over cleartext transport"
+    );
+  }
+  return urlRef.toLowerCase() !== env.previewRef.toLowerCase()
+    ? `SUPABASE_URL project ref "${urlRef}" does not match the Git-linked ` +
+        `preview ref "${env.previewRef}"`
+    : null;
+};
+
+/**
  * SOFT gate. Returns a human-readable reason the suite should be skipped, or
  * `null` when it is safe and configured to run. Used by test files to choose
  * `describe.skip` vs `describe` so unit/local CI without secrets stays green.
@@ -115,6 +170,8 @@ export const rlsSkipReason = (env: RlsEnv = readRlsEnv()): string | null => {
   if (isProductionRef(env.supabaseUrl)) {
     return `SUPABASE_URL targets the production project ref "${PRODUCTION_PROJECT_REF}"`;
   }
+  const mismatch = previewRefMismatchReason(env);
+  if (mismatch !== null) return mismatch;
   const missing: string[] = [];
   if (!env.supabaseUrl) missing.push("SUPABASE_URL");
   if (!env.supabaseAnonKey) missing.push("SUPABASE_ANON_KEY");
@@ -128,3 +185,64 @@ export const rlsSkipReason = (env: RlsEnv = readRlsEnv()): string | null => {
 /** Convenience boolean: true only when the suite is safe and fully configured. */
 export const shouldRunRls = (env: RlsEnv = readRlsEnv()): boolean =>
   rlsSkipReason(env) === null;
+
+// ─── Skip-manifest artifact (ledger #278) ────────────────────────────────────
+
+/** Per-file row of the skip manifest emitted by the integration reporter. */
+export interface SkipManifestEntry {
+  /** Absolute workspace path of the collected test file. */
+  readonly file: string;
+  /** `skipped` when every case was skipped, else how the runner completed it. */
+  readonly status: "skipped" | "pass" | "fail" | "unknown";
+}
+
+/** JSON payload written to audit/output/rls-smoke/skip-manifest.json. */
+export interface SkipManifest {
+  readonly generatedAt: string;
+  /** Whether the fail-loud required mode was active for this run. */
+  readonly requiredMode: boolean;
+  readonly totalFiles: number;
+  readonly skippedFiles: number;
+  readonly entries: readonly SkipManifestEntry[];
+}
+
+/**
+ * Structural view of a Vitest `File`. Shape-tolerant on purpose: the reporter
+ * feeds raw runner objects whose typings drift between Vitest majors, so every
+ * field is treated as `unknown` and narrowed here (repo rule: no `any`).
+ */
+export interface ReporterFileLike {
+  filepath?: unknown;
+  result?: { status?: unknown } | undefined;
+}
+
+const normalizeStatus = (status: unknown): SkipManifestEntry["status"] =>
+  status === "skipped" || status === "pass" || status === "fail"
+    ? status
+    : "unknown";
+
+/**
+ * Pure summarizer for the skip-manifest artifact. Accepts the loosely typed
+ * per-file results handed to a Vitest `onFinished` hook and produces the
+ * deterministic JSON document posted next to CI evidence. Kept free of Vitest
+ * imports so the guard stays unit-testable under the hermetic suite.
+ */
+export const buildSkipManifest = (
+  files: readonly ReporterFileLike[],
+  options: { requiredMode: boolean; now?: Date } = { requiredMode: false }
+): SkipManifest => {
+  const entries: SkipManifestEntry[] = files.map((file) => ({
+    file:
+      typeof file.filepath === "string"
+        ? file.filepath
+        : "<unresolved-filepath>",
+    status: normalizeStatus(file.result?.status),
+  }));
+  return {
+    generatedAt: (options.now ?? new Date()).toISOString(),
+    requiredMode: options.requiredMode,
+    totalFiles: entries.length,
+    skippedFiles: entries.filter((entry) => entry.status === "skipped").length,
+    entries,
+  };
+};
