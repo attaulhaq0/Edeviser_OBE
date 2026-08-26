@@ -420,7 +420,10 @@ const TEACHER_SECTIONS: readonly string[] = [
   "lessonAdaptations",
 ];
 
-const citedTeacherItems = (value: unknown): TeacherCopilotItem[] | null => {
+const citedTeacherItems = (
+  value: unknown,
+  authorizedEvidenceIds: ReadonlySet<string>
+): TeacherCopilotItem[] | null => {
   if (!Array.isArray(value) || value.length === 0 || value.length > 50)
     return null;
   const items: TeacherCopilotItem[] = [];
@@ -437,6 +440,9 @@ const citedTeacherItems = (value: unknown): TeacherCopilotItem[] | null => {
     const content = cappedText(row.content, 4000);
     const ids = requiredCitationIds(row.evidenceIds);
     if (!topic || !content || !ids) return null;
+    // Citations must reference the authorized evidence packet - invented
+    // ids are rejected so unsupported claims cannot pose as cited drafts.
+    if (!ids.every((id) => authorizedEvidenceIds.has(id))) return null;
     items.push({ topic, content, evidenceIds: ids });
   }
   return items;
@@ -444,10 +450,12 @@ const citedTeacherItems = (value: unknown): TeacherCopilotItem[] | null => {
 
 /**
  * Task 5.1 — fail-closed teacher copilot parser. Draft-only sections; every
- * item must cite at least one evidence id; unknown sections/fields rejected.
+ * item must cite only ids from the authorized evidence packet; unknown
+ * sections/fields rejected.
  */
 export const parseTeacherCopilotOutput = (
-  content: string
+  content: string,
+  authorizedEvidenceIds: ReadonlySet<string>
 ): TeacherCopilotOutput | null => {
   let value: unknown;
   try {
@@ -464,7 +472,7 @@ export const parseTeacherCopilotOutput = (
   for (const section of TEACHER_SECTIONS) {
     const raw = row[section];
     if (raw === undefined) continue;
-    const items = citedTeacherItems(raw);
+    const items = citedTeacherItems(raw, authorizedEvidenceIds);
     if (!items) return null;
     output[section as keyof TeacherCopilotOutput] = items;
     anySection = true;
@@ -492,7 +500,8 @@ const PRIVACY_BLOCKED_KEY = /rank|percentile|peer|compar/i;
  */
 export const parseParentChildSummary = (
   content: string,
-  authorizedChildIds: ReadonlySet<string>
+  authorizedChildIds: ReadonlySet<string>,
+  authorizedEvidenceIds: ReadonlySet<string>
 ): ParentChildSummary | null => {
   let value: unknown;
   try {
@@ -530,7 +539,8 @@ export const parseParentChildSummary = (
       !childId ||
       !authorizedChildIds.has(childId) ||
       !progressSummary ||
-      !citations
+      !citations ||
+      !citations.every((id) => authorizedEvidenceIds.has(id))
     )
       return null;
     summaries.push({ childId, progressSummary, citations });

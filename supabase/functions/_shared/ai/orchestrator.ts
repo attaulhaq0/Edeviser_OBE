@@ -363,7 +363,10 @@ export const runAgentOrchestrator = async (dependencies: {
         // Tasks 5.1 + 6.1 — strict deterministic parsers per specialist.
         ...(specialist === "teacher"
           ? (() => {
-              const output = parseTeacherCopilotOutput(lastResponse.content);
+              const output = parseTeacherCopilotOutput(
+                lastResponse.content,
+                evidenceIds(evidence)
+              );
               return output ? { copilotDrafts: output } : {};
             })()
           : {}),
@@ -371,7 +374,8 @@ export const runAgentOrchestrator = async (dependencies: {
           ? (() => {
               const summary = parseParentChildSummary(
                 lastResponse.content,
-                authorizedStudentIds(evidence)
+                authorizedStudentIds(evidence),
+                evidenceIds(evidence)
               );
               return summary ? { childSummaries: summary } : {};
             })()
