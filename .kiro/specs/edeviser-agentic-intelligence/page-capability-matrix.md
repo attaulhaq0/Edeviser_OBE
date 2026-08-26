@@ -1,7 +1,9 @@
 # Page-Capability Matrix (finalized — task 3.2, Wave D)
 
 Code source of truth: `src/ai/capabilities/registry.ts` + `src/ai/capabilities/types.ts`,
-consumed by `src/ai/hooks/usePageCapabilities.ts` and mounted via `EdeviserAssistantPanel` (D2/D4).
+consumed by `src/ai/hooks/usePageCapabilities.ts` and mounted via the
+EdeviserAssistantPanel shell at src/ai/components/EdeviserAssistantPanel.tsx
+(shell shipped in D2; page host wiring mounts in D4).
 Sync guard: `src/__tests__/unit/pageCapabilityRegistry.test.ts` fails when this document and the
 registry drift apart — every registered pattern appears below, backticked, exactly once.
 
