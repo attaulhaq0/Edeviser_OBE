@@ -140,5 +140,16 @@
       "justExplain": "Just explain it",
       "justExplainLabel": "Just explain it — direct explanation"
     }
+  },
+  "assistantPanel": {
+    "title": "Edeviser Assistant",
+    "subtitle": "Context-aware help scoped to this page",
+    "approval": {
+      "none": "Read-only",
+      "actor": "Self-service actions",
+      "teacher": "Needs teacher approval",
+      "coordinator": "Needs coordinator approval",
+      "admin": "Needs admin approval"
+    }
   }
 }
