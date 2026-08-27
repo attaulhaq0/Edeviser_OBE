@@ -22,7 +22,7 @@ const DOC = join(
   ".kiro",
   "specs",
   "edeviser-agentic-intelligence",
-  "page-capability-matrix.md",
+  "page-capability-matrix.md"
 );
 const BACKEND_SRC = readFileSync(
   join(
@@ -32,43 +32,45 @@ const BACKEND_SRC = readFileSync(
     "_shared",
     "ai",
     "tools",
-    "registry.ts",
+    "registry.ts"
   ),
-  "utf8",
+  "utf8"
 );
 const backendToolNames = new Set(
   [...BACKEND_SRC.matchAll(/"(get_[a-z_]+|search_course_materials)"/g)].map(
-    (m) => m[1] ?? "",
-  ),
+    (m) => m[1] ?? ""
+  )
 );
 
 describe("Page capability resolver", () => {
   it("matches exact and parameterized patterns with longest-wins precedence", () => {
-    expect(
-      resolvePageCapabilities("/student/courses/c-1")?.pathPattern,
-    ).toBe("/student/courses/:courseId");
+    expect(resolvePageCapabilities("/student/courses/c-1")?.pathPattern).toBe(
+      "/student/courses/:courseId"
+    );
     expect(
       resolvePageCapabilities(
-        "/student/courses/c-1/assignments/a-9?tab=overview#top",
-      )?.pathPattern,
+        "/student/courses/c-1/assignments/a-9?tab=overview#top"
+      )?.pathPattern
     ).toBe("/student/courses/:courseId/assignments/:assignmentId");
-    // /student is shorter than /student/courses/:courseId -> longest wins above.
-    expect(resolvePageCapabilities("/student")?.pathPattern).toBe("/student");
+    // /student/dashboard is shorter than /student/courses/:courseId -> longest wins above.
+    expect(resolvePageCapabilities("/student/dashboard")?.pathPattern).toBe(
+      "/student/dashboard"
+    );
   });
 
   it("star patterns match any remainder", () => {
     expect(patternMatches("/teacher/gradebook/*", "/teacher/gradebook")).toBe(
-      true,
-    );
-    expect(patternMatches("/teacher/gradebook/*", "/teacher/gradebook/x/y")).toBe(
-      true,
-    );
-    expect(patternMatches("/teacher/gradebook/*", "/teacher/students")).toBe(
-      false,
+      true
     );
     expect(
-      resolvePageCapabilities("/teacher/gradebook")?.pathPattern,
-    ).toBe("/teacher/gradebook/*");
+      patternMatches("/teacher/gradebook/*", "/teacher/gradebook/x/y")
+    ).toBe(true);
+    expect(patternMatches("/teacher/gradebook/*", "/teacher/students")).toBe(
+      false
+    );
+    expect(resolvePageCapabilities("/teacher/gradebook")?.pathPattern).toBe(
+      "/teacher/gradebook/*"
+    );
   });
 
   it("is fail-closed: unmatched and public routes resolve to null", () => {
@@ -82,7 +84,6 @@ describe("Page capability resolver", () => {
 const patterns = PAGE_CAPABILITY_ROWS.map((r) => r.pathPattern);
 
 describe("Registry integrity", () => {
-
   it("has unique path patterns across all rows", () => {
     expect(new Set(patterns).size).toBe(patterns.length);
   });
@@ -100,7 +101,7 @@ describe("Registry integrity", () => {
     for (const row of PAGE_CAPABILITY_ROWS) {
       for (const tool of row.tools) {
         expect(backendToolNames.has(tool), `${row.pathPattern}: ${tool}`).toBe(
-          true,
+          true
         );
       }
     }
@@ -116,9 +117,11 @@ describe("Registry integrity", () => {
       const firstArray = chunk.match(/\[[^\]]*\]/)?.[0];
       if (!name || !firstArray) continue;
       const roles = new Set(
-        [...firstArray.matchAll(/"([a-z]+)"/g)].map((m) => m[1] ?? ""),
+        [...firstArray.matchAll(/"([a-z]+)"/g)].map((m) => m[1] ?? "")
       );
-      expect(roles.size, `${name} must declare allowedRoles`).toBeGreaterThan(0);
+      expect(roles.size, `${name} must declare allowedRoles`).toBeGreaterThan(
+        0
+      );
       rolesByTool.set(name, roles);
     }
     expect(rolesByTool.size).toBeGreaterThanOrEqual(21);
@@ -127,7 +130,7 @@ describe("Registry integrity", () => {
         for (const tool of row.tools) {
           expect(
             rolesByTool.get(tool)?.has(role),
-            `${row.pathPattern} advertises ${tool} to ${role}`,
+            `${row.pathPattern} advertises ${tool} to ${role}`
           ).toBe(true);
         }
       }
@@ -143,15 +146,17 @@ describe("Spec doc sync (page-capability-matrix.md)", () => {
   const docPatterns = [
     ...new Set(
       tableLines.flatMap((l) =>
-        [...l.matchAll(/`(\/[^`\s]+)`/g)].map((m) => m[1] ?? ""),
-      ),
+        [...l.matchAll(/`(\/[^`\s]+)`/g)].map((m) => m[1] ?? "")
+      )
     ),
   ].sort();
 
   it("documents every registered pattern exactly once in the matrix tables", () => {
     expect(docPatterns).toEqual([...patterns].sort());
     for (const p of patterns) {
-      const occurrences = tableLines.filter((l) => l.includes(`\`${p}\``)).length;
+      const occurrences = tableLines.filter((l) =>
+        l.includes(`\`${p}\``)
+      ).length;
       expect(occurrences, `${p} appears ${occurrences}x`).toBe(1);
     }
   });
@@ -172,7 +177,7 @@ describe("Router coverage (Phase-3 mounting scope)", () => {
     // /student/* L931, tutor L1033, TeacherLayout L24, GradebookView L265,
     // /coordinator/* L739, /parent/* L1062, ILOListPage L48, AIGovernancePage L384.
     const required: readonly [string, string][] = [
-      ['path="/student/*"', "/student"],
+      ["StudentDashboard", "/student/dashboard"],
       ['path="tutor"', "/student/tutor/*"],
       ["courses/:courseId", "/student/courses/:courseId"],
       ["TeacherLayout", "/teacher/dashboard"],
@@ -185,7 +190,7 @@ describe("Router coverage (Phase-3 mounting scope)", () => {
     for (const [needle, pattern] of required) {
       expect(router, `router lacks ${needle}`).toContain(needle);
       expect(patterns, `registry lacks ${pattern} for ${needle}`).toContain(
-        pattern,
+        pattern
       );
     }
   });

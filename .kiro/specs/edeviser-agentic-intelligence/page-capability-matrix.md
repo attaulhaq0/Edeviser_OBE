@@ -17,7 +17,7 @@ matching. Fail-closed: a route with NO matching row renders NO assistant surface
 
 | Route | Surfaces | Read tools | Ceiling | Evidence sources |
 |---|---|---|---|---|
-| `/student` | twin-summary, alignment-summary, suggestions | get_student_learning_context, get_course_mastery, get_outcome_chain, get_habit_context | none | student_learning_states, outcome_mappings |
+| `/student/dashboard` | twin-summary, alignment-summary, suggestions | get_student_learning_context, get_course_mastery, get_outcome_chain, get_habit_context | none | student_learning_states, outcome_mappings |
 | `/student/courses/:courseId` | twin-summary, alignment-summary, conversation | core + search_course_materials | none | student_learning_states, submissions, course_material_embeddings |
 | `/student/courses/:courseId/assignments/:assignmentId` | twin-summary, conversation | core + search_course_materials, get_assignment_context | none | student_learning_states, submissions, assignments |
 | `/student/tutor/*` | conversation, suggestions | core + search_course_materials | actor | agent_messages, rag_chunks, submissions |

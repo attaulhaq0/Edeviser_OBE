@@ -203,5 +203,28 @@
       "proposal_scope_changed": "This proposal's target is no longer within your authority.",
       "unknown_error": "The decision could not be recorded. Please try again."
     }
+  },
+  "learningState": {
+    "title": "Learning State",
+    "mastery": "Mastery {{percent}}%",
+    "trend": {
+      "improving": "Improving",
+      "declining": "Declining",
+      "stagnant": "Steady"
+    },
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak",
+    "consistency": "Consistency {{percent}}%",
+    "risk": {
+      "attention": "Needs attention",
+      "urgent": "Urgent — respond soon"
+    },
+    "empty": "Your learning state is still being calculated — check back soon.",
+    "unavailable": "Your learning state is temporarily unavailable."
+  },
+  "alignment": {
+    "title": "Focus areas",
+    "derived": "DERIVED ALIGNMENT",
+    "empty": "No outcome-level data yet — keep earning evidence."
   }
 }
