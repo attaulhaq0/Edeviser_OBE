@@ -149,6 +149,28 @@ export class AgentDecisionError extends Error {
   }
 }
 
+/**
+ * Runtime membership guard for {@link ProposalDecisionErrorCode}. Server
+ * responses are untrusted: unrecognized codes must never flow through typed
+ * casts or reach i18n key lookups unchecked.
+ */
+const PROPOSAL_DECISION_ERROR_CODES: ReadonlySet<string> = new Set([
+  "unauthorized",
+  "invalid_proposal_id",
+  "proposal_not_found",
+  "unauthorized_approver",
+  "expired",
+  "already_decided",
+  "proposal_already_decided",
+  "proposal_scope_changed",
+  "unknown_error",
+] satisfies ProposalDecisionErrorCode[]);
+
+export const isProposalDecisionErrorCode = (
+  value: unknown,
+): value is ProposalDecisionErrorCode =>
+  typeof value === "string" && PROPOSAL_DECISION_ERROR_CODES.has(value);
+
 /** Maps any thrown value from the decision call onto a bounded error code. */
 export const toProposalDecisionError = (error: unknown): AgentDecisionError => {
   if (error instanceof AgentDecisionError) return error;
@@ -156,7 +178,7 @@ export const toProposalDecisionError = (error: unknown): AgentDecisionError => {
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
-    typeof (error as { code?: unknown }).code === "string"
+    isProposalDecisionErrorCode((error as { code?: unknown }).code)
   ) {
     return new AgentDecisionError(
       (error as { code: ProposalDecisionErrorCode }).code,

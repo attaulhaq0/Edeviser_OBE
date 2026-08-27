@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import {
   AgentDecisionError,
+  isProposalDecisionErrorCode,
   type ProposalDecisionErrorCode,
   toProposalDecisionError,
 } from "@/lib/agentProposals";
@@ -57,7 +58,8 @@ const extractErrorCode = async (error: unknown): Promise<ProposalDecisionErrorCo
         error as { context: { json: () => Promise<unknown> } }
       ).context.json();
       const code = (body as { error?: { code?: unknown } })?.error?.code;
-      if (typeof code === "string") return code as ProposalDecisionErrorCode;
+      // Untrusted response: only recognized bounded codes pass through.
+      if (isProposalDecisionErrorCode(code)) return code;
     } catch {
       // fall through to unknown
     }
@@ -94,7 +96,8 @@ const decideProposal = async ({
   if (
     !receipt ||
     typeof receipt.id !== "string" ||
-    (receipt.status !== "approved" && receipt.status !== "rejected")
+    (receipt.status !== "approved" && receipt.status !== "rejected") ||
+    !(receipt.decided_at === null || typeof receipt.decided_at === "string")
   ) {
     throw new AgentDecisionError("unknown_error");
   }

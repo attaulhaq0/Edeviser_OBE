@@ -120,6 +120,10 @@ describe("agentProposals lib", () => {
     expect(toProposalDecisionError({ code: "proposal_not_found" }).code).toBe(
       "proposal_not_found",
     );
+    expect(
+      toProposalDecisionError({ code: "garbage_not_a_code" }).code,
+      "unrecognized codes collapse onto unknown_error",
+    ).toBe("unknown_error");
     expect(toProposalDecisionError(new Error("boom")).code).toBe(
       "unknown_error",
     );

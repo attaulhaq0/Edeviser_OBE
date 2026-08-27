@@ -182,7 +182,10 @@ const AgentApprovalCard = ({
               onClick={() => submit("approve")}
             >
               {decide.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <Loader2
+                  className="h-4 w-4 motion-safe:animate-spin"
+                  aria-hidden="true"
+                />
               ) : null}
               {t("approvalCard.buttons.approve")}
             </Button>
