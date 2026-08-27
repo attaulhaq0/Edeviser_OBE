@@ -8,12 +8,12 @@
 // useLearningState (RLS-scoped to auth.uid()). Fail-closed: loading/error/no-
 // snapshot states render a calm notice, never a crash or fabricated numbers.
 
-import { Activity, Flame, ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Activity, Flame, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Shimmer } from "@/design-system";
 import type { HostedSurfaceProps } from "@/ai/components/EdeviserAssistantPanel";
-import { useLearningState } from "@/ai/hooks/useLearningState";
+import { useLearningState } from "@/hooks/useLearningState";
 import { useAuth } from "@/hooks/useAuth";
 
 const RISK_TONE: Record<string, string> = {
@@ -73,7 +73,9 @@ const LearningStateSummary = ({ row: _row }: HostedSurfaceProps) => {
       <div className="flex flex-wrap items-center gap-2">
         {typeof masteryPercent === "number" && (
           <Badge variant="outline" className="text-xs font-bold">
-            {t("learningState.mastery", { percent: Math.round(masteryPercent) })}
+            {t("learningState.mastery", {
+              percent: Math.round(masteryPercent),
+            })}
           </Badge>
         )}
         {trend && (
@@ -90,7 +92,9 @@ const LearningStateSummary = ({ row: _row }: HostedSurfaceProps) => {
         {typeof consistency === "number" && (
           <span className="flex items-center gap-1 text-xs font-semibold text-gray-600">
             <Activity className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("learningState.consistency", { percent: Math.round(consistency) })}
+            {t("learningState.consistency", {
+              percent: Math.round(consistency),
+            })}
           </span>
         )}
       </div>
@@ -101,7 +105,10 @@ const LearningStateSummary = ({ row: _row }: HostedSurfaceProps) => {
             RISK_TONE[severity] ?? RISK_TONE.none
           }`}
         >
-          <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <ShieldAlert
+            className="mt-0.5 h-3.5 w-3.5 shrink-0"
+            aria-hidden="true"
+          />
           <span>{riskNotice ?? t(`learningState.risk.${severity}`)}</span>
         </div>
       )}

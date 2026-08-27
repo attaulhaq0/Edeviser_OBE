@@ -225,6 +225,7 @@
   "alignment": {
     "title": "Focus areas",
     "derived": "DERIVED ALIGNMENT",
+    "caption": "Based on your course-outcome (CLO) attainment evidence only — program and institution alignment views arrive later.",
     "empty": "No outcome-level data yet — keep earning evidence."
   }
 }

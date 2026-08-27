@@ -17,7 +17,7 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "student-1", role: "student" } }),
 }));
 
-vi.mock("@/ai/hooks/useLearningState", () => ({
+vi.mock("@/hooks/useLearningState", () => ({
   useLearningState: () => mockUseLearningState(),
 }));
 

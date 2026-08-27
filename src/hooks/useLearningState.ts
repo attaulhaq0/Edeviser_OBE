@@ -2,9 +2,11 @@
 // Hook: reads the authenticated student's own digital-twin row from
 // student_learning_states.
 //
-// RLS (live-verified via MCP pg_policies 2026-08-27): a student can read ONLY
-// their own row (student_learning_states_student_read → student_id = auth.uid()
-// AND institution match). A direct .select is therefore authorized and returns
+// Lives in src/hooks/ per repo convention ("all database queries go through
+// TanStack Query hooks in src/hooks/"). RLS (live-verified via MCP pg_policies
+// 2026-08-27): a student can read ONLY their own row
+// (student_learning_states_student_read → student_id = auth.uid() AND
+// institution match). A direct .select is therefore authorized and returns
 // exactly this student's twin data.
 //
 // DISPLAY/HINT ONLY — this is a read of the digital-twin summary used to render

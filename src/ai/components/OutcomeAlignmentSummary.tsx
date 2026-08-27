@@ -1,13 +1,16 @@
 // =============================================================================
-// OutcomeAlignmentSummary — derived CLO→PLO/ILO alignment surface
+// OutcomeAlignmentSummary — student focus areas (alignment-summary host)
 // =============================================================================
-// Feature: Outcome alignment UX (frontend-plan.md; tasks 3.1 — Wave D4).
+// Feature: Outcome focus UX (frontend-plan.md; tasks 3.1 — Wave D4).
 //
 // Hosted under EdeviserAssistantPanel's "alignment-summary" surface. Renders
-// the student's weakest CLOs in ranked order with a clear **DERIVED ALIGNMENT**
-// label — this is derived from CLO attainment evidence only and is NEVER
-// presented as official ILO/PLO mastery (see .clinerules/08-intelligence-layer:
-// derived alignment is clearly labeled, never official attainment). Data comes
+// the student's lowest-attainment COURSE outcomes (CLOs), ranked weakest-first
+// by the pure selector in @/lib/outcomeFocus, under an explicit DERIVED label.
+//
+// Scope honesty (Digital Twin guardrail, .clinerules/08-intelligence-layer):
+// the numbers shown are CLO attainment evidence ONLY and are captioned as
+// such in-UI. PLO/ILO contribution chains are a planned follow-up and are
+// deliberately NOT displayed or implied here until that data lands. Data comes
 // from the existing useCLOProgress hook (RLS-scoped; no new backend calls).
 
 import { useMemo } from "react";
@@ -17,8 +20,9 @@ import { Shimmer } from "@/design-system";
 import type { HostedSurfaceProps } from "@/ai/components/EdeviserAssistantPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
+import { selectWeakestOutcomes } from "@/lib/outcomeFocus";
 
-/** Renders the weakest CLOs across the student's courses, ascending. */
+/** Renders the student's weakest rated CLOs across their courses, ascending. */
 const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
   void _row; // HostedSurfaceProps contract; caller resolves its own data.
   const { t } = useTranslation("ai");
@@ -26,21 +30,10 @@ const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
   const studentId = user?.id;
   const progress = useCLOProgress(studentId);
 
-  const weakest = useMemo(() => {
-    const flattened = (progress.data ?? []).flatMap((course) =>
-      course.entries.map((entry) => ({
-        cloId: entry.clo_id,
-        title: entry.clo_title,
-        courseName: entry.course_name,
-        percent: entry.attainment_percent ?? null,
-      })),
-    );
-    return flattened
-      .filter((entry) => entry.percent !== null)
-      // Weakest first (lowest attainment).
-      .sort((a, b) => (a.percent ?? 0) - (b.percent ?? 0))
-      .slice(0, 3);
-  }, [progress.data]);
+  const weakest = useMemo(
+    () => selectWeakestOutcomes(progress.data ?? []),
+    [progress.data]
+  );
 
   if (progress.isPending) {
     return (
@@ -56,10 +49,18 @@ const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
         <p className="text-xs font-bold text-slate-500">
           {t("alignment.title")}
         </p>
-        <Badge variant="outline" className="text-[10px] font-black tracking-wider">
+        <Badge
+          variant="outline"
+          className="text-[10px] font-black tracking-wider"
+        >
           {t("alignment.derived")}
         </Badge>
       </div>
+      {/* Provenance caption: names exactly which evidence backs these numbers
+          (CLO attainment) so the surface can never be read as PLO/ILO mastery. */}
+      <p className="text-[11px] leading-snug text-slate-500">
+        {t("alignment.caption")}
+      </p>
 
       {weakest.length === 0 ? (
         <p className="text-xs text-gray-500">{t("alignment.empty")}</p>
@@ -74,9 +75,7 @@ const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
                 {entry.title}
               </span>
               <span className="shrink-0 font-black text-slate-400">
-                {typeof entry.percent === "number"
-                  ? `${Math.round(entry.percent)}%`
-                  : "—"}
+                {Math.round(entry.percent)}%
               </span>
             </li>
           ))}
