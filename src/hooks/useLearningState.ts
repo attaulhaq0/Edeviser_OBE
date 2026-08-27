@@ -3,11 +3,12 @@
 // student_learning_states.
 //
 // Lives in src/hooks/ per repo convention ("all database queries go through
-// TanStack Query hooks in src/hooks/"). RLS (live-verified via MCP pg_policies
-// 2026-08-27): a student can read ONLY their own row
-// (student_learning_states_student_read → student_id = auth.uid() AND
-// institution match). A direct .select is therefore authorized and returns
-// exactly this student's twin data.
+// TanStack Query hooks in src/hooks/"). RLS verified against the LIVE project
+// (cdlgtbvxlxjpcddjazzx, pg_policies, 2026-08-27): student reads of
+// student_learning_states are scoped by the SELECT policy
+// student_learning_states_student_read (roles: authenticated) to
+// student_id = auth.uid() AND institution_id = auth_institution_id(),
+// so a direct .select returns exactly this student's own twin row.
 //
 // DISPLAY/HINT ONLY — this is a read of the digital-twin summary used to render
 // the LearningStateSummary surface. It is never an authorization boundary; the
