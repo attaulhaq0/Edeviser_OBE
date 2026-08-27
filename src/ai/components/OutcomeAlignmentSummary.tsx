@@ -6,12 +6,15 @@
 // Hosted under EdeviserAssistantPanel's "alignment-summary" surface. Renders
 // the student's lowest-attainment COURSE outcomes (CLOs), ranked weakest-first
 // by the pure selector in @/lib/outcomeFocus, under an explicit DERIVED label.
+// Each focus area also shows its mapped parent chain (PLO → ILO), resolved by
+// @/hooks/useOutcomeParents over outcome_mappings (canonical source=parent /
+// target=child direction; institution-scoped RLS reads — no agent round-trip).
 //
 // Scope honesty (Digital Twin guardrail, .clinerules/08-intelligence-layer):
 // the numbers shown are CLO attainment evidence ONLY and are captioned as
-// such in-UI. PLO/ILO contribution chains are a planned follow-up and are
-// deliberately NOT displayed or implied here until that data lands. Data comes
-// from the existing useCLOProgress hook (RLS-scoped; no new backend calls).
+// such in-UI; mapped PLO/ILO relationships are DERIVED alignment, never
+// official attainment at those levels. Data comes from useCLOProgress +
+// useOutcomeParents (both RLS-scoped).
 
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +23,7 @@ import { Shimmer } from "@/design-system";
 import type { HostedSurfaceProps } from "@/ai/components/EdeviserAssistantPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
+import { useOutcomeParents } from "@/hooks/useOutcomeParents";
 import { selectWeakestOutcomes } from "@/lib/outcomeFocus";
 
 /** Renders the student's weakest rated CLOs across their courses, ascending. */
@@ -31,6 +35,8 @@ const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
   const { data, isPending, isError } = useCLOProgress(studentId);
 
   const weakest = useMemo(() => selectWeakestOutcomes(data ?? []), [data]);
+  const cloIds = useMemo(() => weakest.map((entry) => entry.cloId), [weakest]);
+  const parentsByClo = useOutcomeParents(cloIds);
 
   if (isPending) {
     return (
@@ -76,19 +82,42 @@ const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
         <p className="text-xs text-gray-500">{t("alignment.empty")}</p>
       ) : (
         <ul className="space-y-1.5">
-          {weakest.map((entry) => (
-            <li
-              key={entry.cloId}
-              className="flex items-center justify-between gap-2 text-xs"
-            >
-              <span className="min-w-0 truncate font-medium text-slate-700">
-                {entry.title}
-              </span>
-              <span className="shrink-0 font-black text-slate-400">
-                {Math.round(entry.percent)}%
-              </span>
-            </li>
-          ))}
+          {weakest.map((entry) => {
+            const parents = parentsByClo?.data?.[entry.cloId];
+            return (
+              <li key={entry.cloId} className="space-y-0.5">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="min-w-0 truncate font-medium text-slate-700">
+                    {entry.title}
+                  </span>
+                  <span className="shrink-0 font-black text-slate-400">
+                    {Math.round(entry.percent)}%
+                  </span>
+                </div>
+                {/* Mapped parent chain — DERIVED alignment, never attainment at
+                    the PLO/ILO level. Supplementary: a failed chain lookup
+                    leaves the (honest) scores visible with no chain line. */}
+                {parents && parents.plos.length > 0 && (
+                  <p className="text-[10px] leading-snug text-slate-400">
+                    <span className="font-semibold">
+                      {t("alignment.plos")}:
+                    </span>{" "}
+                    {parents.plos.map((plo) => plo.title).join(", ")}
+                    {parents.ilos.length > 0 && (
+                      <>
+                        {" "}
+                        <span aria-hidden="true">·</span>{" "}
+                        <span className="font-semibold">
+                          {t("alignment.ilos")}:
+                        </span>{" "}
+                        {parents.ilos.map((ilo) => ilo.title).join(", ")}
+                      </>
+                    )}
+                  </p>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

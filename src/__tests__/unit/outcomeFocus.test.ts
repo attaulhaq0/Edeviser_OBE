@@ -12,6 +12,7 @@
 // Property 4 (bounded output): result length ≤ limit; default limit is 3.
 import { describe, expect, it } from "vitest";
 import {
+  buildOutcomeParentChains,
   selectWeakestOutcomes,
   type OutcomeFocusCourseLike,
 } from "@/lib/outcomeFocus";
@@ -81,5 +82,92 @@ describe("outcomeFocus / selectWeakestOutcomes", () => {
       course({ clo_id: "x", clo_title: "No course", attainment_percent: 33 }),
     ]);
     expect(result.map((r) => r.courseName)).toEqual([""]);
+  });
+});
+describe("outcomeFocus / buildOutcomeParentChains", () => {
+  it("builds a CLO → PLO → ILO chain from canonical mapping rows", () => {
+    const chains = buildOutcomeParentChains(
+      [
+        { source_outcome_id: "plo-1", target_outcome_id: "clo-a" },
+        { source_outcome_id: "plo-2", target_outcome_id: "clo-a" },
+      ],
+      [
+        { source_outcome_id: "ilo-1", target_outcome_id: "plo-1" },
+        { source_outcome_id: "ilo-2", target_outcome_id: "plo-2" },
+      ],
+      [
+        { id: "plo-1", title: "Computing", type: "PLO" },
+        { id: "plo-2", title: "Mathematics", type: "PLO" },
+        { id: "ilo-1", title: "Critical Thinker", type: "ILO" },
+        { id: "ilo-2", title: "Ethical Practice", type: "ILO" },
+      ]
+    );
+
+    expect(chains["clo-a"]!.plos.map((p) => p.title)).toEqual([
+      "Computing",
+      "Mathematics",
+    ]);
+    expect(chains["clo-a"]!.ilos.map((i) => i.title)).toEqual([
+      "Critical Thinker",
+      "Ethical Practice",
+    ]);
+  });
+
+  it("keeps a PLO when its ILO rows are absent (partial chain)", () => {
+    const chains = buildOutcomeParentChains(
+      [{ source_outcome_id: "plo-1", target_outcome_id: "clo-a" }],
+      [],
+      [{ id: "plo-1", title: "Computing", type: "PLO" }]
+    );
+
+    expect(chains["clo-a"]!.plos).toHaveLength(1);
+    expect(chains["clo-a"]!.ilos).toEqual([]);
+  });
+
+  it("ignores non-PLO/ILO source rows and unknown references (canonical-only)", () => {
+    const chains = buildOutcomeParentChains(
+      [
+        // SUB_CLO source is not a PLO → dropped defensively.
+        { source_outcome_id: "sub-9", target_outcome_id: "clo-a" },
+        // Unknown source (no matching row) → dropped.
+        { source_outcome_id: "ghost", target_outcome_id: "clo-a" },
+      ],
+      [
+        { source_outcome_id: "ilo-1", target_outcome_id: "plo-9" },
+        { source_outcome_id: "clo-a", target_outcome_id: "plo-9" },
+      ],
+      [
+        { id: "sub-9", title: "Sub", type: "SUB_CLO" },
+        { id: "ilo-1", title: "Critical Thinker", type: "ILO" },
+        { id: "clo-a", title: "Graphs", type: "CLO" },
+      ]
+    );
+
+    expect(chains).toEqual({});
+  });
+
+  it("dedupes an ILO reachable through several PLOs of the same CLO", () => {
+    const chains = buildOutcomeParentChains(
+      [
+        { source_outcome_id: "plo-1", target_outcome_id: "clo-a" },
+        { source_outcome_id: "plo-2", target_outcome_id: "clo-a" },
+      ],
+      [
+        { source_outcome_id: "ilo-1", target_outcome_id: "plo-1" },
+        { source_outcome_id: "ilo-1", target_outcome_id: "plo-2" },
+      ],
+      [
+        { id: "plo-1", title: "Computing", type: "PLO" },
+        { id: "plo-2", title: "Mathematics", type: "PLO" },
+        { id: "ilo-1", title: "Critical Thinker", type: "ILO" },
+      ]
+    );
+
+    expect(chains["clo-a"]!.plos).toHaveLength(2);
+    expect(chains["clo-a"]!.ilos).toHaveLength(1);
+  });
+
+  it("returns an empty map for absent data", () => {
+    expect(buildOutcomeParentChains([], [], [])).toEqual({});
   });
 });
