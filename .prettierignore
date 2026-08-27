@@ -6,3 +6,9 @@ prototype/
 # Build output / generated
 dist/
 src/types/database.ts
+
+
+# Kiro IDE config + spec directory — do-not-modify territory for coding agents
+# (.clinerules / AGENTS.md hard guards). Prettier must never rewrite files here,
+# so byte-exact restorations from main don't fail lint-staged style checks.
+.kiro/

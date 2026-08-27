@@ -103,4 +103,22 @@ describe("OutcomeAlignmentSummary", () => {
       screen.queryByText(/no outcome-level data yet/i)
     ).not.toBeInTheDocument();
   });
+
+  // Regression: a failed query must render the unavailable notice, never the
+  // empty state (which would falsely claim the student simply has no data).
+  it("renders an unavailable notice instead of the empty state when the query fails", () => {
+    mockUseCLOProgress.mockReturnValue({
+      isPending: false,
+      isError: true,
+      data: undefined,
+    });
+    renderSummary();
+    expect(screen.getByRole("note")).toHaveTextContent(
+      /temporarily unavailable/i
+    );
+    expect(
+      screen.queryByText(/no outcome-level data yet/i)
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/DERIVED ALIGNMENT/i)).not.toBeInTheDocument();
+  });
 });

@@ -17,11 +17,12 @@ import {
 } from "@/ai/capabilities/resolve";
 
 const ROUTER = join(process.cwd(), "src", "router", "AppRouter.tsx");
+// Relocated from .kiro/specs/… (agent do-not-modify guard) during the D4
+// review round; see the provenance note atop the document itself.
 const DOC = join(
   process.cwd(),
-  ".kiro",
-  "specs",
-  "edeviser-agentic-intelligence",
+  "docs",
+  "architecture",
   "page-capability-matrix.md"
 );
 const BACKEND_SRC = readFileSync(

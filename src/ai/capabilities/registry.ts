@@ -1,7 +1,7 @@
 // Feature: Page Capability Matrix (tasks.md 3.2).
 // Route → assistant-capability registry. Single source of truth for what the
 // EdeviserAssistantPanel may render per route. Kept in lockstep with
-// .kiro/specs/edeviser-agentic-intelligence/page-capability-matrix.md —
+// docs/architecture/page-capability-matrix.md —
 // pageCapabilityRegistry.test.ts fails if doc and registry drift apart.
 
 import type { PageCapabilityRow, ToolName } from "@/ai/capabilities/types";

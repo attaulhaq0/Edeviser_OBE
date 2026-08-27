@@ -28,17 +28,27 @@ const OutcomeAlignmentSummary = ({ row: _row }: HostedSurfaceProps) => {
   const { t } = useTranslation("ai");
   const { user } = useAuth();
   const studentId = user?.id;
-  const progress = useCLOProgress(studentId);
+  const { data, isPending, isError } = useCLOProgress(studentId);
 
-  const weakest = useMemo(
-    () => selectWeakestOutcomes(progress.data ?? []),
-    [progress.data]
-  );
+  const weakest = useMemo(() => selectWeakestOutcomes(data ?? []), [data]);
 
-  if (progress.isPending) {
+  if (isPending) {
     return (
       <div className="py-3">
         <Shimmer className="h-16 rounded-lg" />
+      </div>
+    );
+  }
+
+  // Failed query: surface an explicit unavailable notice rather than silently
+  // collapsing into the honest-empty state below (same contract as
+  // LearningStateSummary's twin-summary host).
+  if (isError) {
+    return (
+      <div className="py-3" role="note">
+        <p className="text-xs font-semibold text-red-700">
+          {t("alignment.unavailable")}
+        </p>
       </div>
     );
   }
