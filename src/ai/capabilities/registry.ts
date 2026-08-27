@@ -1,7 +1,7 @@
 // Feature: Page Capability Matrix (tasks.md 3.2).
 // Route → assistant-capability registry. Single source of truth for what the
 // EdeviserAssistantPanel may render per route. Kept in lockstep with
-// .kiro/specs/edeviser-agentic-intelligence/page-capability-matrix.md —
+// docs/architecture/page-capability-matrix.md —
 // pageCapabilityRegistry.test.ts fails if doc and registry drift apart.
 
 import type { PageCapabilityRow, ToolName } from "@/ai/capabilities/types";
@@ -32,7 +32,9 @@ const ADMIN_ILO: readonly ToolName[] = [
 export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
   // ---- Student -----------------------------------------------------------------
   {
-    pathPattern: "/student",
+    // /student (index) redirects to /student/dashboard; the row targets the real
+    // dashboard page so the primary student mount resolves.
+    pathPattern: "/student/dashboard",
     roles: ["student"],
     surfaces: ["twin-summary", "alignment-summary", "suggestions"],
     tools: [...STUDENT_CORE],
@@ -45,13 +47,21 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
     surfaces: ["twin-summary", "alignment-summary", "conversation"],
     tools: [...STUDENT_CORE, "search_course_materials"],
     approvalCeiling: "none",
-    evidenceSources: ["student_learning_states", "submissions", "course_material_embeddings"],
+    evidenceSources: [
+      "student_learning_states",
+      "submissions",
+      "course_material_embeddings",
+    ],
   },
   {
     pathPattern: "/student/courses/:courseId/assignments/:assignmentId",
     roles: ["student"],
     surfaces: ["twin-summary", "conversation"],
-    tools: [...STUDENT_CORE, "search_course_materials", "get_assignment_context"],
+    tools: [
+      ...STUDENT_CORE,
+      "search_course_materials",
+      "get_assignment_context",
+    ],
     approvalCeiling: "none",
     evidenceSources: ["student_learning_states", "submissions", "assignments"],
   },
@@ -71,7 +81,11 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
     surfaces: ["insight-cards", "approval-inbox"],
     tools: ["get_teacher_course_context", "get_at_risk_signals"],
     approvalCeiling: "teacher",
-    evidenceSources: ["ai_feedback", "learning_interventions", "proactive_agent_jobs"],
+    evidenceSources: [
+      "ai_feedback",
+      "learning_interventions",
+      "proactive_agent_jobs",
+    ],
   },
   {
     pathPattern: "/teacher/gradebook/*",
@@ -90,7 +104,11 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
     pathPattern: "/teacher/outcomes/*",
     roles: ["teacher"],
     surfaces: ["insight-cards", "conversation"],
-    tools: ["get_teacher_course_context", "get_outcome_chain", "get_intervention_effects"],
+    tools: [
+      "get_teacher_course_context",
+      "get_outcome_chain",
+      "get_intervention_effects",
+    ],
     approvalCeiling: "teacher",
     evidenceSources: ["clos", "sub_clos", "outcome_mappings"],
   },
@@ -105,7 +123,11 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
       "get_intervention_effects",
     ],
     approvalCeiling: "teacher",
-    evidenceSources: ["student_learning_states", "learning_interventions", "attendance"],
+    evidenceSources: [
+      "student_learning_states",
+      "learning_interventions",
+      "attendance",
+    ],
   },
 
   // ---- Coordinator ---------------------------------------------------------------
@@ -150,7 +172,11 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
     surfaces: ["insight-cards", "approval-inbox"],
     tools: [...ADMIN_ILO],
     approvalCeiling: "admin",
-    evidenceSources: ["institution_outcomes", "agent_action_proposals", "audit_logs"],
+    evidenceSources: [
+      "institution_outcomes",
+      "agent_action_proposals",
+      "audit_logs",
+    ],
   },
   {
     pathPattern: "/admin/outcomes/*",

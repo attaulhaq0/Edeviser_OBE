@@ -39,12 +39,12 @@ const RowSpyHost = ({ row }: HostedSurfaceProps) => {
 
 const renderAt = (
   path: string,
-  hosts?: EdeviserAssistantPanelProps["surfaceHosts"],
+  hosts?: EdeviserAssistantPanelProps["surfaceHosts"]
 ) =>
   render(
     <MemoryRouter initialEntries={[path]}>
       <EdeviserAssistantPanel surfaceHosts={hosts} />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 
 afterEach(() => {
@@ -65,38 +65,41 @@ describe("EdeviserAssistantPanel", () => {
   });
 
   it("renders NOTHING when a row exists but no permitted surface is hosted", () => {
-    const { container } = renderAt("/student");
+    const { container } = renderAt("/student/dashboard");
     expect(container.querySelector("[data-page-pattern]")).toBeNull();
     expect(container.textContent).toBe("");
   });
 
   it("renders the panel once a permitted surface is hosted", () => {
-    const { container } = renderAt("/student", {
+    const { container } = renderAt("/student/dashboard", {
       "twin-summary": makeHost("TWIN"),
     });
 
     const section = container.querySelector("section");
     expect(section).not.toBeNull();
     expect(section?.getAttribute("aria-label")).toBe("Edeviser Assistant");
-    expect(section?.dataset.pagePattern).toBe("/student");
+    expect(section?.dataset.pagePattern).toBe("/student/dashboard");
     expect(section?.dataset.surfaces).toBe("twin-summary");
 
     expect(screen.getByText("Edeviser Assistant")).toBeInTheDocument();
-    expect(screen.getByText("Context-aware help scoped to this page")).toBeInTheDocument();
+    expect(
+      screen.getByText("Context-aware help scoped to this page")
+    ).toBeInTheDocument();
     // Ceiling badge mirrors the row's informational ceiling ("none").
     expect(screen.getByText("Read-only")).toBeInTheDocument();
     expect(screen.getByText("TWIN")).toBeInTheDocument();
   });
 
   it("drops hosts for surfaces the row does not permit", () => {
-    // /student permits twin-summary / alignment-summary / suggestions — NOT conversation.
-    const { container } = renderAt("/student", {
+    // /student/dashboard permits twin-summary / alignment-summary / suggestions
+    // — NOT conversation.
+    const { container } = renderAt("/student/dashboard", {
       "twin-summary": makeHost("TWIN"),
       conversation: makeHost("CONVO"),
     });
 
     expect(container.querySelector("section")?.dataset.surfaces).toBe(
-      "twin-summary",
+      "twin-summary"
     );
     expect(screen.getByText("TWIN")).toBeInTheDocument();
     expect(screen.queryByText("CONVO")).toBeNull();
@@ -143,7 +146,7 @@ describe("EdeviserAssistantPanel", () => {
         pathPattern: "/teacher/dashboard",
         approvalCeiling: "teacher",
         roles: ["teacher"],
-      }),
+      })
     );
   });
 });

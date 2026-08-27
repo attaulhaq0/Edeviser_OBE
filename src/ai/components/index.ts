@@ -10,3 +10,5 @@ export type {
 export { default as AgentApprovalCard } from "@/ai/components/AgentApprovalCard";
 export type { AgentApprovalCardProps } from "@/ai/components/AgentApprovalCard";
 
+export { default as LearningStateSummary } from "@/ai/components/LearningStateSummary";
+export { default as OutcomeAlignmentSummary } from "@/ai/components/OutcomeAlignmentSummary";

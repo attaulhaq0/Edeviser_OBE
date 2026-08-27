@@ -35,6 +35,12 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
+// Page-scoped assistant surfaces (task 3.3 mounting): twin-summary +
+// alignment-summary host the student's own digital-twin snapshot and derived
+// CLO→PLO/ILO alignment inside the capability-gated assistant shell.
+import EdeviserAssistantPanel from "@/ai/components/EdeviserAssistantPanel";
+import LearningStateSummary from "@/ai/components/LearningStateSummary";
+import OutcomeAlignmentSummary from "@/ai/components/OutcomeAlignmentSummary";
 import {
   Button,
   HeroCarousel,
@@ -927,6 +933,18 @@ const StudentDashboardScreen = () => {
           </p>
         )}
       </section>
+
+      {/* ── Edeviser Assistant (capability-matrix scoped; task 3.3) ──
+          Fail-closed shell: renders only because this route maps to a
+          /student/dashboard row permitting these surfaces; each host resolves
+          its own RLS-scoped data. suggestions stays unhosted until Wave E
+          flips the institutional proactive-suggestions flag. */}
+      <EdeviserAssistantPanel
+        surfaceHosts={{
+          "twin-summary": LearningStateSummary,
+          "alignment-summary": OutcomeAlignmentSummary,
+        }}
+      />
     </div>
   );
 };
