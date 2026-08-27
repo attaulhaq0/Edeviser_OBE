@@ -151,5 +151,57 @@
       "coordinator": "Needs coordinator approval",
       "admin": "Needs admin approval"
     }
+  },
+  "approvalCard": {
+    "title": "Agent Approval",
+    "subtitle": "Review this proposed action before it proceeds",
+    "riskProtected": "Protected action",
+    "evidenceCount_one": "{{count}} evidence source",
+    "evidenceCount_other": "{{count}} evidence sources",
+    "evidenceTitle": "Evidence backing this proposal",
+    "requires": "Approver: {{role}}",
+    "expires": "Expires {{date}}",
+    "actions": {
+      "draft_ilo": "Draft institutional learning outcome",
+      "propose_create_ilo": "Create institutional learning outcome",
+      "propose_update_ilo": "Update institutional learning outcome",
+      "propose_delete_ilo": "Delete institutional learning outcome",
+      "propose_reorder_ilos": "Reorder institutional learning outcomes",
+      "draft_plo": "Draft program learning outcome",
+      "propose_plo_ilo_mapping": "Map program outcome to institutional outcomes",
+      "draft_clo": "Draft course learning outcome",
+      "propose_clo_plo_mapping": "Map course outcome to program outcomes",
+      "draft_cqi_action": "Draft quality-improvement action",
+      "create_cqi_action": "Create quality-improvement action"
+    },
+    "roles": {
+      "student": "Student",
+      "teacher": "Teacher",
+      "coordinator": "Coordinator",
+      "admin": "Administrator",
+      "parent": "Parent"
+    },
+    "outcome": {
+      "pending": "Awaiting the required approver's decision",
+      "approved": "Approved — execution will be re-validated server-side",
+      "rejected": "Rejected by the approver",
+      "expired": "This proposal has expired and can no longer be decided",
+      "executed": "Approved and already executed"
+    },
+    "buttons": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "errors": {
+      "unauthorized": "You are signed in without an authorized role.",
+      "invalid_proposal_id": "This proposal reference is invalid.",
+      "proposal_not_found": "This proposal no longer exists.",
+      "unauthorized_approver": "You are not the required approver for this proposal.",
+      "expired": "The decision window for this proposal has closed.",
+      "already_decided": "Someone already decided this proposal.",
+      "proposal_already_decided": "Someone already decided this proposal.",
+      "proposal_scope_changed": "This proposal's target is no longer within your authority.",
+      "unknown_error": "The decision could not be recorded. Please try again."
+    }
   }
 }

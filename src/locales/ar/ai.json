@@ -151,5 +151,57 @@
       "coordinator": "تتطلب موافقة المنسّق",
       "admin": "تتطلب موافقة المسؤول"
     }
+  },
+  "approvalCard": {
+    "title": "موافقة المساعد الذكي",
+    "subtitle": "راجع هذا الإجراء المقترح قبل تنفيذه",
+    "riskProtected": "إجراء محمي",
+    "evidenceCount_one": "مصدر إثبات واحد",
+    "evidenceCount_other": "{{count}} مصادر إثبات",
+    "evidenceTitle": "الأدلة الداعمة لهذا الاقتراح",
+    "requires": "المعتمِد: {{role}}",
+    "expires": "ينتهي في {{date}}",
+    "actions": {
+      "draft_ilo": "مسودة مخرج تعلم مؤسسي",
+      "propose_create_ilo": "إنشاء مخرج تعلم مؤسسي",
+      "propose_update_ilo": "تحديث مخرج تعلم مؤسسي",
+      "propose_delete_ilo": "حذف مخرج تعلم مؤسسي",
+      "propose_reorder_ilos": "إعادة ترتيب المخرجات التعليمية المؤسسية",
+      "draft_plo": "مسودة مخرج تعلم برنامجي",
+      "propose_plo_ilo_mapping": "ربط مخرج البرنامج بالمخرجات المؤسسية",
+      "draft_clo": "مسودة مخرج تعلم للمقرر",
+      "propose_clo_plo_mapping": "ربط مخرج المقرر بمخرجات البرنامج",
+      "draft_cqi_action": "مسودة إجراء تحسين الجودة",
+      "create_cqi_action": "إنشاء إجراء تحسين الجودة"
+    },
+    "roles": {
+      "student": "الطالب",
+      "teacher": "المعلّم",
+      "coordinator": "المنسّق",
+      "admin": "المسؤول",
+      "parent": "ولي الأمر"
+    },
+    "outcome": {
+      "pending": "بانتظار قرار المعتمِد المطلوب",
+      "approved": "تمت الموافقة — ستُعاد عملية التحقق قبل التنفيذ على الخادم",
+      "rejected": "رفضها المعتمِد",
+      "expired": "انتهت صلاحية هذا الاقتراح ولا يمكن البت فيه بعد الآن",
+      "executed": "تمت الموافقة والتنفيذ بالفعل"
+    },
+    "buttons": {
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "errors": {
+      "unauthorized": "أنت مسجّل الدخول دون دور مصرّح به.",
+      "invalid_proposal_id": "مرجع هذا الاقتراح غير صالح.",
+      "proposal_not_found": "لم يعد هذا الاقتراح موجوداً.",
+      "unauthorized_approver": "أنت لست المعتمِد المطلوب لهذا الاقتراح.",
+      "expired": "انتهت فترة اتخاذ القرار لهذا الاقتراح.",
+      "already_decided": "قام شخص ما باتخاذ القرار بشأنه بالفعل.",
+      "proposal_already_decided": "قام شخص ما باتخاذ القرار بشأنه بالفعل.",
+      "proposal_scope_changed": "لم يعد هدف هذا الاقتراح ضمن صلاحياتك.",
+      "unknown_error": "تعذّر تسجيل القرار. يرجى المحاولة مرة أخرى."
+    }
   }
 }
