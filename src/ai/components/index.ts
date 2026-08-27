@@ -6,3 +6,7 @@ export type {
   EdeviserAssistantPanelProps,
   HostedSurfaceProps,
 } from "@/ai/components/EdeviserAssistantPanel";
+
+export { default as AgentApprovalCard } from "@/ai/components/AgentApprovalCard";
+export type { AgentApprovalCardProps } from "@/ai/components/AgentApprovalCard";
+
