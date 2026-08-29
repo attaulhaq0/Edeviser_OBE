@@ -53,6 +53,8 @@ import { useDepartmentAnalytics } from "@/hooks/useAdminDashboard";
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { formatNumber } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
+import { EdeviserAssistantPanel } from "@/ai/components";
+import AgentGovernanceCard from "@/ai/components/AgentGovernanceCard";
 
 const BRAND_SURFACE = "#0f172a";
 const HERO_SURFACE = "#0f172a";
@@ -448,6 +450,15 @@ const AdminDashboardScreen = () => {
           {t("dashboard.autonomy.tag", "Governed")}
         </span>
       </div>
+
+      {/* ── AI governance & cost snapshot (tasks.md 6.3): admin-only aggregate
+          read through the bounded get_governance_summary channel. ── */}
+      <AgentGovernanceCard />
+
+      {/* ── Ask-Edeviser assistant (tasks.md 3.3): page-context aware shell.
+          Surfaces (approval-inbox, suggestions) are granted fail-closed by the
+          page capability registry for this role/route. ── */}
+      <EdeviserAssistantPanel />
     </div>
   );
 };

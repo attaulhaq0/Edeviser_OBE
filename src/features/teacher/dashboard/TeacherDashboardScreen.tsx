@@ -69,6 +69,7 @@ import {
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
+import { EdeviserAssistantPanel } from "@/ai/components";
 
 const HERO_GRADIENT = "var(--hero-gradient)";
 
@@ -747,6 +748,11 @@ const TeacherDashboardScreen = () => {
           })}
         </p>
       </div>
+
+      {/* ── Ask-Edeviser assistant (tasks.md 3.3): page-context aware shell.
+          Surfaces (approval-inbox, suggestions) are granted fail-closed by the
+          page capability registry for this role/route. ── */}
+      <EdeviserAssistantPanel />
     </div>
   );
 };
