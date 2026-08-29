@@ -204,7 +204,7 @@ serve(async (req) => {
       )
       .eq("institution_id", identity.institutionId)
       .eq("required_approver_role", identity.role)
-      .eq("status", "pending")
+      .eq("status", typeof body.status === "string" ? body.status : "pending")
       .order("created_at", { ascending: false })
       .limit(50);
     if (inboxError) {
@@ -214,6 +214,19 @@ serve(async (req) => {
       .map((row) => toProposalView(row as Record<string, unknown>))
       .filter((view) => view !== null);
     return json(200, { proposals });
+  }
+
+  // ─── Task 7.2: institution autonomy settings read channel ──────────────────
+  // institution_autonomy_settings is RLS deny-all to clients by design, so the
+  // autonomy control reads ONLY through this bounded channel. Returns the
+  // caller's institution posture (ceiling, auto-exec, rollback). Unconfigured
+  // institutions fall back to schema defaults (A2, auto-exec OFF, rollback ON).
+  if (body.action === "get_institution_autonomy") {
+    const settings = await fetchInstitutionAutonomySettings(
+      admin,
+      identity.institutionId
+    );
+    return json(200, { settings });
   }
 
   // ─── Task 6.3: institutional governance & cost snapshot (admin only) ────────

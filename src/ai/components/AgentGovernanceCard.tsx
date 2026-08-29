@@ -9,6 +9,7 @@
 // every field passes a guard before rendering (fail-closed unavailable state).
 import { useTranslation } from "react-i18next";
 import { useGovernanceSummary } from "@/ai/hooks/useGovernanceSummary";
+import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Coins, ShieldAlert, Inbox } from "lucide-react";
@@ -41,7 +42,12 @@ const Stat = ({
 
 const AgentGovernanceCard = ({ className }: AgentGovernanceCardProps) => {
   const { t } = useTranslation("ai");
+  const { role } = useAuth();
   const { data, isLoading } = useGovernanceSummary();
+
+  // Client-side guard: the orchestrator enforces admin-only server-side
+  // (403 for non-admins), so hide the card entirely for non-admins.
+  if (role !== null && role !== "admin") return null;
 
   return (
     <Card className={className}>

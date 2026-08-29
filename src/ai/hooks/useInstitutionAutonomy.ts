@@ -1,10 +1,12 @@
 // Feature: Task 7.2 (edeviser-agentic-intelligence) — institution autonomy
-// settings hook. LIVE-DB contract (MCP pg_policies, 2026-08-28): the
-// institution_autonomy_settings row is readable by authenticated clients
-// under RLS scoped to the caller's institution; unconfigured institutions
-// return zero rows (null here) and the UI renders the fail-closed default
-// posture. Server-side enforcement ALWAYS lives in the edge-function policy
-// engine — this hook feeds DISPLAY ONLY and can never grant autonomy.
+// settings hook.
+//
+// LIVE-DB contract: institution_autonomy_settings is RLS deny-all to clients
+// by design, so this hook reads ONLY through the orchestrator's bounded
+// `get_institution_autonomy` channel (service-role server side). Unconfigured
+// institutions fall back to schema defaults (A2, auto-exec OFF, rollback ON).
+// Server-side enforcement ALWAYS lives in the edge-function policy engine —
+// this hook feeds DISPLAY ONLY and can never grant autonomy.
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -14,21 +16,41 @@ export interface InstitutionAutonomySettings {
   readonly auto_execute_low_risk: boolean;
   readonly rollback_enabled: boolean;
   readonly evaluation_thresholds: unknown;
-  readonly updated_at: string;
 }
 
+interface AutonomySettingsResponse {
+  settings?: {
+    institutionCeiling?: string;
+    autoExecuteLowRisk?: boolean;
+    rollbackEnabled?: boolean;
+    configured?: boolean;
+  };
+}
+
+const DEFAULT_SETTINGS: InstitutionAutonomySettings = {
+  operational_autonomy_ceiling: "A2",
+  auto_execute_low_risk: false,
+  rollback_enabled: true,
+  evaluation_thresholds: undefined,
+};
+
 export const useInstitutionAutonomy = () =>
-  useQuery<InstitutionAutonomySettings | null>({
+  useQuery<InstitutionAutonomySettings>({
     queryKey: ["ai", "institution-autonomy-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("institution_autonomy_settings")
-        .select(
-          "operational_autonomy_ceiling,auto_execute_low_risk,rollback_enabled,evaluation_thresholds,updated_at"
-        )
-        .maybeSingle();
-      if (error) throw new Error("institution_autonomy_settings_unavailable");
-      return (data as InstitutionAutonomySettings | null) ?? null;
+      const { data, error } =
+        await supabase.functions.invoke<AutonomySettingsResponse>(
+          "agent-orchestrator",
+          { body: { action: "get_institution_autonomy" } }
+        );
+      if (error || !data?.settings) return DEFAULT_SETTINGS;
+      const s = data.settings;
+      return {
+        operational_autonomy_ceiling: s.institutionCeiling ?? "A2",
+        auto_execute_low_risk: s.autoExecuteLowRisk ?? false,
+        rollback_enabled: s.rollbackEnabled ?? true,
+        evaluation_thresholds: undefined,
+      };
     },
     staleTime: 60_000,
     retry: 1,

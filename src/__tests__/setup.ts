@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import * as matchers from "vitest-axe/matchers";
 
 expect.extend(matchers);
@@ -72,3 +72,29 @@ if (typeof window !== "undefined") {
     value: sessionStoragePolyfill,
   });
 }
+
+// ─── Hermetic AI-surface harness ─────────────────────────────────────────────
+// The Wave-D AI components read through `supabase.functions.invoke(...)`
+// (agent-orchestrator channels). Unit tests that render pages containing an AI
+// surface (assistant panel, autonomy control, governance card) must not fire
+// real HTTP at teardown (happy-dom AbortError flakiness). Install a global
+// fail-closed stub returning an empty envelope so any unmocked consumer
+// resolves deterministically instead of racing an in-flight fetch.
+vi.mock("@/lib/supabase", () => {
+  const supabase = {
+    functions: {
+      invoke: vi.fn(async () => ({ data: null, error: null })),
+    },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: null, error: null }),
+        }),
+      }),
+    }),
+    channel: () => ({
+      on: () => ({ subscribe: () => ({ unsubscribe: vi.fn() }) }),
+    }),
+  };
+  return { supabase };
+});
