@@ -24,6 +24,10 @@ import {
   buildProactiveMessage,
   type ProactiveJob,
 } from "../_shared/ai/proactive-worker.ts";
+import {
+  refreshStaleLearningStates,
+  type StaleStateSweepResult,
+} from "../_shared/ai/learning-state-sweep.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -408,6 +412,22 @@ serve(async (req) => {
       if (refreshError)
         throw new Error("Student Learning State refresh failed");
     }
+    // Deterministic stale-state refresh sweep (Task 8.2: learning-state-update
+    // + student-risk families). Runs BEFORE enqueue because the enqueue RPC
+    // only considers FRESH states (fresh_until > now()); without this sweep a
+    // stale state's deterministic low-mastery risk signals would never reach
+    // the proactive queue. Bounded, idempotent, failure-isolated, fail-closed.
+    let learningStateSweep: StaleStateSweepResult = {
+      ok: true,
+      refreshed: 0,
+      failed: 0,
+    };
+    if (request.action === "scheduled_scan") {
+      learningStateSweep = await refreshStaleLearningStates(
+        admin,
+        request.institutionId
+      );
+    }
     const { data: enqueued, error: enqueueError } = await admin.rpc(
       "enqueue_proactive_agent_jobs_v1",
       {
@@ -468,6 +488,7 @@ serve(async (req) => {
       enqueued: Number(enqueued ?? 0),
       claimed: claimedCount,
       ...totals,
+      learningStateSweep,
     });
   } catch (error) {
     console.error(
