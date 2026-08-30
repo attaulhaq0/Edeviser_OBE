@@ -1,4 +1,3 @@
-import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // supabase/functions/audit-fixtures/index.ts
 //
 // Pre-deployment E2E audit fixture endpoint. Four routes:
