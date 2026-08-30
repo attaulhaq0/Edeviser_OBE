@@ -180,7 +180,15 @@ export function getWeekStartDate(date: Date): string {
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
-  return d.toISOString().split("T")[0] as string;
+  // Format in LOCAL time. `toISOString()` converts to UTC, which shifts the
+  // anchor back one day for every positive-UTC-offset timezone (e.g. Qatar,
+  // UTC+3 — the target market): local Monday 00:00 becomes Sunday in UTC, so
+  // the "current week" was anchored on the wrong day and Sunday planners
+  // offered zero suggested sessions (today fell outside the rendered week).
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const dayOfMonth = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${dayOfMonth}`;
 }
 
 /** Check if a week is in the past (for preventing goal edits). */
