@@ -17,7 +17,7 @@ test.describe("Coordinator critical path", () => {
     await assertLiveAuthenticatedUser(page, {
       role: "coordinator",
       email: "audit+coordinator@edeviser.test",
-      institutionId: "audit-inst",
+      institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
     });
     await expect(page).toHaveURL(/\/coordinator\/dashboard$/);
 

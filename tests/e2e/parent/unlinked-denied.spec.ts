@@ -23,7 +23,7 @@ test.describe("Parent unlinked access denial", () => {
     await assertLiveAuthenticatedUser(page, {
       role: "parent",
       email: "audit+parent-unlinked@edeviser.test",
-      institutionId: "audit-inst",
+      institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
     });
     const rows = await authenticatedSupabaseGet(
       page,

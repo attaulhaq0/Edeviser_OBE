@@ -65,6 +65,22 @@ export default defineConfig({
             return "vendor-motion";
           }
 
+          // Shared vendor libs pinned to dedicated chunks: role-dashboard
+          // chunks must not absorb these (the admin chunk previously inlined
+          // i18next/zod/@supabase, inflating both the chunk and total size).
+          if (
+            id.includes("node_modules/i18next") ||
+            id.includes("node_modules/react-i18next")
+          ) {
+            return "vendor-i18n";
+          }
+          if (id.includes("node_modules/zod")) {
+            return "vendor-zod";
+          }
+          if (id.includes("node_modules/@supabase")) {
+            return "vendor-supabase";
+          }
+
           // Role dashboard chunks for code splitting (Task 74, clause 2.20)
           // Each role dashboard is split into its own chunk to reduce initial bundle size
           if (id.includes("pages/admin/AdminDashboard")) {
