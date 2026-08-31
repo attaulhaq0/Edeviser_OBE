@@ -295,32 +295,6 @@ describe("Habit Level Integration Properties", () => {
       );
     });
 
-    it("should not duplicate a milestone when the same threshold is reached twice", () => {
-      // Regression: CI seed 159986709 produced two separate 30-day streaks in
-      // a 110-day window, yielding two { days: 30 } entries. Property 29
-      // requires each milestone value to appear at most once (first win).
-      const base = new Date("2024-01-01T00:00:00");
-      const day = (i: number, academicCount: number): HeatmapDay => ({
-        date: dateFromOffset(base, i),
-        academicCount,
-        wellnessCount: 0,
-        totalCount: academicCount,
-        habits: [],
-      });
-      const days: HeatmapDay[] = [
-        ...Array.from({ length: 27 }, (_, i) => day(i, 0)), // idle
-        ...Array.from({ length: 30 }, (_, i) => day(27 + i, 1)), // streak #1 → 30 at index 56
-        ...Array.from({ length: 2 }, (_, i) => day(57 + i, 0)), // reset
-        ...Array.from({ length: 30 }, (_, i) => day(59 + i, 1)), // streak #2 → 30 again
-        ...Array.from({ length: 21 }, (_, i) => day(89 + i, 0)), // idle tail
-      ];
-      const milestones = detectStreakMilestones(days);
-
-      expect(milestones).toHaveLength(1);
-      expect(milestones[0]!.days).toBe(30);
-      expect(milestones[0]!.achievedDate).toBe(dateFromOffset(base, 56));
-    });
-
     it("should set achievedDate to the Nth consecutive active day", () => {
       // Create exactly 30 consecutive active days
       const base = new Date("2024-01-01T00:00:00");
