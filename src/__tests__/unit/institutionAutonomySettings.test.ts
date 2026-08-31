@@ -60,30 +60,58 @@ describe("parseInstitutionAutonomySettings (Task 7.2)", () => {
 });
 
 describe("fetchInstitutionAutonomySettings (Task 7.2)", () => {
+  // The mock records the full query chain (table -> columns -> filters) so a
+  // regression that drops the .eq("institution_id", ...) tenant filter or
+  // queries the wrong table cannot pass silently (review hardening).
   const makeClient = (result: {
     data: unknown;
     error: { message: string } | null;
-  }) =>
-    ({
-      from: () => ({
-        select: () => ({
-          eq: () => ({ maybeSingle: () => Promise.resolve(result) }),
-        }),
-      }),
-    } as never);
+  }) => {
+    const calls = {
+      from: [] as string[],
+      select: [] as string[],
+      eq: [] as Array<[string, string]>,
+    };
+    const client = {
+      from: (table: string) => {
+        calls.from.push(table);
+        return {
+          select: (columns: string) => {
+            calls.select.push(columns);
+            return {
+              eq: (column: string, value: string) => {
+                calls.eq.push([column, value]);
+                return { maybeSingle: () => Promise.resolve(result) };
+              },
+            };
+          },
+        };
+      },
+    };
+    return { client: client as never, calls };
+  };
 
   it("returns DEFAULTS when no row exists (never more permissive than schema)", async () => {
+    const { client, calls } = makeClient({ data: null, error: null });
     const settings = await fetchInstitutionAutonomySettings(
-      makeClient({ data: null, error: null }),
+      client,
       "00000000-0000-0000-0000-000000000001"
     );
     expect(settings).toEqual(DEFAULT_INSTITUTION_AUTONOMY);
     expect(settings.autoExecuteLowRisk).toBe(false);
+    expect(calls.from).toEqual(["institution_autonomy_settings"]);
+    expect(calls.select).toEqual([
+      "operational_autonomy_ceiling,auto_execute_low_risk,rollback_enabled",
+    ]);
+    expect(calls.eq).toEqual([
+      ["institution_id", "00000000-0000-0000-0000-000000000001"],
+    ]);
   });
 
   it("returns SAFE posture when the store errors (fail closed, never throws)", async () => {
+    const { client } = makeClient({ data: null, error: { message: "down" } });
     const settings = await fetchInstitutionAutonomySettings(
-      makeClient({ data: null, error: { message: "down" } }),
+      client,
       "00000000-0000-0000-0000-000000000001"
     );
     expect(settings).toEqual(SAFE_INSTITUTION_AUTONOMY);
