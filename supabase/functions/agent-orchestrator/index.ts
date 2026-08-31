@@ -204,6 +204,11 @@ serve(async (req) => {
       )
       .eq("institution_id", identity.institutionId)
       .eq("required_approver_role", identity.role)
+      // CWE-862 guard: a role-matched user may only see proposals that are
+      // unassigned OR explicitly assigned to them — never another approver's.
+      .or(
+        `required_approver_user_id.is.null,required_approver_user_id.eq.${identity.userId}`
+      )
       .eq("status", typeof body.status === "string" ? body.status : "pending")
       .order("created_at", { ascending: false })
       .limit(50);
@@ -239,13 +244,7 @@ serve(async (req) => {
       return json(403, { error: { code: "forbidden" } });
     }
     const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
-    const [runs, attempts, pending] = await Promise.all([
-      admin
-        .from("agent_runs")
-        .select("status,usage")
-        .eq("institution_id", identity.institutionId)
-        .gte("created_at", since)
-        .limit(5000),
+    const [attempts, pending] = await Promise.all([
       admin
         .from("agent_tool_attempts")
         .select("id", { count: "exact", head: true })
@@ -258,7 +257,6 @@ serve(async (req) => {
         .eq("status", "pending"),
     ]);
     if (
-      runs.error ||
       attempts.error ||
       pending.error ||
       attempts.count === null ||
@@ -266,26 +264,45 @@ serve(async (req) => {
     ) {
       return json(500, { error: { code: "governance_unavailable" } });
     }
+    // agent_runs has NO fixed limit: the 7-day sum must count every matching
+    // run, so rows are paginated in bounded pages and accumulated. A .limit()
+    // here (or the default PostgREST row cap) would silently undercount the
+    // governance runs_total/runs_failed/total_tokens summary.
     let runsTotal = 0;
     let runsFailed = 0;
     let totalTokens = 0;
-    for (const run of runs.data ?? []) {
-      runsTotal += 1;
-      if (run.status === "failed") runsFailed += 1;
-      const usage = object(run.usage) ?? {};
-      if (
-        typeof usage.total_tokens === "number" &&
-        Number.isFinite(usage.total_tokens)
-      ) {
-        totalTokens += Math.max(0, Math.trunc(usage.total_tokens));
-      } else {
-        for (const [key, value] of Object.entries(usage)) {
-          if (key.includes("total")) continue;
-          if (typeof value === "number" && Number.isFinite(value)) {
-            totalTokens += Math.max(0, Math.trunc(value));
+    const RUN_PAGE = 1000;
+    for (let offset = 0; ; offset += RUN_PAGE) {
+      const { data: page, error: runsError } = await admin
+        .from("agent_runs")
+        .select("status,usage")
+        .eq("institution_id", identity.institutionId)
+        .gte("created_at", since)
+        .order("created_at", { ascending: true })
+        .range(offset, offset + RUN_PAGE - 1);
+      if (runsError) {
+        return json(500, { error: { code: "governance_unavailable" } });
+      }
+      const runs = page ?? [];
+      for (const run of runs) {
+        runsTotal += 1;
+        if (run.status === "failed") runsFailed += 1;
+        const usage = object(run.usage) ?? {};
+        if (
+          typeof usage.total_tokens === "number" &&
+          Number.isFinite(usage.total_tokens)
+        ) {
+          totalTokens += Math.max(0, Math.trunc(usage.total_tokens));
+        } else {
+          for (const [key, value] of Object.entries(usage)) {
+            if (key.includes("total")) continue;
+            if (typeof value === "number" && Number.isFinite(value)) {
+              totalTokens += Math.max(0, Math.trunc(value));
+            }
           }
         }
       }
+      if (runs.length < RUN_PAGE) break;
     }
     return json(200, {
       summary: {

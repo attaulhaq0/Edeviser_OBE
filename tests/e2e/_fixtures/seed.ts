@@ -18,7 +18,7 @@ import {
 } from "../_helpers/auth.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
-const AUDIT_INSTITUTION_ID = "audit-inst";
+const AUDIT_INSTITUTION_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000001";
 
 const STORAGE_STATES_DIR = resolve(
   "tests",

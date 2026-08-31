@@ -28,7 +28,7 @@ test.describe("Cross-role: coordinator PLO → teacher visibility", () => {
       await assertLiveAuthenticatedUser(coordPage, {
         role: "coordinator",
         email: "audit+coordinator@edeviser.test",
-        institutionId: "audit-inst",
+        institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
       });
 
       await teacherPage.goto(`${BASE_URL}/teacher/dashboard`);
@@ -36,7 +36,7 @@ test.describe("Cross-role: coordinator PLO → teacher visibility", () => {
       await assertLiveAuthenticatedUser(teacherPage, {
         role: "teacher",
         email: "audit+teacher@edeviser.test",
-        institutionId: "audit-inst",
+        institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
       });
 
       const query =

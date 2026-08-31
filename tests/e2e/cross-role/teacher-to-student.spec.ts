@@ -37,7 +37,7 @@ test.describe("Cross-role: teacher grade → student XP", () => {
       await assertLiveAuthenticatedUser(studentPage, {
         role: "student",
         email: "audit+student@edeviser.test",
-        institutionId: "audit-inst",
+        institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
       });
       const baselineXpText = await studentPage
         .getByTestId("xp-total")
@@ -67,7 +67,7 @@ test.describe("Cross-role: teacher grade → student XP", () => {
       await assertLiveAuthenticatedUser(teacherPage, {
         role: "teacher",
         email: "audit+teacher@edeviser.test",
-        institutionId: "audit-inst",
+        institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
       });
       await expect(
         teacherPage.getByRole("heading", { name: "Grade Submission" })

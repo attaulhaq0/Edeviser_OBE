@@ -1,6 +1,37 @@
 {
-  "createdAt": null,
+  "createdAt": "2026-08-30T17:51:13.839Z",
   "lockedByCommit": null,
   "description": "Expected row delta between first and second invocation of each cron endpoint. Populated by task 12.4 on first run. Enforced per requirements.md §15.3.",
-  "endpoints": {}
+  "endpoints": {
+    "ai-at-risk-prediction": {
+      "expectedDelta": 0
+    },
+    "compute-at-risk": {
+      "expectedDelta": 0
+    },
+    "exam-period-notify": {
+      "expectedDelta": 0
+    },
+    "leaderboard-refresh": {
+      "expectedDelta": 0
+    },
+    "notification-digest": {
+      "expectedDelta": 0
+    },
+    "perfect-day-prompt": {
+      "expectedDelta": 0
+    },
+    "streak-reset": {
+      "expectedDelta": 0
+    },
+    "streak-risk": {
+      "expectedDelta": 0
+    },
+    "warm-ping": {
+      "expectedDelta": 0
+    },
+    "weekly-summary": {
+      "expectedDelta": 0
+    }
+  }
 }
