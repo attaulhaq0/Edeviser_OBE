@@ -23,7 +23,7 @@ test.describe("Admin Bonus XP management authentication", () => {
       await assertLiveAuthenticatedUser(adminPage, {
         role: "admin",
         email: "audit+admin@edeviser.test",
-        institutionId: "audit-inst",
+        institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
       });
       await expect(adminPage).toHaveURL(/\/admin\/bonus-events$/);
       await expect(

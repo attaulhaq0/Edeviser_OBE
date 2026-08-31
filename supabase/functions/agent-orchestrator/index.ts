@@ -27,9 +27,75 @@ import {
 import { createConfiguredEmbeddingProvider } from "../_shared/ai/embedding-registry.ts";
 import { SupabaseToolDataSource } from "./data-source.ts";
 import {
+  fetchInstitutionAutonomySettings,
+  resolveEffectiveAutonomyWithInstitution,
+} from "../_shared/ai/policy/institution-autonomy.ts";
+import {
   executeApprovedProposal,
   ProtectedWriteBoundaryError,
 } from "../_shared/ai/write-tools/execution.ts";
+
+// ─── Task 3.4: client-safe proposal projection (display-only) ───────────────
+// Mirrors the AgentProposalView contract in src/lib/agentProposals.ts.
+// Malformed rows are DROPPED (never coerced) so the inbox can only render
+// verifiable shapes; authorization itself is re-checked server-side at
+// decision time — this projection is for display only.
+interface ProposalView {
+  id: string;
+  actionType: string;
+  reason: string;
+  evidenceCount: number;
+  requiredApproverRole: string;
+  requiredApproverUserId?: string;
+  status: "pending";
+  createdAt: string;
+  expiresAt?: string;
+}
+
+const toProposalView = (row: Record<string, unknown>): ProposalView | null => {
+  const id = uuid(row.id);
+  const actionType =
+    typeof row.action_type === "string" && row.action_type.length > 0
+      ? row.action_type
+      : undefined;
+  const reason =
+    typeof row.reason === "string" && row.reason.length > 0
+      ? row.reason
+      : undefined;
+  const requiredApproverRole =
+    typeof row.required_approver_role === "string"
+      ? row.required_approver_role
+      : undefined;
+  const createdAt =
+    typeof row.created_at === "string" ? row.created_at : undefined;
+  if (
+    !id ||
+    !actionType ||
+    !reason ||
+    !requiredApproverRole ||
+    !createdAt ||
+    row.status !== "pending"
+  ) {
+    return null;
+  }
+  return {
+    id,
+    actionType,
+    reason,
+    evidenceCount: Array.isArray(row.evidence_references)
+      ? row.evidence_references.length
+      : 0,
+    requiredApproverRole,
+    ...(typeof row.required_approver_user_id === "string"
+      ? { requiredApproverUserId: row.required_approver_user_id }
+      : {}),
+    status: "pending",
+    createdAt,
+    ...(typeof row.expires_at === "string"
+      ? { expiresAt: row.expires_at }
+      : {}),
+  };
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,6 +188,143 @@ serve(async (req) => {
     {
       global: { headers: { Authorization: authorization } },
     }
+  );
+
+  // ─── Task 3.4: sanctioned proposal-inbox read channel ─────────────────────
+  // agent_action_proposals has RLS ENABLED with ZERO policies (service-role
+  // writes only), so the UI cannot list pending proposals directly. This
+  // endpoint returns a validated, client-safe projection of the caller's
+  // pending inbox: institution-scoped, approver-role-matched, pending only.
+  // Decisions still re-verify approver identity + target scope server-side.
+  if (body.action === "list_proposals") {
+    const { data: rows, error: inboxError } = await admin
+      .from("agent_action_proposals")
+      .select(
+        "id,action_type,reason,evidence_references,required_approver_role,required_approver_user_id,status,created_at,expires_at"
+      )
+      .eq("institution_id", identity.institutionId)
+      .eq("required_approver_role", identity.role)
+      // CWE-862 guard: a role-matched user may only see proposals that are
+      // unassigned OR explicitly assigned to them — never another approver's.
+      .or(
+        `required_approver_user_id.is.null,required_approver_user_id.eq.${identity.userId}`
+      )
+      .eq("status", typeof body.status === "string" ? body.status : "pending")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (inboxError) {
+      return json(500, { error: { code: "inbox_unavailable" } });
+    }
+    const proposals = (rows ?? [])
+      .map((row) => toProposalView(row as Record<string, unknown>))
+      .filter((view) => view !== null);
+    return json(200, { proposals });
+  }
+
+  // ─── Task 7.2: institution autonomy settings read channel ──────────────────
+  // institution_autonomy_settings is RLS deny-all to clients by design, so the
+  // autonomy control reads ONLY through this bounded channel. Returns the
+  // caller's institution posture (ceiling, auto-exec, rollback). Unconfigured
+  // institutions fall back to schema defaults (A2, auto-exec OFF, rollback ON).
+  if (body.action === "get_institution_autonomy") {
+    const settings = await fetchInstitutionAutonomySettings(
+      admin,
+      identity.institutionId
+    );
+    return json(200, { settings });
+  }
+
+  // ─── Task 6.3: institutional governance & cost snapshot (admin only) ────────
+  // agent_runs / agent_tool_attempts / agent_action_proposals are deny-all to
+  // clients by design, so the governance card reads ONLY through this bounded
+  // channel: institution-scoped 7-day aggregates, no PII, no message bodies,
+  // no per-actor drill-down. Non-admin callers fail closed with 403.
+  if (body.action === "get_governance_summary") {
+    if (identity.role !== "admin") {
+      return json(403, { error: { code: "forbidden" } });
+    }
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const [attempts, pending] = await Promise.all([
+      admin
+        .from("agent_tool_attempts")
+        .select("id", { count: "exact", head: true })
+        .eq("institution_id", identity.institutionId)
+        .gte("started_at", since),
+      admin
+        .from("agent_action_proposals")
+        .select("id", { count: "exact", head: true })
+        .eq("institution_id", identity.institutionId)
+        .eq("status", "pending"),
+    ]);
+    if (
+      attempts.error ||
+      pending.error ||
+      attempts.count === null ||
+      pending.count === null
+    ) {
+      return json(500, { error: { code: "governance_unavailable" } });
+    }
+    // agent_runs has NO fixed limit: the 7-day sum must count every matching
+    // run, so rows are paginated in bounded pages and accumulated. A .limit()
+    // here (or the default PostgREST row cap) would silently undercount the
+    // governance runs_total/runs_failed/total_tokens summary.
+    let runsTotal = 0;
+    let runsFailed = 0;
+    let totalTokens = 0;
+    const RUN_PAGE = 1000;
+    for (let offset = 0; ; offset += RUN_PAGE) {
+      const { data: page, error: runsError } = await admin
+        .from("agent_runs")
+        .select("status,usage")
+        .eq("institution_id", identity.institutionId)
+        .gte("created_at", since)
+        .order("created_at", { ascending: true })
+        .range(offset, offset + RUN_PAGE - 1);
+      if (runsError) {
+        return json(500, { error: { code: "governance_unavailable" } });
+      }
+      const runs = page ?? [];
+      for (const run of runs) {
+        runsTotal += 1;
+        if (run.status === "failed") runsFailed += 1;
+        const usage = object(run.usage) ?? {};
+        if (
+          typeof usage.total_tokens === "number" &&
+          Number.isFinite(usage.total_tokens)
+        ) {
+          totalTokens += Math.max(0, Math.trunc(usage.total_tokens));
+        } else {
+          for (const [key, value] of Object.entries(usage)) {
+            if (key.includes("total")) continue;
+            if (typeof value === "number" && Number.isFinite(value)) {
+              totalTokens += Math.max(0, Math.trunc(value));
+            }
+          }
+        }
+      }
+      if (runs.length < RUN_PAGE) break;
+    }
+    return json(200, {
+      summary: {
+        runs_total: runsTotal,
+        runs_failed: runsFailed,
+        tool_attempts: attempts.count,
+        proposals_pending: pending.count,
+        total_tokens: totalTokens,
+      },
+    });
+  }
+
+  // ─── Task 7.2: institution autonomy posture for this run ──────────────────
+  // Fail-closed: an unconfigured row yields the DB defaults (A2 ceiling,
+  // auto-exec OFF, rollback ON); an unreadable row yields the safe posture
+  // (A0). Protected actions ALWAYS require human approval regardless of
+  // flags, and read tools remain RLS-scoped. The single gate for any future
+  // A3 auto-execution path is mayAutoExecuteWithInstitutionPolicy() in
+  // _shared/ai/policy/institution-autonomy.ts (unit + property tested).
+  const institutionAutonomy = await fetchInstitutionAutonomySettings(
+    admin,
+    identity.institutionId
   );
 
   if (body.action === "approve_proposal" || body.action === "reject_proposal") {
@@ -522,6 +725,13 @@ serve(async (req) => {
       runId: context.runId,
       sessionId: context.sessionId,
       ...result,
+      autonomy: {
+        configured: institutionAutonomy.configured,
+        institutionCeiling: institutionAutonomy.institutionCeiling,
+        autoExecuteLowRisk: institutionAutonomy.autoExecuteLowRisk,
+        rollbackEnabled: institutionAutonomy.rollbackEnabled,
+        effective: resolveEffectiveAutonomyWithInstitution(institutionAutonomy),
+      },
     });
   } catch (error) {
     const errorCode =

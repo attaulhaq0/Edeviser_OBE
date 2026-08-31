@@ -1,4 +1,3 @@
-import { getManagedServerKey } from "../_shared/serverSecret.ts";
 // supabase/functions/audit-fixtures/index.ts
 //
 // Pre-deployment E2E audit fixture endpoint. Four routes:
@@ -50,17 +49,20 @@ const json = (body: unknown, status = 200): Response =>
   });
 
 // ─── Fixed seed identifiers ────────────────────────────────────────────────
-// These IDs match design.md §Seed OBE Chain verbatim and are referenced by
+// UUID-format seed identifiers. `handle_new_user` hard-validates the
+// institution_id in signup metadata as a real UUID whose row exists in
+// `institutions` (join_mode ≠ invite_only), so every seed id must be a valid
+// UUID capable of satisfying uuid columns and the auth trigger. Referenced by
 // every role's E2E spec plus the RLS matrix runner's parent-linkage probe.
 
-const AUDIT_INSTITUTION_ID = "audit-inst";
-const AUDIT_PROGRAM_ID = "audit-prog-1";
-const AUDIT_COURSE_ID = "audit-course-1";
-const AUDIT_ILO_ID = "audit-ilo-1";
-const AUDIT_PLO_ID = "audit-plo-1";
-const AUDIT_CLO_PREREQ_ID = "audit-clo-0";
-const AUDIT_CLO_TARGET_ID = "audit-clo-1";
-const AUDIT_ASSIGNMENT_ID = "audit-assign-1";
+const AUDIT_INSTITUTION_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000001";
+const AUDIT_PROGRAM_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000002";
+const AUDIT_COURSE_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000003";
+const AUDIT_ILO_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000004";
+const AUDIT_PLO_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000005";
+const AUDIT_CLO_PREREQ_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000006";
+const AUDIT_CLO_TARGET_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000007";
+const AUDIT_ASSIGNMENT_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000008";
 const PREREQUISITE_GATE_PERCENTAGE = 60;
 
 export const SEED_EMAILS = {
@@ -157,6 +159,25 @@ const handleSeed = async (req: Request): Promise<Response> => {
   const { runId, roles } = parsed.data;
   const errors: string[] = [];
   const seeded: Record<string, string> = {};
+
+  // ── 3.0 Institution row (MUST precede user creation) ────────────────────
+  // `handle_new_user` validates signup metadata institution_id against a real
+  // institutions row (UUID, exists, join_mode ≠ invite_only), so the row has
+  // to exist before any auth user is created. It was previously seeded in
+  // section 3.7 — after the users — which made every signup fail the trigger.
+  try {
+    await supabase.from("institutions").upsert(
+      {
+        id: AUDIT_INSTITUTION_ID,
+        name: "Audit Institution",
+        slug: "audit-institution",
+        join_mode: "open",
+      },
+      { onConflict: "id" }
+    );
+  } catch (e) {
+    errors.push(`institution: ${e instanceof Error ? e.message : String(e)}`);
+  }
 
   // ── 3.1 Admin seed user ──────────────────────────────────────────────────
   if (roles.includes("admin")) {
@@ -337,13 +358,9 @@ const handleSeed = async (req: Request): Promise<Response> => {
 
   // ── 3.7 ILO → PLO → CLO chain ───────────────────────────────────────────
   try {
-    // Institution
-    await supabase
-      .from("institutions")
-      .upsert(
-        { id: AUDIT_INSTITUTION_ID, name: "Audit Institution" },
-        { onConflict: "id" }
-      );
+    // Institution row is upserted in section 3.0 (before user creation) so
+    // the `handle_new_user` trigger can resolve signup metadata institution
+    // scope. Do not move it below user creation again.
     // Program
     await supabase.from("programs").upsert(
       {

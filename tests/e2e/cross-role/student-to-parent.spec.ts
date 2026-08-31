@@ -25,7 +25,7 @@ test.describe("Parent linkage isolation", () => {
       await assertLiveAuthenticatedUser(parentPage, {
         role: "parent",
         email: "audit+parent-linked@edeviser.test",
-        institutionId: "audit-inst",
+        institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
       });
 
       const unlinkedCtx = await browser.newContext();
@@ -37,7 +37,7 @@ test.describe("Parent linkage isolation", () => {
         await assertLiveAuthenticatedUser(unlinkedPage, {
           role: "parent",
           email: "audit+parent-unlinked@edeviser.test",
-          institutionId: "audit-inst",
+          institutionId: "a1b2c3d4-e5f6-4a7b-8c9d-000000000001",
         });
 
         const query = "/rest/v1/parent_student_links?select=student_id";

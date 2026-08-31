@@ -1,4 +1,4 @@
-// Security checks 4, 5, 9, 16, 34 (security-checklist.md):
+﻿// Security checks 4, 5, 9, 16, 34 (security-checklist.md):
 // weak auth, missing authorization checks, unprotected admin routes, input
 // validation. Proves the WHOLE Edge Function surface is either behind the
 // Supabase JWT gateway or performs in-handler authorization, and that the
@@ -106,6 +106,35 @@ describe("check 16/34 - agentic functions validate and bound every input", () =>
     }
   });
 });
+
+describe("check 34 - proposal inbox & governance summary keep their guards", () => {
+  it("list_proposals never leaks another approver's assigned proposals", () => {
+    const source = sourceOf("agent-orchestrator");
+    // CWE-862 regression: the inbox filtered only by role; a same-role user
+    // could read proposals assigned to a specific other approver. The query
+    // MUST restrict required_approver_user_id to unassigned OR caller-owned.
+    expect(
+      source.match(
+        /required_approver_user_id\.is\.null,\s*required_approver_user_id\.eq\.\$\{identity\.userId\}/
+      )
+    ).not.toBeNull();
+  });
+
+  it("governance summary aggregates agent_runs without a fixed limit", () => {
+    const source = sourceOf("agent-orchestrator");
+    // Slice from the governance handler to the NEXT action dispatch boundary
+    // (handlers can appear before it in the file, so use a forward search).
+    const start = source.indexOf('body.action === "get_governance_summary"');
+    const rest = source.slice(start);
+    const nextAction = rest.indexOf("if (body.action ===", 1);
+    const governanceBlock = rest.slice(0, nextAction > 0 ? nextAction : undefined);
+    // The 7-day runs_total/runs_failed/total_tokens aggregate must page through
+    // every matching row (.range loop) Ã¢â‚¬â€ a truncated .limit() silently
+    // undercounts governance sums.
+    expect(governanceBlock).toContain(".range(offset, offset + RUN_PAGE - 1)");
+    expect(governanceBlock).not.toMatch(/\.limit\(\s*\d+\s*\)/);
+  });
+})
 
 describe("check 9 - admin surface is route-guarded end to end", () => {
   it("guards role prefixes with the shared RouteGuard component", () => {
