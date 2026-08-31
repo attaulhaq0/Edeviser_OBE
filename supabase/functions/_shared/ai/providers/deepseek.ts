@@ -130,6 +130,25 @@ const classifyStatus = (status: number): AIProviderError => {
   );
 };
 
+// DeepSeek intermittently wraps JSON-mode payloads in markdown fences
+// (```json ... ```) even when `response_format: json_object` is requested;
+// every consumer's JSON.parse() then throws (live incident 2026-08-30:
+// generate-plan-update 502s and generate-quiz-questions retry storms).
+// Stripping is scoped to JSON-mode requests only — plain chat code blocks
+// and tool-call flows are untouched.
+const stripMarkdownFences = (content: string): string => {
+  const text = content.trim();
+  if (text.startsWith("```") && text.endsWith("```") && text.length >= 6) {
+    const firstNewline = text.indexOf("\n");
+    const inner =
+      firstNewline === -1
+        ? text.slice(3, -3)
+        : text.slice(firstNewline + 1, -3);
+    return inner.trim();
+  }
+  return content;
+};
+
 export const createDeepSeekProvider = (
   config: AgenticConfig,
   dependencies: Partial<DeepSeekDependencies> &
@@ -257,7 +276,11 @@ export const createDeepSeekProvider = (
             : null;
           const message = object(first?.message);
           const content =
-            typeof message?.content === "string" ? message.content : "";
+            typeof message?.content === "string"
+              ? request.responseFormat === "json"
+                ? stripMarkdownFences(message.content)
+                : message.content
+              : "";
           const toolCalls = parseToolCalls(message?.tool_calls);
           if (
             !root ||

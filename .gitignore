@@ -74,6 +74,9 @@ docs/pdf/business/EDEVISER-DEMO-STORYBOARD.pdf
 docs/pdf/QA/
 docs/pdf/Student Profile - Google Docs.pdf
 
+# Credentials-bearing demo account document — NEVER commit
+docs/demo-accounts-credentials.pdf
+
 # Local debug / scratch artifacts (never commit). Some of these HAR captures
 # from the live site can contain session tokens, so keep them out of the repo.
 /_*

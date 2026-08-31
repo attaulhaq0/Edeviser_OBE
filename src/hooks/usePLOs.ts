@@ -7,6 +7,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { fetchUserInstitutionId } from "@/lib/userInstitution";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreatePLOFormData } from "@/lib/schemas/plo";
 import type { LearningOutcome } from "@/types/app";
@@ -90,9 +91,21 @@ export const useCreatePLO = () => {
 
   return useMutation({
     mutationFn: async (data: CreatePLOFormData): Promise<LearningOutcome> => {
+      // RLS requires institution_id = auth_institution_id() on INSERT and the
+      // form schema doesn't carry it — enrich from the profile (fail-closed).
+      const institutionId = await fetchUserInstitutionId();
+      if (!institutionId) {
+        throw new Error(
+          "Your profile is not linked to an institution — unable to create a PLO."
+        );
+      }
       const { data: result, error } = await supabase
         .from("learning_outcomes")
-        .insert({ ...data, type: "PLO" } as never)
+        .insert({
+          ...data,
+          type: "PLO",
+          institution_id: institutionId,
+        } as never)
         .select()
         .single();
 
