@@ -105,6 +105,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "happy-dom",
+    // Run the unit/property suite in a positive-UTC (UTC+3) timezone — the
+    // Qatar market. Local-time date regressions (e.g. the planner Sunday
+    // anchor, which serialized a local Monday as the prior UTC date via
+    // toISOString) are only detectable with a positive-UTC process TZ; under
+    // pure UTC those bugs pass silently. The suite is already UTC+3-compatible
+    // (the dev machine runs TZ=Asia/Qatar), so this only tightens CI.
+    env: { TZ: "Asia/Qatar" },
     setupFiles: ["./src/__tests__/setup.ts"],
     include: [
       "src/**/*.{test,property.test}.ts",
