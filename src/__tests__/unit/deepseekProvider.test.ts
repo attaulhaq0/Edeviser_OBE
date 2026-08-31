@@ -178,4 +178,32 @@ describe("DeepSeek AIProvider", () => {
     expect(error).toMatchObject({ kind: "timeout", retryable: true });
     expect(String(error)).not.toContain("test-only-secret");
   });
+
+  it("strips markdown fences from JSON-mode responses", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(success('```json\n{"questions":[1,2]}\n```'));
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock,
+    });
+    const result = await provider.complete({
+      messages: [{ role: "user", content: "generate questions" }],
+      responseFormat: "json",
+    });
+    expect(result.content).toBe('{"questions":[1,2]}');
+  });
+
+  it("leaves fenced code blocks intact in plain chat responses", async () => {
+    const fenced = "```js\nconsole.log(1);\n```";
+    const fetchMock = vi.fn().mockResolvedValue(success(fenced));
+    const provider = createDeepSeekProvider(getAgenticConfig(env), {
+      env,
+      fetch: fetchMock,
+    });
+    const result = await provider.complete({
+      messages: [{ role: "user", content: "show code" }],
+    });
+    expect(result.content).toBe(fenced);
+  });
 });

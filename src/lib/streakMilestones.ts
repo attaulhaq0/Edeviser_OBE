@@ -37,17 +37,23 @@ export function getMilestoneProgress(streakCount: number): number {
  * Detects streak milestones (30, 60, 100 consecutive active days) from
  * a sorted array of HeatmapDay objects. A day is considered "active" when
  * its academicCount > 0. Returns milestones in the order they were achieved.
+ *
+ * Each threshold is emitted at most once (the FIRST time it is reached),
+ * even if the streak is later broken and the threshold is reached again
+ * (Property 29: milestone values must be unique).
  */
 export function detectStreakMilestones(days: HeatmapDay[]): StreakMilestone[] {
   const milestoneThresholds = [30, 60, 100] as const;
   const milestones: StreakMilestone[] = [];
+  const firedThresholds = new Set<number>();
   let consecutiveDays = 0;
 
   for (const day of days) {
     if (day.academicCount > 0) {
       consecutiveDays++;
       for (const threshold of milestoneThresholds) {
-        if (consecutiveDays === threshold) {
+        if (consecutiveDays === threshold && !firedThresholds.has(threshold)) {
+          firedThresholds.add(threshold);
           milestones.push({ days: threshold, achievedDate: day.date });
         }
       }
