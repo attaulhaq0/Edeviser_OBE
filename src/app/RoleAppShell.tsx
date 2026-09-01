@@ -7,12 +7,12 @@ import EmailVerificationBanner from "@/components/shared/EmailVerificationBanner
 import type { UserRole } from "@/types/app";
 import { cn } from "@/lib/utils";
 import { usePageViewLogger } from "@/hooks/usePageViewLogger";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
 const EDeviserIntelligencePanel = lazy(
   () => import("@/components/shared/EDeviserIntelligencePanel")
 );
-const intelligenceUiEnabled =
-  import.meta.env.VITE_AI_FEATURE_ENABLED === "true";
+const intelligenceUiEnabled = isAiSurfaceEnabled();
 
 interface RoleAppShellProps {
   userRole: UserRole;
