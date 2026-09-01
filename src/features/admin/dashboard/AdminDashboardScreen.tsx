@@ -54,6 +54,11 @@ import { attainmentValueClass } from "@/lib/attainmentTone";
 import { formatNumber } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
 import { AgentTaskInbox, EdeviserAssistantPanel } from "@/ai/components";
+import {
+  AgentAutonomyControl,
+  AgentChatSurface,
+  InsightCardsSurface,
+} from "@/ai/components";
 import AgentGovernanceCard from "@/ai/components/AgentGovernanceCard";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
@@ -473,14 +478,21 @@ const AdminDashboardScreen = () => {
           the experimental AI feature flag (Production & Delivery Safety). ── */}
       {aiSurfacesEnabled ? <AgentGovernanceCard /> : null}
 
+      {/* ── Institution autonomy control (tasks.md 7.2): admin-only write
+          under the institution_autonomy_settings_admin_write RLS policy;
+          enforced by the orchestrator on the next run. ── */}
+      {aiSurfacesEnabled ? <AgentAutonomyControl /> : null}
+
       {/* ── Ask-Edeviser assistant (tasks.md 3.3): page-context aware shell.
           Gated behind the experimental AI feature flag. Surfaces are granted
-          fail-closed by the page capability registry for this role/route —
-          approval-inbox is hosted; insight-cards has no host component yet
-          and fails closed to invisible. ── */}
+          fail-closed by the page capability registry for this role/route. ── */}
       {aiSurfacesEnabled ? (
         <EdeviserAssistantPanel
-          surfaceHosts={{ "approval-inbox": DashboardApprovalInbox }}
+          surfaceHosts={{
+            "approval-inbox": DashboardApprovalInbox,
+            "insight-cards": InsightCardsSurface,
+            conversation: AgentChatSurface,
+          }}
         />
       ) : null}
     </div>

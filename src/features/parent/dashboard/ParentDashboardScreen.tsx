@@ -17,6 +17,12 @@ import { useParentChildProgress } from "@/hooks/useParentProgress";
 import type { LinkedChild } from "@/hooks/useParentDashboard";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
+import {
+  AgentChatSurface,
+  EdeviserAssistantPanel,
+  ParentTwinSummary,
+} from "@/ai/components";
 
 const STORY_GRADIENT = "linear-gradient(135deg, #065f46, #1e3a8a)";
 const HELP_GRADIENT = "linear-gradient(135deg, #ecfdf5, #eff6ff)";
@@ -452,6 +458,18 @@ const ParentDashboardScreen = () => {
           {t("parentDashboard.celebrate.sendBtn", "Send 💚")}
         </ParentButton>
       </section>
+
+      {/* ── Ask-Edeviser assistant (capability-matrix scoped; task 3.3) ──
+          Gated behind the experimental AI feature flag; the /parent registry
+          rows permit twin-summary + conversation. Fail-closed. ── */}
+      {isAiSurfaceEnabled() ? (
+        <EdeviserAssistantPanel
+          surfaceHosts={{
+            "twin-summary": ParentTwinSummary,
+            conversation: AgentChatSurface,
+          }}
+        />
+      ) : null}
     </div>
   );
 };

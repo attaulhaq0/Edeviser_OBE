@@ -63,6 +63,12 @@ import {
 } from "@/hooks/useAcademicCalendar";
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { cn } from "@/lib/utils";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
+import {
+  AgentChatSurface,
+  EdeviserAssistantPanel,
+  InsightCardsSurface,
+} from "@/ai/components";
 
 const BRAND_SURFACE = "#0f172a";
 const HERO_SURFACE = "#0f172a";
@@ -882,6 +888,18 @@ const CoordinatorDashboardScreen = () => {
           )}
         </section>
       </div>
+
+      {/* ── Ask-Edeviser assistant (capability-matrix scoped; task 3.3) ──
+          Gated behind the experimental AI feature flag; the /coordinator
+          registry row permits insight-cards + conversation. Fail-closed. ── */}
+      {isAiSurfaceEnabled() ? (
+        <EdeviserAssistantPanel
+          surfaceHosts={{
+            "insight-cards": InsightCardsSurface,
+            conversation: AgentChatSurface,
+          }}
+        />
+      ) : null}
 
       {/* ── Footer (autonomy / review framing) ── */}
       <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">

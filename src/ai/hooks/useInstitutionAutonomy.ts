@@ -8,7 +8,8 @@
 // Server-side enforcement ALWAYS lives in the edge-function policy engine —
 // this hook feeds DISPLAY ONLY and can never grant autonomy.
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { useAiIdentity } from "@/ai/hooks/useAiIdentity";
 
@@ -27,6 +28,57 @@ interface AutonomySettingsResponse {
     configured?: boolean;
   };
 }
+
+const autonomyUpdateSchema = z.object({
+  operational_autonomy_ceiling: z.enum(["A0", "A1", "A2", "A3"]),
+  auto_execute_low_risk: z.boolean(),
+  rollback_enabled: z.boolean(),
+});
+
+export type InstitutionAutonomyUpdate = z.infer<typeof autonomyUpdateSchema>;
+
+/**
+ * Admin-only mutation: writes the institution_autonomy_settings row DIRECTLY
+ * under the `institution_autonomy_settings_admin_write` RLS policy (active
+ * admin of the SAME institution — verified live 2026-09-01). The orchestrator
+ * re-reads the row on every run, so changes take effect immediately without a
+ * redeploy. Non-admin callers never reach the network (thrown client-side).
+ */
+export const useUpdateInstitutionAutonomy = () => {
+  const identity = useAiIdentity();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: InstitutionAutonomyUpdate) => {
+      if (
+        !identity.ready ||
+        identity.role !== "admin" ||
+        !identity.institutionId
+      ) {
+        throw new Error("autonomy_update_admin_only");
+      }
+      const parsed = autonomyUpdateSchema.parse(input);
+      const { data, error } = await supabase
+        .from("institution_autonomy_settings")
+        .upsert(
+          { institution_id: identity.institutionId, ...parsed },
+          { onConflict: "institution_id" }
+        )
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [
+          "ai",
+          "institution-autonomy-settings",
+          identity.institutionId,
+        ],
+      });
+    },
+  });
+};
 
 const DEFAULT_SETTINGS: InstitutionAutonomySettings = {
   operational_autonomy_ceiling: "A2",
@@ -69,4 +121,3 @@ export const useInstitutionAutonomy = () => {
     retry: 1,
   });
 };
-
