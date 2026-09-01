@@ -30,7 +30,11 @@
           "slug": "agent-evaluation-jobs",
           "verifyJwt": false
         },
-        { "slug": "intervention-jobs", "verifyJwt": false }
+        { "slug": "intervention-jobs", "verifyJwt": false },
+        {
+          "slug": "generate-quiz-questions",
+          "verifyJwt": true
+        }
       ],
       "runtimeDependencyPaths": [
         "supabase/functions/_shared/ai/**",
