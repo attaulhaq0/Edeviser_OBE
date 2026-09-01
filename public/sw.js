@@ -1,5 +1,5 @@
 // Edeviser Service Worker — cache-first for app shell, network-first for API
-const CACHE_NAME = 'edeviser-v1';
+const CACHE_NAME = 'edeviser-v2';
 const SHELL_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
