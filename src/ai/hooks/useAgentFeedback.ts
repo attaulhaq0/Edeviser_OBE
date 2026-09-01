@@ -6,6 +6,12 @@
 // - rating integer CHECK (rating BETWEEN 1 AND 5)
 // - comment text nullable, categories jsonb object
 // - run_id / message_id optional FKs; institution_id + user_id required.
+// TENANT BINDING (Wave D review, migration 20260901000001): run_id is bound
+// to the feedback row's institution by a composite FK — agent_runs is
+// RLS-deny-all to clients, so the DB is the only layer able to enforce it.
+// message_id is verified HERE against the caller's institution (agent_messages
+// is conversation-scoped readable under RLS), rejecting cross-tenant links
+// before the insert.
 // The edge/backend does NOT need this event — it is a pure quality signal.
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -78,6 +84,23 @@ export const useAgentFeedback = (
         throw new Error("Active profile required for feedback");
       }
       const payload = parsed.data;
+      // Tenant check (client-verifiable part): a message_id must belong to a
+      // conversation inside the caller's institution. agent_messages RLS is
+      // conversation-scoped, so a cross-tenant id resolves to no row here.
+      // run_id is enforced DB-side by the composite FK (runs are client-denied).
+      if (payload.messageId) {
+        const { data: message } = await supabase
+          .from("agent_messages")
+          .select("id, conversation:agent_conversations(institution_id)")
+          .eq("id", payload.messageId)
+          .maybeSingle();
+        const conversation = (
+          message as { conversation?: { institution_id?: string } } | null
+        )?.conversation;
+        if (!message || conversation?.institution_id !== profile.institution_id) {
+          throw new Error("Referenced message not found in your institution");
+        }
+      }
       const { data, error } = await supabase
         .from("agent_feedback")
         .insert({
