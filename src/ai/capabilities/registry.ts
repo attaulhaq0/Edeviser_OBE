@@ -199,7 +199,7 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
   {
     pathPattern: "/parent",
     roles: ["parent"],
-    surfaces: ["twin-summary"],
+    surfaces: ["twin-summary", "conversation"],
     tools: ["get_parent_child_progress"],
     approvalCeiling: "none",
     evidenceSources: ["parent_student_links", "student_learning_states"],
@@ -207,7 +207,7 @@ export const PAGE_CAPABILITY_ROWS: readonly PageCapabilityRow[] = [
   {
     pathPattern: "/parent/children/*",
     roles: ["parent"],
-    surfaces: ["twin-summary"],
+    surfaces: ["twin-summary", "conversation"],
     tools: ["get_parent_child_progress"],
     approvalCeiling: "none",
     evidenceSources: ["parent_student_links", "student_learning_states"],

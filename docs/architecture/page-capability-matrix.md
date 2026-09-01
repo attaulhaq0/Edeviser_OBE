@@ -55,10 +55,10 @@ matching. Fail-closed: a route with NO matching row renders NO assistant surface
 
 ## Parent
 
-| Route                | Surfaces     | Read tools                | Ceiling | Evidence sources                              |
-| -------------------- | ------------ | ------------------------- | ------- | --------------------------------------------- |
-| `/parent`            | twin-summary | get_parent_child_progress | none    | parent_student_links, student_learning_states |
-| `/parent/children/*` | twin-summary | get_parent_child_progress | none    | parent_student_links, student_learning_states |
+| Route                | Surfaces                   | Read tools                | Ceiling | Evidence sources                              |
+| -------------------- | -------------------------- | ------------------------- | ------- | --------------------------------------------- |
+| `/parent`            | twin-summary, conversation | get_parent_child_progress | none    | parent_student_links, student_learning_states |
+| `/parent/children/*` | twin-summary, conversation | get_parent_child_progress | none    | parent_student_links, student_learning_states |
 
 ## Deviations from the planning skeleton (PDF §19/§33)
 
@@ -81,7 +81,7 @@ matching. Fail-closed: a route with NO matching row renders NO assistant surface
 ## Mounting order & governance
 
 D4 mounts assistant panels Student → Teacher → Admin per frontend-plan.md §Mounting order;
-coordinator/parent rows ship dormant (resolver returns them but no panel mounts) until later waves.
+coordinator/parent rows are MOUNTED (assistant panels live on both dashboards: insight-cards/twin-summary + conversation hosts); parent rows additionally grant `conversation` (parent-specialist chat via the orchestrator).
 Runtime impact of task 3.2 itself: NONE (pure frontend + docs; no migrations, no Edge Functions).
 
 ### Sync rule

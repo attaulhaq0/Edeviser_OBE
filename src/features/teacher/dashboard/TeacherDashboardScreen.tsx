@@ -69,7 +69,12 @@ import {
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
-import { AgentTaskInbox, EdeviserAssistantPanel } from "@/ai/components";
+import {
+  AgentChatSurface,
+  AgentTaskInbox,
+  EdeviserAssistantPanel,
+  InsightCardsSurface,
+} from "@/ai/components";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
 const HERO_GRADIENT = "var(--hero-gradient)";
@@ -773,7 +778,11 @@ const TeacherDashboardScreen = () => {
           and fails closed to invisible. ── */}
       {aiSurfacesEnabled ? (
         <EdeviserAssistantPanel
-          surfaceHosts={{ "approval-inbox": DashboardApprovalInbox }}
+          surfaceHosts={{
+            "approval-inbox": DashboardApprovalInbox,
+            "insight-cards": InsightCardsSurface,
+            conversation: AgentChatSurface,
+          }}
         />
       ) : null}
     </div>

@@ -17,6 +17,9 @@ export { default as AgentConversation } from "@/ai/components/AgentConversation"
 export { default as AgentComposer } from "@/ai/components/AgentComposer";
 export { default as AgentEvidenceDrawer } from "@/ai/components/AgentEvidenceDrawer";
 export { default as AgentAutonomyControl } from "@/ai/components/AgentAutonomyControl";
+export { default as AgentChatSurface } from "@/ai/components/AgentChatSurface";
+export { default as InsightCardsSurface } from "@/ai/components/InsightCardsSurface";
+export { default as ParentTwinSummary } from "@/ai/components/ParentTwinSummary";
 export { default as AgentGovernanceCard } from "@/ai/components/AgentGovernanceCard";
 export { default as AgentSourceCitation } from "@/ai/components/AgentSourceCitation";
 export { default as AgentSuggestionCard } from "@/ai/components/AgentSuggestionCard";

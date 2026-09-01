@@ -10,10 +10,16 @@ import type { ReactNode } from "react";
 
 const mocks = vi.hoisted(() => ({
   useInstitutionAutonomy: vi.fn(),
+  useUpdateInstitutionAutonomy: vi.fn(),
+  useAiIdentity: vi.fn(),
 }));
 
 vi.mock("@/ai/hooks/useInstitutionAutonomy", () => ({
   useInstitutionAutonomy: mocks.useInstitutionAutonomy,
+  useUpdateInstitutionAutonomy: mocks.useUpdateInstitutionAutonomy,
+}));
+vi.mock("@/ai/hooks/useAiIdentity", () => ({
+  useAiIdentity: mocks.useAiIdentity,
 }));
 vi.mock("@/lib/supabase", () => ({
   supabase: { from: vi.fn() },
@@ -47,6 +53,7 @@ const renderControl = (
     data: unknown;
     isLoading: boolean;
     isError: boolean;
+    role: "admin" | "teacher" | "student" | null;
   }> = {}
 ) => {
   mocks.useInstitutionAutonomy.mockReturnValue({
@@ -55,6 +62,17 @@ const renderControl = (
     isError: false,
     ...overrides,
   });
+  mocks.useAiIdentity.mockReturnValue({
+    userId: "11111111-1111-4111-8111-111111111111",
+    institutionId: "55555555-5555-4555-8555-555555555555",
+    role: overrides.role ?? "teacher",
+    ready: true,
+  });
+  const update = {
+    mutate: mocks.useUpdateInstitutionAutonomy,
+    isPending: false,
+  };
+  mocks.useUpdateInstitutionAutonomy.mockReturnValue(update);
   return render(<AgentAutonomyControl />);
 };
 
@@ -82,5 +100,37 @@ describe("AgentAutonomyControl (tasks.md 7.2 governance surface, 3.6 suite)", ()
   it("renders unavailability without crashing on query error", () => {
     const { getByText } = renderControl({ isError: true });
     expect(getByText("autonomyControl.unavailable")).toBeTruthy();
+  });
+
+  it("keeps the posture read-only for non-admin roles", () => {
+    const { container, getByText } = renderControl({ role: "teacher" });
+    expect(getByText("A3")).toBeTruthy();
+    expect(container.querySelector("button")).toBeNull();
+  });
+
+  it("gives admins editable controls and saves via the RLS-gated update", () => {
+    const { getByRole, getByText, container } = renderControl({
+      role: "admin",
+    });
+    expect(getByText("autonomyControl.save")).toBeTruthy();
+    // Combobox reflects the live ceiling value.
+    expect(
+      getByRole("combobox", { name: "autonomyControl.ceiling" })
+    ).toBeTruthy();
+    // Two switches: auto-execute + rollback.
+    const switches = Array.from(
+      container.querySelectorAll('button[role="switch"]')
+    );
+    expect(switches.length).toBe(2);
+    expect(switches[0]?.getAttribute("aria-checked")).toBe("true");
+    expect(switches[1]?.getAttribute("aria-checked")).toBe("false");
+    getByRole("button", { name: "autonomyControl.save" }).click();
+    expect(mocks.useUpdateInstitutionAutonomy).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts the admin save button disabled until a value is edited", () => {
+    const { getByRole } = renderControl({ role: "admin" });
+    const save = getByRole("button", { name: "autonomyControl.save" });
+    expect((save as HTMLButtonElement).disabled).toBe(true);
   });
 });

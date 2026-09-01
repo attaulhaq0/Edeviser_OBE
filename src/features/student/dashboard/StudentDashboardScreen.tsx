@@ -39,6 +39,7 @@ import { formatDistanceToNow } from "date-fns";
 // alignment-summary host the student's own digital-twin snapshot and derived
 // CLO→PLO/ILO alignment inside the capability-gated assistant shell.
 import EdeviserAssistantPanel from "@/ai/components/EdeviserAssistantPanel";
+import { InsightCardsSurface } from "@/ai/components";
 import LearningStateSummary from "@/ai/components/LearningStateSummary";
 import OutcomeAlignmentSummary from "@/ai/components/OutcomeAlignmentSummary";
 import {
@@ -943,14 +944,13 @@ const StudentDashboardScreen = () => {
       {/* ── Edeviser Assistant (capability-matrix scoped; task 3.3) ──
           Fail-closed shell: renders only when the experimental AI feature
           flag is on AND this route maps to a /student/dashboard row permitting
-          these surfaces; each host resolves its own RLS-scoped data.
-          suggestions stays unhosted until the institutional
-          proactive-suggestions flag flips. */}
+          these surfaces; each host resolves its own RLS-scoped data. ── */}
       {aiSurfacesEnabled ? (
         <EdeviserAssistantPanel
           surfaceHosts={{
             "twin-summary": LearningStateSummary,
             "alignment-summary": OutcomeAlignmentSummary,
+            suggestions: InsightCardsSurface,
           }}
         />
       ) : null}
