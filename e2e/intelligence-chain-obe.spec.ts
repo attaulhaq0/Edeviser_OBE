@@ -69,7 +69,7 @@ async function loginAs(page: Page, role: Role): Promise<void> {
   const creds = CREDENTIALS[role];
   await page.goto("/login", { waitUntil: "networkidle" });
   await page.getByLabel(/email/i).fill(creds.email);
-  await page.getByLabel(/password/i).fill(creds.password);
+  await page.locator("#login-password").fill(creds.password);
   await page.getByRole("button", { name: /sign in|log in|login/i }).click();
   await page.waitForURL(creds.landing, { timeout: 30000 });
   const user = await readSessionUser(page);

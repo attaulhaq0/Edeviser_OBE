@@ -1,4 +1,4 @@
-ayer maek hooks a# Engineering Guardrails (adapted from Kiro steering/engineering-guardrails.md)
+# Engineering Guardrails (adapted from Kiro steering/engineering-guardrails.md)
 
 - Pre-commit checks (run in order before any PR):
   1. `npm run lint` — ESLint with zero warnings
