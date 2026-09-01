@@ -53,21 +53,25 @@ const EmailPreferencesSection = ({
   description = "Choose which email notifications you'd like to receive.",
   items = PREFERENCE_ITEMS,
 }: EmailPreferencesSectionProps) => {
-  const { preferences, isLoading, isUpdating, updatePreferencesAsync } =
+  const { preferences, isLoading, updateSinglePreference, isKeyPending } =
     useEmailPreferences();
 
   const handleToggle = useCallback(
-    async (key: keyof EmailPreferencesFormData, checked: boolean) => {
-      try {
-        await updatePreferencesAsync({ ...preferences, [key]: checked });
-        toast.success(
-          checked ? "Notification enabled" : "Notification disabled"
-        );
-      } catch {
-        toast.error("Failed to update preference");
-      }
+    (key: keyof EmailPreferencesFormData, checked: boolean) => {
+      // E1.8: optimistic per-key update — only the toggled switch is pending;
+      // the other switches stay fully interactive (no section-wide flash).
+      updateSinglePreference(
+        { key, value: checked },
+        {
+          onSuccess: () =>
+            toast.success(
+              checked ? "Notification enabled" : "Notification disabled"
+            ),
+          onError: () => toast.error("Failed to update preference"),
+        }
+      );
     },
-    [preferences, updatePreferencesAsync]
+    [updateSinglePreference]
   );
 
   if (isLoading) {
@@ -104,7 +108,7 @@ const EmailPreferencesSection = ({
               id={`email-pref-${item.key}`}
               checked={preferences[item.key] ?? false}
               onCheckedChange={(checked) => handleToggle(item.key, checked)}
-              disabled={isUpdating}
+              disabled={isKeyPending(item.key)}
               aria-label={`Toggle ${item.label} email notifications`}
             />
           </div>
