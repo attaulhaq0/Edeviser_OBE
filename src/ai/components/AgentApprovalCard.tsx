@@ -73,10 +73,10 @@ const AgentApprovalCard = ({
   const decidable = canViewerDecideProposal(effective, viewer);
   // Any proposal that is NOT openly decidable surfaces an outcome/gate banner:
   // terminal statuses show their outcome; a still-pending-but-expired shows expiry.
-  const showOutcome =
-    !(displayStatus === "pending" && isOpenProposal(proposal));
-  const outcomeKey =
-    displayStatus === "pending" ? "expired" : displayStatus;
+  const showOutcome = !(
+    displayStatus === "pending" && isOpenProposal(proposal)
+  );
+  const outcomeKey = displayStatus === "pending" ? "expired" : displayStatus;
 
   const submit = (decision: "approve" | "reject") => {
     setErrorCode(null);
@@ -137,7 +137,7 @@ const AgentApprovalCard = ({
             <span>
               {t("approvalCard.expires", {
                 date: new Date(proposal.expiresAt).toLocaleDateString(
-                  i18n.language,
+                  i18n.language
                 ),
               })}
             </span>
@@ -197,4 +197,3 @@ const AgentApprovalCard = ({
 };
 
 export default AgentApprovalCard;
-

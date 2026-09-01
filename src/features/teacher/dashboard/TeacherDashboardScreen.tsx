@@ -69,8 +69,26 @@ import {
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
+import { AgentTaskInbox, EdeviserAssistantPanel } from "@/ai/components";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
 const HERO_GRADIENT = "var(--hero-gradient)";
+
+// Experimental AI surfaces (Production & Delivery Safety): the assistant
+// panel mounts ONLY when the deployment opted into the experimental AI
+// feature — same gate as the RoleAppShell intelligence panel.
+const aiSurfacesEnabled = isAiSurfaceEnabled();
+
+/**
+ * approval-inbox surface host: binds the shared inbox to the authenticated
+ * dashboard actor. `viewer` gates display only — the orchestrator re-derives
+ * identity from the JWT and revalidates every decision server-side.
+ */
+const DashboardApprovalInbox = () => {
+  const { user, role } = useAuth();
+  if (!user || !role) return null;
+  return <AgentTaskInbox viewer={{ role, userId: user.id }} />;
+};
 
 /** Canonical Bloom's-level dot colors (design-system domain coding). */
 const BLOOM_DOT: Record<string, string> = {
@@ -747,6 +765,17 @@ const TeacherDashboardScreen = () => {
           })}
         </p>
       </div>
+
+      {/* ── Ask-Edeviser assistant (tasks.md 3.3): page-context aware shell.
+          Gated behind the experimental AI feature flag. Surfaces are granted
+          fail-closed by the page capability registry for this role/route —
+          approval-inbox is hosted; insight-cards has no host component yet
+          and fails closed to invisible. ── */}
+      {aiSurfacesEnabled ? (
+        <EdeviserAssistantPanel
+          surfaceHosts={{ "approval-inbox": DashboardApprovalInbox }}
+        />
+      ) : null}
     </div>
   );
 };

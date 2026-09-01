@@ -53,9 +53,28 @@ import { useDepartmentAnalytics } from "@/hooks/useAdminDashboard";
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { formatNumber } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
+import { AgentTaskInbox, EdeviserAssistantPanel } from "@/ai/components";
+import AgentGovernanceCard from "@/ai/components/AgentGovernanceCard";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
 const BRAND_SURFACE = "#0f172a";
 const HERO_SURFACE = "#0f172a";
+
+// Experimental AI surfaces (Production & Delivery Safety): the governance
+// card and the assistant panel mount ONLY when the deployment opted into the
+// experimental AI feature — same gate as the RoleAppShell intelligence panel.
+const aiSurfacesEnabled = isAiSurfaceEnabled();
+
+/**
+ * approval-inbox surface host: binds the shared inbox to the authenticated
+ * dashboard actor. `viewer` gates display only — the orchestrator re-derives
+ * identity from the JWT and revalidates every decision server-side.
+ */
+const DashboardApprovalInbox = () => {
+  const { user, role } = useAuth();
+  if (!user || !role) return null;
+  return <AgentTaskInbox viewer={{ role, userId: user.id }} />;
+};
 
 /** Prototype `.pcard` surface. */
 const CARD =
@@ -448,6 +467,22 @@ const AdminDashboardScreen = () => {
           {t("dashboard.autonomy.tag", "Governed")}
         </span>
       </div>
+
+      {/* ── AI governance & cost snapshot (tasks.md 6.3): admin-only aggregate
+          read through the bounded get_governance_summary channel. Gated behind
+          the experimental AI feature flag (Production & Delivery Safety). ── */}
+      {aiSurfacesEnabled ? <AgentGovernanceCard /> : null}
+
+      {/* ── Ask-Edeviser assistant (tasks.md 3.3): page-context aware shell.
+          Gated behind the experimental AI feature flag. Surfaces are granted
+          fail-closed by the page capability registry for this role/route —
+          approval-inbox is hosted; insight-cards has no host component yet
+          and fails closed to invisible. ── */}
+      {aiSurfacesEnabled ? (
+        <EdeviserAssistantPanel
+          surfaceHosts={{ "approval-inbox": DashboardApprovalInbox }}
+        />
+      ) : null}
     </div>
   );
 };

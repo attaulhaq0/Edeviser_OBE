@@ -55,8 +55,9 @@ const EdeviserAssistantPanel = ({
 
   // Only surfaces permitted by the row AND hosted by the caller survive.
   const hostedSurfaces = useMemo(
-    () => row?.surfaces.filter((surface) => Boolean(surfaceHosts?.[surface])) ?? [],
-    [row, surfaceHosts],
+    () =>
+      row?.surfaces.filter((surface) => Boolean(surfaceHosts?.[surface])) ?? [],
+    [row, surfaceHosts]
   );
 
   if (!row || hostedSurfaces.length === 0) return null;

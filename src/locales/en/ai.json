@@ -5,7 +5,10 @@
     "weakArea": "Needs improvement in {{clo}}",
     "socialProof": "Students who improved this area scored {{percent}}% higher",
     "feedback": "Was this helpful?",
-    "noSuggestions": "No suggestions at this time."
+    "noSuggestions": "No suggestions at this time.",
+    "completedAt": "Completed {{date}}",
+    "pendingProposals": "{{count}} pending proposal(s)",
+    "review": "Review"
   },
   "atRisk": {
     "title": "At-Risk Predictions",
@@ -230,5 +233,82 @@
     "ilos": "ILO",
     "empty": "No outcome-level data yet — keep earning evidence.",
     "unavailable": "Outcome focus data is temporarily unavailable."
+  },
+  "conversation": {
+    "title": "Assistant conversation",
+    "empty": "Ask anything about this page — answers stay scoped to what you can access.",
+    "you": "You",
+    "agent": "Edeviser",
+    "loading": "Loading conversation…"
+  },
+  "composer": {
+    "inputLabel": "Message",
+    "placeholder": "Ask a question…",
+    "send": "Send",
+    "sending": "Sending…",
+    "lengthHint": "{{count}}/{{max}} characters"
+  },
+  "evidenceDrawer": {
+    "open": "View evidence",
+    "title": "Evidence",
+    "subtitle": "Sources backing this response",
+    "empty": "No evidence sources were attached."
+  },
+  "autonomy": {
+    "title": "AI Autonomy Policy",
+    "loading": "Loading policy…",
+    "unavailable": "No policy row is active for your institution yet.",
+    "ceilingLabel": "Operational ceiling",
+    "autoExecLabel": "Auto-execute low-risk actions",
+    "autoExecHint": "Requires ceiling A3. Protected actions always need human approval.",
+    "rollbackLabel": "Rollback controls",
+    "rollbackOn": "Enabled",
+    "rollbackOff": "Disabled",
+    "saved": "Autonomy policy updated.",
+    "saveFailed": "Could not save — try again.",
+    "thresholdsNote": "Evaluation thresholds: {{state}}",
+    "thresholdsConfigured": "configured",
+    "thresholdsMissing": "not configured",
+    "levels": {
+      "A0": "A0 — Observe only",
+      "A1": "A1 — Suggest",
+      "A2": "A2 — Confirm",
+      "A3": "A3 — Autonomous low-risk"
+    }
+  },
+  "governance": {
+    "title": "AI Governance & Cost",
+    "window": "7 days",
+    "loading": "Loading snapshot…",
+    "unavailable": "Governance snapshot is temporarily unavailable.",
+    "runs": "Agent runs",
+    "failed": "Failed runs",
+    "pending": "Pending approvals",
+    "tokens": "Tokens used"
+  },
+  "inbox": {
+    "title": "Approval inbox",
+    "description": "Agent proposals awaiting your decision",
+    "empty": "No pending proposals.",
+    "errorTitle": "Inbox unavailable",
+    "errorMessage": "Could not load pending proposals. Please try again."
+  },
+  "feedback": {
+    "groupLabel": "Was this response helpful?",
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "recorded": "Thanks — your feedback was recorded.",
+    "failed": "Feedback could not be recorded. Please try again."
+  },
+  "autonomyControl": {
+    "title": "Assistant autonomy",
+    "description": "Control how much the assistant may do on its own for your institution.",
+    "ceiling": "Operational autonomy ceiling",
+    "autoExecute": "Auto-execute low-risk actions",
+    "rollback": "Rollback enabled",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "defaultPosture": "Default posture",
+    "unavailable": "Autonomy settings are temporarily unavailable."
   }
 }

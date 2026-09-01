@@ -1,0 +1,67 @@
+// Feature: Agent task inbox (tasks.md 3.1 AgentTaskInbox + 3.4 — Wave D).
+// TanStack Query hook over the agent-orchestrator `list_proposals` channel.
+//
+// LIVE-DB CONTRACT (verified via MCP pg_policies 2026-08-28): the
+// agent_action_proposals table is RLS-deny-all for clients by design, so the
+// inbox flows through the orchestrator edge function (service-role server
+// side), which re-checks institution + approver scope per row. The client
+// validates every row with parseAgentProposalView and drops invalid entries —
+// fail-closed: a malformed row can never render.
+
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import {
+  parseAgentProposalView,
+  type AgentProposalView,
+} from "@/lib/agentProposals";
+import { useAiIdentity } from "@/ai/hooks/useAiIdentity";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export type ProposalInboxScope = "pending" | "all";
+
+// ─── Hook ────────────────────────────────────────────────────────────────────
+
+/**
+ * Proposals addressed to the authenticated actor's approver role within their
+ * institution. Server-authoritative: the orchestrator filters by institution
+ * and approver eligibility; the client only parses and renders.
+ */
+export const useProposalInbox = (scope: ProposalInboxScope = "pending") => {
+  const identity = useAiIdentity();
+  return useQuery<readonly AgentProposalView[]>({
+    // Actor-scoped cache identity: proposals are addressed to the caller's
+    // approver scope, so actor + institution belong in the key — a cached
+    // inbox must never be served to a different approver within the global
+    // 30-min retention window. Disabled until identity resolves (fail-closed).
+    queryKey: [
+      "ai",
+      "proposal-inbox",
+      identity.userId,
+      identity.institutionId,
+      scope,
+    ],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "agent-orchestrator",
+        {
+          body: {
+            action: "list_proposals",
+            ...(scope === "pending" ? { status: "pending" } : {}),
+          },
+        }
+      );
+      if (error) {
+        throw new Error("Proposal inbox is unavailable");
+      }
+      const rows = (data as { proposals?: unknown } | null)?.proposals;
+      if (!Array.isArray(rows)) return [];
+      return rows
+        .map((row) => parseAgentProposalView(row as unknown))
+        .filter((view): view is AgentProposalView => view !== null);
+    },
+    enabled: identity.ready,
+    staleTime: 30_000,
+  });
+};
+

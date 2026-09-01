@@ -61,10 +61,16 @@ import {
   useStudentPercentileBand,
 } from "@/hooks/useLeagueLeaderboard";
 import { cn } from "@/lib/utils";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
 /** Prototype brand gradient token (93.65deg teal→blue) as an inline value. */
 const BRAND_GRADIENT = "var(--brand-gradient)";
 const HERO_GRADIENT = "var(--hero-gradient)";
+
+// Experimental AI surfaces (Production & Delivery Safety): the assistant
+// panel mounts ONLY when the deployment opted into the experimental AI
+// feature — same gate as the RoleAppShell intelligence panel.
+const aiSurfacesEnabled = isAiSurfaceEnabled();
 
 /** SVG progress ring matching the prototype `.ring-mini` / hero ring. */
 const ProgressRing = ({
@@ -935,16 +941,19 @@ const StudentDashboardScreen = () => {
       </section>
 
       {/* ── Edeviser Assistant (capability-matrix scoped; task 3.3) ──
-          Fail-closed shell: renders only because this route maps to a
-          /student/dashboard row permitting these surfaces; each host resolves
-          its own RLS-scoped data. suggestions stays unhosted until Wave E
-          flips the institutional proactive-suggestions flag. */}
-      <EdeviserAssistantPanel
-        surfaceHosts={{
-          "twin-summary": LearningStateSummary,
-          "alignment-summary": OutcomeAlignmentSummary,
-        }}
-      />
+          Fail-closed shell: renders only when the experimental AI feature
+          flag is on AND this route maps to a /student/dashboard row permitting
+          these surfaces; each host resolves its own RLS-scoped data.
+          suggestions stays unhosted until the institutional
+          proactive-suggestions flag flips. */}
+      {aiSurfacesEnabled ? (
+        <EdeviserAssistantPanel
+          surfaceHosts={{
+            "twin-summary": LearningStateSummary,
+            "alignment-summary": OutcomeAlignmentSummary,
+          }}
+        />
+      ) : null}
     </div>
   );
 };
