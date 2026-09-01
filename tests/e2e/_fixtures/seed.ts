@@ -165,9 +165,7 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
           .locator('input[type="password"], input[name="password"]')
           .fill(password);
         await page
-          .locator(
-            'button[type="submit"], button:has-text("Sign in"), button:has-text("Login")'
-          )
+          .locator('form:has(#login-password) button[type="submit"]')
           .click();
 
         // Wait for redirect away from login
