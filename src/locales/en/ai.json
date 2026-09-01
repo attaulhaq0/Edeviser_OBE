@@ -303,10 +303,12 @@
   "autonomyControl": {
     "title": "Assistant autonomy",
     "description": "Control how much the assistant may do on its own for your institution.",
+    "ceiling": "Operational autonomy ceiling",
     "autoExecute": "Auto-execute low-risk actions",
     "rollback": "Rollback enabled",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "defaultPosture": "Default posture"
+    "defaultPosture": "Default posture",
+    "unavailable": "Autonomy settings are temporarily unavailable."
   }
 }

@@ -32,12 +32,14 @@ vi.mock("react-i18next", () => ({
 
 import AgentAutonomyControl from "@/ai/components/AgentAutonomyControl";
 
-// Raw DB row shape (snake_case) as returned by the RLS-readable
-// institution_autonomy_settings row via useInstitutionAutonomy().
+// Raw DB row shape (snake_case) as returned by useInstitutionAutonomy() —
+// the component's Zod schema parses THIS shape, so the mock must use the real
+// field name (operational_autonomy_ceiling). A3 is asserted (non-default) to
+// prove the live value flows through parsing into the render, not the default.
 const settings = {
-  autonomy_ceiling: "A2",
-  auto_execute_low_risk: false,
-  rollback_enabled: true,
+  operational_autonomy_ceiling: "A3",
+  auto_execute_low_risk: true,
+  rollback_enabled: false,
 };
 
 const renderControl = (
@@ -66,7 +68,9 @@ describe("AgentAutonomyControl (tasks.md 7.2 governance surface, 3.6 suite)", ()
     expect(container).toBeTruthy();
     expect(mocks.useInstitutionAutonomy).toHaveBeenCalledTimes(1);
     expect(mocks.useInstitutionAutonomy).toHaveBeenCalledWith();
-    expect(getByText("A2")).toBeTruthy();
+    // A3 (non-default) proves the parsed live row — not the A2 fallback —
+    // drives the render.
+    expect(getByText("A3")).toBeTruthy();
   });
 
   it("renders the fail-closed default posture when no settings row exists", () => {

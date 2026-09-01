@@ -38,9 +38,13 @@ const AgentFeedbackControls = ({
   const feedback = useAgentFeedback({
     onSuccess: () => {
       toast.success(t("feedback.recorded"));
-      void 0;
     },
-    onError: () => toast.error(t("feedback.failed")),
+    onError: () => {
+      // Reset the latched choice so BOTH controls re-enable for retry — the
+      // failed attempt recorded nothing (Wave D review).
+      setSubmitted(null);
+      toast.error(t("feedback.failed"));
+    },
   });
 
   const submit = (rating: 2 | 5) => {

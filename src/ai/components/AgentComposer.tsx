@@ -38,7 +38,7 @@ const AgentComposer = ({
         value={value}
         onChange={(event) => setValue(event.target.value)}
         disabled={disabled || sending}
-        maxLength={AGENT_COMPOSER_MAX_CHARS + 500}
+        maxLength={AGENT_COMPOSER_MAX_CHARS}
         rows={3}
         aria-label={t("composer.inputLabel", "Message input")}
         placeholder={

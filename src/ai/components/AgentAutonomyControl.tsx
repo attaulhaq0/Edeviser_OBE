@@ -12,7 +12,11 @@ import { useInstitutionAutonomy } from "@/ai/hooks/useInstitutionAutonomy";
 
 const CEILING_VALUES = ["A0", "A1", "A2", "A3"] as const;
 const autonomyRowSchema = z.object({
-  autonomy_ceiling: z.enum(CEILING_VALUES),
+  // Field name mirrors the LIVE institution_autonomy_settings column and the
+  // shape useInstitutionAutonomy returns — a mismatch here would make every
+  // real settings row fail safeParse and silently fall back to the default
+  // posture (found in Wave D review).
+  operational_autonomy_ceiling: z.enum(CEILING_VALUES),
   auto_execute_low_risk: z.boolean(),
   rollback_enabled: z.boolean(),
   evaluation_thresholds: z.unknown().optional(),
@@ -87,7 +91,7 @@ const AgentAutonomyControl = ({ className }: AgentAutonomyControlProps) => {
 
       {isLoading ? (
         <div
-          className="mt-3 h-16 animate-pulse rounded-lg bg-slate-100"
+          className="mt-3 h-16 motion-safe:animate-pulse rounded-lg bg-slate-100"
           aria-hidden="true"
         />
       ) : isError ? (
@@ -100,7 +104,7 @@ const AgentAutonomyControl = ({ className }: AgentAutonomyControlProps) => {
             <dt className="text-slate-600">{t("autonomyControl.ceiling")}</dt>
             <dd>
               <span className="rounded-md bg-sky-50 px-2 py-1 font-bold text-sky-700">
-                {settings?.autonomy_ceiling ?? "A2"}
+                {settings?.operational_autonomy_ceiling ?? "A2"}
               </span>
             </dd>
           </div>
