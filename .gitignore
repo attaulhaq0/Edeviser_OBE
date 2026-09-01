@@ -1,3 +1,24 @@
+# Generated e2e storageState artifacts (auth globalSetup writes these).
+tests/e2e/_fixtures/storage-states/
+
+# Local audit / scratch artifacts anywhere in the tree (never commit).
+supabase_logs.json
+threads295.json
+threads295.err
+revoke-analysis.cjs
+revoke-analysis.json
+github-mcp-server.exe.local
+**/*.har.txt
+**/analyze-har*.ps1
+scripts/tmp_*
+scripts/audit_e2e_*.txt
+scripts/cron_run_out.txt
+
+# Tracked-junk guard: production captures & credentials must never return.
+docs/demo-accounts-credentials.pdf
+
+# --- legacy entries below ---
+
 # Dependencies
 node_modules/
 
