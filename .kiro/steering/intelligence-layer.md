@@ -1,4 +1,4 @@
-ut i nextesnion they should asl# Intelligence Layer — OBE + Habit Engine + Agentic Guardrails
+# Intelligence Layer — OBE + Habit Engine + Agentic Guardrails
 
 Adapted from `.kiro/specs/edeviser-agentic-intelligence` requirements and the Edeviser Agentic Intelligence Platform Specification.
 
