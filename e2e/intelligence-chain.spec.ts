@@ -38,7 +38,7 @@ interface SessionUser {
 function requireSupabaseEnv(): void {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error(
-      "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY must be set for live-session and data-fixture assertions.",
+      "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY must be set for live-session and data-fixture assertions."
     );
   }
 }
@@ -46,12 +46,12 @@ function requireSupabaseEnv(): void {
 async function readAccessToken(page: Page): Promise<string> {
   const token = await page.evaluate(() => {
     const key = Object.keys(window.localStorage).find((k) =>
-      k.endsWith("-auth-token"),
+      k.endsWith("-auth-token")
     );
     if (!key) return null;
-    const parsed = JSON.parse(
-      window.localStorage.getItem(key) ?? "{}",
-    ) as { access_token?: string };
+    const parsed = JSON.parse(window.localStorage.getItem(key) ?? "{}") as {
+      access_token?: string;
+    };
     return parsed.access_token ?? null;
   });
   expect(token, "No access token in browser session").toBeTruthy();
@@ -65,23 +65,23 @@ async function loginAs(page: Page, role: Role): Promise<void> {
   const creds = CREDENTIALS[role];
   await page.goto("/login", { waitUntil: "networkidle" });
   await page.getByLabel(/email/i).fill(creds.email);
-  await page.getByLabel(/password/i).fill(creds.password);
+  await page.locator("#login-password").fill(creds.password);
   await page.getByRole("button", { name: /sign in|log in|login/i }).click();
   await page.waitForURL(creds.landing, { timeout: 30000 });
 
   const raw = await page.evaluate(() => {
     const key = Object.keys(window.localStorage).find((k) =>
-      k.endsWith("-auth-token"),
+      k.endsWith("-auth-token")
     );
     return key ? window.localStorage.getItem(key) : null;
   });
   if (!raw)
     throw new Error(
-      "No Supabase session found after login - authentication failed.",
+      "No Supabase session found after login - authentication failed."
     );
   const stored = JSON.parse(raw) as { user?: SessionUser };
   expect(stored.user?.email, `session must belong to ${creds.email}`).toBe(
-    creds.email,
+    creds.email
   );
 
   // The token itself must be LIVE - Supabase must accept it right now.
@@ -91,12 +91,12 @@ async function loginAs(page: Page, role: Role): Promise<void> {
   });
   expect(
     me.ok(),
-    `Live session token rejected by Supabase auth: ${me.status()}`,
+    `Live session token rejected by Supabase auth: ${me.status()}`
   ).toBeTruthy();
   const meBody = (await me.json()) as SessionUser;
   expect(
     meBody.email,
-    "Supabase auth identity must match the logged-in user",
+    "Supabase auth identity must match the logged-in user"
   ).toBe(creds.email);
 }
 
@@ -122,7 +122,10 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
     await page.goto("/admin/outcomes", { waitUntil: "networkidle" });
     const rows = page.locator('[data-testid="outcome-row"]');
     const count = await rows.count();
-    expect(count, "seeded outcomes must render on /admin/outcomes").toBeGreaterThan(0);
+    expect(
+      count,
+      "seeded outcomes must render on /admin/outcomes"
+    ).toBeGreaterThan(0);
     const firstRowText = await rows.first().innerText();
     expect(firstRowText.toLowerCase()).toContain("ilo");
   });
@@ -146,7 +149,7 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
         .filter({ hasText: /plo/i });
       expect(
         await ploRow.count(),
-        "Seed data missing: no PLO outcome found - cannot exercise the type guard.",
+        "Seed data missing: no PLO outcome found - cannot exercise the type guard."
       ).toBeGreaterThan(0);
       const rowLink = ploRow.first().locator('a[href*="/edit"]').first();
       editHref =
@@ -154,15 +157,22 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
     }
     expect(
       editHref,
-      "Could not resolve an editable PLO URL from the outcomes list",
+      "Could not resolve an editable PLO URL from the outcomes list"
     ).toBeTruthy();
-    const ploId = (editHref as string).split("/").filter(Boolean).at(-2) as string;
+    const ploId = (editHref as string)
+      .split("/")
+      .filter(Boolean)
+      .at(-2) as string;
     expect(ploId).toMatch(/^[0-9a-f-]{36}$/i);
 
     // A real PLO id must be rejected by the ILO editor with Forbidden - NOT a
     // generic "Not found" (which would pass even without a type guard).
-    await page.goto(`/admin/outcomes/${ploId}/edit`, { waitUntil: "networkidle" });
-    await expect(page.locator("text=Forbidden")).toBeVisible({ timeout: 10000 });
+    await page.goto(`/admin/outcomes/${ploId}/edit`, {
+      waitUntil: "networkidle",
+    });
+    await expect(page.locator("text=Forbidden")).toBeVisible({
+      timeout: 10000,
+    });
     await expect(page.locator("text=Not found")).toHaveCount(0);
     await expect(page).not.toHaveURL(/\/edit$/);
   });
@@ -182,7 +192,10 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
     const mappings = await apiGet<{
       source_outcome_id: string;
       target_outcome_id: string;
-    }>(page, "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500");
+    }>(
+      page,
+      "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500"
+    );
     const byId = new Map(outcomes.map((o) => [o.id, o]));
     const canonical = mappings
       .map((m) => ({
@@ -192,7 +205,7 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
       .find((m) => m.src?.type === "PLO" && m.tgt?.type === "ILO");
     expect(
       canonical,
-      "Seed data missing: no canonical PLO->ILO mapping found",
+      "Seed data missing: no canonical PLO->ILO mapping found"
     ).toBeTruthy();
 
     await page.goto("/coordinator/matrix", { waitUntil: "networkidle" });
@@ -201,18 +214,12 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
     const body = (await page.locator("body").innerText()).toLowerCase();
     expect(body).not.toContain("reverse mapping");
     // At least one endpoint label of the known canonical mapping must render.
-    const srcLabel = [
-      canonical?.src?.code,
-      canonical?.src?.title,
-    ]
+    const srcLabel = [canonical?.src?.code, canonical?.src?.title]
       .filter(Boolean)
       .join(" ")
       .trim()
       .toLowerCase();
-    const tgtLabel = [
-      canonical?.tgt?.code,
-      canonical?.tgt?.title,
-    ]
+    const tgtLabel = [canonical?.tgt?.code, canonical?.tgt?.title]
       .filter(Boolean)
       .join(" ")
       .trim()
@@ -222,7 +229,7 @@ test.describe("Intelligence Layer - OBE hierarchy & mapping direction", () => {
       (tgtLabel.length > 0 && body.includes(tgtLabel));
     expect(
       rendered,
-      `Known canonical mapping endpoints ("${srcLabel}" / "${tgtLabel}") do not render on the matrix`,
+      `Known canonical mapping endpoints ("${srcLabel}" / "${tgtLabel}") do not render on the matrix`
     ).toBe(true);
   });
 });
@@ -233,27 +240,27 @@ test.describe("Intelligence Layer - attainment cascade", () => {
   }) => {
     await loginAs(page, "admin");
     // Fixture integrity: attainment data must exist for the cascade to be provable.
-    const attainment = await apiGet<{ outcome_id: string; student_id: string | null }>(
-      page,
-      "outcome_attainment?select=outcome_id,student_id&limit=200",
-    );
+    const attainment = await apiGet<{
+      outcome_id: string;
+      student_id: string | null;
+    }>(page, "outcome_attainment?select=outcome_id,student_id&limit=200");
     expect(
       attainment.length,
-      "Seed data missing: no outcome_attainment rows",
+      "Seed data missing: no outcome_attainment rows"
     ).toBeGreaterThan(0);
 
     // UNCONDITIONAL: at least one ILO aggregate fixture must exist.
     const iloRows = attainment.filter((r) => r.student_id === null);
     expect(
       iloRows.length,
-      "Seed data missing: no ILO aggregate attainment rows (student_id IS NULL)",
+      "Seed data missing: no ILO aggregate attainment rows (student_id IS NULL)"
     ).toBeGreaterThan(0);
 
     // Every ILO aggregate row's outcome must be the TARGET of a mapping whose
     // SOURCE is a PLO (canonical direction only).
     const outcomes = await apiGet<{ id: string; type: string }>(
       page,
-      "learning_outcomes?select=id,type&limit=500",
+      "learning_outcomes?select=id,type&limit=500"
     );
     const typeById = new Map(outcomes.map((o) => [o.id, o.type]));
     const mappings = await apiGet<{
@@ -261,18 +268,18 @@ test.describe("Intelligence Layer - attainment cascade", () => {
       target_outcome_id: string;
     }>(
       page,
-      "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500",
+      "outcome_mappings?select=source_outcome_id,target_outcome_id&limit=500"
     );
     const mappedTargets = new Set(
       mappings
         .filter((m) => typeById.get(m.source_outcome_id) === "PLO")
-        .map((m) => m.target_outcome_id),
+        .map((m) => m.target_outcome_id)
     );
     const iloIds = new Set(iloRows.map((r) => r.outcome_id));
     const unmapped = [...iloIds].filter((id) => !mappedTargets.has(id));
     expect(
       unmapped,
-      `${unmapped.length} ILO aggregate attainment row(s) without a PLO->ILO mapping`,
+      `${unmapped.length} ILO aggregate attainment row(s) without a PLO->ILO mapping`
     ).toHaveLength(0);
 
     // UI: analytics renders attainment surfaces and never claims official mastery.
@@ -282,7 +289,9 @@ test.describe("Intelligence Layer - attainment cascade", () => {
     expect(body).not.toContain("official ilo mastery");
   });
 
-  test("Student surfaces never claim official ILO mastery", async ({ page }) => {
+  test("Student surfaces never claim official ILO mastery", async ({
+    page,
+  }) => {
     await loginAs(page, "student");
     await page.goto("/student/dashboard", { waitUntil: "networkidle" });
     const body = (await page.locator("body").innerText()).toLowerCase();
@@ -291,7 +300,9 @@ test.describe("Intelligence Layer - attainment cascade", () => {
 });
 
 test.describe("Intelligence Layer - agent guardrails", () => {
-  test("Student route has no outcome-management tool surface", async ({ page }) => {
+  test("Student route has no outcome-management tool surface", async ({
+    page,
+  }) => {
     await loginAs(page, "student");
     await page.goto("/student/dashboard", { waitUntil: "networkidle" });
     const body = (await page.locator("body").innerText()).toLowerCase();
@@ -313,7 +324,7 @@ test.describe("Intelligence Layer - agent guardrails", () => {
     for (const route of routes) {
       await page.goto(route, { waitUntil: "networkidle" });
       const sqlEditor = page.locator(
-        'textarea[placeholder*="SELECT"], textarea[placeholder*="SQL"]',
+        'textarea[placeholder*="SELECT"], textarea[placeholder*="SQL"]'
       );
       await expect(sqlEditor).toHaveCount(0);
     }
@@ -335,11 +346,11 @@ test.describe("Intelligence Layer - agent guardrails", () => {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
     expect(
       [401, 403, 404],
-      `agent_action_executions must not be readable with an authenticated client token (got ${res.status()})`,
+      `agent_action_executions must not be readable with an authenticated client token (got ${res.status()})`
     ).toContain(res.status());
   });
 
@@ -357,7 +368,7 @@ test.describe("Intelligence Layer - agent guardrails", () => {
     const chatInput = page.getByPlaceholder(/ask about the learning evidence/i);
     await expect(chatInput).toBeVisible();
     await chatInput.fill(
-      'Create a goal for me titled "E2E Approval Probe Goal" with a measurable target and a due date next week.',
+      'Create a goal for me titled "E2E Approval Probe Goal" with a measurable target and a due date next week.'
     );
     await page.getByRole("button", { name: /ask intelligence/i }).click();
 
@@ -369,10 +380,10 @@ test.describe("Intelligence Layer - agent guardrails", () => {
       .first();
     await expect(probeCard).toBeVisible({ timeout: 150000 });
     await expect(
-      probeCard.getByRole("button", { name: /approve proposal/i }),
+      probeCard.getByRole("button", { name: /approve proposal/i })
     ).toBeVisible();
     await expect(
-      probeCard.getByRole("button", { name: /reject proposal/i }),
+      probeCard.getByRole("button", { name: /reject proposal/i })
     ).toBeVisible();
 
     // Execute the rejection. agent_action_proposals is service-role-only by
@@ -382,14 +393,14 @@ test.describe("Intelligence Layer - agent guardrails", () => {
 
     // The card must immediately reflect the rejection...
     await expect(
-      probeCard.getByText(/this proposal was rejected/i),
+      probeCard.getByText(/this proposal was rejected/i)
     ).toBeVisible({ timeout: 10000 });
     // ...and no longer offer either decision control.
     await expect(
-      probeCard.getByRole("button", { name: /approve proposal/i }),
+      probeCard.getByRole("button", { name: /approve proposal/i })
     ).toHaveCount(0);
     await expect(
-      probeCard.getByRole("button", { name: /reject proposal/i }),
+      probeCard.getByRole("button", { name: /reject proposal/i })
     ).toHaveCount(0);
   });
 });
