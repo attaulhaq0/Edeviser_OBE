@@ -4,6 +4,7 @@
 // aggregates). Response is untrusted — every field passes a guard.
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useAiIdentity } from "@/ai/hooks/useAiIdentity";
 
 export interface GovernanceSummary {
   readonly runsTotal: number;
@@ -33,9 +34,19 @@ const parseSummary = (value: unknown): GovernanceSummary | null => {
   };
 };
 
-export const useGovernanceSummary = () =>
-  useQuery({
-    queryKey: ["agent", "governance-summary"],
+export const useGovernanceSummary = () => {
+  const identity = useAiIdentity();
+  return useQuery({
+    // Institution/admin-scoped cache identity: institution + role + actor are
+    // embedded so the global 30-min query cache can never serve a governance
+    // snapshot across identity or institution transitions.
+    queryKey: [
+      "agent",
+      "governance-summary",
+      identity.institutionId,
+      identity.role,
+      identity.userId,
+    ],
     queryFn: async (): Promise<GovernanceSummary | null> => {
       const { data, error } = await supabase.functions.invoke(
         "agent-orchestrator",
@@ -44,6 +55,9 @@ export const useGovernanceSummary = () =>
       if (error) return null;
       return parseSummary(data);
     },
+    enabled: identity.ready,
     staleTime: 60_000,
     retry: false,
   });
+};
+

@@ -10,6 +10,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useAiIdentity } from "@/ai/hooks/useAiIdentity";
 
 export interface InstitutionAutonomySettings {
   readonly operational_autonomy_ceiling: string;
@@ -34,9 +35,20 @@ const DEFAULT_SETTINGS: InstitutionAutonomySettings = {
   evaluation_thresholds: undefined,
 };
 
-export const useInstitutionAutonomy = () =>
-  useQuery<InstitutionAutonomySettings>({
-    queryKey: ["ai", "institution-autonomy-settings"],
+export const useInstitutionAutonomy = () => {
+  const identity = useAiIdentity();
+  return useQuery<InstitutionAutonomySettings>({
+    // Institution-scoped cache identity: settings are per-institution, so the
+    // key embeds institution + role + actor (deny-all RLS means the data only
+    // flows through the orchestrator, but the cache itself must still be
+    // identity-scoped — the global client retains entries for 30 minutes).
+    queryKey: [
+      "ai",
+      "institution-autonomy-settings",
+      identity.institutionId,
+      identity.role,
+      identity.userId,
+    ],
     queryFn: async () => {
       const { data, error } =
         await supabase.functions.invoke<AutonomySettingsResponse>(
@@ -52,6 +64,9 @@ export const useInstitutionAutonomy = () =>
         evaluation_thresholds: undefined,
       };
     },
+    enabled: identity.ready,
     staleTime: 60_000,
     retry: 1,
   });
+};
+

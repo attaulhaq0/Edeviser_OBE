@@ -14,6 +14,7 @@ import {
   parseAgentProposalView,
   type AgentProposalView,
 } from "@/lib/agentProposals";
+import { useAiIdentity } from "@/ai/hooks/useAiIdentity";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,9 +27,20 @@ export type ProposalInboxScope = "pending" | "all";
  * institution. Server-authoritative: the orchestrator filters by institution
  * and approver eligibility; the client only parses and renders.
  */
-export const useProposalInbox = (scope: ProposalInboxScope = "pending") =>
-  useQuery<readonly AgentProposalView[]>({
-    queryKey: ["ai", "proposal-inbox", scope],
+export const useProposalInbox = (scope: ProposalInboxScope = "pending") => {
+  const identity = useAiIdentity();
+  return useQuery<readonly AgentProposalView[]>({
+    // Actor-scoped cache identity: proposals are addressed to the caller's
+    // approver scope, so actor + institution belong in the key — a cached
+    // inbox must never be served to a different approver within the global
+    // 30-min retention window. Disabled until identity resolves (fail-closed).
+    queryKey: [
+      "ai",
+      "proposal-inbox",
+      identity.userId,
+      identity.institutionId,
+      scope,
+    ],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke(
         "agent-orchestrator",
@@ -48,5 +60,8 @@ export const useProposalInbox = (scope: ProposalInboxScope = "pending") =>
         .map((row) => parseAgentProposalView(row as unknown))
         .filter((view): view is AgentProposalView => view !== null);
     },
+    enabled: identity.ready,
     staleTime: 30_000,
   });
+};
+

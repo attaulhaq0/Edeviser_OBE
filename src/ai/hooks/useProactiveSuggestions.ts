@@ -8,6 +8,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
+import { useAiIdentity } from "@/ai/hooks/useAiIdentity";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -81,9 +82,18 @@ const parseSuggestion = (value: unknown): ProactiveSuggestion | null => {
  * flag (generation only runs for enabled institutions), so no extra client
  * gating is needed and none would be safe anyway.
  */
-export const useProactiveSuggestions = (limit = 10) =>
-  useQuery<readonly ProactiveSuggestion[]>({
-    queryKey: ["proactive-suggestions", limit],
+export const useProactiveSuggestions = (limit = 10) => {
+  const identity = useAiIdentity();
+  return useQuery<readonly ProactiveSuggestion[]>({
+    // Actor-scoped cache identity: the RPC returns only the authenticated
+    // actor's rows, so the cache key must embed actor + institution to prevent
+    // cross-identity reuse within the global 30-min retention window.
+    queryKey: [
+      "proactive-suggestions",
+      identity.userId,
+      identity.institutionId,
+      limit,
+    ],
     queryFn: async () => {
       const { data, error } = await supabase.rpc(
         "get_my_proactive_intelligence_v1",
@@ -95,5 +105,8 @@ export const useProactiveSuggestions = (limit = 10) =>
         .map((row) => parseSuggestion(row as unknown))
         .filter((item): item is ProactiveSuggestion => item !== null);
     },
+    enabled: identity.ready,
     staleTime: 60_000,
   });
+};
+
