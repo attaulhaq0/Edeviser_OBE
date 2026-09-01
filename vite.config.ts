@@ -41,66 +41,24 @@ export default defineConfig({
     isTest || process.env.NODE_ENV !== "production"
       ? undefined
       : {
-          drop: ["console", "debugger"],
+          // Keep console.error/warn visible in production: the env-validation
+          // fallback and ErrorBoundary rely on them for diagnostics. Strip only
+          // chatty logs and debugger statements.
+          drop: ["debugger"],
+          pure: ["console.log", "console.info", "console.debug"],
         },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // Vendor chunks
-          if (
-            id.includes("node_modules/react/") ||
-            id.includes("node_modules/@radix-ui") ||
-            id.includes("node_modules/react-dom")
-          ) {
-            return "vendor-react";
-          }
-          if (id.includes("node_modules/@tanstack")) {
-            return "vendor-query";
-          }
-          if (id.includes("node_modules/recharts")) {
-            return "vendor-charts";
-          }
-          if (id.includes("node_modules/framer-motion")) {
-            return "vendor-motion";
-          }
-
-          // Shared vendor libs pinned to dedicated chunks: role-dashboard
-          // chunks must not absorb these (the admin chunk previously inlined
-          // i18next/zod/@supabase, inflating both the chunk and total size).
-          if (
-            id.includes("node_modules/i18next") ||
-            id.includes("node_modules/react-i18next")
-          ) {
-            return "vendor-i18n";
-          }
-          if (id.includes("node_modules/zod")) {
-            return "vendor-zod";
-          }
-          if (id.includes("node_modules/@supabase")) {
-            return "vendor-supabase";
-          }
-
-          // Role dashboard chunks for code splitting (Task 74, clause 2.20)
-          // Each role dashboard is split into its own chunk to reduce initial bundle size
-          if (id.includes("pages/admin/AdminDashboard")) {
-            return "admin-dashboard";
-          }
-          if (id.includes("pages/coordinator/CoordinatorDashboard")) {
-            return "coordinator-dashboard";
-          }
-          if (id.includes("pages/teacher/TeacherDashboard")) {
-            return "teacher-dashboard";
-          }
-          if (id.includes("pages/student/StudentDashboard")) {
-            return "student-dashboard";
-          }
-          if (id.includes("pages/parent/ParentDashboard")) {
-            return "parent-dashboard";
-          }
-        },
-      },
-    },
+    // NOTE: intentionally NO custom `manualChunks`. The previous hand-rolled
+    // vendor splitting (vendor-react / vendor-i18n / vendor-query / ...) created
+    // circular chunk dependencies: react-dom was pinned to "vendor-react" while
+    // its transitive deps (scheduler, use-sync-external-store) and other React
+    // consumers landed in other chunks, so a chunk was evaluated before React's
+    // module bindings were initialized. Production crashed at module-eval time
+    // with "Cannot read properties of undefined (reading 'createContext')" and
+    // rendered a blank screen (dev mode never chunks, so it went unnoticed).
+    // Rollup's default chunking is cycle-aware and correct, and route-level
+    // React.lazy() imports still produce per-page chunks. Regressions of this
+    // class are guarded by `npm run smoke:build`.
   },
   test: {
     globals: true,
