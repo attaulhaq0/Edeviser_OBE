@@ -21,6 +21,9 @@ export interface QuestionAnalyticsRow {
   calibrated_difficulty: number | null;
   quality_flag: string | null;
   last_calculated_at: string;
+  // E2.C: merged from question_usage_stats_v1 (times the question was served
+  // in adaptive sessions) — populated by the dashboard, not by this query.
+  times_served?: number;
   question_bank: {
     id: string;
     course_id: string;
@@ -32,6 +35,32 @@ export interface QuestionAnalyticsRow {
     status: string;
   };
 }
+
+// ─── useQuestionUsageStats — per-question served counts (E2.C view) ─────────
+
+export interface QuestionUsageStatsRow {
+  question_id: string;
+  times_served: number;
+}
+
+export const useQuestionUsageStats = (courseId: string) => {
+  return useQuery({
+    queryKey: queryKeys.questionAnalytics.list({
+      scope: "usage-stats",
+      courseId,
+    }),
+    queryFn: async (): Promise<QuestionUsageStatsRow[]> => {
+      const { data, error } = await supabase
+        .from("question_usage_stats_v1")
+        .select("question_id, times_served")
+        .eq("course_id", courseId);
+
+      if (error) throw error;
+      return (data ?? []) as QuestionUsageStatsRow[];
+    },
+    enabled: !!courseId,
+  });
+};
 
 // ─── useQuestionAnalytics — list analytics with joined question data ────────
 

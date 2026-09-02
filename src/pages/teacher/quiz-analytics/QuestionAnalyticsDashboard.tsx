@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { BarChart3 } from "lucide-react";
@@ -27,6 +27,7 @@ import {
 
 import {
   useQuestionAnalytics,
+  useQuestionUsageStats,
   type QuestionAnalyticsRow,
 } from "@/hooks/useQuestionAnalytics";
 import { useCLOs } from "@/hooks/useCLOs";
@@ -143,6 +144,19 @@ const QuestionAnalyticsDashboard = () => {
   const closQuery = useCLOs(courseId);
   const clos = closQuery.data?.data ?? [];
 
+  // E2.C: merge per-question served counts from question_usage_stats_v1.
+  const usageQuery = useQuestionUsageStats(courseId ?? "");
+  const analyticsRowsWithUsage = useMemo(() => {
+    if (!analyticsRows) return analyticsRows;
+    const servedMap = new Map(
+      (usageQuery.data ?? []).map((u) => [u.question_id, u.times_served])
+    );
+    return analyticsRows.map((row) => ({
+      ...row,
+      times_served: servedMap.get(row.question_id) ?? 0,
+    }));
+  }, [analyticsRows, usageQuery.data]);
+
   const columns = createAnalyticsColumns(setSelectedQuestion);
 
   const selected = selectedQuestion;
@@ -217,7 +231,7 @@ const QuestionAnalyticsDashboard = () => {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={analyticsRows ?? []}
+        data={analyticsRowsWithUsage ?? []}
         isLoading={isLoading}
         emptyState={
           (analyticsRows ?? []).length === 0 && !isLoading ? (
