@@ -23,6 +23,9 @@ const makePlo = (
   created_by: null,
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
+  review_status: "draft",
+  reviewed_at: null,
+  reviewed_by: null,
   ...overrides,
 });
 

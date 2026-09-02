@@ -1,5 +1,14 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  CheckCircle2,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  RotateCcw,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { resolveName } from "@/lib/db/resolveName";
-import type { CLOWithRelations } from "@/hooks/useCLOs";
+import type { CLOReviewStatus, CLOWithRelations } from "@/hooks/useCLOs";
 import type { LearningOutcome, BloomsLevel } from "@/types/app";
 
 const bloomsBadgeStyles: Record<string, string> = {
@@ -22,6 +31,18 @@ const bloomsBadgeStyles: Record<string, string> = {
   Creating: "bg-red-500 text-white",
 };
 
+const reviewBadgeStyles: Record<CLOReviewStatus, string> = {
+  draft: "bg-gray-50 text-gray-600 border-gray-200",
+  in_review: "bg-amber-50 text-amber-700 border-amber-200",
+  confirmed: "bg-green-50 text-green-700 border-green-200",
+};
+
+const reviewLabels: Record<CLOReviewStatus, string> = {
+  draft: "Draft",
+  in_review: "In review",
+  confirmed: "Confirmed",
+};
+
 const formatBloomsLevel = (level: string | null): string => {
   if (!level) return "—";
   return level.charAt(0).toUpperCase() + level.slice(1);
@@ -30,7 +51,8 @@ const formatBloomsLevel = (level: string | null): string => {
 export const createColumns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
-  onDelete: (clo: LearningOutcome) => void
+  onDelete: (clo: LearningOutcome) => void,
+  onSetReviewStatus: (clo: LearningOutcome, status: CLOReviewStatus) => void
 ): ColumnDef<CLOWithRelations>[] => [
   {
     accessorKey: "title",
@@ -99,34 +121,77 @@ export const createColumns = (
     },
   },
   {
+    accessorKey: "review_status",
+    header: "Review",
+    cell: ({ row }) => {
+      const status = (row.getValue("review_status") ??
+        "draft") as CLOReviewStatus;
+      return (
+        <Badge
+          variant="outline"
+          className={cn("text-xs", reviewBadgeStyles[status])}
+        >
+          {reviewLabels[status]}
+        </Badge>
+      );
+    },
+  },
+  {
     id: "actions",
     header: "",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-xs">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onView(row.original.id)}>
-            <Eye className="h-4 w-4" />
-            View
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
-            <Pencil className="h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => onDelete(row.original)}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => {
+      const status = row.original.review_status ?? "draft";
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-xs">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onView(row.original.id)}>
+              <Eye className="h-4 w-4" />
+              View
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
+              <Pencil className="h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            {status === "draft" && (
+              <DropdownMenuItem
+                onClick={() => onSetReviewStatus(row.original, "in_review")}
+              >
+                <Send className="h-4 w-4" />
+                Submit for review
+              </DropdownMenuItem>
+            )}
+            {status !== "confirmed" && (
+              <DropdownMenuItem
+                onClick={() => onSetReviewStatus(row.original, "confirmed")}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Confirm
+              </DropdownMenuItem>
+            )}
+            {status === "confirmed" && (
+              <DropdownMenuItem
+                onClick={() => onSetReviewStatus(row.original, "draft")}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reopen
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(row.original)}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];

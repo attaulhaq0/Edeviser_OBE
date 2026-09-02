@@ -5442,6 +5442,9 @@ export type Database = {
           id: string
           institution_id: string
           program_id: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           sort_order: number
           title: string
           title_ar: string | null
@@ -5459,6 +5462,9 @@ export type Database = {
           id?: string
           institution_id: string
           program_id?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sort_order?: number
           title: string
           title_ar?: string | null
@@ -5476,6 +5482,9 @@ export type Database = {
           id?: string
           institution_id?: string
           program_id?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sort_order?: number
           title?: string
           title_ar?: string | null

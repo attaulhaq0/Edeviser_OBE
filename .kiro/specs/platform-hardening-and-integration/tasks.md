@@ -27,7 +27,7 @@ Format: `- [ ] T# (req) description — status/evidence appended when done.`
 ## Phase 4 — Teacher sync (team feedback)
 - [x] T17 (E2.A) Grading Queue: rubric checklist, regenerate semantics, confidence, edited-flag, Prev/Next, Why-explains-score.
   - DONE (2026-09-02). Surfaces: `src/lib/gradingInsights.ts` (pure coverage + why-explains-score), `src/pages/teacher/grading/GradingInterface.tsx` (coverage checklist badges, "Why this score?" breakdown, regenerate confirm, Prev/Next + "n of m pending", AI-provenance state), `src/hooks/useGrades.ts` (+`ai_applied`/`ai_edited_by_teacher`), `supabase/migrations/20260902133000_grades_ai_applied.sql` (MCP-applied; `grades.ai_applied boolean NOT NULL DEFAULT false` + column grants), regenerated `src/types/database.ts`. Tests: `gradingInsights.test.ts` (6) + `gradingInterface.test.tsx` (19) green; tsc clean. Live-verified column via information_schema before migration.
-- [ ] T18 (E2.B) Curriculum Studio: approval propagation + progress + ready-state + CLO source-of-truth.
+- [x] T18 (E2.B) Curriculum Studio: approval propagation + progress + ready-state + CLO source-of-truth.
 - [ ] T19 (E2.C) Question Bank: reuse hub, review-gate enforcement, live usage analytics view, approved-curriculum generation, Bloom health.
 - [ ] T20 (E2.D) Gradebook: read-only enforcement, auto-columns, source links, auto attainment, propagation, live export, working filters.
 - [ ] T21 (E2.E) Attendance: save-triggered recalc RPC, computed %, risk-signal input, session load, duplicate prevention.
