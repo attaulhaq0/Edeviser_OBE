@@ -77,12 +77,16 @@ const BloomsBadge = ({ level }: { level: string | null }) => {
 interface CLOWeightSectionProps {
   clos: LearningOutcome[];
   isLoadingCLOs: boolean;
+  isErrorCLOs: boolean;
+  onRetryCLOs: () => void;
   form: ReturnType<typeof useForm<AssignmentFormData>>;
 }
 
 const CLOWeightSection = ({
   clos,
   isLoadingCLOs,
+  isErrorCLOs,
+  onRetryCLOs,
   form,
 }: CLOWeightSectionProps) => {
   const { fields, append, remove } = useFieldArray({
@@ -112,6 +116,19 @@ const CLOWeightSection = ({
 
   if (isLoadingCLOs) {
     return <p className="text-sm text-gray-500">Loading CLOs…</p>;
+  }
+
+  if (isErrorCLOs) {
+    return (
+      <div className="flex items-center gap-2">
+        <p className="text-sm text-red-600">
+          Couldn’t load CLOs for this course.
+        </p>
+        <Button type="button" variant="outline" size="sm" onClick={onRetryCLOs}>
+          Retry
+        </Button>
+      </div>
+    );
   }
 
   if (clos.length === 0) {
@@ -347,12 +364,21 @@ const AssignmentFormFields = ({
     name: "course_id",
   });
   const watchedDueDate = useWatch({ control: form.control, name: "due_date" });
-  const { data: paginatedCourses, isLoading: isLoadingCourses } =
-    useTeacherCourses();
+  // QA 2026-09-02 (V5): query errors previously rendered as silent empty
+  // selects, which QA reported as an "unreliable/blank page". Surface them.
+  const {
+    data: paginatedCourses,
+    isLoading: isLoadingCourses,
+    isError: isCoursesError,
+    refetch: refetchCourses,
+  } = useTeacherCourses();
   const courses = paginatedCourses?.data ?? [];
-  const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
-    selectedCourseId || undefined
-  );
+  const {
+    data: paginatedCLOs,
+    isLoading: isLoadingCLOs,
+    isError: isCLOsError,
+    refetch: refetchCLOs,
+  } = useCLOs(selectedCourseId || undefined);
   const clos = paginatedCLOs?.data ?? [];
   const { data: calendarEvents = [] } = useAcademicCalendarEvents();
 
@@ -462,6 +488,23 @@ const AssignmentFormFields = ({
                       ))}
                     </SelectContent>
                   </Select>
+                  {isCoursesError && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-red-600">
+                        Couldn’t load your courses. Check your connection and
+                        try again.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={() => void refetchCourses()}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -553,6 +596,8 @@ const AssignmentFormFields = ({
             <CLOWeightSection
               clos={clos}
               isLoadingCLOs={isLoadingCLOs}
+              isErrorCLOs={isCLOsError}
+              onRetryCLOs={() => void refetchCLOs()}
               form={form}
             />
           ) : (
@@ -732,6 +777,27 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
+    );
+  }
+
+  // QA 2026-09-02 (V5): a failed load previously fell through to an empty
+  // form — surface the failure instead of an unreliable blank page.
+  if (!existing) {
+    return (
+      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <p className="text-sm text-red-600">
+          Couldn’t load this assignment. It may have been deleted or you may not
+          have access.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-3"
+          onClick={() => navigate("/teacher/assignments")}
+        >
+          Back to Assignments
+        </Button>
+      </Card>
     );
   }
 

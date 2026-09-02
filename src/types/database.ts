@@ -9154,27 +9154,33 @@ export type Database = {
       sub_clos: {
         Row: {
           clo_id: string
+          code: string | null
           created_at: string | null
           description: string | null
           id: string
           sort_order: number | null
           title: string
+          weight: number
         }
         Insert: {
           clo_id: string
+          code?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           sort_order?: number | null
           title: string
+          weight?: number
         }
         Update: {
           clo_id?: string
+          code?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           sort_order?: number | null
           title?: string
+          weight?: number
         }
         Relationships: [
           {
@@ -11560,7 +11566,7 @@ export type Database = {
       send_friend_request: { Args: { p_addressee_id: string }; Returns: string }
       send_teacher_nudge: {
         Args: { p_message: string; p_student_id: string }
-        Returns: undefined
+        Returns: string
       }
       student_enrolled_in_team_course: {
         Args: { p_team_id: string }

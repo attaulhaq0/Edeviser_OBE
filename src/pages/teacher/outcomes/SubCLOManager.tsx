@@ -47,9 +47,7 @@ const SubCLOManager = () => {
     },
   });
 
-  const currentWeights = subCLOs.map(
-    (sc) => (sc as { weight?: number }).weight ?? 0
-  );
+  const currentWeights = subCLOs.map((sc) => sc.weight);
   const weightSum = currentWeights.reduce((a, b) => a + b, 0);
   const weightsValid = isWeightSumValid(currentWeights);
 
