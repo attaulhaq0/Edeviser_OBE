@@ -21,6 +21,10 @@ export interface Grade {
   graded_by: string;
   created_at: string;
   institution_id: string;
+  /** E2.A: true when any AI-drafted feedback was applied to the saved grade. */
+  ai_applied: boolean;
+  /** E2.A: true when the teacher edited AI-drafted feedback before saving. */
+  ai_edited_by_teacher: boolean;
 }
 
 export interface GradeWithRelations extends Grade {
@@ -80,7 +84,12 @@ export const useCreateGrade = () => {
 
   return useMutation({
     mutationFn: async (
-      data: GradeFormData & { graded_by: string }
+      data: GradeFormData & {
+        graded_by: string;
+        /** E2.A: distinguish teacher-EDITED AI feedback from accepted-as-is. */
+        ai_applied?: boolean;
+        ai_edited_by_teacher?: boolean;
+      }
     ): Promise<Grade> => {
       const { data: result, error } = await supabase
         .from("grades")

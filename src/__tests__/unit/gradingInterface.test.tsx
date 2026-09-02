@@ -16,6 +16,8 @@ vi.mock("react-router-dom", async () => {
 const mockUseSubmission = vi.fn();
 vi.mock("@/hooks/useSubmissions", () => ({
   useSubmission: (...args: unknown[]) => mockUseSubmission(...args),
+  // E2.A Prev/Next queue navigation (no queue context in these tests).
+  useSubmissions: () => ({ data: undefined, isLoading: false }),
 }));
 
 const mockUseRubric = vi.fn();
@@ -220,8 +222,10 @@ describe("GradingInterface", () => {
 
   it("displays rubric criteria names", async () => {
     await renderGradingInterface();
-    expect(screen.getByText("Clarity")).toBeInTheDocument();
-    expect(screen.getByText("Grammar")).toBeInTheDocument();
+    // E2.A: criterion names appear in both the rubric grid and the new
+    // coverage checklist, so assert at least one occurrence of each.
+    expect(screen.getAllByText("Clarity").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Grammar").length).toBeGreaterThan(0);
   });
 
   it("displays rubric level headers", async () => {

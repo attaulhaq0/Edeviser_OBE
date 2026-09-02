@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -795,6 +795,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "agent_runs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_run_tenant_fkey"
+            columns: ["run_id", "institution_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id", "institution_id"]
           },
           {
             foreignKeyName: "agent_feedback_user_id_fkey"
@@ -4413,6 +4420,8 @@ export type Database = {
       }
       grades: {
         Row: {
+          ai_applied: boolean
+          ai_edited_by_teacher: boolean
           graded_at: string
           graded_by: string
           id: string
@@ -4424,6 +4433,8 @@ export type Database = {
           total_score: number
         }
         Insert: {
+          ai_applied?: boolean
+          ai_edited_by_teacher?: boolean
           graded_at?: string
           graded_by: string
           id?: string
@@ -4435,6 +4446,8 @@ export type Database = {
           total_score: number
         }
         Update: {
+          ai_applied?: boolean
+          ai_edited_by_teacher?: boolean
           graded_at?: string
           graded_by?: string
           id?: string
@@ -4875,6 +4888,10 @@ export type Database = {
           course_id: string | null
           created_at: string
           delta: number | null
+          evaluation_attempt_count: number
+          evaluation_claimed_by: string | null
+          evaluation_dead_lettered_at: string | null
+          evaluation_lease_until: string | null
           evaluation_state: string
           evaluator_recommendation: string | null
           evaluator_summary: string | null
@@ -4882,6 +4899,7 @@ export type Database = {
           execution_id: string
           id: string
           institution_id: string
+          last_evaluation_error: string | null
           measured_at: string | null
           measurement_window_end: string
           measurement_window_start: string
@@ -4899,6 +4917,10 @@ export type Database = {
           course_id?: string | null
           created_at?: string
           delta?: number | null
+          evaluation_attempt_count?: number
+          evaluation_claimed_by?: string | null
+          evaluation_dead_lettered_at?: string | null
+          evaluation_lease_until?: string | null
           evaluation_state?: string
           evaluator_recommendation?: string | null
           evaluator_summary?: string | null
@@ -4906,6 +4928,7 @@ export type Database = {
           execution_id: string
           id?: string
           institution_id: string
+          last_evaluation_error?: string | null
           measured_at?: string | null
           measurement_window_end: string
           measurement_window_start: string
@@ -4923,6 +4946,10 @@ export type Database = {
           course_id?: string | null
           created_at?: string
           delta?: number | null
+          evaluation_attempt_count?: number
+          evaluation_claimed_by?: string | null
+          evaluation_dead_lettered_at?: string | null
+          evaluation_lease_until?: string | null
           evaluation_state?: string
           evaluator_recommendation?: string | null
           evaluator_summary?: string | null
@@ -4930,6 +4957,7 @@ export type Database = {
           execution_id?: string
           id?: string
           institution_id?: string
+          last_evaluation_error?: string | null
           measured_at?: string | null
           measurement_window_end?: string
           measurement_window_start?: string
@@ -10728,6 +10756,48 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_due_intervention_measurements_v1: {
+        Args: {
+          p_batch_size?: number
+          p_lease_seconds?: number
+          p_worker_id: string
+        }
+        Returns: {
+          baseline_evidence: Json
+          baseline_metric: number
+          course_id: string | null
+          created_at: string
+          delta: number | null
+          evaluation_attempt_count: number
+          evaluation_claimed_by: string | null
+          evaluation_dead_lettered_at: string | null
+          evaluation_lease_until: string | null
+          evaluation_state: string
+          evaluator_recommendation: string | null
+          evaluator_summary: string | null
+          evidence_sufficiency: string
+          execution_id: string
+          id: string
+          institution_id: string
+          last_evaluation_error: string | null
+          measured_at: string | null
+          measurement_window_end: string
+          measurement_window_start: string
+          outcome_id: string | null
+          post_action_evidence: Json | null
+          post_action_metric: number | null
+          program_id: string | null
+          proposal_id: string
+          student_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "intervention_measurements"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       claim_proactive_agent_jobs_v1: {
         Args: {
           p_batch_size?: number
@@ -10771,6 +10841,49 @@ export type Database = {
           to: "proactive_agent_jobs"
           isOneToOne: false
           isSetofReturn: true
+        }
+      }
+      complete_intervention_evaluation_v1: {
+        Args: {
+          p_measurement_id: string
+          p_post_action_evidence: Json
+          p_post_action_metric: number
+          p_worker_id: string
+        }
+        Returns: {
+          baseline_evidence: Json
+          baseline_metric: number
+          course_id: string | null
+          created_at: string
+          delta: number | null
+          evaluation_attempt_count: number
+          evaluation_claimed_by: string | null
+          evaluation_dead_lettered_at: string | null
+          evaluation_lease_until: string | null
+          evaluation_state: string
+          evaluator_recommendation: string | null
+          evaluator_summary: string | null
+          evidence_sufficiency: string
+          execution_id: string
+          id: string
+          institution_id: string
+          last_evaluation_error: string | null
+          measured_at: string | null
+          measurement_window_end: string
+          measurement_window_start: string
+          outcome_id: string | null
+          post_action_evidence: Json | null
+          post_action_metric: number | null
+          program_id: string | null
+          proposal_id: string
+          student_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "intervention_measurements"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       complete_proactive_agent_job_v1: {
@@ -10828,6 +10941,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      enqueue_intervention_generation_jobs_v1: {
+        Args: {
+          p_batch_size?: number
+          p_institution_id?: string
+          p_trigger_source?: string
+        }
+        Returns: number
+      }
       enqueue_proactive_agent_jobs_v1: {
         Args: {
           p_batch_size?: number
@@ -10846,6 +10967,15 @@ export type Database = {
         Returns: Json
       }
       expire_stale_recovery_sessions: { Args: never; Returns: number }
+      fail_intervention_evaluation_v1: {
+        Args: {
+          p_dead_letter?: boolean
+          p_error_classification: string
+          p_measurement_id: string
+          p_worker_id: string
+        }
+        Returns: string
+      }
       fail_proactive_agent_job_v1: {
         Args: {
           p_error_classification: string
@@ -11044,6 +11174,10 @@ export type Database = {
           course_id: string | null
           created_at: string
           delta: number | null
+          evaluation_attempt_count: number
+          evaluation_claimed_by: string | null
+          evaluation_dead_lettered_at: string | null
+          evaluation_lease_until: string | null
           evaluation_state: string
           evaluator_recommendation: string | null
           evaluator_summary: string | null
@@ -11051,6 +11185,7 @@ export type Database = {
           execution_id: string
           id: string
           institution_id: string
+          last_evaluation_error: string | null
           measured_at: string | null
           measurement_window_end: string
           measurement_window_start: string
@@ -11166,6 +11301,10 @@ export type Database = {
           course_id: string | null
           created_at: string
           delta: number | null
+          evaluation_attempt_count: number
+          evaluation_claimed_by: string | null
+          evaluation_dead_lettered_at: string | null
+          evaluation_lease_until: string | null
           evaluation_state: string
           evaluator_recommendation: string | null
           evaluator_summary: string | null
@@ -11173,6 +11312,7 @@ export type Database = {
           execution_id: string
           id: string
           institution_id: string
+          last_evaluation_error: string | null
           measured_at: string | null
           measurement_window_end: string
           measurement_window_start: string
@@ -11367,12 +11507,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11396,11 +11536,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11421,11 +11561,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11446,11 +11586,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -11463,11 +11603,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

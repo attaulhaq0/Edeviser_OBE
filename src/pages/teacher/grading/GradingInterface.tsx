@@ -11,9 +11,12 @@ import {
   ArrowLeft,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   ExternalLink,
   FileText,
+  HelpCircle,
   Loader2,
   Pencil,
   Sparkles,
@@ -44,6 +47,11 @@ import {
   useLogDraftAction,
 } from "@/hooks/useAIFeedbackDraft";
 import type { CriterionDraft } from "@/hooks/useAIFeedbackDraft";
+import { useSubmissions } from "@/hooks/useSubmissions";
+import {
+  buildScoreExplanation,
+  computeRubricCoverage,
+} from "@/lib/gradingInsights";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -476,6 +484,43 @@ const AIDraftPanel = ({
   </Card>
 );
 
+// ─── Rubric coverage checklist (E2.A) ───────────────────────────────────────
+
+const RubricCoverageChecklist = ({
+  criteria,
+  selections,
+}: {
+  criteria: RubricCriterion[];
+  selections: Map<string, CellSelection>;
+}) => (
+  <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+    <div className="flex flex-wrap items-center gap-2">
+      {criteria.map((criterion) => {
+        const covered = selections.has(criterion.id);
+        return (
+          <Badge
+            key={criterion.id}
+            variant="outline"
+            className={cn(
+              "gap-1 text-xs font-semibold",
+              covered
+                ? "border-green-200 bg-green-50 text-green-700"
+                : "border-gray-200 bg-gray-50 text-gray-500"
+            )}
+          >
+            {covered ? (
+              <Check className="h-3 w-3" />
+            ) : (
+              <X className="h-3 w-3" />
+            )}
+            {criterion.criterion_name}
+          </Badge>
+        );
+      })}
+    </div>
+  </Card>
+);
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 const GradingInterface = () => {
@@ -498,6 +543,13 @@ const GradingInterface = () => {
   const generateDraft = useGenerateFeedbackDraft();
   const logDraftAction = useLogDraftAction();
 
+  // ── E2.A: Prev/Next navigation within the assignment's pending queue ────
+  const { data: queueData } = useSubmissions({
+    assignmentId: assignmentId || undefined,
+    pendingOnly: true,
+    pageSize: 100,
+  });
+
   // ── Local state ─────────────────────────────────────────────────────────
   const [selections, setSelections] = useState<Map<string, CellSelection>>(
     new Map()
@@ -505,6 +557,11 @@ const GradingInterface = () => {
   const [feedback, setFeedback] = useState("");
   const [aiDrafts, setAiDrafts] = useState<DraftState[]>([]);
   const [aiOverallDraft, setAiOverallDraft] = useState("");
+  // E2.A: teacher-edited vs AI-as-is distinction carried on the saved grade.
+  const [aiApplied, setAiApplied] = useState(false);
+  const [aiEditedByTeacher, setAiEditedByTeacher] = useState(false);
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+  const [showWhy, setShowWhy] = useState(false);
 
   const isReadOnly = !!existingGrade;
   const isLoading =
@@ -520,6 +577,33 @@ const GradingInterface = () => {
       });
     }
   }, [submissionId, user?.id, isReadOnly]);
+
+  // ── Reset local grading state when navigating between submissions ───────
+  // Render-reset pattern (react.dev/learn/you-might-not-need-an-effect):
+  // store the previous submissionId and reset derived local state during
+  // render when the route param changes — no setState-in-effect.
+  const [prevSubmissionId, setPrevSubmissionId] = useState(submissionId);
+  if (prevSubmissionId !== submissionId) {
+    setPrevSubmissionId(submissionId);
+    setSelections(new Map());
+    setFeedback("");
+    setAiDrafts([]);
+    setAiOverallDraft("");
+    setAiApplied(false);
+    setAiEditedByTeacher(false);
+    setConfirmRegenerate(false);
+    setShowWhy(false);
+  }
+
+  // ── E2.A: queue neighbors for Prev/Next ─────────────────────────────────
+  const queueItems = queueData?.data ?? [];
+  const queueIndex = queueItems.findIndex((s) => s.id === submissionId);
+  const prevSubmission =
+    queueIndex > 0 ? queueItems[queueIndex - 1] : undefined;
+  const nextSubmission =
+    queueIndex >= 0 && queueIndex < queueItems.length - 1
+      ? queueItems[queueIndex + 1]
+      : undefined;
 
   // ── Pre-populate selections from existing grade ─────────────────────────
   const readOnlySelections = useMemo(() => {
@@ -546,6 +630,16 @@ const GradingInterface = () => {
   const totalMarks = assignment?.total_marks ?? 0;
   const scorePercent =
     totalMarks > 0 ? Math.round((totalScore / totalMarks) * 100) : 0;
+
+  // ── E2.A: rubric-coverage confidence + why-explains-score rows ──────────
+  const rubricCoverage = useMemo(
+    () => computeRubricCoverage(rubric?.criteria ?? [], activeSelections),
+    [rubric, activeSelections]
+  );
+  const scoreExplanation = useMemo(
+    () => buildScoreExplanation(rubric?.criteria ?? [], activeSelections),
+    [rubric, activeSelections]
+  );
 
   // ── Handlers ────────────────────────────────────────────────────────────
   const handleCellSelect = (
@@ -692,6 +786,9 @@ const GradingInterface = () => {
       return `${prefix}[${draft.criterion_title}]: ${draft.edited_comment}`;
     });
     logDraft(criterionId, "edited", draft.edited_comment);
+    // E2.A: teacher touched the AI text — record provenance on the grade.
+    setAiApplied(true);
+    setAiEditedByTeacher(true);
   };
 
   const handleRejectDraft = (criterionId: string) => {
@@ -711,8 +808,23 @@ const GradingInterface = () => {
   const handleAcceptOverallDraft = () => {
     if (aiOverallDraft) {
       setFeedback(aiOverallDraft);
+      setAiApplied(true);
       toast.success("Overall draft applied to feedback");
     }
+  };
+
+  // E2.A: confirm before discarding existing drafts via regeneration.
+  const handleGenerateClick = () => {
+    if (aiDrafts.length > 0 || aiOverallDraft) {
+      setConfirmRegenerate(true);
+      return;
+    }
+    handleGenerateAIDraft();
+  };
+
+  const handleConfirmRegenerate = () => {
+    setConfirmRegenerate(false);
+    handleGenerateAIDraft();
   };
 
   const handleSubmitGrade = () => {
@@ -739,6 +851,8 @@ const GradingInterface = () => {
         total_score: totalScore,
         score_percent: scorePercent,
         overall_feedback: feedback || undefined,
+        ai_applied: aiApplied || undefined,
+        ai_edited_by_teacher: aiEditedByTeacher || undefined,
         graded_by: user.id,
       },
       {
@@ -825,6 +939,37 @@ const GradingInterface = () => {
             Graded
           </Badge>
         )}
+
+        {/* E2.A: Prev/Next within the pending queue */}
+        {queueIndex >= 0 && (
+          <div className="ms-auto flex items-center gap-2">
+            <span className="text-sm text-gray-500">
+              {queueIndex + 1} of {queueItems.length} pending
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!prevSubmission}
+              onClick={() =>
+                prevSubmission &&
+                navigate(`/teacher/grading/${prevSubmission.id}`)
+              }
+            >
+              <ChevronLeft className="h-4 w-4" /> Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!nextSubmission}
+              onClick={() =>
+                nextSubmission &&
+                navigate(`/teacher/grading/${nextSubmission.id}`)
+              }
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -850,19 +995,104 @@ const GradingInterface = () => {
 
           {/* Generate AI Draft Button */}
           {!isReadOnly && rubric && selections.size > 0 && (
-            <Button
-              onClick={handleGenerateAIDraft}
-              disabled={generateDraft.isPending}
-              variant="outline"
-              className="border-teal-300 text-teal-700 hover:bg-teal-50"
-            >
-              {generateDraft.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+            <>
+              {confirmRegenerate ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Regenerating will discard the current drafts.
+                  </span>
+                  <Button
+                    onClick={handleConfirmRegenerate}
+                    size="sm"
+                    variant="destructive"
+                  >
+                    Regenerate
+                  </Button>
+                  <Button
+                    onClick={() => setConfirmRegenerate(false)}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               ) : (
-                <Sparkles className="h-4 w-4" />
+                <Button
+                  onClick={handleGenerateClick}
+                  disabled={generateDraft.isPending}
+                  variant="outline"
+                  className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                >
+                  {generateDraft.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Generate AI Draft
+                </Button>
               )}
-              Generate AI Draft
-            </Button>
+            </>
+          )}
+
+          {/* E2.A: rubric-coverage checklist + why-this-score explanation */}
+          {rubric && rubric.criteria.length > 0 && (
+            <>
+              <RubricCoverageChecklist
+                criteria={rubric.criteria}
+                selections={activeSelections}
+              />
+              {rubricCoverage.total > 0 &&
+                rubricCoverage.percent < 100 &&
+                !isReadOnly && (
+                  <div className="flex items-center gap-2 text-sm text-amber-700">
+                    <HelpCircle className="h-4 w-4" />
+                    {rubricCoverage.covered} of {rubricCoverage.total} criteria
+                    assessed ({rubricCoverage.percent}%) — the score is not
+                    final until every criterion has a level.
+                  </div>
+                )}
+              {scoreExplanation.length > 0 && (
+                <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowWhy((v) => !v)}
+                    className="flex w-full items-center gap-2 text-sm font-semibold text-gray-700"
+                  >
+                    <HelpCircle className="h-4 w-4 text-teal-600" />
+                    Why this score?
+                    <span className="ms-auto text-xs font-normal text-gray-400">
+                      {showWhy ? "Hide" : "Show"}
+                    </span>
+                  </button>
+                  {showWhy && (
+                    <ul className="mt-3 space-y-1.5 text-sm text-gray-600">
+                      {scoreExplanation.map((row) => (
+                        <li
+                          key={row.criterionName}
+                          className="flex items-baseline justify-between gap-4"
+                        >
+                          <span>
+                            <span className="font-medium text-gray-800">
+                              {row.criterionName}
+                            </span>{" "}
+                            — {row.levelLabel}
+                          </span>
+                          <span className="shrink-0 tabular-nums text-gray-500">
+                            {row.points}/{row.maxPoints}
+                          </span>
+                        </li>
+                      ))}
+                      <li className="flex items-baseline justify-between gap-4 border-t pt-2 font-semibold text-gray-800">
+                        <span>Total</span>
+                        <span className="shrink-0 tabular-nums">
+                          {totalScore}/{totalMarks} ({scorePercent}%)
+                        </span>
+                      </li>
+                    </ul>
+                  )}
+                </Card>
+              )}
+            </>
           )}
 
           {/* AI Draft Panel */}
