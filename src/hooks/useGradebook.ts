@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
 import { mapToLetterGrade } from "@/lib/letterGradeMapper";
+import { computeFinalWeightedGrade } from "@/lib/gradebookCalc";
 import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
@@ -52,14 +53,24 @@ export interface GradebookCategoryEntry {
   weight_percent: number;
   assessments: GradebookAssessment[];
   subtotal_percent: number;
+  /** Number of assessments with a graded score in this category. */
+  graded_assessment_count: number;
 }
 
 export interface GradebookEntry {
   student_id: string;
   student_name: string;
   categories: GradebookCategoryEntry[];
-  final_weighted_grade: number;
-  letter_grade: string;
+  /**
+   * Final weighted percent under the exclude-and-renormalize policy
+   * (QA FAIL-04): categories with zero graded work are excluded from both
+   * numerator and denominator. Null when nothing is graded yet.
+   */
+  final_weighted_grade: number | null;
+  /** Letter grade; null when the final grade is not yet computable. */
+  letter_grade: string | null;
+  /** Weights excluded from the calculation because nothing was graded. */
+  excluded_weight_total: number;
 }
 
 // ─── useGradeCategories — list categories for a course ──────────────────────
@@ -479,23 +490,33 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
               weight_percent: cat.weight_percent,
               assessments,
               subtotal_percent: Math.round(subtotalPercent * 100) / 100,
+              graded_assessment_count: graded.length,
             };
           }
         );
 
-        const finalWeightedGrade = catEntries.reduce(
-          (sum, cat) => sum + (cat.subtotal_percent * cat.weight_percent) / 100,
-          0
+        // QA hardening FAIL-04: exclude-and-renormalize policy. Categories
+        // with zero graded assessments are excluded from both numerator and
+        // denominator (never counted as 0%); the final grade is null when
+        // nothing at all is graded yet ("not yet gradable").
+        const finalResult = computeFinalWeightedGrade(
+          catEntries.map((cat) => ({
+            weight_percent: cat.weight_percent,
+            hasGradedWork: cat.graded_assessment_count > 0,
+            subtotal_percent: cat.subtotal_percent,
+          }))
         );
-
-        const roundedFinal = Math.round(finalWeightedGrade * 100) / 100;
 
         return {
           student_id: studentId,
           student_name: studentName,
           categories: catEntries,
-          final_weighted_grade: roundedFinal,
-          letter_grade: mapToLetterGrade(roundedFinal),
+          final_weighted_grade: finalResult.finalPercent,
+          letter_grade:
+            finalResult.finalPercent !== null
+              ? mapToLetterGrade(finalResult.finalPercent)
+              : null,
+          excluded_weight_total: finalResult.excludedWeightTotal,
         };
       });
 

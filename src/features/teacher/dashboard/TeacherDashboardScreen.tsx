@@ -77,8 +77,6 @@ import {
 } from "@/ai/components";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
-const HERO_GRADIENT = "var(--hero-gradient)";
-
 // Experimental AI surfaces (Production & Delivery Safety): the assistant
 // panel mounts ONLY when the deployment opted into the experimental AI
 // feature — same gate as the RoleAppShell intelligence panel.
@@ -260,19 +258,18 @@ const TeacherDashboardScreen = () => {
       {/* ── Hero carousel (briefing + real teaching momentum) ── */}
       <HeroCarousel
         ariaLabel={t("dashboard.hero.label", "Teaching highlights")}
-        className="rounded-2xl text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
+        className="rounded-2xl border border-slate-200/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs"
         slides={[
           <div key="briefing" className="relative min-h-29 p-4">
             <div
               className="pointer-events-none absolute -inset-e-8 -top-11 h-37.5 w-37.5"
               style={{
                 background:
-                  "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
+                  "radial-gradient(circle,rgba(20,184,166,.15),transparent 70%)",
               }}
             />
             <div className="relative flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-sky-50 text-sky-600">
                 <GraduationCap className="h-6 w-6" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
@@ -282,7 +279,7 @@ const TeacherDashboardScreen = () => {
                   })}{" "}
                   👋
                 </h1>
-                <p className="truncate text-[12px] text-white/70">
+                <p className="truncate text-[12px] text-slate-600">
                   {t(
                     "dashboard.welcome.subtitle",
                     "Here's your teaching cockpit — nothing acts without your OK."
@@ -300,7 +297,7 @@ const TeacherDashboardScreen = () => {
                       .getElementById("triage-sec")
                       ?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
-                  className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                  className="h-auto rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                 >
                   <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
                   {t("dashboard.hero.needAttention", {
@@ -314,7 +311,7 @@ const TeacherDashboardScreen = () => {
                   type="button"
                   variant="ghost"
                   onClick={() => navigate("/teacher/grading")}
-                  className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                  className="h-auto rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                 >
                   <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
                   {t("dashboard.hero.toGrade", {
@@ -326,11 +323,11 @@ const TeacherDashboardScreen = () => {
             </div>
           </div>,
           <div key="momentum" className="flex min-h-29 items-center gap-4 p-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-sky-50 text-sky-600">
               <TrendingUp className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-teal-200">
+              <p className="text-[10px] font-black uppercase tracking-widest text-teal-700">
                 {t("dashboard.hero.momentumEyebrow", "Teaching momentum")}
               </p>
               <h2 className="mt-0.5 text-lg font-bold">
@@ -339,7 +336,7 @@ const TeacherDashboardScreen = () => {
                   percent: avgAttainment,
                 })}
               </h2>
-              <p className="mt-1 text-[12px] text-white/70">
+              <p className="mt-1 text-[12px] text-slate-600">
                 {t("dashboard.hero.momentumBody", {
                   defaultValue:
                     "{{graded}} graded this week · {{pending}} still in queue",
@@ -352,7 +349,7 @@ const TeacherDashboardScreen = () => {
               type="button"
               variant="ghost"
               onClick={() => navigate("/teacher/gradebook")}
-              className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
+              className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
               {t("dashboard.hero.openGradebook", "Open")}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

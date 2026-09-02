@@ -171,9 +171,12 @@ export const useCreateRubric = () => {
     mutationFn: async (input: CreateRubricInput): Promise<Rubric> => {
       const { criteria, ...rubricFields } = input;
 
+      // E1.5: rubrics_teacher_write RLS requires created_by = auth.uid().
+      // The column now defaults to auth.uid() server-side; sending it
+      // explicitly keeps the client contract obvious and testable.
       const { data: rubric, error } = await supabase
         .from("rubrics")
-        .insert(rubricFields)
+        .insert({ ...rubricFields, created_by: user?.id })
         .select()
         .single();
 

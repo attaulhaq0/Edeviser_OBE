@@ -30,7 +30,7 @@ export type OutcomeGovernanceToolName =
   | "propose_reorder_ilos"
   | "draft_ilo_governance_report";
 
-export const OUTCOME_GOVERNANCE_VERSION = "1.0.0";
+export const OUTCOME_GOVERNANCE_VERSION = "1.1.0";
 
 export const OUTCOME_GOVERNANCE_TOOL_NAMES: readonly OutcomeGovernanceToolName[] =
   [
@@ -96,6 +96,44 @@ const requireText = (value: unknown, field: string, max: number): string => {
     );
   }
   return value.trim();
+};
+
+/**
+ * Meaningful-content guard (QA FAIL-01 agentic mirror of `meaningfulText` in
+ * `src/lib/schemas/ilo.ts`): rejects whitespace-only, punctuation-only, and
+ * control-character-only titles so the LLM drafting path cannot produce
+ * what the admin form rejects. Defense-in-depth — the form, the API, and
+ * the agent tools all enforce the same rule.
+ */
+const requireMeaningfulText = (
+  value: unknown,
+  field: string,
+  max: number
+): string => {
+  const text = requireText(value, field, max);
+  if (!/\p{L}|\p{N}/u.test(text)) {
+    throw new OutcomeGovernanceBoundaryError(
+      "invalid_input",
+      `${field} must contain letters or numbers (not only symbols or spaces)`
+    );
+  }
+  return text;
+};
+
+/**
+ * Optional bilingual title mirror: a provided title that trims to empty is
+ * treated as "not provided" (matching the frontend schema's allowance of
+ * "" for title_ar); anything else must pass the meaningful-content guard.
+ */
+const optionalMeaningfulTitle = (
+  value: unknown,
+  field: string,
+  max: number
+): string | undefined => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return undefined;
+  return requireMeaningfulText(trimmed, field, max);
 };
 
 const requireEvidence = (
@@ -275,16 +313,15 @@ export const handleOutcomeGovernanceToolCall = async (
 
   switch (toolName) {
     case "draft_ilo": {
-      const title = requireText(args.title, "title", 300);
+      const title = requireMeaningfulText(args.title, "title", 300);
       const rationale = requireText(args.rationale, "rationale", 2000);
+      const titleAr = optionalMeaningfulTitle(args.titleAr, "titleAr", 300);
       return {
         draft: true,
         artifact: "ilo",
         ilo: {
           title,
-          ...(typeof args.titleAr === "string"
-            ? { titleAr: args.titleAr.slice(0, 300) }
-            : {}),
+          ...(titleAr !== undefined ? { titleAr } : {}),
           ...(typeof args.description === "string"
             ? { description: args.description.slice(0, 2000) }
             : {}),
@@ -312,14 +349,13 @@ export const handleOutcomeGovernanceToolCall = async (
     }
 
     case "propose_create_ilo": {
-      const title = requireText(args.title, "title", 300);
+      const title = requireMeaningfulText(args.title, "title", 300);
       const reason = requireText(args.reason, "reason", 4000);
       const evidence = requireEvidence(args.evidence);
+      const titleAr = optionalMeaningfulTitle(args.titleAr, "titleAr", 300);
       const payload: JsonObject = {
         title,
-        ...(typeof args.titleAr === "string"
-          ? { title_ar: args.titleAr.slice(0, 300) }
-          : {}),
+        ...(titleAr !== undefined ? { title_ar: titleAr } : {}),
         ...(typeof args.description === "string"
           ? { description: args.description.slice(0, 2000) }
           : {}),
@@ -344,10 +380,21 @@ export const handleOutcomeGovernanceToolCall = async (
       const evidence = requireEvidence(args.evidence);
       const payloadRecord: Record<string, unknown> = { ilo_id: iloId };
       if (typeof args.title === "string") {
-        payloadRecord.title = requireText(args.title, "title", 300);
+        payloadRecord.title = requireMeaningfulText(args.title, "title", 300);
       }
       if (typeof args.titleAr === "string") {
-        payloadRecord.title_ar = args.titleAr.slice(0, 300);
+        const titleAr = args.titleAr.trim();
+        if (titleAr.length === 0) {
+          // Explicit clear of the Arabic title (mirrors the frontend
+          // updateILOSchema allowing "" for title_ar).
+          payloadRecord.title_ar = "";
+        } else {
+          payloadRecord.title_ar = requireMeaningfulText(
+            titleAr,
+            "titleAr",
+            300
+          );
+        }
       }
       if (typeof args.description === "string") {
         payloadRecord.description = args.description.slice(0, 2000);

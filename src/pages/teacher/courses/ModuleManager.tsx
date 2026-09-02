@@ -4,6 +4,10 @@ import { useState, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import {
+  normalizeSortOrderInput,
+  sortOrderSchema,
+} from "@/lib/schemas/sortOrder";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useCourseModules,
@@ -68,7 +72,7 @@ import { Shimmer } from "@/design-system";
 const moduleSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
   description: z.string().optional(),
-  sort_order: z.number().int().min(0),
+  sort_order: sortOrderSchema,
   is_published: z.boolean(),
 });
 
@@ -79,7 +83,7 @@ const materialSchema = z.object({
   type: z.enum(["file", "link", "video", "text"]),
   content_url: z.string().optional(),
   description: z.string().optional(),
-  sort_order: z.number().int().min(0),
+  sort_order: sortOrderSchema,
   is_published: z.boolean(),
   clo_ids: z.array(z.string()).optional(),
 });
@@ -544,7 +548,10 @@ const ModuleMaterials = ({
                         <Input
                           type="number"
                           min={0}
-                          {...field}
+                          value={field.value ?? 0}
+                          onChange={(e) =>
+                            field.onChange(normalizeSortOrderInput(e.target.value))
+                          }
                           className="h-8 text-sm"
                         />
                       </FormControl>
@@ -830,7 +837,14 @@ const ModuleManager = () => {
                     <FormItem>
                       <FormLabel>Sort Order</FormLabel>
                       <FormControl>
-                        <Input type="number" min={0} {...field} />
+                        <Input
+                          type="number"
+                          min={0}
+                          value={field.value ?? 0}
+                          onChange={(e) =>
+                            field.onChange(normalizeSortOrderInput(e.target.value))
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

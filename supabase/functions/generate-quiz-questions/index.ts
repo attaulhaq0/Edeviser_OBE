@@ -246,6 +246,15 @@ Return ONLY JSON in this shape: {"questions": [<question objects>]}.`;
 
 // ─── Canonical AIProvider call ──────────────────────────────────────────────
 
+// E1.3: LLMs occasionally wrap JSON in markdown fences (```json ... ```)
+// despite response_format=json — the 2026-08-30 generation log shows exactly
+// this failure ("Unexpected token '`'"). Strip fences before parsing.
+const stripMarkdownFence = (raw: string): string => {
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  return fenced ? fenced[1] : trimmed;
+};
+
 async function callAIProvider(
   prompt: string,
   provider: AIProvider
@@ -269,7 +278,7 @@ async function callAIProvider(
     maxOutputTokens: 4000,
     responseFormat: "json",
   });
-  const parsed: unknown = JSON.parse(response.content);
+  const parsed: unknown = JSON.parse(stripMarkdownFence(response.content));
   const questions = Array.isArray(parsed)
     ? parsed
     : parsed &&
@@ -577,11 +586,49 @@ serve(async (req) => {
 
     // ── Step 5: RAG Retrieval ───────────────────────────────────────────
 
-    const { chunks, warnings } = await retrieveCourseMaterialChunks(
-      supabase,
-      course_id,
-      clo_ids
-    );
+    // E1.3: retrieval/config failures here previously escaped as UNLOGGED
+    // 500s (the 2026-09-01 20:27Z failure left no quiz_generation_logs row).
+    // Guard the whole pre-LLM tail so every failure is logged + structured.
+    let chunks: Awaited<ReturnType<typeof retrieveCourseMaterialChunks>>["chunks"];
+    let warnings: Awaited<ReturnType<typeof retrieveCourseMaterialChunks>>["warnings"];
+    try {
+      const retrieval = await retrieveCourseMaterialChunks(
+        supabase,
+        course_id,
+        clo_ids
+      );
+      chunks = retrieval.chunks;
+      warnings = retrieval.warnings;
+    } catch (retrievalError) {
+      const detail =
+        retrievalError instanceof Error
+          ? retrievalError.message
+          : "unknown retrieval error";
+      await supabase.from("quiz_generation_logs").insert({
+        institution_id: institutionId,
+        teacher_id: teacherId,
+        course_id,
+        generation_request_id: crypto.randomUUID(),
+        model_used: "pre-retrieval",
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+        latency_ms: Date.now() - startTime,
+        question_count_requested: question_count,
+        question_count_generated: 0,
+        chunks_retrieved: 0,
+        status: "error",
+        error_message: `Course material retrieval failed: ${detail}`,
+      });
+      return new Response(
+        JSON.stringify({
+          error:
+            "Could not retrieve course materials for generation. Please try again.",
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
 
     // ── Step 6: Construct prompt and call the canonical AIProvider ──────
     const agenticConfig = getAgenticConfig(Deno.env);

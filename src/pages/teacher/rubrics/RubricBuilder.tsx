@@ -267,17 +267,21 @@ const RubricBuilder = () => {
       return;
     }
 
-    const hasEmptyName = criteria.some((c) => !c.criterion_name.trim());
-    if (hasEmptyName) {
-      toast.error("All criteria must have a name");
+    const unnamedIndex = criteria.findIndex((c) => !c.criterion_name.trim());
+    if (unnamedIndex !== -1) {
+      toast.error(
+        `Criterion ${unnamedIndex + 1} needs a name before this rubric can be saved`
+      );
       return;
     }
 
-    const hasEmptyLevelLabel = criteria.some((c) =>
+    const unnamedLevel = criteria.findIndex((c) =>
       c.levels.some((l) => !l.label.trim())
     );
-    if (hasEmptyLevelLabel) {
-      toast.error("All performance levels must have a label");
+    if (unnamedLevel !== -1) {
+      toast.error(
+        `Criterion ${unnamedLevel + 1} has a performance level without a label`
+      );
       return;
     }
 

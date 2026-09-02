@@ -23,12 +23,24 @@ serve(async (req) => {
   try {
     // ── Auth: cron secret or service role only ──────────────────────
     const cronSecret = req.headers.get("x-cron-secret");
+    const bearerToken = (req.headers.get("Authorization") ?? "").replace(
+      "Bearer ",
+      ""
+    );
     const expectedSecret = Deno.env.get("CRON_SECRET");
-    const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = getManagedServerKey();
     const isServiceRole =
-      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
-    const isCron = expectedSecret && cronSecret === expectedSecret;
+      serviceRoleKey && bearerToken === serviceRoleKey;
+    // E1.4: also accept the cron credential as a Bearer token — external
+    // schedulers commonly send `Authorization: Bearer <secret>`; the header
+    // form (x-cron-secret) remains supported for pg_cron-style callers.
+    const isCron =
+      (expectedSecret !== undefined &&
+        expectedSecret.length > 0 &&
+        cronSecret === expectedSecret) ||
+      (expectedSecret !== undefined &&
+        expectedSecret.length > 0 &&
+        bearerToken === expectedSecret);
 
     if (!isServiceRole && !isCron) {
       return new Response(

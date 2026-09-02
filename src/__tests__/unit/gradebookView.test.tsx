@@ -95,10 +95,12 @@ const GRADEBOOK_WITH_GRADES: GradebookEntry[] = [
           },
         ],
         subtotal_percent: 80,
+        graded_assessment_count: 1,
       },
     ],
     final_weighted_grade: 80,
     letter_grade: "",
+    excluded_weight_total: 0,
   },
   {
     student_id: "s2",
@@ -118,10 +120,12 @@ const GRADEBOOK_WITH_GRADES: GradebookEntry[] = [
           },
         ],
         subtotal_percent: 90,
+        graded_assessment_count: 1,
       },
     ],
     final_weighted_grade: 90,
     letter_grade: "",
+    excluded_weight_total: 0,
   },
 ];
 
@@ -146,10 +150,13 @@ const GRADEBOOK_NO_GRADES: GradebookEntry[] = [
           },
         ],
         subtotal_percent: 0,
+        graded_assessment_count: 0,
       },
     ],
-    final_weighted_grade: 0,
-    letter_grade: "",
+    // QA FAIL-04: nothing graded → final is null ("not yet gradable"), not 0.
+    final_weighted_grade: null,
+    letter_grade: null,
+    excluded_weight_total: 100,
   },
 ];
 
@@ -351,6 +358,14 @@ describe("GradebookView — auto-load, export, class average, empty/loading (Req
 
     // The no-students empty state is NOT used in this "has students, no grades" case.
     expect(screen.queryByText(NO_STUDENTS_TITLE)).not.toBeInTheDocument();
+
+    // QA FAIL-04 (part B): the ungraded category is explicitly flagged as
+    // excluded from Final %, and the null final reads "Not yet gradable" —
+    // never 0% / F.
+    expect(
+      screen.getByText(/Not counted: Assignments — no grades recorded yet/)
+    ).toBeInTheDocument();
+    expect(screen.getByText("Not yet gradable")).toBeInTheDocument();
   });
 
   // --- Req 13.2 / 13.6: Export CSV reuses the shared download helper ----------

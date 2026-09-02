@@ -113,8 +113,10 @@ describe("useGradebook types", () => {
         },
       ],
       subtotal_percent: 85,
+      graded_assessment_count: 2,
     };
     expect(entry.subtotal_percent).toBe(85);
+    expect(entry.graded_assessment_count).toBe(2);
     expect(entry.assessments).toHaveLength(2);
   });
 
@@ -127,23 +129,43 @@ describe("useGradebook types", () => {
           category_id: "cat-1",
           category_name: "Assignments",
           weight_percent: 60,
-          assessments: [],
+          assessments: [
+            {
+              id: "a-1",
+              title: "A1",
+              type: "assignment",
+              score: 80,
+              max_score: 100,
+            },
+          ],
           subtotal_percent: 80,
+          graded_assessment_count: 1,
         },
         {
           category_id: "cat-2",
           category_name: "Quizzes",
           weight_percent: 40,
-          assessments: [],
+          assessments: [
+            {
+              id: "q-1",
+              title: "Q1",
+              type: "quiz",
+              score: 90,
+              max_score: 100,
+            },
+          ],
           subtotal_percent: 90,
+          graded_assessment_count: 1,
         },
       ],
       final_weighted_grade: 84,
       letter_grade: "B",
+      excluded_weight_total: 0,
     };
     // 60% * 80 + 40% * 90 = 48 + 36 = 84
     expect(entry.final_weighted_grade).toBe(84);
     expect(entry.letter_grade).toBe("B");
+    expect(entry.excluded_weight_total).toBe(0);
   });
 });
 

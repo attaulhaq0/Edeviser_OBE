@@ -187,7 +187,14 @@ const evaluateMeasurements = async (
       p_lease_seconds: LEASE_SECONDS,
     }
   );
-  if (claimError) throw new Error("Measurement claim failed");
+  if (claimError) {
+    // E1.2: a bare message made the 2026-09-01 21:00Z transient failure
+    // undiagnosable. Surface the Postgres error + code so the next occurrence
+    // (e.g. lock timeout during claim contention) is immediately explainable.
+    throw new Error(
+      `Measurement claim failed: ${claimError.message} (code ${claimError.code ?? "n/a"})`
+    );
+  }
 
   const rows = ((claimed ?? []) as Record<string, unknown>[]).map(
     (row): MeasurementRow => ({
@@ -210,7 +217,10 @@ const evaluateMeasurements = async (
         .select("mastery")
         .eq("student_id", measurement.student_id)
         .limit(1);
-      if (stateError) throw new Error("Learning state lookup failed");
+      if (stateError)
+        throw new Error(
+          `Learning state lookup failed: ${stateError.message} (code ${stateError.code ?? "n/a"})`
+        );
 
       const mastery = (stateRows ?? [])[0]?.mastery;
       const { metric, evidence } = derivePostActionMetric(
@@ -227,7 +237,10 @@ const evaluateMeasurements = async (
           p_post_action_metric: metric,
         }
       );
-      if (completeError) throw new Error("Official measurement failed");
+      if (completeError)
+        throw new Error(
+          `Official measurement failed: ${completeError.message} (code ${completeError.code ?? "n/a"})`
+        );
       const evaluationState =
         object(completedRow)?.evaluation_state === "INSUFFICIENT_EVIDENCE"
           ? "INSUFFICIENT_EVIDENCE"

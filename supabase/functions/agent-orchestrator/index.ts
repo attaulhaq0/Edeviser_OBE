@@ -30,10 +30,12 @@ import {
   fetchInstitutionAutonomySettings,
   resolveEffectiveAutonomyWithInstitution,
 } from "../_shared/ai/policy/institution-autonomy.ts";
-import {
-  executeApprovedProposal,
-  ProtectedWriteBoundaryError,
-} from "../_shared/ai/write-tools/execution.ts";
+import { executeApprovedProposal } from "../_shared/ai/write-tools/execution.ts";
+// ProtectedWriteBoundaryError is DEFINED in write-tools/registry.ts; execution.ts
+// only imports it for internal use. Importing it from execution.ts compiled fine
+// locally (vitest never loads this entrypoint; tsc excludes Deno functions) but
+// failed Deno boot in production with a 503 on every request.
+import { ProtectedWriteBoundaryError } from "../_shared/ai/write-tools/registry.ts";
 
 // ─── Task 3.4: client-safe proposal projection (display-only) ───────────────
 // Mirrors the AgentProposalView contract in src/lib/agentProposals.ts.

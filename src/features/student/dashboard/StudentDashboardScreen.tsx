@@ -66,8 +66,6 @@ import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
 /** Prototype brand gradient token (93.65deg teal→blue) as an inline value. */
 const BRAND_GRADIENT = "var(--brand-gradient)";
-const HERO_GRADIENT = "var(--hero-gradient)";
-
 // Experimental AI surfaces (Production & Delivery Safety): the assistant
 // panel mounts ONLY when the deployment opted into the experimental AI
 // feature — same gate as the RoleAppShell intelligence panel.
@@ -297,7 +295,7 @@ const StudentDashboardScreen = () => {
         className="pointer-events-none absolute -right-8 -top-11 h-32.5 w-32.5"
         style={{
           background:
-            "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
+            "radial-gradient(circle,rgba(20,184,166,.15),transparent 70%)",
         }}
       />
       <div className="relative flex w-full items-center gap-3">
@@ -305,11 +303,11 @@ const StudentDashboardScreen = () => {
           percent={level.progressPercent}
           size={52}
           stroke={2.5}
-          track="rgba(255,255,255,.15)"
-          color="#2dd4bf"
+          track="rgba(15,23,42,.10)"
+          color="#14b8a6"
         >
           <div className="flex flex-col items-center justify-center leading-none">
-            <span className="text-[6px] font-black tracking-[0.16em] text-teal-200">
+            <span className="text-[6px] font-black tracking-[0.16em] text-teal-700">
               {t("dashboard.levelLabel", "LEVEL")}
             </span>
             <span className="-mt-0.5 text-base font-black">{level.level}</span>
@@ -320,22 +318,22 @@ const StudentDashboardScreen = () => {
             {t(`dashboard.greeting.${greetingTimeOfDay()}`, "Good day")},{" "}
             {firstName} 👋
           </h1>
-          <p className="truncate text-[10px] text-white/60">
+          <p className="truncate text-[10px] text-slate-500">
             {t("dashboard.momentum", "Keep your momentum going")}
           </p>
           <div className="mt-1.5">
             <div className="mb-0.5 flex items-baseline justify-between">
-              <span className="text-[10px] font-bold text-white/90">
+              <span className="text-[10px] font-bold text-slate-700">
                 {t("dashboard.levelProgress", "Level {{a}} → {{b}}", {
                   a: level.level,
                   b: level.level + 1,
                 })}
               </span>
-              <span className="text-[9px] font-bold text-amber-300">
+              <span className="text-[9px] font-bold text-amber-600">
                 {t("dashboard.xpToGo", "{{xp}} XP to go", { xp: xpToGo })}
               </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full rounded-full bg-linear-to-r from-teal-400 to-blue-400"
                 style={{ width: `${level.progressPercent}%` }}
@@ -359,13 +357,13 @@ const StudentDashboardScreen = () => {
     heroSlides.push(
       <div key="streak" className="flex min-h-29 items-center gap-3 p-3.5">
         <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-amber-50 text-xl"
           aria-hidden="true"
         >
           🔥
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-black uppercase tracking-widest text-amber-300">
+          <p className="text-[9px] font-black uppercase tracking-widest text-amber-600">
             {t("dashboard.hero.streakEyebrow", "Streak · day {{n}}", {
               n: streak,
             })}
@@ -375,7 +373,7 @@ const StudentDashboardScreen = () => {
               ? t("dashboard.hero.streakRiskTitle", "Don't lose it today")
               : t("dashboard.hero.streakSafeTitle", "Your streak is alive")}
           </h2>
-          <p className="mt-0.5 truncate text-[10px] text-white/65">
+          <p className="mt-0.5 truncate text-[10px] text-slate-500">
             {streakAtRisk
               ? t(
                   "dashboard.hero.streakRiskBody",
@@ -403,13 +401,13 @@ const StudentDashboardScreen = () => {
     heroSlides.push(
       <div key="league" className="flex min-h-29 items-center gap-3 p-3.5">
         <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-sky-50 text-xl"
           aria-hidden="true"
         >
           📈
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-black uppercase tracking-widest text-teal-300">
+          <p className="text-[9px] font-black uppercase tracking-widest text-teal-700">
             {t("dashboard.hero.leagueEyebrow", "Leaderboard")}
           </p>
           <h2 className="mt-0.5 text-sm font-bold tracking-tight">
@@ -418,7 +416,7 @@ const StudentDashboardScreen = () => {
               total: leagueTotal,
             })}
           </h2>
-          <p className="mt-0.5 text-[10px] text-white/65">
+          <p className="mt-0.5 text-[10px] text-slate-500">
             {tierLabel
               ? t("dashboard.hero.leagueBody", "{{tier}} League this week", {
                   tier: tierLabel,
@@ -429,7 +427,7 @@ const StudentDashboardScreen = () => {
         <button
           type="button"
           onClick={() => navigate("/student/leaderboard")}
-          className="shrink-0 rounded-xl border border-white/20 bg-white/[.14] px-2.5 py-1.5 text-xs font-bold text-white transition-transform active:scale-95"
+          className="shrink-0 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 transition-transform hover:bg-slate-50 active:scale-95"
         >
           {t("dashboard.hero.leagueCta", "View →")}
         </button>
@@ -442,8 +440,7 @@ const StudentDashboardScreen = () => {
       {/* ── Hero carousel (living greeting · streak · league standing) ── */}
       <HeroCarousel
         slides={heroSlides}
-        className="rounded-2xl text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
+        className="rounded-2xl border border-slate-200/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs"
         ariaLabel={t("dashboard.hero.label", "Highlights")}
       />
 

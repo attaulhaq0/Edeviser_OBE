@@ -68,6 +68,10 @@
     "submitGrade": "Submit Grade",
     "gradeSubmitted": "Grade submitted successfully."
   },
+  "gradebook": {
+    "notYetGradable": "Not yet gradable",
+    "excludedCategories": "Not counted: {{categories}} — no grades recorded yet."
+  },
   "assignments": {
     "title": "Assignments",
     "addAssignment": "Add Assignment",
