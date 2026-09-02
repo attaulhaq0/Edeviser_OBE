@@ -70,6 +70,7 @@
   },
   "gradebook": {
     "notYetGradable": "غير قابل للتقييم بعد",
+    "openGradeReview": "فتح مراجعة الدرجة",
     "excludedCategories": "غير محسوبة في النسبة النهائية: {{categories}} — لم يتم تسجيل أي درجات بعد."
   },
   "assignments": {

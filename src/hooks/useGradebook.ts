@@ -45,6 +45,11 @@ export interface GradebookAssessment {
   type: "assignment" | "quiz";
   score: number | null;
   max_score: number;
+  /**
+   * Submission id when a grade exists (assignments only) — used by the
+   * gradebook matrix to deep-link into the read-only Grade Review page.
+   */
+  submission_id: string | null;
 }
 
 export interface GradebookCategoryEntry {
@@ -301,11 +306,11 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
         title: string;
       }>;
 
-      // 5. Fetch grades via submissions
+      // 5. Fetch grades via submissions (submission id kept for source links)
       const { data: rawGrades, error: gradeError } = await supabase
         .from("grades")
         .select(
-          "total_score, score_percent, submissions!inner(student_id, assignment_id)"
+          "total_score, score_percent, submissions!inner(id, student_id, assignment_id)"
         )
         .in("submissions.student_id", studentIds);
 
@@ -313,18 +318,23 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       const gradeMap = new Map<
         string,
-        { totalScore: number; scorePercent: number }
+        { totalScore: number; scorePercent: number; submissionId: string }
       >();
       for (const g of rawGrades ?? []) {
         const grade = g as unknown as {
           total_score: number;
           score_percent: number;
-          submissions: { student_id: string; assignment_id: string };
+          submissions: {
+            id: string;
+            student_id: string;
+            assignment_id: string;
+          };
         };
         const key = `${grade.submissions.student_id}:${grade.submissions.assignment_id}`;
         gradeMap.set(key, {
           totalScore: grade.total_score,
           scorePercent: grade.score_percent,
+          submissionId: grade.submissions.id,
         });
       }
 
@@ -463,6 +473,7 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
                   score:
                     scoreVal !== null ? Math.round(scoreVal * 100) / 100 : null,
                   max_score: 100,
+                  submission_id: gradeData?.submissionId ?? null,
                 };
               }),
               ...cat.quizIds.map((qId) => {
@@ -474,6 +485,7 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
                   type: "quiz" as const,
                   score: bestScore !== undefined ? bestScore : null,
                   max_score: 100,
+                  submission_id: null,
                 };
               }),
             ];
