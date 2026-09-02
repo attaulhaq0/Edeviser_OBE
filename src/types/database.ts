@@ -7132,6 +7132,13 @@ export type Database = {
             referencedRelation: "question_bank"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "question_analytics_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: true
+            referencedRelation: "question_usage_stats_v1"
+            referencedColumns: ["question_id"]
+          },
         ]
       }
       question_bank: {
@@ -7246,6 +7253,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "question_bank"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_parent_question_id_fkey"
+            columns: ["parent_question_id"]
+            isOneToOne: false
+            referencedRelation: "question_usage_stats_v1"
+            referencedColumns: ["question_id"]
           },
         ]
       }
@@ -10281,6 +10295,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "verified_explanations_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_usage_stats_v1"
+            referencedColumns: ["question_id"]
+          },
+          {
             foreignKeyName: "verified_explanations_verified_by_fkey"
             columns: ["verified_by"]
             isOneToOne: false
@@ -10730,6 +10751,59 @@ export type Database = {
           start_date: string | null
         }
         Relationships: []
+      }
+      question_usage_stats_v1: {
+        Row: {
+          avg_response_time_seconds: number | null
+          bloom_level: number | null
+          calibrated_difficulty: number | null
+          clo_id: string | null
+          correct_count: number | null
+          course_id: string | null
+          created_at: string | null
+          difficulty_rating: number | null
+          discrimination_index: number | null
+          generation_source: string | null
+          institution_id: string | null
+          last_calculated_at: string | null
+          quality_flag: string | null
+          question_id: string | null
+          question_type: string | null
+          status: string | null
+          success_rate: number | null
+          times_served: number | null
+          total_attempts: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_bank_clo_id_fkey"
+            columns: ["clo_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

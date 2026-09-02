@@ -189,6 +189,25 @@ export const createAnalyticsColumns = (
     ),
   },
   {
+    accessorKey: "times_served",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-ms-3"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Served
+        <ArrowUpDown className="h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600">
+        {row.original.times_served ?? "—"}
+      </span>
+    ),
+  },
+  {
     id: "difficulty",
     header: "Difficulty",
     cell: ({ row }) => {

@@ -407,14 +407,72 @@ async function retrieveCourseMaterialChunks(
   const warnings: string[] = [];
 
   try {
-    // Query course_material_embeddings directly filtered by course_id and clo_ids
-    // Since search_course_materials requires a vector embedding, we do a direct
-    // filtered query for chunks associated with the target CLOs
+    // E2.C: only chunks from PUBLISHED course materials may ground generation —
+    // draft/unpublished uploads must not leak into quiz content. Materials hang
+    // off course_modules (course_materials has no course_id), so resolve the
+    // course's modules, then the published material ids, then restrict the
+    // chunk query to that allowlist.
+    const { data: modules, error: modulesError } = await supabase
+      .from("course_modules")
+      .select("id")
+      .eq("course_id", courseId);
+
+    if (modulesError) {
+      console.error("RAG module lookup failed:", modulesError.message);
+      warnings.push(
+        "Course material retrieval failed. Questions generated using LLM general knowledge only."
+      );
+      return { chunks: [], warnings };
+    }
+
+    const moduleIds = (modules ?? []).map(
+      (m: Record<string, unknown>) => m.id as string
+    );
+
+    if (moduleIds.length === 0) {
+      warnings.push(
+        "No course modules found for this course. Questions generated using LLM general knowledge only."
+      );
+      return { chunks: [], warnings };
+    }
+
+    const { data: publishedMaterials, error: materialsError } = await supabase
+      .from("course_materials")
+      .select("id")
+      .in("module_id", moduleIds)
+      .eq("is_published", true);
+
+    if (materialsError) {
+      console.error(
+        "RAG published-material lookup failed:",
+        materialsError.message
+      );
+      warnings.push(
+        "Course material retrieval failed. Questions generated using LLM general knowledge only."
+      );
+      return { chunks: [], warnings };
+    }
+
+    const publishedIds = (publishedMaterials ?? []).map(
+      (m: Record<string, unknown>) => m.id as string
+    );
+
+    if (publishedIds.length === 0) {
+      warnings.push(
+        "No published course materials found. Questions generated using LLM general knowledge only. Publish materials first for grounded generation."
+      );
+      return { chunks: [], warnings };
+    }
+
+    // Query course_material_embeddings directly filtered by course_id, clo_ids
+    // AND the published-material allowlist (search_course_materials requires a
+    // vector embedding, so we do a direct filtered query for the target CLOs).
     const { data: chunks, error } = await supabase
       .from("course_material_embeddings")
       .select("id, chunk_text, source_filename, clo_ids, similarity:id")
       .eq("course_id", courseId)
       .eq("indexing_status", "indexed")
+      .in("source_material_id", publishedIds)
       .overlaps("clo_ids", cloIds)
       .limit(10);
 
@@ -561,16 +619,25 @@ serve(async (req) => {
       : programRel?.institution_id ?? "";
 
     // ── Step 4: Fetch CLO Descriptions ──────────────────────────────────
+    // E2.C: scope the CLO fetch to the teacher's own course — without the
+    // course_id filter a teacher owning course A could pass CLO ids from
+    // course B (any institution) and generate questions against them.
+    // Every requested CLO must resolve inside the course or the request is
+    // rejected (deduped first so repeated ids cannot dodge the count check).
+
+    const uniqueCloIds = [...new Set(clo_ids)];
 
     const { data: clos, error: closError } = await supabase
       .from("learning_outcomes")
       .select("id, title")
-      .in("id", clo_ids);
+      .in("id", uniqueCloIds)
+      .eq("course_id", course_id);
 
-    if (closError || !clos || clos.length === 0) {
+    if (closError || !clos || clos.length !== uniqueCloIds.length) {
       return new Response(
         JSON.stringify({
-          error: "Failed to fetch CLO details or no matching CLOs found",
+          error:
+            "Failed to fetch CLO details, or one or more CLOs do not belong to this course",
         }),
         {
           status: 400,
@@ -589,13 +656,17 @@ serve(async (req) => {
     // E1.3: retrieval/config failures here previously escaped as UNLOGGED
     // 500s (the 2026-09-01 20:27Z failure left no quiz_generation_logs row).
     // Guard the whole pre-LLM tail so every failure is logged + structured.
-    let chunks: Awaited<ReturnType<typeof retrieveCourseMaterialChunks>>["chunks"];
-    let warnings: Awaited<ReturnType<typeof retrieveCourseMaterialChunks>>["warnings"];
+    let chunks: Awaited<
+      ReturnType<typeof retrieveCourseMaterialChunks>
+    >["chunks"];
+    let warnings: Awaited<
+      ReturnType<typeof retrieveCourseMaterialChunks>
+    >["warnings"];
     try {
       const retrieval = await retrieveCourseMaterialChunks(
         supabase,
         course_id,
-        clo_ids
+        uniqueCloIds
       );
       chunks = retrieval.chunks;
       warnings = retrieval.warnings;
@@ -625,10 +696,12 @@ serve(async (req) => {
           error:
             "Could not retrieve course materials for generation. Please try again.",
         }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
-
 
     // ── Step 6: Construct prompt and call the canonical AIProvider ──────
     const agenticConfig = getAgenticConfig(Deno.env);
