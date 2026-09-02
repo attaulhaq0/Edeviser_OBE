@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { parseAsString, useQueryState } from "nuqs";
 import { useGradebookMatrix, useGradeCategories } from "@/hooks/useGradebook";
 import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
@@ -28,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BookOpen, Settings, Download } from "lucide-react";
+import { BookOpen, Settings, Download, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GradeCategoryManager from "@/pages/teacher/gradebook/GradeCategoryManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,6 +56,7 @@ function getCellBg(score: number | null, maxScore: number): string {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 const GradebookView = () => {
+  const { t } = useTranslation("teacher");
   const [courseId, setCourseId] = useQueryState(
     "course",
     parseAsString.withDefault("")
@@ -115,7 +117,10 @@ const GradebookView = () => {
     () =>
       gradebookData.map((entry) => ({
         ...entry,
-        letter_grade: mapToLetterGrade(entry.final_weighted_grade, gradeScales),
+        letter_grade:
+          entry.final_weighted_grade !== null
+            ? mapToLetterGrade(entry.final_weighted_grade, gradeScales)
+            : null,
       })),
     [gradebookData, gradeScales]
   );
@@ -126,7 +131,10 @@ const GradebookView = () => {
     [enrichedData]
   );
   const classAverageLetter = useMemo(
-    () => mapToLetterGrade(classAverages.finalAvg, gradeScales),
+    () =>
+      classAverages.finalAvg !== null
+        ? mapToLetterGrade(classAverages.finalAvg, gradeScales)
+        : "—",
     [classAverages.finalAvg, gradeScales]
   );
 
@@ -135,6 +143,25 @@ const GradebookView = () => {
     0
   );
   const isBalanced = totalWeight === 100;
+
+  // QA FAIL-04 (part B): categories with zero graded work for every student
+  // are excluded from the Final % (exclude-and-renormalize). Surface them
+  // explicitly so the renormalized percentages are never a surprise.
+  const ungradedCategoryNames = useMemo(() => {
+    const names = new Map<string, string>();
+    const gradedIds = new Set<string>();
+    for (const entry of gradebookData) {
+      for (const cat of entry.categories) {
+        if (cat.graded_assessment_count > 0) {
+          gradedIds.add(cat.category_id);
+        } else if (!names.has(cat.category_id)) {
+          names.set(cat.category_id, cat.category_name);
+        }
+      }
+    }
+    for (const id of gradedIds) names.delete(id);
+    return [...names.values()];
+  }, [gradebookData]);
 
   const selectedCourse = courses.find((c) => c.id === courseId);
   const canExport = enrichedData.length > 0;
@@ -235,6 +262,16 @@ const GradebookView = () => {
           </TabsList>
 
           <TabsContent value="matrix" className="mt-4">
+            {ungradedCategoryNames.length > 0 && (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
+                <Info className="h-4 w-4 shrink-0" />
+                <span>
+                  {t("gradebook.excludedCategories", {
+                    categories: ungradedCategoryNames.join(", "),
+                  })}
+                </span>
+              </div>
+            )}
             {!isBalanced && visibleCategories.length > 0 && (
               <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
                 <Settings className="h-4 w-4" />
@@ -287,8 +324,8 @@ interface GradebookTableProps {
       }>;
       subtotal_percent: number;
     }>;
-    final_weighted_grade: number;
-    letter_grade: string;
+    final_weighted_grade: number | null;
+    letter_grade: string | null;
   }>;
   categories: Array<{
     id: string;
@@ -305,6 +342,7 @@ const GradebookTable = ({
   classAverages,
   classAverageLetter,
 }: GradebookTableProps) => {
+  const { t } = useTranslation("teacher");
   const firstRow = data[0] as (typeof data)[number] | undefined;
 
   return (
@@ -415,15 +453,23 @@ const GradebookTable = ({
                 </td>,
               ])}
               <td className="px-3 py-2 text-center font-bold tabular-nums border-s border-slate-200">
-                <span className={getGradeColor(student.final_weighted_grade)}>
-                  {student.final_weighted_grade.toFixed(1)}%
-                </span>
+                {student.final_weighted_grade !== null ? (
+                  <span className={getGradeColor(student.final_weighted_grade)}>
+                    {student.final_weighted_grade.toFixed(1)}%
+                  </span>
+                ) : (
+                  <span className="font-normal text-xs text-gray-400">
+                    {t("gradebook.notYetGradable")}
+                  </span>
+                )}
               </td>
               <td className="px-3 py-2 text-center border-s border-slate-200">
                 <Badge
                   className={cn(
                     "text-xs font-bold",
-                    student.final_weighted_grade >= 85
+                    student.final_weighted_grade === null
+                      ? "bg-gray-50 text-gray-400 border-gray-200"
+                      : student.final_weighted_grade >= 85
                       ? "bg-green-50 text-green-600 border-green-200"
                       : student.final_weighted_grade >= 70
                       ? "bg-blue-50 text-blue-600 border-blue-200"
@@ -433,7 +479,7 @@ const GradebookTable = ({
                   )}
                   variant="outline"
                 >
-                  {student.letter_grade}
+                  {student.letter_grade ?? "—"}
                 </Badge>
               </td>
             </tr>
@@ -474,15 +520,21 @@ const GradebookTable = ({
               </td>,
             ])}
             <td className="px-3 py-2 text-center tabular-nums border-s border-slate-200">
-              <span className={getGradeColor(classAverages.finalAvg)}>
-                {classAverages.finalAvg.toFixed(1)}%
-              </span>
+              {classAverages.finalAvg !== null ? (
+                <span className={getGradeColor(classAverages.finalAvg)}>
+                  {classAverages.finalAvg.toFixed(1)}%
+                </span>
+              ) : (
+                <span className="text-gray-400">—</span>
+              )}
             </td>
             <td className="px-3 py-2 text-center border-s border-slate-200">
               <Badge
                 className={cn(
                   "text-xs font-bold",
-                  classAverages.finalAvg >= 85
+                  classAverages.finalAvg === null
+                    ? "bg-gray-50 text-gray-400 border-gray-200"
+                    : classAverages.finalAvg >= 85
                     ? "bg-green-50 text-green-600 border-green-200"
                     : classAverages.finalAvg >= 70
                     ? "bg-blue-50 text-blue-600 border-blue-200"

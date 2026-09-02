@@ -32,8 +32,12 @@ export interface GradebookCsvCategory {
 
 export interface GradebookCsvEntry {
   student_name: string;
-  final_weighted_grade: number;
-  letter_grade: string;
+  /**
+   * Final weighted percent under the exclude-and-renormalize policy
+   * (QA FAIL-04): null when no category has graded work yet.
+   */
+  final_weighted_grade: number | null;
+  letter_grade: string | null;
   categories: GradebookCsvCategory[];
 }
 
@@ -43,8 +47,8 @@ export interface ClassAverages {
   assessmentAvg: Map<string, number | null>;
   /** category id → mean of displayed subtotal percentages */
   categoryAvg: Map<string, number>;
-  /** mean of displayed final weighted grades */
-  finalAvg: number;
+  /** mean of displayed final weighted grades; null when nothing is graded */
+  finalAvg: number | null;
 }
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
@@ -68,7 +72,7 @@ export function computeClassAverages(data: GradebookCsvEntry[]): ClassAverages {
 
   const template = data[0];
   if (!template) {
-    return { assessmentAvg, categoryAvg, finalAvg: 0 };
+    return { assessmentAvg, categoryAvg, finalAvg: null };
   }
 
   for (const cat of template.categories) {
@@ -96,9 +100,12 @@ export function computeClassAverages(data: GradebookCsvEntry[]): ClassAverages {
     categoryAvg.set(cat.category_id, round2(mean(subtotals)));
   }
 
-  const finalAvg = round2(
-    mean(data.map((student) => student.final_weighted_grade))
-  );
+  // QA FAIL-04: ungradable students (null final) are excluded from the
+  // class average rather than counted as 0%; null when nothing is graded.
+  const finalGrades = data
+    .map((student) => student.final_weighted_grade)
+    .filter((value): value is number => value !== null);
+  const finalAvg = finalGrades.length > 0 ? round2(mean(finalGrades)) : null;
 
   return { assessmentAvg, categoryAvg, finalAvg };
 }
@@ -139,7 +146,12 @@ export function buildGradebookCsv(
       }
       cells.push(cat.subtotal_percent.toFixed(1));
     }
-    cells.push(student.final_weighted_grade.toFixed(1), student.letter_grade);
+    cells.push(
+      student.final_weighted_grade !== null
+        ? student.final_weighted_grade.toFixed(1)
+        : "",
+      student.letter_grade ?? ""
+    );
     lines.push(cells.join(","));
   }
 
@@ -154,7 +166,10 @@ export function buildGradebookCsv(
       (classAverages.categoryAvg.get(cat.category_id) ?? 0).toFixed(1)
     );
   }
-  avgCells.push(classAverages.finalAvg.toFixed(1), classAverageLetter);
+  avgCells.push(
+    classAverages.finalAvg !== null ? classAverages.finalAvg.toFixed(1) : "",
+    classAverageLetter
+  );
   lines.push(avgCells.join(","));
 
   return lines.join("\n");

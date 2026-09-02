@@ -68,6 +68,10 @@
     "submitGrade": "إرسال الدرجة",
     "gradeSubmitted": "تم إرسال الدرجة بنجاح."
   },
+  "gradebook": {
+    "notYetGradable": "غير قابل للتقييم بعد",
+    "excludedCategories": "غير محسوبة في النسبة النهائية: {{categories}} — لم يتم تسجيل أي درجات بعد."
+  },
   "assignments": {
     "title": "التكليفات",
     "addAssignment": "إضافة تكليف",
