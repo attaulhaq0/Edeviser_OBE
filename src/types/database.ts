@@ -10696,6 +10696,44 @@ export type Database = {
           },
         ]
       }
+      attendance_summary_v1: {
+        Row: {
+          absent_count: number | null
+          attendance_pct: number | null
+          below_threshold: boolean | null
+          course_id: string | null
+          excused_count: number | null
+          late_count: number | null
+          present_count: number | null
+          section_id: string | null
+          student_id: string | null
+          student_name: string | null
+          total_sessions: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_courses_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "course_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_courses_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institutions_public: {
         Row: {
           id: string | null
@@ -11332,6 +11370,13 @@ export type Database = {
       reconcile_student_learning_state_measurements_v1: {
         Args: { p_student_id: string }
         Returns: undefined
+      }
+      record_attendance_v1: {
+        Args: { p_records: Json; p_session_id: string }
+        Returns: {
+          attendance_pct: number
+          student_id: string
+        }[]
       }
       refresh_mv_historical_evidence: { Args: never; Returns: undefined }
       refresh_student_learning_state_v1: {

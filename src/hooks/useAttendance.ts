@@ -56,7 +56,8 @@ export interface MarkAttendanceInput {
 
 // ─── Attendance Percentage Calculation ───────────────────────────────────────
 
-const ATTENDANCE_THRESHOLD = 75;
+// Note: the 75% risk threshold now lives in SQL (attendance_summary_v1 view,
+// `below_threshold` column) so it cannot be tampered with client-side.
 
 /**
  * Calculate attendance percentage: (present + late) / total × 100
@@ -188,17 +189,16 @@ export const useMarkAttendance = () => {
 
   return useMutation({
     mutationFn: async (input: MarkAttendanceInput) => {
-      const rows = input.records.map((r) => ({
-        session_id: input.session_id,
-        student_id: r.student_id,
-        status: r.status,
-        marked_by: user?.id ?? "",
-      }));
-
-      const { data, error } = await supabase
-        .from("attendance_records")
-        .upsert(rows, { onConflict: "session_id,student_id" })
-        .select();
+      // E2.E: idempotent server-side RPC — marked_by is set to auth.uid()
+      // inside the function and section ownership is enforced by RLS.
+      // Returns recomputed server-side percentages per student.
+      const { data, error } = await supabase.rpc("record_attendance_v1", {
+        p_session_id: input.session_id,
+        p_records: input.records.map((r) => ({
+          student_id: r.student_id,
+          status: r.status,
+        })),
+      });
       if (error) throw error;
 
       await logAuditEvent({
@@ -239,88 +239,56 @@ export const useAttendanceSummary = (
     queryFn: async (): Promise<StudentAttendanceSummary[]> => {
       if (!sectionId) return [];
 
-      // 1. Get all sessions for this section
-      const { data: sessions, error: sessErr } = await supabase
-        .from("class_sessions")
-        .select("id")
-        .eq("section_id", sectionId);
-      if (sessErr) throw sessErr;
-      if (!sessions || sessions.length === 0) return [];
+      // E2.E: percentages are computed server-side by the
+      // attendance_summary_v1 view (security_invoker — RLS scopes rows).
+      // Formula (Req 78.3): round(((present + late) / total) * 100),
+      // NULL when the section has no sessions yet.
+      const { data, error } = await supabase
+        .from("attendance_summary_v1")
+        .select(
+          "student_id, student_name, total_sessions, present_count, late_count, absent_count, excused_count, attendance_pct, below_threshold"
+        )
+        .eq("section_id", sectionId)
+        .eq("course_id", courseId ?? "");
+      if (error) throw error;
 
-      const sessionIds = sessions.map((s) => s.id);
-      const totalSessions = sessionIds.length;
-
-      // 2. Get all attendance records for these sessions
-      const { data: records, error: recErr } = await supabase
-        .from("attendance_records")
-        .select("student_id, status")
-        .in("session_id", sessionIds);
-      if (recErr) throw recErr;
-
-      // 3. Get enrolled students for this section/course
-      const { data: enrollments, error: enrErr } = await supabase
-        .from("student_courses")
-        .select("student_id, profiles:student_id(full_name)")
-        .eq("course_id", courseId ?? "")
-        .eq("status", "active");
-      if (enrErr) throw enrErr;
-
-      // 4. Aggregate per student
-      const studentMap = new Map<
-        string,
-        {
-          name: string;
-          present: number;
-          late: number;
-          absent: number;
-          excused: number;
-        }
-      >();
-
-      for (const enrollment of enrollments ?? []) {
-        const name =
-          (enrollment.profiles as unknown as { full_name: string } | null)
-            ?.full_name ?? "Unknown";
-        studentMap.set(enrollment.student_id, {
-          name,
-          present: 0,
-          late: 0,
-          absent: 0,
-          excused: 0,
-        });
-      }
-
-      for (const record of records ?? []) {
-        const entry = studentMap.get(record.student_id);
-        if (!entry) continue;
-        if (record.status === "present") entry.present++;
-        else if (record.status === "late") entry.late++;
-        else if (record.status === "absent") entry.absent++;
-        else if (record.status === "excused") entry.excused++;
-      }
-
-      return Array.from(studentMap.entries()).map(([studentId, counts]) => {
-        const percent = calculateAttendancePercent(
-          counts.present,
-          counts.late,
-          totalSessions
-        );
-        return {
-          studentId,
-          studentName: counts.name,
-          totalSessions,
-          presentCount: counts.present,
-          lateCount: counts.late,
-          absentCount: counts.absent,
-          excusedCount: counts.excused,
-          attendancePercent: percent,
-          isBelowThreshold: percent !== null && percent < ATTENDANCE_THRESHOLD,
-        };
-      });
+      return mapAttendanceSummaryRows(
+        data as unknown as AttendanceSummaryViewRow[]
+      );
     },
     enabled: !!sectionId && !!courseId,
   });
 };
+
+// ─── E2.E: view-row → summary mapping (pure, unit-tested) ───────────────────
+
+export interface AttendanceSummaryViewRow {
+  student_id: string;
+  student_name: string;
+  total_sessions: number;
+  present_count: number;
+  late_count: number;
+  absent_count: number;
+  excused_count: number;
+  attendance_pct: number | null;
+  below_threshold: boolean;
+}
+
+export const mapAttendanceSummaryRows = (
+  rows: AttendanceSummaryViewRow[]
+): StudentAttendanceSummary[] =>
+  rows.map((row) => ({
+    studentId: row.student_id,
+    studentName: row.student_name,
+    totalSessions: Number(row.total_sessions),
+    presentCount: Number(row.present_count),
+    lateCount: Number(row.late_count),
+    absentCount: Number(row.absent_count),
+    excusedCount: Number(row.excused_count),
+    attendancePercent:
+      row.attendance_pct === null ? null : Number(row.attendance_pct),
+    isBelowThreshold: row.below_threshold,
+  }));
 
 // ─── Student-facing: attendance per enrolled course ─────────────────────────
 
