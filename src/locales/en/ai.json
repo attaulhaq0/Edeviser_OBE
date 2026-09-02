@@ -1,335 +1,346 @@
 ﻿{
-    "suggestions":  {
-                        "title":  "AI Suggestions",
-                        "moduleSuggestion":  "Suggested Focus Area",
-                        "weakArea":  "Needs improvement in {{clo}}",
-                        "socialProof":  "Students who improved this area scored {{percent}}% higher",
-                        "feedback":  "Was this helpful?",
-                        "noSuggestions":  "No suggestions at this time.",
-                        "completedAt":  "Completed {{date}}",
-                        "pendingProposals":  "{{count}} pending proposal(s)",
-                        "review":  "Review"
-                    },
-    "atRisk":  {
-                   "title":  "At-Risk Predictions",
-                   "probability":  "Risk Score: {{score}}%",
-                   "signals":  "Contributing Signals",
-                   "loginFrequency":  "Login Frequency",
-                   "submissionPattern":  "Submission Pattern",
-                   "attainmentTrend":  "Attainment Trend",
-                   "sendNudge":  "Send Nudge",
-                   "nudgeSent":  "Nudge sent to {{name}}."
-               },
-    "feedbackDraft":  {
-                          "title":  "AI Feedback Draft",
-                          "generating":  "Generating feedback draft...",
-                          "accept":  "Accept",
-                          "edit":  "Edit",
-                          "reject":  "Reject",
-                          "overallFeedback":  "Overall Feedback Draft"
-                      },
-    "tutor":  {
-                  "page":  {
-                               "title":  "AI Tutor",
-                               "openConversations":  "Open conversations",
-                               "newConversationTitle":  "Start a new conversation",
-                               "newConversationSubtitle":  "Choose a tutoring style that works best for you",
-                               "startChatting":  "Start chatting",
-                               "personaHint":  "You can change the persona at any time during the conversation"
-                           },
-                  "states":  {
-                                 "unavailable":  {
-                                                     "title":  "AI Tutor unavailable",
-                                                     "message":  "The tutor can\u0027t be reached right now. Please try again in a few minutes."
-                                                 },
-                                 "notEnrolled":  {
-                                                     "title":  "Not enrolled in this course",
-                                                     "message":  "You\u0027re not enrolled in this course yet, so the tutor can\u0027t help here. Check with your teacher about enrollment."
-                                                 },
-                                 "noEmbeddings":  {
-                                                      "title":  "Still learning this course",
-                                                      "message":  "The tutor hasn\u0027t finished studying this course\u0027s materials yet. Please check back soon."
-                                                  },
-                                 "rateLimited":  {
-                                                     "title":  "Daily limit reached",
-                                                     "message":  "You\u0027ve reached your tutor message limit for today. It resets at midnight.",
-                                                     "reset":  "Resets {{hint}}."
-                                                 },
-                                 "error":  {
-                                               "title":  "Something went wrong",
-                                               "message":  "The AI Tutor ran into a problem. Please try again."
-                                           },
-                                 "retry":  "Try again"
-                             },
-                  "chat":  {
-                               "title":  "AI Tutor",
-                               "emptyTitle":  "How can I help you today?",
-                               "emptyBody":  "Ask me about your course materials, assignments, or any concept you need help understanding.",
-                               "messagesLabel":  "Chat messages",
-                               "typingLabel":  "Tutor is typing",
-                               "userMessageLabel":  "Your message",
-                               "tutorMessageLabel":  "Tutor message",
-                               "messagesRemaining":  "You have {{count}} messages remaining today.",
-                               "limitReached":  "You\u0027ve reached your daily message limit. It resets at midnight.",
-                               "tokenBudgetExceeded":  "Your daily token budget has been exceeded. Please try again tomorrow.",
-                               "attachImage":  "Attach image",
-                               "attachImages":  "Attach images",
-                               "attachDocument":  "Attach document",
-                               "removeImage":  "Remove image {{index}}",
-                               "removeDocument":  "Remove document",
-                               "attachmentAlt":  "Attachment {{index}}",
-                               "messageInput":  "Message input",
-                               "sendMessage":  "Send message",
-                               "inputPlaceholder":  "Ask a question...",
-                               "inputPlaceholderDisabled":  "Daily limit reached",
-                               "citationLabel":  "Citation {{number}}",
-                               "documentAttached":  "Document attached",
-                               "integrityGuidance":  "Academic integrity guidance",
-                               "errors":  {
-                                              "imageType":  "{{name}}: Only JPG and PNG images are supported",
-                                              "imageSize":  "{{name}}: Image must be under 5MB",
-                                              "maxImages":  "Maximum {{count}} images allowed",
-                                              "docType":  "Only PDF and DOCX documents are supported",
-                                              "docSize":  "Document must be under 10MB",
-                                              "uploadFailed":  "Failed to upload attachment. Please try again.",
-                                              "attachmentsUnavailable":  "Attachments are unavailable while the tutor uses a text-only provider."
-                                          }
-                           },
-                  "sidebar":  {
-                                  "newConversation":  "New Conversation",
-                                  "pastConversations":  "Past conversations",
-                                  "noConversations":  "No conversations yet",
-                                  "noConversationsHint":  "Start a new conversation to get help",
-                                  "newConversationPreview":  "New conversation",
-                                  "conversationLabel":  "Conversation: {{title}}",
-                                  "messageCount_one":  "{{count}} msg",
-                                  "messageCount_other":  "{{count}} msgs",
-                                  "deleteConversation":  "Delete conversation",
-                                  "deleteTitle":  "Delete conversation",
-                                  "deleteDescription":  "This will permanently delete this conversation and all its messages. This action cannot be undone.",
-                                  "deleteConfirm":  "Delete",
-                                  "relativeTime":  {
-                                                       "justNow":  "Just now",
-                                                       "minutesAgo":  "{{count}}m ago",
-                                                       "hoursAgo":  "{{count}}h ago",
-                                                       "daysAgo":  "{{count}}d ago"
-                                                   }
-                              },
-                  "persona":  {
-                                  "yourStyle":  "Your tutor style",
-                                  "chooseStyle":  "Choose your tutor style",
-                                  "selectLabel":  "Select tutor persona",
-                                  "groupLabel":  "Tutor persona",
-                                  "recommendedGroupLabel":  "Recommended tutor persona",
-                                  "recommended":  "Recommended",
-                                  "changeStyle":  "Change tutor style",
-                                  "socratic_guide":  {
-                                                         "label":  "Socratic Guide",
-                                                         "description":  "Asks probing questions to lead you to the answer"
-                                                     },
-                                  "step_by_step_coach":  {
-                                                             "label":  "Step-by-Step Coach",
-                                                             "description":  "Breaks down problems into sequential steps"
-                                                         },
-                                  "quick_explainer":  {
-                                                          "label":  "Quick Explainer",
-                                                          "description":  "Gives concise, direct explanations"
-                                                      }
-                              },
-                  "autonomy":  {
-                                   "groupLabel":  "Tutor autonomy level",
-                                   "figureItOut":  "Figure it out",
-                                   "figureItOutLabel":  "Figure it out â€” hints only",
-                                   "justExplain":  "Just explain it",
-                                   "justExplainLabel":  "Just explain it â€” direct explanation"
-                               }
-              },
-    "assistantPanel":  {
-                           "title":  "Edeviser Assistant",
-                           "subtitle":  "Context-aware help scoped to this page",
-                           "approval":  {
-                                            "none":  "Read-only",
-                                            "actor":  "Self-service actions",
-                                            "teacher":  "Needs teacher approval",
-                                            "coordinator":  "Needs coordinator approval",
-                                            "admin":  "Needs admin approval"
-                                        }
-                       },
-    "approvalCard":  {
-                         "title":  "Agent Approval",
-                         "subtitle":  "Review this proposed action before it proceeds",
-                         "riskProtected":  "Protected action",
-                         "evidenceCount_one":  "{{count}} evidence source",
-                         "evidenceCount_other":  "{{count}} evidence sources",
-                         "evidenceTitle":  "Evidence backing this proposal",
-                         "requires":  "Approver: {{role}}",
-                         "expires":  "Expires {{date}}",
-                         "actions":  {
-                                         "draft_ilo":  "Draft institutional learning outcome",
-                                         "propose_create_ilo":  "Create institutional learning outcome",
-                                         "propose_update_ilo":  "Update institutional learning outcome",
-                                         "propose_delete_ilo":  "Delete institutional learning outcome",
-                                         "propose_reorder_ilos":  "Reorder institutional learning outcomes",
-                                         "draft_plo":  "Draft program learning outcome",
-                                         "propose_plo_ilo_mapping":  "Map program outcome to institutional outcomes",
-                                         "draft_clo":  "Draft course learning outcome",
-                                         "propose_clo_plo_mapping":  "Map course outcome to program outcomes",
-                                         "draft_cqi_action":  "Draft quality-improvement action",
-                                         "create_cqi_action":  "Create quality-improvement action"
-                                     },
-                         "roles":  {
-                                       "student":  "Student",
-                                       "teacher":  "Teacher",
-                                       "coordinator":  "Coordinator",
-                                       "admin":  "Administrator",
-                                       "parent":  "Parent"
-                                   },
-                         "outcome":  {
-                                         "pending":  "Awaiting the required approver\u0027s decision",
-                                         "approved":  "Approved â€” execution will be re-validated server-side",
-                                         "rejected":  "Rejected by the approver",
-                                         "expired":  "This proposal has expired and can no longer be decided",
-                                         "executed":  "Approved and already executed"
-                                     },
-                         "buttons":  {
-                                         "approve":  "Approve",
-                                         "reject":  "Reject"
-                                     },
-                         "errors":  {
-                                        "unauthorized":  "You are signed in without an authorized role.",
-                                        "invalid_proposal_id":  "This proposal reference is invalid.",
-                                        "proposal_not_found":  "This proposal no longer exists.",
-                                        "unauthorized_approver":  "You are not the required approver for this proposal.",
-                                        "expired":  "The decision window for this proposal has closed.",
-                                        "already_decided":  "Someone already decided this proposal.",
-                                        "proposal_already_decided":  "Someone already decided this proposal.",
-                                        "proposal_scope_changed":  "This proposal\u0027s target is no longer within your authority.",
-                                        "unknown_error":  "The decision could not be recorded. Please try again."
-                                    }
-                     },
-    "learningState":  {
-                          "title":  "Learning State",
-                          "mastery":  "Mastery {{percent}}%",
-                          "trend":  {
-                                        "improving":  "Improving",
-                                        "declining":  "Declining",
-                                        "stagnant":  "Steady"
-                                    },
-                          "streak_one":  "{{count}}-day streak",
-                          "streak_other":  "{{count}}-day streak",
-                          "consistency":  "Consistency {{percent}}%",
-                          "risk":  {
-                                       "attention":  "Needs attention",
-                                       "urgent":  "Urgent â€” respond soon"
-                                   },
-                          "empty":  "Your learning state is still being calculated â€” check back soon.",
-                          "unavailable":  "Your learning state is temporarily unavailable."
-                      },
-    "alignment":  {
-                      "title":  "Focus areas",
-                      "derived":  "DERIVED ALIGNMENT",
-                      "caption":  "Based on your course-outcome (CLO) attainment evidence; mapped program (PLO) and institution (ILO) outcomes are derived from your institution\u0027s outcome mappings and are not official attainment.",
-                      "plos":  "PLO",
-                      "ilos":  "ILO",
-                      "empty":  "No outcome-level data yet â€” keep earning evidence.",
-                      "unavailable":  "Outcome focus data is temporarily unavailable."
-                  },
-    "conversation":  {
-                         "title":  "Assistant conversation",
-                         "empty":  "Ask anything about this page â€” answers stay scoped to what you can access.",
-                         "you":  "You",
-                         "agent":  "Edeviser",
-                         "loading":  "Loading conversationâ€¦"
-                     },
-    "composer":  {
-                     "inputLabel":  "Message",
-                     "placeholder":  "Ask a questionâ€¦",
-                     "send":  "Send",
-                     "sending":  "Sendingâ€¦",
-                     "lengthHint":  "{{count}}/{{max}} characters"
-                 },
-    "evidenceDrawer":  {
-                           "open":  "View evidence",
-                           "title":  "Evidence",
-                           "subtitle":  "Sources backing this response",
-                           "empty":  "No evidence sources were attached."
-                       },
-    "autonomy":  {
-                     "title":  "AI Autonomy Policy",
-                     "loading":  "Loading policyâ€¦",
-                     "unavailable":  "No policy row is active for your institution yet.",
-                     "ceilingLabel":  "Operational ceiling",
-                     "autoExecLabel":  "Auto-execute low-risk actions",
-                     "autoExecHint":  "Requires ceiling A3. Protected actions always need human approval.",
-                     "rollbackLabel":  "Rollback controls",
-                     "rollbackOn":  "Enabled",
-                     "rollbackOff":  "Disabled",
-                     "saved":  "Autonomy policy updated.",
-                     "saveFailed":  "Could not save â€” try again.",
-                     "thresholdsNote":  "Evaluation thresholds: {{state}}",
-                     "thresholdsConfigured":  "configured",
-                     "thresholdsMissing":  "not configured",
-                     "levels":  {
-                                    "A0":  "A0 â€” Observe only",
-                                    "A1":  "A1 â€” Suggest",
-                                    "A2":  "A2 â€” Confirm",
-                                    "A3":  "A3 â€” Autonomous low-risk"
-                                }
-                 },
-    "governance":  {
-                       "title":  "AI Governance \u0026 Cost",
-                       "window":  "7 days",
-                       "loading":  "Loading snapshotâ€¦",
-                       "unavailable":  "Governance snapshot is temporarily unavailable.",
-                       "runs":  "Agent runs",
-                       "failed":  "Failed runs",
-                       "pending":  "Pending approvals",
-                       "tokens":  "Tokens used"
-                   },
-    "inbox":  {
-                  "title":  "Approval inbox",
-                  "description":  "Agent proposals awaiting your decision",
-                  "empty":  "No pending proposals.",
-                  "errorTitle":  "Inbox unavailable",
-                  "errorMessage":  "Could not load pending proposals. Please try again."
-              },
-    "feedback":  {
-                     "groupLabel":  "Was this response helpful?",
-                     "helpful":  "Helpful",
-                     "notHelpful":  "Not helpful",
-                     "recorded":  "Thanks â€” your feedback was recorded.",
-                     "failed":  "Feedback could not be recorded. Please try again."
-                 },
-    "autonomyControl":  {
-                            "title":  "Assistant autonomy",
-                            "description":  "Control how much the assistant may do on its own for your institution.",
-                            "ceiling":  "Operational autonomy ceiling",
-                            "autoExecute":  "Auto-execute low-risk actions",
-                            "rollback":  "Rollback enabled",
-                            "enabled":  "Enabled",
-                            "disabled":  "Disabled",
-                            "defaultPosture":  "Default posture",
-                            "unavailable":  "Autonomy settings are temporarily unavailable.",
-                            "save":  "Save changes",
-                            "saving":  "Saving…",
-                            "saved":  "Autonomy posture updated — enforced on the next agent run.",
-                            "saveError":  "Could not save the autonomy posture. Please try again.",
-                            "enforcesNextRun":  "Enforced on the next agent run."
-                        },
-    "insightCards":  {
-                         "title":  "Proactive insights",
-                         "empty":  "No proactive insights right now — you are all caught up.",
-                         "unavailable":  "Insights are temporarily unavailable.",
-                         "pendingProposals":  "{{count}} proposal(s) awaiting approval"
-                     },
-    "chatSurface":  {
-                        "featureDisabled":  "E Deviser Intelligence is currently disabled for this environment.",
-                        "error":  "The assistant could not complete this request. Please try again."
-                    },
-    "parentTwin":  {
-                       "title":  "Learning snapshot",
-                       "empty":  "No verified linked children found.",
-                       "unavailable":  "Learning snapshots are temporarily unavailable.",
-                       "childEmpty":  "No learning snapshot has been calculated for this child yet."
-                   }
+  "suggestions": {
+    "title": "AI Suggestions",
+    "moduleSuggestion": "Suggested Focus Area",
+    "weakArea": "Needs improvement in {{clo}}",
+    "socialProof": "Students who improved this area scored {{percent}}% higher",
+    "feedback": "Was this helpful?",
+    "noSuggestions": "No suggestions at this time.",
+    "completedAt": "Completed {{date}}",
+    "pendingProposals": "{{count}} pending proposal(s)",
+    "review": "Review"
+  },
+  "atRisk": {
+    "title": "At-Risk Predictions",
+    "probability": "Risk Score: {{score}}%",
+    "signals": "Contributing Signals",
+    "loginFrequency": "Login Frequency",
+    "submissionPattern": "Submission Pattern",
+    "attainmentTrend": "Attainment Trend",
+    "sendNudge": "Send Nudge",
+    "nudgeSent": "Nudge sent to {{name}}."
+  },
+  "feedbackDraft": {
+    "title": "AI Feedback Draft",
+    "generating": "Generating feedback draft...",
+    "accept": "Accept",
+    "edit": "Edit",
+    "reject": "Reject",
+    "overallFeedback": "Overall Feedback Draft"
+  },
+  "tutor": {
+    "page": {
+      "title": "AI Tutor",
+      "openConversations": "Open conversations",
+      "newConversationTitle": "Start a new conversation",
+      "newConversationSubtitle": "Choose a tutoring style that works best for you",
+      "startChatting": "Start chatting",
+      "personaHint": "You can change the persona at any time during the conversation"
+    },
+    "handoff": {
+      "title": "Ask your teacher for help?",
+      "description": "The AI tutor thinks a teacher could help you better right now. With your consent, we can send a summary of this conversation to your course teacher.",
+      "consentLabel": "I agree to share this conversation summary with my teacher.",
+      "confirm": "Send request",
+      "cancel": "Not now",
+      "consentRequired": "Please tick the consent box first.",
+      "created": "Request sent to your teacher.",
+      "failed": "Couldn't send the request. Please try again.",
+      "unresolvable": "No teacher is assigned to this course, so the request can't be sent."
+    },
+    "states": {
+      "unavailable": {
+        "title": "AI Tutor unavailable",
+        "message": "The tutor can\u0027t be reached right now. Please try again in a few minutes."
+      },
+      "notEnrolled": {
+        "title": "Not enrolled in this course",
+        "message": "You\u0027re not enrolled in this course yet, so the tutor can\u0027t help here. Check with your teacher about enrollment."
+      },
+      "noEmbeddings": {
+        "title": "Still learning this course",
+        "message": "The tutor hasn\u0027t finished studying this course\u0027s materials yet. Please check back soon."
+      },
+      "rateLimited": {
+        "title": "Daily limit reached",
+        "message": "You\u0027ve reached your tutor message limit for today. It resets at midnight.",
+        "reset": "Resets {{hint}}."
+      },
+      "error": {
+        "title": "Something went wrong",
+        "message": "The AI Tutor ran into a problem. Please try again."
+      },
+      "retry": "Try again"
+    },
+    "chat": {
+      "title": "AI Tutor",
+      "emptyTitle": "How can I help you today?",
+      "emptyBody": "Ask me about your course materials, assignments, or any concept you need help understanding.",
+      "messagesLabel": "Chat messages",
+      "typingLabel": "Tutor is typing",
+      "userMessageLabel": "Your message",
+      "tutorMessageLabel": "Tutor message",
+      "messagesRemaining": "You have {{count}} messages remaining today.",
+      "limitReached": "You\u0027ve reached your daily message limit. It resets at midnight.",
+      "tokenBudgetExceeded": "Your daily token budget has been exceeded. Please try again tomorrow.",
+      "attachImage": "Attach image",
+      "attachImages": "Attach images",
+      "attachDocument": "Attach document",
+      "removeImage": "Remove image {{index}}",
+      "removeDocument": "Remove document",
+      "attachmentAlt": "Attachment {{index}}",
+      "messageInput": "Message input",
+      "sendMessage": "Send message",
+      "inputPlaceholder": "Ask a question...",
+      "inputPlaceholderDisabled": "Daily limit reached",
+      "citationLabel": "Citation {{number}}",
+      "documentAttached": "Document attached",
+      "integrityGuidance": "Academic integrity guidance",
+      "errors": {
+        "imageType": "{{name}}: Only JPG and PNG images are supported",
+        "imageSize": "{{name}}: Image must be under 5MB",
+        "maxImages": "Maximum {{count}} images allowed",
+        "docType": "Only PDF and DOCX documents are supported",
+        "docSize": "Document must be under 10MB",
+        "uploadFailed": "Failed to upload attachment. Please try again.",
+        "attachmentsUnavailable": "Attachments are unavailable while the tutor uses a text-only provider."
+      }
+    },
+    "sidebar": {
+      "newConversation": "New Conversation",
+      "pastConversations": "Past conversations",
+      "noConversations": "No conversations yet",
+      "noConversationsHint": "Start a new conversation to get help",
+      "newConversationPreview": "New conversation",
+      "conversationLabel": "Conversation: {{title}}",
+      "messageCount_one": "{{count}} msg",
+      "messageCount_other": "{{count}} msgs",
+      "deleteConversation": "Delete conversation",
+      "deleteTitle": "Delete conversation",
+      "deleteDescription": "This will permanently delete this conversation and all its messages. This action cannot be undone.",
+      "deleteConfirm": "Delete",
+      "relativeTime": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago",
+        "daysAgo": "{{count}}d ago"
+      }
+    },
+    "persona": {
+      "yourStyle": "Your tutor style",
+      "chooseStyle": "Choose your tutor style",
+      "selectLabel": "Select tutor persona",
+      "groupLabel": "Tutor persona",
+      "recommendedGroupLabel": "Recommended tutor persona",
+      "recommended": "Recommended",
+      "changeStyle": "Change tutor style",
+      "socratic_guide": {
+        "label": "Socratic Guide",
+        "description": "Asks probing questions to lead you to the answer"
+      },
+      "step_by_step_coach": {
+        "label": "Step-by-Step Coach",
+        "description": "Breaks down problems into sequential steps"
+      },
+      "quick_explainer": {
+        "label": "Quick Explainer",
+        "description": "Gives concise, direct explanations"
+      }
+    },
+    "autonomy": {
+      "groupLabel": "Tutor autonomy level",
+      "figureItOut": "Figure it out",
+      "figureItOutLabel": "Figure it out â€” hints only",
+      "justExplain": "Just explain it",
+      "justExplainLabel": "Just explain it â€” direct explanation"
+    }
+  },
+  "assistantPanel": {
+    "title": "Edeviser Assistant",
+    "subtitle": "Context-aware help scoped to this page",
+    "approval": {
+      "none": "Read-only",
+      "actor": "Self-service actions",
+      "teacher": "Needs teacher approval",
+      "coordinator": "Needs coordinator approval",
+      "admin": "Needs admin approval"
+    }
+  },
+  "approvalCard": {
+    "title": "Agent Approval",
+    "subtitle": "Review this proposed action before it proceeds",
+    "riskProtected": "Protected action",
+    "evidenceCount_one": "{{count}} evidence source",
+    "evidenceCount_other": "{{count}} evidence sources",
+    "evidenceTitle": "Evidence backing this proposal",
+    "requires": "Approver: {{role}}",
+    "expires": "Expires {{date}}",
+    "actions": {
+      "draft_ilo": "Draft institutional learning outcome",
+      "propose_create_ilo": "Create institutional learning outcome",
+      "propose_update_ilo": "Update institutional learning outcome",
+      "propose_delete_ilo": "Delete institutional learning outcome",
+      "propose_reorder_ilos": "Reorder institutional learning outcomes",
+      "draft_plo": "Draft program learning outcome",
+      "propose_plo_ilo_mapping": "Map program outcome to institutional outcomes",
+      "draft_clo": "Draft course learning outcome",
+      "propose_clo_plo_mapping": "Map course outcome to program outcomes",
+      "draft_cqi_action": "Draft quality-improvement action",
+      "create_cqi_action": "Create quality-improvement action"
+    },
+    "roles": {
+      "student": "Student",
+      "teacher": "Teacher",
+      "coordinator": "Coordinator",
+      "admin": "Administrator",
+      "parent": "Parent"
+    },
+    "outcome": {
+      "pending": "Awaiting the required approver\u0027s decision",
+      "approved": "Approved â€” execution will be re-validated server-side",
+      "rejected": "Rejected by the approver",
+      "expired": "This proposal has expired and can no longer be decided",
+      "executed": "Approved and already executed"
+    },
+    "buttons": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "errors": {
+      "unauthorized": "You are signed in without an authorized role.",
+      "invalid_proposal_id": "This proposal reference is invalid.",
+      "proposal_not_found": "This proposal no longer exists.",
+      "unauthorized_approver": "You are not the required approver for this proposal.",
+      "expired": "The decision window for this proposal has closed.",
+      "already_decided": "Someone already decided this proposal.",
+      "proposal_already_decided": "Someone already decided this proposal.",
+      "proposal_scope_changed": "This proposal\u0027s target is no longer within your authority.",
+      "unknown_error": "The decision could not be recorded. Please try again."
+    }
+  },
+  "learningState": {
+    "title": "Learning State",
+    "mastery": "Mastery {{percent}}%",
+    "trend": {
+      "improving": "Improving",
+      "declining": "Declining",
+      "stagnant": "Steady"
+    },
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak",
+    "consistency": "Consistency {{percent}}%",
+    "risk": {
+      "attention": "Needs attention",
+      "urgent": "Urgent â€” respond soon"
+    },
+    "empty": "Your learning state is still being calculated â€” check back soon.",
+    "unavailable": "Your learning state is temporarily unavailable."
+  },
+  "alignment": {
+    "title": "Focus areas",
+    "derived": "DERIVED ALIGNMENT",
+    "caption": "Based on your course-outcome (CLO) attainment evidence; mapped program (PLO) and institution (ILO) outcomes are derived from your institution\u0027s outcome mappings and are not official attainment.",
+    "plos": "PLO",
+    "ilos": "ILO",
+    "empty": "No outcome-level data yet â€” keep earning evidence.",
+    "unavailable": "Outcome focus data is temporarily unavailable."
+  },
+  "conversation": {
+    "title": "Assistant conversation",
+    "empty": "Ask anything about this page â€” answers stay scoped to what you can access.",
+    "you": "You",
+    "agent": "Edeviser",
+    "loading": "Loading conversationâ€¦"
+  },
+  "composer": {
+    "inputLabel": "Message",
+    "placeholder": "Ask a questionâ€¦",
+    "send": "Send",
+    "sending": "Sendingâ€¦",
+    "lengthHint": "{{count}}/{{max}} characters"
+  },
+  "evidenceDrawer": {
+    "open": "View evidence",
+    "title": "Evidence",
+    "subtitle": "Sources backing this response",
+    "empty": "No evidence sources were attached."
+  },
+  "autonomy": {
+    "title": "AI Autonomy Policy",
+    "loading": "Loading policyâ€¦",
+    "unavailable": "No policy row is active for your institution yet.",
+    "ceilingLabel": "Operational ceiling",
+    "autoExecLabel": "Auto-execute low-risk actions",
+    "autoExecHint": "Requires ceiling A3. Protected actions always need human approval.",
+    "rollbackLabel": "Rollback controls",
+    "rollbackOn": "Enabled",
+    "rollbackOff": "Disabled",
+    "saved": "Autonomy policy updated.",
+    "saveFailed": "Could not save â€” try again.",
+    "thresholdsNote": "Evaluation thresholds: {{state}}",
+    "thresholdsConfigured": "configured",
+    "thresholdsMissing": "not configured",
+    "levels": {
+      "A0": "A0 â€” Observe only",
+      "A1": "A1 â€” Suggest",
+      "A2": "A2 â€” Confirm",
+      "A3": "A3 â€” Autonomous low-risk"
+    }
+  },
+  "governance": {
+    "title": "AI Governance \u0026 Cost",
+    "window": "7 days",
+    "loading": "Loading snapshotâ€¦",
+    "unavailable": "Governance snapshot is temporarily unavailable.",
+    "runs": "Agent runs",
+    "failed": "Failed runs",
+    "pending": "Pending approvals",
+    "tokens": "Tokens used"
+  },
+  "inbox": {
+    "title": "Approval inbox",
+    "description": "Agent proposals awaiting your decision",
+    "empty": "No pending proposals.",
+    "errorTitle": "Inbox unavailable",
+    "errorMessage": "Could not load pending proposals. Please try again."
+  },
+  "feedback": {
+    "groupLabel": "Was this response helpful?",
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "recorded": "Thanks â€” your feedback was recorded.",
+    "failed": "Feedback could not be recorded. Please try again."
+  },
+  "autonomyControl": {
+    "title": "Assistant autonomy",
+    "description": "Control how much the assistant may do on its own for your institution.",
+    "ceiling": "Operational autonomy ceiling",
+    "autoExecute": "Auto-execute low-risk actions",
+    "rollback": "Rollback enabled",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "defaultPosture": "Default posture",
+    "unavailable": "Autonomy settings are temporarily unavailable.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Autonomy posture updated — enforced on the next agent run.",
+    "saveError": "Could not save the autonomy posture. Please try again.",
+    "enforcesNextRun": "Enforced on the next agent run."
+  },
+  "insightCards": {
+    "title": "Proactive insights",
+    "empty": "No proactive insights right now — you are all caught up.",
+    "unavailable": "Insights are temporarily unavailable.",
+    "pendingProposals": "{{count}} proposal(s) awaiting approval"
+  },
+  "chatSurface": {
+    "featureDisabled": "E Deviser Intelligence is currently disabled for this environment.",
+    "error": "The assistant could not complete this request. Please try again."
+  },
+  "parentTwin": {
+    "title": "Learning snapshot",
+    "empty": "No verified linked children found.",
+    "unavailable": "Learning snapshots are temporarily unavailable.",
+    "childEmpty": "No learning snapshot has been calculated for this child yet."
+  }
 }

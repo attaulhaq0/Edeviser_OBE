@@ -75,6 +75,22 @@ vi.mock("@/hooks/useTutorUsage", () => ({
   useTutorUsage: () => ({ data: undefined }),
 }));
 
+// E2.F handoff hooks — not under test here; stub so no real query runs.
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: "student-1" }, profile: null }),
+}));
+
+vi.mock("@/hooks/useTeacherHandoffs", () => ({
+  useHandoffContext: () => ({
+    data: { teacher_id: "teacher-1", institution_id: "inst-1" },
+    isLoading: false,
+  }),
+  useCreateHandoff: () => ({
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+}));
+
 // ChatPanel calls this hook at render; stub it so no real upload path runs.
 vi.mock("@/hooks/useTutorAttachmentUpload", () => ({
   useTutorAttachmentUpload: () => ({ uploadAttachment: vi.fn() }),

@@ -75,6 +75,11 @@ export const useRespondToHandoff = () => {
 
 // ─── useCreateHandoff — Student creates a handoff request (with consent) ─────
 
+export type HandoffTriggerReason =
+  | "low_rag_confidence"
+  | "repeated_question"
+  | "low_satisfaction";
+
 export const useCreateHandoff = () => {
   const queryClient = useQueryClient();
 
@@ -88,10 +93,7 @@ export const useCreateHandoff = () => {
       clo_id?: string;
       conversation_summary: string;
       suggested_intervention: string;
-      trigger_reason:
-        | "low_rag_confidence"
-        | "repeated_question"
-        | "low_satisfaction";
+      trigger_reason: HandoffTriggerReason;
       student_consent: boolean;
     }) => {
       const { data, error } = await supabase
@@ -114,10 +116,72 @@ export const useCreateHandoff = () => {
 
       if (error) throw error;
       if (!data) throw new Error("Handoff request was not created");
-      return data as TeacherHandoffRequest;
+      const handoff = data as TeacherHandoffRequest;
+
+      // Notify the teacher (fire-and-forget — a notification failure must
+      // never block the handoff request itself). Mirrors the pattern in
+      // useDeadlineExtensions.
+      try {
+        await supabase.from("notifications").insert({
+          user_id: handoff.teacher_id,
+          type: "tutor_handoff",
+          title: "New Tutor Handoff Request",
+          body: `A student requested teacher help with their AI tutor conversation (reason: ${handoff.trigger_reason}). Open the handoff queue to respond.`,
+          metadata: {
+            handoff_id: handoff.id,
+            conversation_id: handoff.conversation_id,
+            student_id: handoff.student_id,
+          },
+        });
+      } catch {
+        // Non-blocking by design.
+      }
+
+      return handoff;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: handoffKeys.all });
+    },
+  });
+};
+
+// ─── useHandoffContext — resolve course teacher + institution for a handoff ──
+
+export interface HandoffResolutionContext {
+  course_id: string;
+  teacher_id: string;
+  institution_id: string;
+}
+
+/**
+ * Resolves the teacher and institution a handoff request must target for the
+ * given course. Returns `null` when the course (or its owning program) has no
+ * complete handoff routing — the UI then keeps the consent action disabled.
+ */
+export const useHandoffContext = (courseId: string | undefined) => {
+  return useQuery({
+    queryKey: ["teacher_handoff_requests", "context", courseId ?? ""],
+    enabled: !!courseId,
+    queryFn: async (): Promise<HandoffResolutionContext | null> => {
+      if (!courseId) return null;
+      const { data: course, error: courseError } = await supabase
+        .from("courses")
+        .select("id, teacher_id, programs(institution_id)")
+        .eq("id", courseId)
+        .maybeSingle();
+      if (courseError) throw courseError;
+      if (!course) return null;
+
+      const program = Array.isArray(course.programs)
+        ? course.programs[0]
+        : course.programs;
+      if (!course.teacher_id || !program?.institution_id) return null;
+
+      return {
+        course_id: course.id,
+        teacher_id: course.teacher_id,
+        institution_id: program.institution_id,
+      };
     },
   });
 };
