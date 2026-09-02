@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { parseAsString, useQueryState } from "nuqs";
 import { useGradebookMatrix, useGradeCategories } from "@/hooks/useGradebook";
@@ -321,6 +322,7 @@ interface GradebookTableProps {
         title: string;
         score: number | null;
         max_score: number;
+        submission_id: string | null;
       }>;
       subtotal_percent: number;
     }>;
@@ -440,7 +442,17 @@ const GradebookTable = ({
                       getCellBg(a.score, a.max_score)
                     )}
                   >
-                    {a.score !== null ? a.score : "—"}
+                    {a.submission_id ? (
+                      <Link
+                        to={`/teacher/grading/${a.submission_id}`}
+                        className="underline-offset-2 hover:underline"
+                        title={t("gradebook.openGradeReview")}
+                      >
+                        {a.score !== null ? a.score : "—"}
+                      </Link>
+                    ) : (
+                      a.score ?? "—"
+                    )}
                   </td>
                 )),
                 <td

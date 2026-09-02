@@ -70,6 +70,7 @@
   },
   "gradebook": {
     "notYetGradable": "Not yet gradable",
+    "openGradeReview": "Open grade review",
     "excludedCategories": "Not counted: {{categories}} — no grades recorded yet."
   },
   "assignments": {

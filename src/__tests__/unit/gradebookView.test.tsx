@@ -92,6 +92,7 @@ const GRADEBOOK_WITH_GRADES: GradebookEntry[] = [
             type: "assignment",
             score: 80,
             max_score: 100,
+            submission_id: "sub-1",
           },
         ],
         subtotal_percent: 80,
@@ -117,6 +118,7 @@ const GRADEBOOK_WITH_GRADES: GradebookEntry[] = [
             type: "assignment",
             score: 90,
             max_score: 100,
+            submission_id: "sub-2",
           },
         ],
         subtotal_percent: 90,
@@ -147,6 +149,7 @@ const GRADEBOOK_NO_GRADES: GradebookEntry[] = [
             type: "assignment",
             score: null,
             max_score: 100,
+            submission_id: null,
           },
         ],
         subtotal_percent: 0,
@@ -247,6 +250,7 @@ beforeAll(() => {
   }
 });
 
+import { MemoryRouter } from "react-router-dom";
 import GradebookView from "@/pages/teacher/gradebook/GradebookView";
 
 // ---------------------------------------------------------------------------
@@ -256,7 +260,9 @@ import GradebookView from "@/pages/teacher/gradebook/GradebookView";
 const renderView = () =>
   render(
     <I18nextProvider i18n={i18n}>
-      <GradebookView />
+      <MemoryRouter>
+        <GradebookView />
+      </MemoryRouter>
     </I18nextProvider>
   );
 
@@ -324,6 +330,17 @@ describe("GradebookView — auto-load, export, class average, empty/loading (Req
     // Student names + their grades render.
     expect(screen.getByText("Alice Anderson")).toBeInTheDocument();
     expect(screen.getByText("Bob Brown")).toBeInTheDocument();
+
+    // Graded assignment cells deep-link into the read-only Grade Review page
+    // (T20/E2.D: matrix cells with a submission_id are source links).
+    expect(screen.getByRole("link", { name: "80" })).toHaveAttribute(
+      "href",
+      "/teacher/grading/sub-1"
+    );
+    expect(screen.getByRole("link", { name: "90" })).toHaveAttribute(
+      "href",
+      "/teacher/grading/sub-2"
+    );
 
     // The class-average row exists and shows the computed average ((80+90)/2 = 85).
     const avgRow = screen.getByText("Class Average").closest("tr");

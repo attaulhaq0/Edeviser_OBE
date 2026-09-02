@@ -75,6 +75,7 @@ describe("useGradebook types", () => {
       type: "assignment",
       score: 85,
       max_score: 100,
+      submission_id: null,
     };
     expect(assessment.score).toBe(85);
     expect(assessment.max_score).toBe(100);
@@ -87,6 +88,7 @@ describe("useGradebook types", () => {
       type: "assignment",
       score: null,
       max_score: 100,
+      submission_id: null,
     };
     expect(assessment.score).toBeNull();
   });
@@ -103,6 +105,7 @@ describe("useGradebook types", () => {
           type: "assignment",
           score: 80,
           max_score: 100,
+          submission_id: null,
         },
         {
           id: "a-2",
@@ -110,6 +113,7 @@ describe("useGradebook types", () => {
           type: "assignment",
           score: 90,
           max_score: 100,
+          submission_id: null,
         },
       ],
       subtotal_percent: 85,
@@ -136,6 +140,7 @@ describe("useGradebook types", () => {
               type: "assignment",
               score: 80,
               max_score: 100,
+              submission_id: null,
             },
           ],
           subtotal_percent: 80,
@@ -152,6 +157,7 @@ describe("useGradebook types", () => {
               type: "quiz",
               score: 90,
               max_score: 100,
+              submission_id: null,
             },
           ],
           subtotal_percent: 90,
