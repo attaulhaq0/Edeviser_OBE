@@ -5,8 +5,15 @@ import { parseAsString, useQueryState } from "nuqs";
 import { createColumns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { useCLOs, useDeleteCLO } from "@/hooks/useCLOs";
+import {
+  useCLOReviewCounts,
+  useCLOs,
+  useDeleteCLO,
+  useSetCLOReviewStatus,
+} from "@/hooks/useCLOs";
 import { useTeacherCourses } from "@/hooks/useCourses";
+import { readinessFromCounts } from "@/lib/curriculumReadiness";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search } from "lucide-react";
+import { CheckCircle2, Plus, Search } from "lucide-react";
 import type { LearningOutcome } from "@/types/app";
 import { NoCourses } from "@/components/shared/EmptyState";
 
@@ -39,6 +46,15 @@ const CLOListPage = () => {
     isFetching,
   } = useCLOs(courseFilter || undefined, { page });
   const deleteMutation = useDeleteCLO();
+  const setReviewStatus = useSetCLOReviewStatus();
+  const { data: reviewCounts } = useCLOReviewCounts(courseFilter || undefined);
+  const readiness = reviewCounts
+    ? readinessFromCounts(
+        reviewCounts.confirmed,
+        reviewCounts.inReview,
+        reviewCounts.total
+      )
+    : null;
 
   const filteredCLOs = (paginatedCLOs?.data ?? []).filter((clo) => {
     if (!search) return true;
@@ -52,7 +68,23 @@ const CLOListPage = () => {
   const columns = createColumns(
     (id) => navigate(`/teacher/clos/${id}`),
     (id) => navigate(`/teacher/clos/${id}/edit`),
-    (clo) => setCloToDelete(clo)
+    (clo) => setCloToDelete(clo),
+    (clo, status) => {
+      setReviewStatus.mutate(
+        { cloId: clo.id, status },
+        {
+          onSuccess: () =>
+            toast.success(
+              status === "confirmed"
+                ? "CLO confirmed"
+                : status === "in_review"
+                ? "CLO submitted for review"
+                : "CLO reopened as draft"
+            ),
+          onError: (err) => toast.error(err.message),
+        }
+      );
+    }
   );
 
   return (
@@ -99,6 +131,28 @@ const CLOListPage = () => {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Curriculum readiness (E2.B) — shown when a course is selected */}
+      {readiness && readiness.total > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/60 bg-white/80 px-4 py-3 backdrop-blur-xs">
+          <span className="text-sm font-medium text-gray-700">
+            Curriculum readiness: {readiness.confirmed} of {readiness.total}{" "}
+            CLOs confirmed
+          </span>
+          <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-teal-500 transition-all"
+              style={{ width: `${readiness.percent}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-500">{readiness.percent}%</span>
+          {readiness.ready && (
+            <Badge className="gap-1 bg-green-50 text-green-700 border-green-200">
+              <CheckCircle2 className="h-3 w-3" /> Curriculum ready
+            </Badge>
+          )}
+        </div>
+      )}
 
       {/* Data Table */}
       <DataTable

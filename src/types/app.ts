@@ -89,6 +89,10 @@ export interface LearningOutcome {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** T18 (E2.B) review workflow: draft → in_review → confirmed. */
+  review_status: "draft" | "in_review" | "confirmed";
+  reviewed_at: string | null;
+  reviewed_by: string | null;
 }
 
 export type BloomsLevel =

@@ -38,6 +38,9 @@ const baseOutcome: LearningOutcome = {
   created_by: null,
   created_at: "2024-01-01T00:00:00.000Z",
   updated_at: "2024-01-01T00:00:00.000Z",
+  review_status: "draft",
+  reviewed_at: null,
+  reviewed_by: null,
 };
 
 const noop = (): void => {};

@@ -97,6 +97,106 @@ export const useCLOs = (
   });
 };
 
+// ─── useSetCLOReviewStatus — E2.B review workflow (draft → in_review → confirmed) ──
+
+export type CLOReviewStatus = "draft" | "in_review" | "confirmed";
+
+export interface SetCLOReviewStatusInput {
+  cloId: string;
+  status: CLOReviewStatus;
+}
+
+export const useSetCLOReviewStatus = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ cloId, status }: SetCLOReviewStatusInput) => {
+      const reviewing = status !== "draft";
+      const { data, error } = await supabase
+        .from("learning_outcomes")
+        .update({
+          review_status: status,
+          reviewed_at: reviewing ? new Date().toISOString() : null,
+          reviewed_by: reviewing ? (user?.id ?? null) : null,
+        })
+        .eq("id", cloId)
+        .eq("type", "CLO")
+        .select("id")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      void logAuditEvent({
+        action: "update",
+        entity_type: "clo",
+        entity_id: variables.cloId,
+        changes: { review_status: variables.status },
+        performed_by: user?.id ?? "unknown",
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.clos.details() });
+      // T18 (E2.B) approval propagation: coordinator/attainment surfaces
+      // consume confirmed CLOs — refresh the matrix, attainment rollups and
+      // CQI queries so a confirmation is visible platform-wide immediately
+      // (E3.B: auto-refresh on teacher publish).
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.outcomeMappings.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.outcomeAttainment.lists(),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.cqiPlans.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.cqiInstitutional.all });
+    },
+  });
+};
+
+// ─── useCLOReviewCounts — E2.B readiness: confirmed/total for one course ────
+//
+// Two head-count queries (no row transfer) so the readiness banner stays cheap
+// regardless of how many CLOs the course has.
+
+export const useCLOReviewCounts = (courseId?: string) => {
+  return useQuery({
+    queryKey: queryKeys.clos.list({ courseId, view: "review-counts" }),
+    enabled: !!courseId,
+    queryFn: async (): Promise<{
+      confirmed: number;
+      inReview: number;
+      total: number;
+    }> => {
+      const base = () =>
+        supabase
+          .from("learning_outcomes")
+          .select("id", { count: "exact", head: true })
+          .eq("type", "CLO")
+          .eq("course_id", courseId!);
+
+      const [
+        { count: total, error: totalErr },
+        { count: confirmed, error: confirmedErr },
+        { count: inReview, error: inReviewErr },
+      ] = await Promise.all([
+        base(),
+        base().eq("review_status", "confirmed"),
+        base().eq("review_status", "in_review"),
+      ]);
+
+      if (totalErr) throw totalErr;
+      if (confirmedErr) throw confirmedErr;
+      if (inReviewErr) throw inReviewErr;
+      return {
+        confirmed: confirmed ?? 0,
+        inReview: inReview ?? 0,
+        total: total ?? 0,
+      };
+    },
+  });
+};
+
 // ─── useCLO — single CLO detail ────────────────────────────────────────────
 
 export const useCLO = (id?: string) => {
