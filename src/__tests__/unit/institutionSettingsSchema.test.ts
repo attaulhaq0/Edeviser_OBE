@@ -47,16 +47,19 @@ describe("gradeScaleSchema", () => {
 });
 
 describe("institutionSettingsSchema", () => {
-  // Complete partition of 0–100 (QA FAIL-03 guard): every percentage maps to
-  // exactly one band, so the baseline fixture must cover the whole range.
+  // Complete CONTINUOUS partition of [0, 100] (QA FAIL-02/03 + E1.11): bands
+  // must SHARE their boundary so every real percentage maps to exactly one
+  // letter (boundary points belong to the higher band via the descending
+  // first-match mapping). The baseline fixture touches: F 0–70, B 70–85,
+  // A 85–100.
   const validSettings = {
     attainment_thresholds: { excellent: 85, satisfactory: 70, developing: 50 },
     success_threshold: 70,
     accreditation_body: "HEC" as const,
     grade_scales: [
       { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
-      { letter: "B", min_percent: 70, max_percent: 84, gpa_points: 3.0 },
-      { letter: "F", min_percent: 0, max_percent: 69, gpa_points: 0.0 },
+      { letter: "B", min_percent: 70, max_percent: 85, gpa_points: 3.0 },
+      { letter: "F", min_percent: 0, max_percent: 70, gpa_points: 0.0 },
     ],
     streak_sabbatical_enabled: false,
   };
@@ -90,8 +93,30 @@ describe("institutionSettingsSchema", () => {
       ...validSettings,
       grade_scales: [
         { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
-        { letter: "B", min_percent: 71, max_percent: 84, gpa_points: 3.0 },
-        { letter: "F", min_percent: 0, max_percent: 69, gpa_points: 0.0 },
+        { letter: "B", min_percent: 71, max_percent: 85, gpa_points: 3.0 },
+        { letter: "F", min_percent: 0, max_percent: 70, gpa_points: 0.0 },
+      ],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => /gap/i.test(issue.message))
+      ).toBe(true);
+    }
+  });
+
+  // ── E1.11 (platform hardening): integer-adjacent bands leave a REAL gap
+  // (84.0–85.0 unclassified — the live-data defect that rendered 84.2% as
+  // "F"). Such scales must be rejected so new saves are always total. ──
+  it("rejects integer-adjacent bands with a real gap (E1.11 legacy live scale)", () => {
+    const result = institutionSettingsSchema.safeParse({
+      ...validSettings,
+      grade_scales: [
+        { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
+        { letter: "B", min_percent: 70, max_percent: 84, gpa_points: 3.0 },
+        { letter: "C", min_percent: 55, max_percent: 69, gpa_points: 2.0 },
+        { letter: "D", min_percent: 50, max_percent: 54, gpa_points: 1.0 },
+        { letter: "F", min_percent: 0, max_percent: 49, gpa_points: 0.0 },
       ],
     });
     expect(result.success).toBe(false);

@@ -24,7 +24,6 @@ import {
   ParentTwinSummary,
 } from "@/ai/components";
 
-const STORY_GRADIENT = "linear-gradient(135deg, #065f46, #1e3a8a)";
 const HELP_GRADIENT = "linear-gradient(135deg, #ecfdf5, #eff6ff)";
 
 const CARD_CLASS =
@@ -231,11 +230,8 @@ const ParentDashboardScreen = () => {
         </div>
       )}
 
-      {/* ── 1 · AI Story Hero (exact prototype-one banner) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
-        style={{ background: STORY_GRADIENT }}
-      >
+      {/* ── 1 · AI Story Hero (E1.19: white liquid-glass) ── */}
+      <section className="relative overflow-hidden rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
         <div className="absolute top-3 end-3">
           <WhyThisPopover
             title={t(
@@ -252,11 +248,11 @@ const ParentDashboardScreen = () => {
         </div>
 
         <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-xl">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-white/80 text-xl">
             🌱
           </div>
           <div className="min-w-0 flex-1 pe-16">
-            <h1 className="text-lg font-bold tracking-tight text-white">
+            <h1 className="text-lg font-bold tracking-tight text-slate-900">
               {hasActivityEvidence
                 ? t("parentDashboard.story.headline", {
                     defaultValue: "{{name}}'s shared learning snapshot",
@@ -268,7 +264,7 @@ const ParentDashboardScreen = () => {
                     name,
                   })}
             </h1>
-            <p className="text-[12px] leading-snug text-white/80">
+            <p className="text-[12px] leading-snug text-slate-500">
               {storySubtext}
             </p>
           </div>
@@ -276,17 +272,17 @@ const ParentDashboardScreen = () => {
 
         <div className="mt-3 flex flex-wrap gap-2">
           {selected.current_streak > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
               🔥 {selected.current_streak}-day shared activity streak
             </span>
           ) : null}
           {hasCourseEvidence ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
               📚 Released course evidence
             </span>
           ) : null}
           {!hasActivityEvidence ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
               ℹ️ Awaiting shared activity
             </span>
           ) : null}

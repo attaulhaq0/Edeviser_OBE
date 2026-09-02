@@ -35,7 +35,7 @@ import type {
   StudentAttendance,
   AttendanceStatus,
 } from "@/components/shared/AttendanceGrid";
-import { Shimmer } from "@/design-system";
+import { GradientCardHeader, Shimmer } from "@/design-system";
 import { InlineNoSessions } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -297,19 +297,9 @@ const AttendanceMarker = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Create Session + Session List */}
           <div className="space-y-4">
-            {/* Create Session Form */}
+            {/* Create Session Form (E1.12: design-system card header) */}
             <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-              <div
-                className="px-6 py-4 flex items-center gap-2"
-                style={{
-                  background: "var(--brand-gradient)",
-                }}
-              >
-                <Plus className="h-5 w-5 text-white" />
-                <h2 className="text-lg font-bold tracking-tight text-white">
-                  New Session
-                </h2>
-              </div>
+              <GradientCardHeader icon={Plus} title="New Session" />
               <div className="p-6">
                 <Form {...form}>
                   <form
