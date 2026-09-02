@@ -61,3 +61,31 @@ errors; garbage/whitespace-only ILO rejected (form + agent draft path); gradeboo
 final = renormalized percentage (88.3 case → 88.3, passing) with an explicit
 "Not counted: <categories> — no grades recorded yet." notice; all-ungraded students
 show "Not yet gradable" instead of 0%/F.
+
+## Post-merge record (2026-09-02, local bookkeeping — fold into the next PR)
+
+- **Merged:** PR #306 squash-merged to main as `97dcd13e` (all 39 checks green at
+  exact head `a4fc11a1`; Git-linked Supabase Preview valid — `git_branch
+  fix/qa-hardening-gradebook-outcomes`, `pr_number 306`, `FUNCTIONS_DEPLOYED`).
+- **PR #305** closed as superseded (its 2 commits landed via #306; its red CI was
+  exactly the stale manifest-count test repaired here). Supersession comment posted.
+- **Branch cleanup:** both PR branches (local + remote) deleted; Supabase preview
+  branches for 305/306 auto-removed — only `main` remains (live-verified via MCP).
+- **Production DB:** live-verified via MCP — `rubrics_created_by_default_auth_uid`
+  applied (recorded version `20260901232509`; repo parity mirror
+  `20260902090000` is a known/grandfathered duplicate base-name; `db:check-dup-names`
+  CLEAN).
+- **Edge Runtime deployment: DEPLOYED + ATTESTED (2026-09-02).** Human approved the
+  production gate; `Deploy Edge Runtime (production)` run 33630505511 deployed the
+  manifest-derived closure (16 functions incl. the 8 tutor-intelligence members)
+  and its "Attest deployment and verify ownership/configuration parity" step
+  succeeded — the workflow re-downloaded the deployed sources from production and
+  verified parity, including `_shared/ai/write-tools/outcome-governance.ts` (the
+  requireMeaningfulText change). Independently verified live via MCP: `agent-worker`
+  v25 / `agent-orchestrator` v26 / `agent-evaluation-jobs` / `intervention-jobs`
+  all `updated_at` 2026-09-02T12:38:54Z. Attestation artifact:
+  edge-runtime-attestation-snapshot.zip (ID 9846817466).
+- **Pre-existing infra issue (out of scope, reported):** `Release` workflow
+  (Changesets) fails on the last 4 main pushes — action version requires Changesets
+  CLI v3 but repo pins v2 ("use Changesets action v1 instead"). Needs a separate
+  chore PR.

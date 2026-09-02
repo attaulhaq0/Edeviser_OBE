@@ -418,12 +418,16 @@ export const DEFAULT_ATTAINMENT_THRESHOLDS: AttainmentThresholdsConfig = {
   developing: 50,
 };
 
+// E1.11: touching bands form a total partition of the continuous [0, 100]
+// domain (boundary points belong to the higher band via the descending
+// first-match mapping) — the legacy integer-adjacent maxima (84/69/54/49)
+// left real gaps like 84.0–85.0 unclassified, rendering 84.2% as "F".
 export const DEFAULT_GRADE_SCALES: GradeScale[] = [
   { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
-  { letter: "B", min_percent: 70, max_percent: 84, gpa_points: 3.0 },
-  { letter: "C", min_percent: 55, max_percent: 69, gpa_points: 2.0 },
-  { letter: "D", min_percent: 50, max_percent: 54, gpa_points: 1.0 },
-  { letter: "F", min_percent: 0, max_percent: 49, gpa_points: 0.0 },
+  { letter: "B", min_percent: 70, max_percent: 85, gpa_points: 3.0 },
+  { letter: "C", min_percent: 55, max_percent: 70, gpa_points: 2.0 },
+  { letter: "D", min_percent: 50, max_percent: 55, gpa_points: 1.0 },
+  { letter: "F", min_percent: 0, max_percent: 50, gpa_points: 0.0 },
 ];
 
 export interface Announcement {

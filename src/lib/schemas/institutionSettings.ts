@@ -13,10 +13,15 @@ export const gradeScaleSchema = z
   );
 
 /**
- * Grade-scale integrity guard (QA FAIL-02 / FAIL-03): the configured bands
- * must form a contiguous, non-overlapping partition of 0–100 so every
- * percentage maps to exactly one letter. Rejects overlaps, gaps, and
- * incomplete coverage at the schema boundary — UI, API, and agent tools alike.
+ * Grade-scale integrity guard (QA FAIL-02 / FAIL-03 + E1.11): the configured
+ * bands must form a CONTIGUOUS, non-overlapping partition of the continuous
+ * [0, 100] domain so every real percentage maps to exactly one letter.
+ * Adjacent bands must SHARE their boundary (touch); any strict gap (however
+ * small — the legacy integer-adjacent scales left 84.0–85.0 unclassified and
+ * rendered a passing 84.2% as "F") and any strict overlap (ambiguous zone) are
+ * rejected at the schema boundary — UI, API, and agent tools alike. Boundary
+ * points belong to the higher band via the descending first-match mapping in
+ * `mapToLetterGrade`.
  */
 export const gradeScalesPartitionSchema = z
   .array(gradeScaleSchema)
@@ -26,19 +31,17 @@ export const gradeScalesPartitionSchema = z
     sorted.forEach((band, i) => {
       const prev = i > 0 ? sorted[i - 1] : undefined;
       if (prev) {
-        if (band.min_percent <= prev.max_percent) {
+        if (band.min_percent < prev.max_percent) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["grade_scales", i],
             message: `Grade bands overlap: ${band.letter} starts at ${band.min_percent} but ${prev.letter} already covers up to ${prev.max_percent}`,
           });
-        } else if (band.min_percent > prev.max_percent + 1) {
+        } else if (band.min_percent > prev.max_percent) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["grade_scales", i],
-            message: `Grade bands leave a gap: ${prev.max_percent + 1}–${
-              band.min_percent - 1
-            } is not covered by any letter`,
+            message: `Grade bands leave a gap: ${prev.max_percent}–${band.min_percent} is not covered by any letter (adjacent bands must share their boundary)`,
           });
         }
       }

@@ -59,6 +59,41 @@ describe("mapToLetterGrade", () => {
     expect(mapToLetterGrade(90, [])).toBe("A");
     expect(mapToLetterGrade(49, [])).toBe("F");
   });
+
+  // ── E1.11 (platform hardening): totality over the continuous [0, 100]
+  // domain — the legacy integer-adjacent scales left real gaps (e.g. 84.0–85.0)
+  // unclassified, and the old fallback rendered a passing 84.2% as "F". ──
+  it("maps fractional percents inside band coverage (84.2 → B, never F)", () => {
+    expect(mapToLetterGrade(84.2)).toBe("B");
+    expect(mapToLetterGrade(84.99)).toBe("B");
+    expect(mapToLetterGrade(69.5)).toBe("C");
+    expect(mapToLetterGrade(54.5)).toBe("D");
+    expect(mapToLetterGrade(49.9)).toBe("F");
+  });
+
+  it("maps legacy gapped scales via the nearest LOWER band (E1.11 live-data regression)", () => {
+    // Exact scale found in the live institution_settings rows at audit time.
+    const legacy: GradeScale[] = [
+      { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
+      { letter: "B", min_percent: 70, max_percent: 84, gpa_points: 3.0 },
+      { letter: "C", min_percent: 55, max_percent: 69, gpa_points: 2.0 },
+      { letter: "D", min_percent: 50, max_percent: 54, gpa_points: 1.0 },
+      { letter: "F", min_percent: 0, max_percent: 49, gpa_points: 0.0 },
+    ];
+    // The QA case: Olivia at 84.2% must read "B", not "F".
+    expect(mapToLetterGrade(84.2, legacy)).toBe("B");
+    expect(mapToLetterGrade(69.5, legacy)).toBe("C");
+    expect(mapToLetterGrade(54.5, legacy)).toBe("D");
+    expect(mapToLetterGrade(49.5, legacy)).toBe("F");
+    // Exact band points keep their historical letters.
+    expect(mapToLetterGrade(84, legacy)).toBe("B");
+    expect(mapToLetterGrade(85, legacy)).toBe("A");
+  });
+
+  it("clamps out-of-range percentages to the nearest band", () => {
+    expect(mapToLetterGrade(105)).toBe("A");
+    expect(mapToLetterGrade(-1)).toBe("F");
+  });
 });
 
 describe("mapToGpaPoints", () => {
@@ -93,5 +128,11 @@ describe("mapToGpaPoints", () => {
 
   it("falls back to DEFAULT_GRADE_SCALES when empty array provided", () => {
     expect(mapToGpaPoints(90, [])).toBe(4.0);
+  });
+
+  it("maps gapped-scale percents to the nearest lower band's GPA (E1.11)", () => {
+    expect(mapToGpaPoints(84.2)).toBe(3.0);
+    expect(mapToGpaPoints(69.5)).toBe(2.0);
+    expect(mapToGpaPoints(49.9)).toBe(0.0);
   });
 });

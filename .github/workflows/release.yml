@@ -27,11 +27,12 @@ jobs:
       - run: npm ci
 
       - name: Create Release PR or Publish
-        # Pinned: v1.9.0 commit (last line supporting Changesets CLI v2, which
-        # is what this repo installs: @changesets/cli ^2.31.0). v1 input names
-        # are title/commit/publish — the original inputs were correct; only the
-        # action tag was wrong (@v2 requires CLI v3).
-        uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
+        # Pinned: changesets/action v1.4.10 (commit
+        # 06245a4e0a36c064a573d4150030f5ec548e4fcc) — the last v1 line
+        # compatible with Changesets CLI v2, which is what this repo installs
+        # (@changesets/cli ^2.x). The action's v2+ requires CLI v3 and fails
+        # with "use Changesets action v1 instead".
+        uses: changesets/action@06245a4e0a36c064a573d4150030f5ec548e4fcc # v1.4.10
         with:
           title: "chore(release): version bump"
           commit: "chore(release): version bump"

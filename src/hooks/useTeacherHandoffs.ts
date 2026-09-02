@@ -21,9 +21,10 @@ export const useTeacherHandoffs = (courseId: string) => {
   return useQuery({
     queryKey: handoffKeys.list(courseId),
     queryFn: async () => {
-      // Table not in database.ts yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      // E1.10: `teacher_handoff_requests` is now generated in
+      // src/types/database.ts — the typed client replaces the former
+      // `as any` escape hatch.
+      const { data, error } = await supabase
         .from("teacher_handoff_requests")
         .select("*")
         .eq("course_id", courseId)
@@ -51,8 +52,7 @@ export const useRespondToHandoff = () => {
       response_message: string;
       status?: "resolved" | "dismissed";
     }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("teacher_handoff_requests")
         .update({
           teacher_response: response_message,
@@ -64,6 +64,7 @@ export const useRespondToHandoff = () => {
         .single();
 
       if (error) throw error;
+      if (!data) throw new Error("Handoff request not found after update");
       return data as TeacherHandoffRequest;
     },
     onSuccess: () => {
@@ -93,8 +94,7 @@ export const useCreateHandoff = () => {
         | "low_satisfaction";
       student_consent: boolean;
     }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("teacher_handoff_requests")
         .insert({
           conversation_id: payload.conversation_id,
@@ -113,6 +113,7 @@ export const useCreateHandoff = () => {
         .single();
 
       if (error) throw error;
+      if (!data) throw new Error("Handoff request was not created");
       return data as TeacherHandoffRequest;
     },
     onSuccess: () => {
