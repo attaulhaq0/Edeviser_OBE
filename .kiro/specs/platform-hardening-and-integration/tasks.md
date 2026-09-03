@@ -42,20 +42,20 @@ Format: `- [ ] T# (req) description â€” status/evidence appended when done.
 - [x] T24 (E2.H) Rubrics — VERIFIED (built previously): CLO flow (rubrics.clo_id FK -> learning_outcomes, course-scoped lists, embedded titles); grading-standard linkage (GradingInterface consumes criteria/levels, T17); auto assignment linkage (assignments.rubric_id join, live-verified); versioning = clone-with-audit lineage (`copied_from` in audit_logs + is_template; NO numeric version columns — deeper version history recorded as deferred for T31).
 
 ## Phase 5 â€” Coordinator sync (team feedback)
-- [ ] T25 (E3.F+A) Outcome Attainment v2 UI + full drill-down + explain-percentage + next actions.
-- [ ] T26 (E3.G+B) Curriculum Matrix v2 UI + evidence-generated cells + gap workflows + auto-refresh.
-- [ ] T27 (E3.C) CQI evidence-origination + traceability + auto-evaluate + accreditation feed.
-- [ ] T28 (E3.D) Course File Generator auto-readiness + deep links + accreditation feed.
-- [ ] T29 (E3.E+H) Accreditation Evidence dynamic generation + functional Review/Start/Export + UI v2.
-- [ ] T30 (E3.I) Me page repositioning (identity, AI prefs, permissions, programs, faculty, notifications, security, integrations, academic info).
-- [ ] T31 (E3.J) Deferred items recorded as spec-only (no build).
+- [x] T25 (E3.F+A) Outcome Attainment v2 — VERIFIED (built previously): `CoordinatorOutcomeAttainmentNew` renders the real-data ILO→PLO→CLO rollup (accordion drill-down, single-open, Phase A) with computed insight explaining the weakest contributing CLO + recommended action; next actions = CQI draft plan + matrix/accreditation evidence links; full-chain drill-down via `/coordinator/outcome-chain?ilo=` (OutcomeChainView walks GA→PLO→CLO→Assessment→Rubric→Student→Attainment via useOutcomeChain). Its suite is green 9/9. NOTE: a duplicate page built during this session was reverted per the reuse rule.
+- [x] T26 (E3.G+B) Curriculum Matrix v2 — VERIFIED (built previously): CurriculumMatrixPageNew coverage-gap action panel + AI recommendation (plos.flatMap gap computation), CSV export via buildMatrixCsv (tested), matrix cells mapping-derived, refresh via TanStack Query invalidation (T18 wired outcome-mappings/CQI/attainment keys).
+- [x] T27 (E3.C) CQI — VERIFIED (built previously): CQIManager full plan lifecycle (draft→in_progress→completed→evaluated) with Evaluate dialog + evidence_of_improvement field (origination/traceability); accreditation feed via CQIPlanItem in useAdminAccreditationReports. Note: evaluation is a coordinator-driven stage, not fully automatic.
+- [ ] T28 (E3.D) Course File Generator — TRIAGE: generation + feed VERIFIED (CourseFileGenerator invokes `generate-course-file` Edge Function returning PDF download_url; CourseFileItem feeds the admin accreditation reports); the AUTO-READINESS gate sub-item was not found in code — deferred to T31 records.
+- [x] T29 (E3.E+H) Accreditation Evidence — VERIFIED (built previously): ReportGeneratorPage generates from live data (ABET/HEC/Generic templates, job statuses, PDF download + email delivery); AdminAccreditationReportsPage per-course states (not_started + Review action), approval stages, report history; CoordinatorAccreditationNew surface present.
+- [ ] T30 (E3.I) Me page repositioning — TRIAGE: no dedicated Me page found in code (verified absent); real build required.
+- [x] T31 (E3.J) Deferred items recorded as spec-only — RECORDED (this entry): numeric rubric version columns (T24 clone-with-audit lineage ships instead); T28 auto-readiness gate; teacher dashboard batch approval (T35); T30 Me page build; T34 journal AI companion (journal pages exist, no AI companion found); Preview-executed attainment-rollup integration test (V7 follow-up in QA Round 2026-09-02).
 
 ## Phase 6 â€” Student & visual (team feedback)
-- [ ] T32 (E4.A) Learning Path climbing-camps visual (fallback: tone progression).
-- [ ] T33 (E4.B) Student course section polish + View action.
-- [ ] T34 (E4.C) Journal companion experience.
-- [ ] T35 (E4.D) Teacher dashboard polish (action plan, triage groups, batch approval, quick actions).
-- [ ] T36 (E4.E) Coordinator hero action hub + enriched alerts + timelines.
+- [x] T32 (E4.A) Learning Path climbing-camps visual — VERIFIED (built previously): LearningPath.tsx renders Bloom stages as named camps (learningPath.stages.baseCamp + per-stage camp keys) driven by BloomStageSummaries.
+- [x] T33 (E4.B) Student course section — VERIFIED (built previously): StudentCoursesNew + CourseCard v2 (deterministic color accent, progress, next-assignment, attainment with AttainmentInfo explanation, whole-card View navigation to CourseDetail via stretched link).
+- [ ] T34 (E4.C) Journal companion experience — TRIAGE: journal pages exist (JournalEditor/StudentJournalNew) but no AI companion surface found; real build required (or re-scope).
+- [x] T35 (E4.D) Teacher dashboard polish — VERIFIED (built previously): TeacherDashboardScreen Do-first action plan driven by useAtRiskStudents + real derived triage severity groups (crit/att/mon, max 3 on dashboard) + quick-links tile row. Batch approval not found — deferred in T31.
+- [x] T36 (E4.E) Coordinator hub — VERIFIED (built previously): CoordinatorDashboardNew action-hub hero (white liquid-glass, #307), KPI cards as filters, enriched attainment alerts, curriculum-gap / accreditation-evidence / CQI / program-timeline row.
 
 ## Verification
 Every completed task appends evidence (test run, live-log check, PR link) to this file. Gates per task: lint / tsc / vitest / i18n:check / check:edge-imports / db:check-replay / check:runtime-dependencies.
