@@ -76,6 +76,15 @@ vi.mock("@/hooks/useTutorUsage", () => ({
 }));
 
 // E2.F handoff hooks — not under test here; stub so no real query runs.
+// The student history mock is mutable so the history-UI test can seed rows.
+let mockStudentHandoffs: Array<{
+  id: string;
+  status: string;
+  conversation_summary: string;
+  teacher_response: string | null;
+  created_at: string;
+}> = [];
+
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "student-1" }, profile: null }),
 }));
@@ -89,6 +98,7 @@ vi.mock("@/hooks/useTeacherHandoffs", () => ({
     mutateAsync: vi.fn().mockResolvedValue(undefined),
     isPending: false,
   }),
+  useStudentHandoffs: () => ({ data: mockStudentHandoffs }),
 }));
 
 // ChatPanel calls this hook at render; stub it so no real upload path runs.
@@ -163,5 +173,45 @@ describe("TutorPage — autonomy update failure handling", () => {
       expect(updateMock).toHaveBeenCalledWith({ autonomy_override: "L1" })
     );
     expect(toastErrorMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("TutorPage — student handoff history (E2.F resolve loop)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockStudentHandoffs = [];
+  });
+
+  it("shows a resolved handoff's teacher response in the history section", async () => {
+    mockStudentHandoffs = [
+      {
+        id: "handoff-1",
+        status: "resolved",
+        conversation_summary: "Student struggled with quadratic equations",
+        teacher_response: "Let's review factoring in office hours.",
+        created_at: "2026-09-01T10:00:00.000Z",
+      },
+    ];
+
+    renderPage(<TutorPage />);
+
+    expect(
+      await screen.findByText(/your tutor handoff requests/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Student struggled with quadratic equations")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Teacher responded")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Let's review factoring in office hours/i)
+    ).toBeInTheDocument();
+  });
+
+  it("hides the history section when the student has no handoffs", () => {
+    renderPage(<TutorPage />);
+
+    expect(
+      screen.queryByText(/your tutor handoff requests/i)
+    ).not.toBeInTheDocument();
   });
 });

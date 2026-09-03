@@ -46,7 +46,12 @@
       "consentRequired": "Please tick the consent box first.",
       "created": "Request sent to your teacher.",
       "failed": "Couldn't send the request. Please try again.",
-      "unresolvable": "No teacher is assigned to this course, so the request can't be sent."
+      "unresolvable": "No teacher is assigned to this course, so the request can't be sent.",
+      "historyTitle": "Your tutor handoff requests",
+      "status_pending": "Waiting for teacher",
+      "status_resolved": "Teacher responded",
+      "status_dismissed": "Closed",
+      "teacherResponse": "Teacher:"
     },
     "states": {
       "unavailable": {

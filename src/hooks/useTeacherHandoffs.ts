@@ -38,6 +38,9 @@ export const useTeacherHandoffs = (courseId: string) => {
 };
 
 // ─── useRespondToHandoff — Teacher responds to a handoff request ─────────────
+// T22 (E2.F): goes through the `respond_teacher_handoff` SECURITY DEFINER RPC
+// so the student is actually messaged (notifications_own RLS forbids direct
+// cross-user notification inserts) and the resolution is atomic.
 
 export const useRespondToHandoff = () => {
   const queryClient = useQueryClient();
@@ -52,24 +55,37 @@ export const useRespondToHandoff = () => {
       response_message: string;
       status?: "resolved" | "dismissed";
     }) => {
-      const { data, error } = await supabase
-        .from("teacher_handoff_requests")
-        .update({
-          teacher_response: response_message,
-          status,
-          resolved_at: new Date().toISOString(),
-        })
-        .eq("id", handoff_id)
-        .select()
-        .single();
-
+      const { error } = await supabase.rpc("respond_teacher_handoff", {
+        p_handoff_id: handoff_id,
+        p_response: response_message,
+        p_status: status,
+      });
       if (error) throw error;
-      if (!data) throw new Error("Handoff request not found after update");
-      return data as TeacherHandoffRequest;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: handoffKeys.all });
     },
+  });
+};
+
+// ─── useStudentHandoffs — Student reads their own handoff history (E2.F) ─────
+// RLS policy `handoffs_student_own` scopes the read to the signed-in student.
+
+export const useStudentHandoffs = (studentId: string | undefined) => {
+  return useQuery({
+    queryKey: [...handoffKeys.all, "student", studentId ?? ""] as const,
+    queryFn: async (): Promise<TeacherHandoffRequest[]> => {
+      const { data, error } = await supabase
+        .from("teacher_handoff_requests")
+        .select("*")
+        .eq("student_id", studentId!)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return (data ?? []) as TeacherHandoffRequest[];
+    },
+    enabled: !!studentId,
   });
 };
 

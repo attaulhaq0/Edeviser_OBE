@@ -9154,27 +9154,33 @@ export type Database = {
       sub_clos: {
         Row: {
           clo_id: string
+          code: string | null
           created_at: string | null
           description: string | null
           id: string
           sort_order: number | null
           title: string
+          weight: number
         }
         Insert: {
           clo_id: string
+          code?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           sort_order?: number | null
           title: string
+          weight?: number
         }
         Update: {
           clo_id?: string
+          code?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           sort_order?: number | null
           title?: string
+          weight?: number
         }
         Relationships: [
           {
@@ -11484,6 +11490,10 @@ export type Database = {
         Args: { p_accept: boolean; p_friendship_id: string }
         Returns: undefined
       }
+      respond_teacher_handoff: {
+        Args: { p_handoff_id: string; p_response: string; p_status?: string }
+        Returns: undefined
+      }
       rls_isolation_violations: {
         Args: never
         Returns: {
@@ -11560,7 +11570,7 @@ export type Database = {
       send_friend_request: { Args: { p_addressee_id: string }; Returns: string }
       send_teacher_nudge: {
         Args: { p_message: string; p_student_id: string }
-        Returns: undefined
+        Returns: string
       }
       student_enrolled_in_team_course: {
         Args: { p_team_id: string }
@@ -11581,6 +11591,10 @@ export type Database = {
         Returns: boolean
       }
       team_in_my_institution: { Args: { p_team_id: string }; Returns: boolean }
+      validate_grade_scale_partition: {
+        Args: { scales: Json }
+        Returns: boolean
+      }
     }
     Enums: {
       assignment_type: "assignment" | "quiz" | "project" | "exam"

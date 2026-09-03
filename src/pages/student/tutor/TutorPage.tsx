@@ -33,7 +33,9 @@ import { useUpdateConversationAutonomy } from "@/hooks/useUpdateConversationAuto
 import {
   useCreateHandoff,
   useHandoffContext,
+  useStudentHandoffs,
 } from "@/hooks/useTeacherHandoffs";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { mapTutorError, type TutorUiState } from "@/lib/tutorStatus";
@@ -83,6 +85,7 @@ const TutorPage = () => {
   const createHandoff = useCreateHandoff();
   const handoffContext = useHandoffContext(courseIdParam);
   const { user } = useAuth();
+  const { data: studentHandoffs } = useStudentHandoffs(user?.id);
 
   // Derive persona from active conversation
   const activeConversation = conversationId
@@ -464,6 +467,52 @@ const TutorPage = () => {
           </ErrorBoundary>
         )}
       </div>
+
+      {/* E2.F: student handoff history — closes the resolve loop by showing
+          each request's status and the teacher's response. */}
+      {(studentHandoffs?.length ?? 0) > 0 && (
+        <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
+          <h2 className="text-sm font-semibold text-gray-800">
+            {t("tutor.handoff.historyTitle")}
+          </h2>
+          <ul className="mt-3 space-y-3">
+            {studentHandoffs!.map((h) => (
+              <li
+                key={h.id}
+                className="rounded-lg border border-gray-100 bg-gray-50/60 p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-gray-600">
+                    {new Date(h.created_at).toLocaleDateString()}
+                  </span>
+                  <Badge
+                    variant={
+                      h.status === "pending"
+                        ? "outline"
+                        : h.status === "resolved"
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
+                    {t(`tutor.handoff.status_${h.status}`)}
+                  </Badge>
+                </div>
+                <p className="mt-1 line-clamp-2 text-sm text-gray-700">
+                  {h.conversation_summary}
+                </p>
+                {h.teacher_response && (
+                  <p className="mt-2 rounded-md bg-white border border-gray-100 p-2 text-sm text-gray-800">
+                    <span className="font-medium">
+                      {t("tutor.handoff.teacherResponse")}{" "}
+                    </span>
+                    {h.teacher_response}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* E2.F: student consent dialog for an AI-detected handoff (R28.4).
           The request is only created after explicit opt-in. */}
