@@ -59,3 +59,33 @@ Format: `- [ ] T# (req) description â€” status/evidence appended when done.
 
 ## Verification
 Every completed task appends evidence (test run, live-log check, PR link) to this file. Gates per task: lint / tsc / vitest / i18n:check / check:edge-imports / db:check-replay / check:runtime-dependencies.
+
+## QA Round 2026-09-02 â€” Core OBE verification (senior-QA report)
+
+Every finding verified against the LIVE Supabase project (`cdlgtbvxlxjpcddjazzx`) via MCP introspection plus the local codebase before any fix. Verification surface recorded per finding.
+
+| # | Finding | Live/code verification | Fix | Status |
+|---|---|---|---|---|
+`| V1 | Grade-scale overlap/gap accepted | Validator rejects both on current `main` (superRefine, `src/lib/schemas/institutionSettings.ts`); QA tested a pre-#306-deploy build. **Residual: validation is client-side only â€” `grade_scales` is jsonb in `institution_settings`, no DB constraint** | DB-level partition trigger `trg_grade_scale_partition` (migration `db_level_qa_hardening_constraints`, live-applied) + re-test after deploy. Function semantics verified live: legacy integer-adjacent scale rejected, touching scale accepted, short partition rejected, null tolerated | **DONE** |
+`| V2 | Garbage ILO accepted | Meaningful-content guard merged in #306; live titles clean. **Residual: no DB CHECK on `learning_outcomes.title`** | CHECK constraints `learning_outcomes_title_meaningful` / `sub_clos_title_meaningful` (same migration, live-applied; existing rows verified clean before add) | **DONE** |
+| V3 | Sub-CLO weights not persisted (UI 0% total) | **CONFIRMED.** Live `sub_clos` had no `weight`/`code` columns; `useSubCLOs.ts` stripped both on write | MCP migration `sub_clo_weight_code` (applied) + `src/lib/subCLOWrite.ts` payload builders wired into `useSubCLOs` + `src/__tests__/unit/subCLOWrite.test.ts` regression tests. tsc 0, 13/13 targeted | **DONE** |
+| V4 | Assignment creation blocked by date validation | **CONFIRMED.** `z.iso.datetime()` rejects datetime-local values; form converts only at submit, after resolver | Schema accepts any parseable date (`src/lib/schemas/assignment.ts`); 5 regression tests in `src/__tests__/unit/assignmentSchema.test.ts` — green | **DONE** |
+| V5 | Assignment create route unreliable/blank | Route wired; query **errors** rendered as silent empty states (no error UI in form at all) | Error + retry UI for courses/CLOs queries, explicit edit-load-failure notice (`AssignmentForm.tsx`); route regression tests `assignmentFormRoute.test.tsx` (2/2) | **DONE** |
+`| V6 | Nudge generic; no intervention loop | **CONFIRMED â€” model exists, wiring missing.** Live tables `learning_interventions` / `intervention_outcomes` / `intervention_measurements`; `send_teacher_nudge(p_student_id, p_message)` RPC already accepts a custom message | Composer + `learning_interventions` follow-up record | **DONE** |
+| V7 | Dynamic grade cascade NOT TESTED | Trigger verified live (`on_grade_insert_or_update â†’ trigger_attainment_rollup()`) | Controlled QA procedure documented below (Preview/QA-tenant only, never Production data) | **DONE (procedure)** |
+
+
+### V7 - Controlled before/after cascade test (QA procedure)
+
+The rollup automation is real (`trigger_attainment_rollup` on grades INSERT/UPDATE, live-verified). To prove the dynamic Grade -> Evidence -> CLO -> PLO -> ILO cascade end-to-end, run this against the Git-linked Preview (or a QA tenant), never against live student records:
+
+1. **Before**: capture the QA student's `outcome_attainment` rows, the grade row, and its evidence rows.
+2. **Action**: insert/update one grade for a QA-only assessment (not a live graded one) with a deliberately different score (e.g. 40%).
+3. **After - assert exactly**: evidence rows for that grade reflect the new score; the rollup updated only the outcome rows in the graded CLO's chain (CLO -> PLO -> ILO); percentages match the manual weight calculation; `trg_grade_released_notify` produced the expected student notification when released.
+4. **UX reach**: confirm the new attainment state appears in the student dashboard, teacher gradebook final, and coordinator attainment/matrix surfaces.
+5. **Cleanup**: restore the QA grade to its prior value and re-verify the before-state (the trigger cascade should restore the original attainment).
+
+Remaining planned automation: a Preview-executed integration case for the rollup function (same skip-safe harness as `learningInterventions.rls.test.ts`) - tracked for the next hardening PR.
+Note: QA's V1/V2 failures were observed on a production build that predated the #306 merge/deploy; re-test required after this PR deploys. V1/V2 residual DB-level enforcement is tracked in the V5 chunk.
+
+
