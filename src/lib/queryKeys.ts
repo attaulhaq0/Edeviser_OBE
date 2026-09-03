@@ -105,6 +105,7 @@ const coordinatorDashboard = createKeys("coordinatorDashboard");
 const studentDashboard = createKeys("studentDashboard");
 const parentDashboard = createKeys("parentDashboard");
 const teacherDashboard = createKeys("teacherDashboard");
+const interventions = createKeys("interventions");
 
 // ─── Reports ─────────────────────────────────────────────────────────────────
 const accreditationReports = createKeys("accreditationReports");
@@ -336,6 +337,7 @@ export const queryKeys = {
   studentDashboard,
   parentDashboard,
   teacherDashboard,
+  interventions,
   // Reports
   accreditationReports,
   // Production

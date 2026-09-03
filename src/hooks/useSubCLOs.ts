@@ -5,12 +5,16 @@ import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
 import type { SubCLOFormData } from "@/lib/schemas/subCLO";
 import type { Database } from "@/types/database";
+import {
+  buildSubCLOInsertPayload,
+  buildSubCLOUpdatePayload,
+} from "@/lib/subCLOWrite";
 
 type SubCLO = Database["public"]["Tables"]["sub_clos"]["Row"];
 
 // Sub-CLOs live in their own table with FK clo_id → learning_outcomes(id).
-// The live schema does not yet persist `code` or `weight`; they remain in the
-// form schema for forward-compatibility but are stripped on write.
+// `code` and `weight` are persisted (QA 2026-09-02: weights were previously
+// stripped on write, so the manager's "0% total" was faithful to the DB).
 
 // ─── useSubCLOs — list Sub-CLOs for a parent CLO ───────────────────────────
 
@@ -41,11 +45,7 @@ export const useCreateSubCLO = () => {
     mutationFn: async (data: SubCLOFormData): Promise<SubCLO> => {
       const { data: result, error } = await supabase
         .from("sub_clos")
-        .insert({
-          title: data.title,
-          description: data.description ?? null,
-          clo_id: data.parent_outcome_id,
-        })
+        .insert(buildSubCLOInsertPayload(data))
         .select()
         .single();
 
@@ -86,9 +86,7 @@ export const useUpdateSubCLO = () => {
     }): Promise<SubCLO> => {
       const { id, data } = params;
 
-      const update: Database["public"]["Tables"]["sub_clos"]["Update"] = {};
-      if (data.title !== undefined) update.title = data.title;
-      if (data.description !== undefined) update.description = data.description;
+      const update = buildSubCLOUpdatePayload(data);
 
       const { data: result, error } = await supabase
         .from("sub_clos")

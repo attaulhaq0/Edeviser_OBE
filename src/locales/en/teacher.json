@@ -1,4 +1,20 @@
 {
+  "interventions": {
+    "composerTitle": "Send nudge to {{name}}",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Write a short, specific check-in…",
+    "defaultMessage": "Hi {{name}}, I noticed you may need a quick check-in. Let's get you back on track.",
+    "send": "Send nudge",
+    "sending": "Sending…",
+    "cancel": "Cancel",
+    "sentToast": "Nudge sent to {{name}}",
+    "failedToast": "Could not send nudge",
+    "emptyMessage": "Write a message before sending.",
+    "followUps": "Open follow-ups",
+    "resolve": "Mark resolved",
+    "resolvedToast": "Follow-up resolved",
+    "resolveFailed": "Could not resolve follow-up"
+  },
   "dashboard": {
     "title": "Dashboard",
     "welcome": {

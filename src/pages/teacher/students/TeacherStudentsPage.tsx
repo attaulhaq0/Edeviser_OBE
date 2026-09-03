@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Bell,
+  Check,
   Clock3,
   ShieldAlert,
   Sparkles,
@@ -13,7 +14,14 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button, PCard, SectionHeader, StatusDot } from "@/design-system";
-import { useAuth } from "@/hooks/useAuth";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useAtRiskStudents,
   useTeacherKPIs,
@@ -21,6 +29,11 @@ import {
   type AtRiskStudent,
 } from "@/hooks/useTeacherDashboard";
 import { useAtRiskPredictions } from "@/hooks/useAtRiskPredictions";
+import {
+  useActiveInterventions,
+  useResolveIntervention,
+  type LearningIntervention,
+} from "@/hooks/useInterventions";
 import { cn } from "@/lib/utils";
 
 type Severity = "crit" | "att" | "mon";
@@ -59,7 +72,6 @@ const severityButtonClass: Record<Severity, string> = {
 
 const TeacherStudentsPage = () => {
   const { t } = useTranslation("teacher");
-  const { user } = useAuth();
   const atRiskQuery = useAtRiskStudents();
   const kpiQuery = useTeacherKPIs();
   const predictionQuery = useAtRiskPredictions();
@@ -122,17 +134,61 @@ const TeacherStudentsPage = () => {
     return map;
   }, [predictionQuery.data]);
 
-  const handleNudge = async (student: AtRiskStudent) => {
-    if (!user?.id) return;
+  // QA 2026-09-02 (V6): follow-up loop — one query, grouped client-side.
+  const interventionsQuery = useActiveInterventions();
+  const resolveIntervention = useResolveIntervention();
+  const interventionsByStudent = useMemo(() => {
+    const map = new Map<string, LearningIntervention[]>();
+    for (const intervention of interventionsQuery.data ?? []) {
+      const list = map.get(intervention.student_id) ?? [];
+      list.push(intervention);
+      map.set(intervention.student_id, list);
+    }
+    return map;
+  }, [interventionsQuery.data]);
+
+  const [nudgeTarget, setNudgeTarget] = useState<AtRiskStudent | null>(null);
+  const [nudgeMessage, setNudgeMessage] = useState("");
+
+  const openNudgeComposer = (student: AtRiskStudent) => {
+    setNudgeTarget(student);
+    setNudgeMessage(
+      t("interventions.defaultMessage", {
+        name: student.full_name,
+        defaultValue: `Hi ${student.full_name}, I noticed you may need a quick check-in. Let's get you back on track.`,
+      })
+    );
+  };
+
+  const handleSendNudge = async () => {
+    if (!nudgeTarget) return;
+    if (nudgeMessage.trim().length === 0) {
+      toast.error(t("interventions.emptyMessage"));
+      return;
+    }
     try {
       await sendNudge.mutateAsync({
-        studentId: student.id,
-        message: `Hi ${student.full_name}, I noticed you may need a quick check-in. Let's get you back on track.`,
+        studentId: nudgeTarget.id,
+        message: nudgeMessage.trim(),
       });
-      toast.success(`Nudge sent to ${student.full_name}`);
+      toast.success(
+        t("interventions.sentToast", { name: nudgeTarget.full_name })
+      );
+      setNudgeTarget(null);
+      setNudgeMessage("");
     } catch (error) {
       console.error("[TeacherStudentsPage] Failed to send nudge:", error);
-      toast.error("Could not send nudge");
+      toast.error(t("interventions.failedToast"));
+    }
+  };
+
+  const handleResolveIntervention = async (id: string) => {
+    try {
+      await resolveIntervention.mutateAsync(id);
+      toast.success(t("interventions.resolvedToast"));
+    } catch (error) {
+      console.error("[TeacherStudentsPage] Failed to resolve:", error);
+      toast.error(t("interventions.resolveFailed"));
     }
   };
 
@@ -363,6 +419,59 @@ const TeacherStudentsPage = () => {
                                   </span>
                                 ) : null}
                               </div>
+
+                              {(interventionsByStudent.get(student.id) ?? [])
+                                .length > 0 && (
+                                <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+                                  <p className="text-xs font-semibold text-slate-600">
+                                    {t("interventions.followUps")}
+                                  </p>
+                                  {(
+                                    interventionsByStudent.get(student.id) ?? []
+                                  ).map((intervention) => (
+                                    <div
+                                      key={intervention.id}
+                                      className="flex items-start justify-between gap-3"
+                                    >
+                                      <div className="min-w-0">
+                                        <p className="truncate text-xs text-slate-600">
+                                          {typeof intervention.payload ===
+                                            "object" &&
+                                          intervention.payload !== null &&
+                                          "message" in intervention.payload
+                                            ? String(
+                                                (
+                                                  intervention.payload as {
+                                                    message: unknown;
+                                                  }
+                                                ).message
+                                              )
+                                            : intervention.intervention_type}
+                                        </p>
+                                        <p className="text-[11px] text-slate-400">
+                                          {new Date(
+                                            intervention.created_at
+                                          ).toLocaleDateString()}
+                                        </p>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 shrink-0 text-xs"
+                                        onClick={() =>
+                                          void handleResolveIntervention(
+                                            intervention.id
+                                          )
+                                        }
+                                        disabled={resolveIntervention.isPending}
+                                      >
+                                        <Check className="me-1 h-3.5 w-3.5" />
+                                        {t("interventions.resolve")}
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
 
                             <div className="flex shrink-0 flex-wrap gap-2">
@@ -372,7 +481,7 @@ const TeacherStudentsPage = () => {
                                   "rounded-xl",
                                   severityButtonClass[severity]
                                 )}
-                                onClick={() => void handleNudge(student)}
+                                onClick={() => openNudgeComposer(student)}
                                 disabled={sendNudge.isPending}
                               >
                                 <Bell className="me-2 h-4 w-4" />
@@ -400,6 +509,64 @@ const TeacherStudentsPage = () => {
           })}
         </div>
       )}
+
+      {/* QA 2026-09-02 (V6): nudge composer — teachers send a specific,
+          editable message instead of an opaque generic one. */}
+      <Dialog
+        open={nudgeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setNudgeTarget(null);
+            setNudgeMessage("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {t("interventions.composerTitle", {
+                name: nudgeTarget?.full_name ?? "",
+              })}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label
+              htmlFor="nudge-message"
+              className="text-sm font-medium text-slate-700"
+            >
+              {t("interventions.messageLabel")}
+            </label>
+            <Textarea
+              id="nudge-message"
+              value={nudgeMessage}
+              onChange={(e) => setNudgeMessage(e.target.value)}
+              placeholder={t("interventions.messagePlaceholder")}
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setNudgeTarget(null);
+                setNudgeMessage("");
+              }}
+            >
+              {t("interventions.cancel")}
+            </Button>
+            <Button
+              variant="tactile"
+              onClick={() => void handleSendNudge()}
+              disabled={sendNudge.isPending}
+            >
+              <Bell className="me-2 h-4 w-4" />
+              {sendNudge.isPending
+                ? t("interventions.sending")
+                : t("interventions.send")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

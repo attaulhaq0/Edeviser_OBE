@@ -614,15 +614,21 @@ export const useSendNudge = () => {
       studentId: string;
       message: string;
     }) => {
-      const { error } = await supabase.rpc("send_teacher_nudge", {
+      // QA 2026-09-02 (V6): the RPC now also records a learning_interventions
+      // follow-up row and returns its id.
+      const { data, error } = await supabase.rpc("send_teacher_nudge", {
         p_student_id: studentId,
         p_message: message,
       });
       if (error) throw error; // RLS/authorization errors surface here
+      return data as string | null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.teacherDashboard.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.interventions.all,
       });
     },
     onError: (err: unknown) => {
