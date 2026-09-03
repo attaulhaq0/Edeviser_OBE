@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Json } from "@/types/database";
+import { parseNotificationPrefs } from "@/lib/notificationPrefs";
 
 export interface QuietHours {
   enabled: boolean;
@@ -36,9 +37,9 @@ export const useNotificationPreferences = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      const prefs =
-        data?.notification_preferences as NotificationPreferences | null;
-      return prefs ?? DEFAULT_PREFERENCES;
+      // T30: tolerant parse via the pure helpers — malformed/legacy jsonb
+      // falls back per-field instead of an unchecked cast.
+      return parseNotificationPrefs(data?.notification_preferences);
     },
     enabled: !!userId,
   });
