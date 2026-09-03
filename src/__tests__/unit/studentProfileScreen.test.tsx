@@ -73,6 +73,18 @@ vi.mock("@/hooks/useEquippedItems", () => ({
   useEquippedItems: () => ({ data: [], isLoading: false }),
 }));
 
+// T30: academic info card — mocked so no real query runs.
+vi.mock("@/hooks/useStudentAcademicInfo", () => ({
+  useStudentAcademicInfo: () => ({
+    data: {
+      programs: ["BSc Computer Science"],
+      faculty: "College of Engineering",
+      courses: [{ code: "CS101", name: "Intro to Programming" }],
+    },
+    isLoading: false,
+  }),
+}));
+
 vi.mock("@/hooks/useHeatmapData", () => ({
   useHeatmapData: () => ({
     data: [
