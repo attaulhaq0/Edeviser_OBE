@@ -1,4 +1,20 @@
 {
+  "interventions": {
+    "composerTitle": "إرسال تنبيه إلى {{name}}",
+    "messageLabel": "الرسالة",
+    "messagePlaceholder": "اكتب رسالة متابعة قصيرة ومحددة…",
+    "defaultMessage": "مرحباً {{name}}، لاحظتُ أنك قد تحتاج إلى متابعة سريعة. لنعد إلى المسار الصحيح معاً.",
+    "send": "إرسال التنبيه",
+    "sending": "جارٍ الإرسال…",
+    "cancel": "إلغاء",
+    "sentToast": "تم إرسال التنبيه إلى {{name}}",
+    "failedToast": "تعذر إرسال التنبيه",
+    "emptyMessage": "اكتب رسالة قبل الإرسال.",
+    "followUps": "متابعات مفتوحة",
+    "resolve": "تمت المعالجة",
+    "resolvedToast": "تم إنهاء المتابعة",
+    "resolveFailed": "تعذر إنهاء المتابعة"
+  },
   "dashboard": {
     "title": "لوحة التحكم",
     "welcome": {
