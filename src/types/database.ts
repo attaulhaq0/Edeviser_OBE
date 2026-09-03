@@ -11490,6 +11490,10 @@ export type Database = {
         Args: { p_accept: boolean; p_friendship_id: string }
         Returns: undefined
       }
+      respond_teacher_handoff: {
+        Args: { p_handoff_id: string; p_response: string; p_status?: string }
+        Returns: undefined
+      }
       rls_isolation_violations: {
         Args: never
         Returns: {
@@ -11587,6 +11591,10 @@ export type Database = {
         Returns: boolean
       }
       team_in_my_institution: { Args: { p_team_id: string }; Returns: boolean }
+      validate_grade_scale_partition: {
+        Args: { scales: Json }
+        Returns: boolean
+      }
     }
     Enums: {
       assignment_type: "assignment" | "quiz" | "project" | "exam"

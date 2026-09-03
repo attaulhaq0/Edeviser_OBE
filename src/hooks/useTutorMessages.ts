@@ -62,6 +62,12 @@ export interface SendMessageOptions {
     httpStatus?: number;
     networkError?: boolean;
   }) => void;
+  /**
+   * E2.F: surfaced when the tutor backend detects a handoff trigger
+   * (low RAG confidence / repeated question / low satisfaction). The page
+   * holds it until the student explicitly consents to a teacher handoff.
+   */
+  onHandoffSuggestion?: (data: { reason: string; message: string }) => void;
   signal?: AbortSignal;
 }
 
@@ -130,6 +136,7 @@ export const useSendMessage = () => {
         onDone,
         onPlanUpdate,
         onErrorSignal,
+        onHandoffSuggestion,
         signal,
       } = options;
 
@@ -205,6 +212,7 @@ export const useSendMessage = () => {
           toast.error(error.message || "Failed to send message");
         },
         onPlanUpdate: onPlanUpdate,
+        onHandoffSuggestion: onHandoffSuggestion,
       };
 
       await sendTutorMessage(input, callbacks, signal);

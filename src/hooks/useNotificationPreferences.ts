@@ -1,32 +1,27 @@
 // Task 94.3: Notification preferences hook
 // Query/mutate profiles.notification_preferences JSONB column
+// T30 consolidation: parsing + types live in `@/lib/notificationPrefs`
+// (live-matching full shape, tolerant, sibling-key preserving).
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Json } from "@/types/database";
+import {
+  parseNotificationPrefs,
+  DEFAULT_NOTIFICATION_PREFS,
+  type NotificationPrefs,
+} from "@/lib/notificationPrefs";
 
-export interface QuietHours {
-  enabled: boolean;
-  start: string; // HH:mm
-  end: string; // HH:mm
-}
-
-export interface NotificationPreferences {
-  muted_courses: string[]; // course IDs
-  quiet_hours: QuietHours;
-}
-
-const DEFAULT_PREFERENCES: NotificationPreferences = {
-  muted_courses: [],
-  quiet_hours: { enabled: false, start: "22:00", end: "07:00" },
-};
+// Historical name kept for existing consumers (shared prefs page, coordinator
+// settings) — NotificationPrefs is a superset of the old partial shape.
+export type NotificationPreferences = NotificationPrefs;
 
 export const useNotificationPreferences = (userId: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.notificationPreferences.detail(userId ?? ""),
     queryFn: async (): Promise<NotificationPreferences> => {
-      if (!userId) return DEFAULT_PREFERENCES;
+      if (!userId) return DEFAULT_NOTIFICATION_PREFS;
 
       const { data, error } = await supabase
         .from("profiles")
@@ -36,9 +31,9 @@ export const useNotificationPreferences = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      const prefs =
-        data?.notification_preferences as NotificationPreferences | null;
-      return prefs ?? DEFAULT_PREFERENCES;
+      // T30: tolerant parse via the pure helpers — malformed/legacy jsonb
+      // falls back per-field instead of an unchecked cast.
+      return parseNotificationPrefs(data?.notification_preferences);
     },
     enabled: !!userId,
   });

@@ -313,6 +313,17 @@ const CoordinatorAccreditationNew = () => {
     status: EV_STATUS_MAP[c.status] ?? "notStarted",
   }));
 
+  // ── T28 (E3.D): auto-readiness gate on the Generate form ───────────────────
+  // The selected course's live evidence status warns before generation and
+  // blocks it entirely when the course has no assembled evidence yet.
+  const selectedCourse = courses.find((c) => c.id === courseId);
+  const selectedEvidenceStatus = courseEvidence.find(
+    (c) => selectedCourse && c.code === selectedCourse.code
+  )?.status;
+  const readinessGateBlocked = selectedEvidenceStatus === "notStarted";
+  const readinessGateWarn =
+    selectedEvidenceStatus === "draft" || selectedEvidenceStatus === "blocked";
+
   const statusLabel = (s: EvStatus) =>
     s === "signed"
       ? t("accreditation.statusDocumented")
@@ -590,11 +601,27 @@ const CoordinatorAccreditationNew = () => {
             </div>
           )}
 
+          {readinessGateBlocked && (
+            <p className="mt-3 rounded-lg border border-red-100 bg-red-50/70 p-3 text-xs font-semibold text-red-700">
+              {t("accreditation.readinessBlocked")}
+            </p>
+          )}
+          {readinessGateWarn && (
+            <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 p-3 text-xs font-semibold text-amber-700">
+              {t("accreditation.readinessWarning")}
+            </p>
+          )}
+
           <Button
             variant="tactile"
             className="mt-4"
             onClick={handleGenerate}
-            disabled={generateMutation.isPending || !courseId || !semesterId}
+            disabled={
+              generateMutation.isPending ||
+              !courseId ||
+              !semesterId ||
+              readinessGateBlocked
+            }
           >
             {generateMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

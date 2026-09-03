@@ -5,9 +5,18 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Menu, Bot } from "lucide-react";
+import { Loader2, Menu, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import {
   useTutorConversations,
@@ -21,6 +30,14 @@ import {
 } from "@/hooks/useTutorMessages";
 import { useTutorUsage } from "@/hooks/useTutorUsage";
 import { useUpdateConversationAutonomy } from "@/hooks/useUpdateConversationAutonomy";
+import {
+  useCreateHandoff,
+  useHandoffContext,
+  useStudentHandoffs,
+} from "@/hooks/useTeacherHandoffs";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { mapTutorError, type TutorUiState } from "@/lib/tutorStatus";
 import ChatPanel from "@/pages/student/tutor/ChatPanel";
 import TutorStatePanel from "@/pages/student/tutor/TutorStatePanel";
@@ -47,6 +64,12 @@ const TutorPage = () => {
   // surface; any failure signal is mapped via `mapTutorError` to a distinct
   // panel (R4.2, R4.3, R4.4) with a guaranteed `error` fallback (R4.2a).
   const [tutorState, setTutorState] = useState<TutorUiState>({ kind: "ready" });
+  // E2.F: AI-detected teacher-handoff suggestion awaiting student consent.
+  const [pendingHandoff, setPendingHandoff] = useState<{
+    reason: string;
+    message: string;
+  } | null>(null);
+  const [handoffConsent, setHandoffConsent] = useState(false);
 
   // Hooks
   const { data: conversations = [], isLoading: isLoadingConversations } =
@@ -59,6 +82,10 @@ const TutorPage = () => {
   const sendMessage = useSendMessage();
   const rateMessage = useRateMessage();
   const updateAutonomy = useUpdateConversationAutonomy();
+  const createHandoff = useCreateHandoff();
+  const handoffContext = useHandoffContext(courseIdParam);
+  const { user } = useAuth();
+  const { data: studentHandoffs } = useStudentHandoffs(user?.id);
 
   // Derive persona from active conversation
   const activeConversation = conversationId
@@ -103,6 +130,71 @@ const TutorPage = () => {
     },
     [deleteConversation, conversationId, navigate]
   );
+
+  const handleHandoffSuggestion = useCallback(
+    (suggestion: { reason: string; message: string }) => {
+      // E2.F: the backend detected a handoff trigger — surface the consent
+      // dialog. Never auto-create a request; consent is mandatory (R28.4).
+      setHandoffConsent(false);
+      setPendingHandoff(suggestion);
+    },
+    []
+  );
+
+  const handleConfirmHandoff = useCallback(() => {
+    if (!pendingHandoff || !conversationId || !user?.id) return;
+    const context = handoffContext.data;
+    if (!context) {
+      toast.error(t("tutor.handoff.unresolvable"));
+      return;
+    }
+    // The backend emits a known trigger-reason enum; anything unexpected
+    // degrades to the generic low-confidence reason rather than failing.
+    const reason =
+      pendingHandoff.reason === "repeated_question"
+        ? "repeated_question"
+        : pendingHandoff.reason === "low_satisfaction"
+        ? "low_satisfaction"
+        : "low_rag_confidence";
+    const summary =
+      messages.length > 0
+        ? messages
+            .slice(-5)
+            .map(
+              (m) => `${m.role === "user" ? "Student" : "Tutor"}: ${m.content}`
+            )
+            .join("\n")
+        : pendingHandoff.message;
+    createHandoff.mutate(
+      {
+        conversation_id: conversationId,
+        student_id: user.id,
+        teacher_id: context.teacher_id,
+        institution_id: context.institution_id,
+        course_id: context.course_id,
+        conversation_summary: summary,
+        suggested_intervention: pendingHandoff.message,
+        trigger_reason: reason,
+        student_consent: true,
+      },
+      {
+        onSuccess: () => {
+          setPendingHandoff(null);
+          setHandoffConsent(false);
+          toast.success(t("tutor.handoff.created"));
+        },
+        onError: () => toast.error(t("tutor.handoff.failed")),
+      }
+    );
+  }, [
+    pendingHandoff,
+    conversationId,
+    user,
+    handoffContext.data,
+    messages,
+    createHandoff,
+    t,
+  ]);
 
   const handleSendMessage = useCallback(
     (input: {
@@ -162,6 +254,7 @@ const TutorPage = () => {
                 onCitations: input.onCitations,
                 onDone: input.onDone,
                 onErrorSignal: handleErrorSignal,
+                onHandoffSuggestion: handleHandoffSuggestion,
               });
             },
             onError: () => {
@@ -185,6 +278,7 @@ const TutorPage = () => {
           onCitations: input.onCitations,
           onDone: input.onDone,
           onErrorSignal: handleErrorSignal,
+          onHandoffSuggestion: handleHandoffSuggestion,
         });
       }
     },
@@ -195,6 +289,7 @@ const TutorPage = () => {
       derivedPersona,
       createConversation,
       sendMessage,
+      handleHandoffSuggestion,
       navigate,
       t,
     ]
@@ -372,6 +467,104 @@ const TutorPage = () => {
           </ErrorBoundary>
         )}
       </div>
+
+      {/* E2.F: student handoff history — closes the resolve loop by showing
+          each request's status and the teacher's response. */}
+      {(studentHandoffs?.length ?? 0) > 0 && (
+        <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
+          <h2 className="text-sm font-semibold text-gray-800">
+            {t("tutor.handoff.historyTitle")}
+          </h2>
+          <ul className="mt-3 space-y-3">
+            {studentHandoffs!.map((h) => (
+              <li
+                key={h.id}
+                className="rounded-lg border border-gray-100 bg-gray-50/60 p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-gray-600">
+                    {new Date(h.created_at).toLocaleDateString()}
+                  </span>
+                  <Badge
+                    variant={
+                      h.status === "pending"
+                        ? "outline"
+                        : h.status === "resolved"
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
+                    {t(`tutor.handoff.status_${h.status}`)}
+                  </Badge>
+                </div>
+                <p className="mt-1 line-clamp-2 text-sm text-gray-700">
+                  {h.conversation_summary}
+                </p>
+                {h.teacher_response && (
+                  <p className="mt-2 rounded-md bg-white border border-gray-100 p-2 text-sm text-gray-800">
+                    <span className="font-medium">
+                      {t("tutor.handoff.teacherResponse")}{" "}
+                    </span>
+                    {h.teacher_response}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* E2.F: student consent dialog for an AI-detected handoff (R28.4).
+          The request is only created after explicit opt-in. */}
+      <Dialog
+        open={!!pendingHandoff}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingHandoff(null);
+            setHandoffConsent(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("tutor.handoff.title")}</DialogTitle>
+            <DialogDescription>
+              {t("tutor.handoff.description")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-md bg-gray-50 border border-gray-100 p-3 text-sm text-gray-700 whitespace-pre-wrap">
+            {pendingHandoff?.message}
+          </div>
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <Checkbox
+              checked={handoffConsent}
+              onCheckedChange={(checked) => setHandoffConsent(checked === true)}
+              className="mt-0.5"
+            />
+            <span>{t("tutor.handoff.consentLabel")}</span>
+          </label>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPendingHandoff(null);
+                setHandoffConsent(false);
+              }}
+            >
+              {t("tutor.handoff.cancel")}
+            </Button>
+            <Button
+              onClick={handleConfirmHandoff}
+              disabled={!handoffConsent || createHandoff.isPending}
+            >
+              {createHandoff.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {t("tutor.handoff.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

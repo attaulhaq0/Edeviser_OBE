@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Award,
+  Bell,
   BookOpen,
+  Bot,
+  Building2,
   CalendarDays,
   Camera,
   ChevronRight,
@@ -35,6 +38,7 @@ import { useHeatmapData } from "@/hooks/useHeatmapData";
 import { useLevel } from "@/hooks/useLevel";
 import { useStreak } from "@/hooks/useStreak";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
+import { useStudentAcademicInfo } from "@/hooks/useStudentAcademicInfo";
 import { useTieredBadges } from "@/hooks/useTieredBadges";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +70,8 @@ const StudentProfilePage = () => {
   const badges = useTieredBadges(studentId);
   const learningProfile = useStudentProfile(studentId ?? "");
   const equipped = useEquippedItems(studentId ?? "");
+  // T30 (E3.I): academic info card — program(s)/faculty from real enrollment.
+  const academicInfo = useStudentAcademicInfo(studentId);
   const anonymous = useAnonymousStatus();
   const toggleAnonymous = useToggleAnonymous();
 
@@ -453,6 +459,63 @@ const StudentProfilePage = () => {
           </PCard>
         </div>
       </div>
+
+      {/* T30 (E3.I): academic info — program(s), faculty, enrolled courses. */}
+      <PCard className="overflow-hidden p-0">
+        <ProfileCardHeading
+          icon={Building2}
+          title={t("profilePage.academicInfo")}
+        />
+        {academicInfo.isLoading ? (
+          <div className="space-y-2 p-4">
+            <Shimmer className="h-8 rounded-lg" />
+            <Shimmer className="h-8 rounded-lg" />
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            <ProfileValue
+              label={t("profilePage.faculty")}
+              value={academicInfo.data?.faculty ?? t("profilePage.unavailable")}
+              className="px-4 py-3"
+            />
+            <ProfileValue
+              label={t("profilePage.programs")}
+              value={
+                (academicInfo.data?.programs ?? []).length > 0
+                  ? (academicInfo.data?.programs ?? []).join(", ")
+                  : t("profilePage.unavailable")
+              }
+              className="px-4 py-3"
+            />
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <span className="text-sm text-slate-600">
+                {t("profilePage.enrolledCourses")}
+              </span>
+              <strong className="text-end text-sm text-slate-900">
+                {academicInfo.data?.courses.length ?? 0}
+              </strong>
+            </div>
+          </div>
+        )}
+      </PCard>
+
+      {/* T30 (E3.I): preferences — reuse existing surfaces (notifications page
+          and AI learning profile) instead of duplicating them. */}
+      <PCard className="overflow-hidden p-0">
+        <ProfileCardHeading icon={Bell} title={t("profilePage.preferences")} />
+        <div className="grid gap-px bg-slate-100 sm:grid-cols-2">
+          <SecurityLink
+            to="/student/notification-preferences"
+            icon={Bell}
+            title={t("profilePage.notificationPrefs")}
+          />
+          <SecurityLink
+            to="/student/learning-profile"
+            icon={Bot}
+            title={t("profilePage.aiPrefs")}
+          />
+        </div>
+      </PCard>
 
       <PCard className="overflow-hidden p-0">
         <ProfileCardHeading

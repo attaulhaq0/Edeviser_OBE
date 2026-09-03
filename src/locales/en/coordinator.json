@@ -383,7 +383,9 @@
     "selectCourseError": "Please select a course",
     "selectSemesterError": "Please select a semester",
     "generateSuccess": "Course file generated successfully",
-    "generateError": "Course file generation failed"
+    "generateError": "Course file generation failed",
+    "readinessBlocked": "This course has no assembled evidence yet, so a course file can't be generated. Complete the evidence pack first.",
+    "readinessWarning": "Heads up: this course's evidence is incomplete — the generated file may be missing sections."
   },
   "bilingual": {
     "arabicTitle": "Arabic Title",
