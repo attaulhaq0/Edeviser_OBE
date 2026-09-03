@@ -42,12 +42,16 @@ const asTimeString = (v: unknown, fallback: string): string =>
 const asStringArray = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 
-/** Tolerantly parse the jsonb column into a full NotificationPrefs shape. */
+/** Tolerantly parse the jsonb column into a full NotificationPrefs shape.
+ *  Unknown top-level keys (e.g. the `coordinator_alerts` sub-key written by
+ *  coordinator settings) are PRESERVED on the parse→merge→write cycle so a
+ *  read-modify-write never clobbers sibling settings. */
 export function parseNotificationPrefs(value: unknown): NotificationPrefs {
   const raw =
     value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const quiet = (raw.quiet_hours ?? {}) as Record<string, unknown>;
   return {
+    ...raw,
     email_new_assignment: asBool(
       raw.email_new_assignment,
       DEFAULT_NOTIFICATION_PREFS.email_new_assignment
@@ -73,7 +77,8 @@ export function parseNotificationPrefs(value: unknown): NotificationPrefs {
   };
 }
 
-/** Immutably merge a partial patch into the current prefs. */
+/** Immutably merge a partial patch into the current prefs. Unknown top-level
+ *  keys on `current` (sibling settings like `coordinator_alerts`) survive. */
 export function mergeNotificationPrefs(
   current: NotificationPrefs,
   patch: Partial<NotificationPrefs>

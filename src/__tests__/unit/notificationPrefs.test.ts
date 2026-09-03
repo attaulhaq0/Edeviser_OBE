@@ -30,6 +30,16 @@ describe("parseNotificationPrefs", () => {
     expect(parsed.quiet_hours.start).toBe("22:00");
   });
 
+  it("preserves unknown sibling keys (coordinator_alerts) on parse", () => {
+    const parsed = parseNotificationPrefs({
+      ...DEFAULT_NOTIFICATION_PREFS,
+      coordinator_alerts: { mentions: true },
+    });
+    expect(
+      (parsed as unknown as Record<string, unknown>).coordinator_alerts
+    ).toBeDefined();
+  });
+
   it("falls back per-field on malformed values", () => {
     const parsed = parseNotificationPrefs({
       email_new_assignment: "yes",

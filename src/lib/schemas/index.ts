@@ -46,7 +46,6 @@ export * from "./bulkGradeExport";
 export * from "./enrollmentImport";
 export * from "./semesterTransition";
 export * from "./globalSearch";
-export * from "./notificationPrefs";
 export * from "./sessionManagement";
 export * from "./wellnessXpAmount";
 export * from "./historicalEvidence";
