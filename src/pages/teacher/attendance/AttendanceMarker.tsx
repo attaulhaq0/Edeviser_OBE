@@ -37,6 +37,7 @@ import type {
 } from "@/components/shared/AttendanceGrid";
 import { GradientCardHeader, Shimmer } from "@/design-system";
 import { InlineNoSessions } from "@/components/shared/EmptyState";
+import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useTeacherCourses } from "@/hooks/useCourses";
@@ -375,17 +376,7 @@ const AttendanceMarker = () => {
 
             {/* Session List */}
             <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-              <div
-                className="px-6 py-4 flex items-center gap-2"
-                style={{
-                  background: "var(--brand-gradient)",
-                }}
-              >
-                <CalendarCheck className="h-5 w-5 text-white" />
-                <h2 className="text-lg font-bold tracking-tight text-white">
-                  Sessions
-                </h2>
-              </div>
+              <GradientCardHeader icon={CalendarCheck} title="Sessions" />
               <div className="p-4 max-h-96 overflow-y-auto">
                 {sessionsLoading ? (
                   <div className="space-y-2">
@@ -398,26 +389,30 @@ const AttendanceMarker = () => {
                 ) : (
                   <div className="space-y-1">
                     {(sessions ?? []).map((s) => (
-                      <button
+                      <Button
                         key={s.id}
                         type="button"
+                        variant="ghost"
                         onClick={() => handleSessionSelect(s.id)}
-                        className={`w-full text-start px-3 py-2 rounded-lg text-sm transition-colors ${
+                        className={cn(
+                          "h-auto w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-start text-sm",
                           selectedSessionId === s.id
-                            ? "bg-blue-50 text-blue-700 font-semibold"
-                            : "hover:bg-slate-50 text-gray-700"
-                        }`}
+                            ? "bg-slate-100 text-slate-900"
+                            : "text-slate-700"
+                        )}
                       >
-                        <span className="font-medium">
-                          {format(new Date(s.session_date), "MMM d, yyyy")}
+                        <span>
+                          <span className="font-medium">
+                            {format(new Date(s.session_date), "MMM d, yyyy")}
+                          </span>
+                          <span className="text-xs text-slate-500 ms-2 capitalize">
+                            {s.session_type}
+                          </span>
                         </span>
-                        <span className="text-xs text-gray-500 ms-2 capitalize">
-                          {s.session_type}
-                        </span>
-                        <p className="text-xs text-gray-400 truncate">
+                        <span className="block w-full truncate text-xs font-normal text-slate-400">
                           {s.topic}
-                        </p>
-                      </button>
+                        </span>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -429,22 +424,11 @@ const AttendanceMarker = () => {
           <div className="lg:col-span-2">
             {selectedSessionId ? (
               <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-                <div
-                  className="px-6 py-4 flex items-center justify-between"
-                  style={{
-                    background: "var(--brand-gradient)",
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-white" />
-                    <h2 className="text-lg font-bold tracking-tight text-white">
-                      Mark Attendance
-                    </h2>
-                  </div>
-                  <span className="text-xs text-white/70">
+                <GradientCardHeader icon={Users} title="Mark Attendance">
+                  <span className="text-xs text-slate-500">
                     {gridStudents.length} students
                   </span>
-                </div>
+                </GradientCardHeader>
                 <div className="p-6 space-y-4">
                   {/* Bulk actions */}
                   <div className="flex gap-2">
