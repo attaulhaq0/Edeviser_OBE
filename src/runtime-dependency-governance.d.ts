@@ -88,6 +88,8 @@ declare module "*resolve-production-base-sha.mjs" {
   export function selectProductionBaseSha(input: {
     before: string;
     head: string;
+    /** Head sha of the last successful evaluation run; empty when unknown. */
+    lastEvaluatedSha?: string;
     resolveCommit: (revision: string) => string;
   }): string;
 }
