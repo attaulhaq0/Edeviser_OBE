@@ -153,3 +153,43 @@ fix-forward strategy converges Git onto production content instead.
 
 **Deploy Impact: NONE** (frontend analytics + local tooling only; no migrations,
 no Edge Functions). All pre-commit gates run before PR.
+
+## Session record — 2026-09-04 (night): real event catalog shipped (PRs #319–#320)
+**Goal.** The four "no matching events" dashboards queried events nothing emitted.
+Wired the real catalog at the correct call sites and made every provisioned
+insight query an event the app actually sends.
+
+**New client events (all consent-gated, via `captureAnalyticsEvent`):**
+`outcome_created` (useCreateCLO/PLO/ILO/SubCLO, prop `outcome_type`),
+`grade_submitted` (useCreateGrade, props `score_percent`, `ai_applied`),
+`grade_viewed` (useGrade first-hit, session-deduped per submission),
+`leaderboard_viewed` (useLeaderboard first page, session-deduped),
+`badge_viewed` (useTieredBadges first load, session-deduped),
+`streak_milestone_seen` (useStreakMilestones, deduped per milestone/day),
+`signup_completed` (AuthProvider signUp success), `route_error_shown`
+(PageErrorFallback mount). View events are session-deduped (module-level Set)
+so refetch/polling can't inflate counts.
+
+**Real bugs found during build verification (not just analytics):**
+1. `useStreakMilestones` was **dead code** — connectivity matrix `targets: []`,
+   no importers, tree-shaken from the build. `HeatmapGrid` always accepted a
+   `milestones` prop but no page passed it → milestone markers (30/60/100-day)
+   were never shown AND the new event could never fire. **Fixed in #320**:
+   `HabitHeatmapPage` calls `useStreakMilestones(heatmapData)` and passes
+   `milestones` to `<HeatmapGrid>`.
+2. `quiz_attempt_submitted` **can never fire** — the static `QuizAttemptPage`
+   is unrouted (imported by nothing; students use the adaptive flow at
+   `/student/quizzes/:id/adaptive` which fires `adaptive_quiz_started/submitted`).
+   Removed the two phantom insights from the provisioner; noted in a comment.
+   **Product decision needed:** route the static quiz flow or drop it.
+
+**Provisioner v2 (`scripts/posthog-provision.mjs`).** All insights query real
+events; chain-pair insights read together ("OBE chain: submissions" vs "OBE
+chain: grades released" — widening gap = grading pipeline stall). `--update`
+flag PATCHes filters of existing same-name insights to repair already-created
+broken dashboards. **Personal API key was lost in the earlier .env rename
+incident and must be recreated by the owner before running.**
+
+**Deploy Impact: NONE.** Gates: tsc 0, eslint 0, 6712/6712 tests, provisioner
+`node --check` OK. Shipped via PRs #319 + #320 (proper Git/CI path); live prod
+bundle verified (`index-Ftpqn5wm.js` post-#320).
