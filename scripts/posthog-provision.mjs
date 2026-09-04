@@ -120,11 +120,14 @@ const DASHBOARDS = [
         "grade_submitted",
         "grade_viewed",
       ]),
-      trend("Quizzes attempted", "quiz_attempt_submitted"),
       funnel("Adaptive quiz completion", [
         "adaptive_quiz_started",
         "adaptive_quiz_submitted",
       ]),
+      // NOTE: `quiz_attempt_submitted` is intentionally NOT provisioned — the
+      // static QuizAttemptPage is unrouted (students take quizzes via the
+      // adaptive flow above), so the event can never fire. Re-add it only if
+      // the static quiz flow is routed again.
       trend("Tutor messages", "tutor_message_sent"),
     ],
   },
@@ -166,7 +169,6 @@ const DASHBOARDS = [
         math: "total",
       }),
       trend("OBE chain: grades released", "grade_submitted", { math: "total" }),
-      trend("Quiz attempts", "quiz_attempt_submitted", { math: "total" }),
       trend("Tutor response rating (avg)", "tutor_response_rated", {
         math: "avg",
         anonymize: true,
