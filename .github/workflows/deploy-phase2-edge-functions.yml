@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   resolve-impact:
@@ -31,10 +32,20 @@ jobs:
         env:
           BEFORE_SHA: ${{ github.event.before }}
           HEAD_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           node scripts/resolve-runtime-deployment-impact.mjs --validate
-          base_sha="$(node scripts/resolve-production-base-sha.mjs --before "$BEFORE_SHA" --head "$HEAD_SHA")"
+          # Anchor on the last fully-evaluated main tip (previous successful
+          # run's head), not the literal event.before: a cancelled or blocked
+          # earlier run never evaluated its diff, and event.before would
+          # silently skip those runtime changes forever.
+          last_evaluated="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-phase2-edge-functions.yml/runs?branch=main&status=success&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // ""' 2>/dev/null || true)"
+          base_sha="$(node scripts/resolve-production-base-sha.mjs \
+            --before "$BEFORE_SHA" --head "$HEAD_SHA" \
+            ${last_evaluated:+--last-evaluated-sha "$last_evaluated"})"
           node scripts/resolve-runtime-deployment-impact.mjs \
             --base-sha "$base_sha" --head-sha "$HEAD_SHA" --format github \
             >> "$GITHUB_OUTPUT"

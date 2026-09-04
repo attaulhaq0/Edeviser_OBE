@@ -422,6 +422,85 @@ describe("migration and workflow release safeguards", () => {
       })
     ).toBe(parent);
   });
+
+  it("prefers the last evaluated main tip over event.before", () => {
+    const head = "a".repeat(40);
+    const before = "b".repeat(40);
+    const lastEvaluated = "d".repeat(40);
+    expect(
+      selectProductionBaseSha({
+        before,
+        head,
+        lastEvaluatedSha: lastEvaluated,
+        resolveCommit: (revision) =>
+          [head, before, lastEvaluated].includes(revision) ? revision : "",
+      })
+    ).toBe(lastEvaluated);
+  });
+
+  it("falls back to event.before when the last evaluated sha is unknown or unresolvable", () => {
+    const head = "a".repeat(40);
+    const before = "b".repeat(40);
+    const resolves = (revision: string) =>
+      [head, before].includes(revision) ? revision : "";
+    expect(
+      selectProductionBaseSha({
+        before,
+        head,
+        lastEvaluatedSha: "",
+        resolveCommit: resolves,
+      })
+    ).toBe(before);
+    expect(
+      selectProductionBaseSha({
+        before,
+        head,
+        lastEvaluatedSha: "e".repeat(40),
+        resolveCommit: resolves,
+      })
+    ).toBe(before);
+    expect(
+      selectProductionBaseSha({
+        before,
+        head,
+        lastEvaluatedSha: "not-a-sha",
+        resolveCommit: resolves,
+      })
+    ).toBe(before);
+  });
+
+  it("uses the last evaluated tip even when event.before is a zero sha", () => {
+    const head = "a".repeat(40);
+    const parent = "c".repeat(40);
+    const lastEvaluated = "d".repeat(40);
+    expect(
+      selectProductionBaseSha({
+        before: "0".repeat(40),
+        head,
+        lastEvaluatedSha: lastEvaluated,
+        resolveCommit: (revision) =>
+          revision === lastEvaluated
+            ? lastEvaluated
+            : revision === head
+            ? head
+            : revision === `${head}^`
+            ? parent
+            : "",
+      })
+    ).toBe(lastEvaluated);
+  });
+
+  it("no-ops when the last evaluated tip is the reviewed head itself", () => {
+    const head = "a".repeat(40);
+    expect(
+      selectProductionBaseSha({
+        before: "b".repeat(40),
+        head,
+        lastEvaluatedSha: head,
+        resolveCommit: (revision) => (revision === head ? head : ""),
+      })
+    ).toBe(head);
+  });
 });
 
 describe("reviewed/deployed source parity", () => {
