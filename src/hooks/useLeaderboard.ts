@@ -23,6 +23,10 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { leaderboardState, type LeaderboardState } from "@/lib/leaderboardGate";
 import { hasMore } from "@/lib/pagination";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
+
+/** Fired once per browser session when the leaderboard first loads. */
+let leaderboardViewLogged = false;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -129,8 +133,21 @@ export const useLeaderboard = (
       institutionId,
       pageSize,
     }),
-    queryFn: ({ pageParam }): Promise<LeaderboardPageResult> =>
-      fetchLeaderboardPage(institutionId as string, pageSize, pageParam),
+    queryFn: async ({ pageParam }): Promise<LeaderboardPageResult> => {
+      const result = await fetchLeaderboardPage(
+        institutionId as string,
+        pageSize,
+        pageParam
+      );
+      // QA/gamification signal: leaderboard actually seen (session-deduped).
+      if (pageParam === 0 && !leaderboardViewLogged) {
+        leaderboardViewLogged = true;
+        captureAnalyticsEvent("leaderboard_viewed", {
+          eligible_count: result.eligibleCount,
+        });
+      }
+      return result;
+    },
     initialPageParam: 0,
     getNextPageParam: (_lastPage, allPages) => {
       const eligibleCount = allPages[0]?.eligibleCount ?? 0;

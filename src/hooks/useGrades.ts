@@ -4,6 +4,13 @@ import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
 import type { GradeFormData } from "@/lib/schemas/grade";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
+
+/**
+ * Session-level dedupe for grade_viewed: one analytics event per submission
+ * per browser session (refetches/polling must not inflate the count).
+ */
+const viewedGradeSubmissions = new Set<string>();
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -70,7 +77,15 @@ export const useGrade = (submissionId?: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as unknown as Grade | null;
+      const grade = data as unknown as Grade | null;
+      // QA signal: the student actually saw their grade (session-deduped).
+      if (grade && !viewedGradeSubmissions.has(grade.submission_id)) {
+        viewedGradeSubmissions.add(grade.submission_id);
+        captureAnalyticsEvent("grade_viewed", {
+          score_percent: grade.score_percent,
+        });
+      }
+      return grade;
     },
     enabled: !!submissionId,
   });
@@ -112,6 +127,11 @@ export const useCreateGrade = () => {
       return grade;
     },
     onSuccess: (grade) => {
+      captureAnalyticsEvent("grade_submitted", {
+        score_percent: grade.score_percent,
+        ai_applied: grade.ai_applied,
+        submission_id: grade.submission_id,
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.grades.lists() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.submissions.lists(),

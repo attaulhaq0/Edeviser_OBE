@@ -4,6 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "sonner";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
+
+/** Fired once per browser session when the student's badge collection loads. */
+let badgeViewLogged = false;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -48,7 +52,7 @@ export const useTieredBadges = (studentId: string | undefined) => {
         .is("team_id", null)
         .order("awarded_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((b) => ({
+      const mapped = (data ?? []).map((b) => ({
         id: b.id,
         name: b.badge_name,
         emoji: b.emoji ?? "🏅",
@@ -60,6 +64,12 @@ export const useTieredBadges = (studentId: string | undefined) => {
         earned_at: b.awarded_at,
         progress_toward_next: 0,
       }));
+      // Gamification signal: badge collection seen (session-deduped).
+      if (!badgeViewLogged) {
+        badgeViewLogged = true;
+        captureAnalyticsEvent("badge_viewed", { badge_count: mapped.length });
+      }
+      return mapped;
     },
     enabled: !!studentId,
     staleTime: 120_000,
