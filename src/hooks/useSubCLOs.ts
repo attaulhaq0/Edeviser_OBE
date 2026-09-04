@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useAuth } from "@/hooks/useAuth";
 import type { SubCLOFormData } from "@/lib/schemas/subCLO";
 import type { Database } from "@/types/database";
@@ -62,6 +63,7 @@ export const useCreateSubCLO = () => {
       return result;
     },
     onSuccess: (_data, variables) => {
+      captureAnalyticsEvent("outcome_created", { outcome_type: "SUB_CLO" });
       queryClient.invalidateQueries({
         queryKey: queryKeys.subCLOs.list({
           cloId: variables.parent_outcome_id,

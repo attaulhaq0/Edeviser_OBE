@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { fetchUserInstitutionId } from "@/lib/userInstitution";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreateCLOFormData } from "@/lib/schemas/clo";
 import type { LearningOutcome } from "@/types/app";
@@ -118,7 +119,7 @@ export const useSetCLOReviewStatus = () => {
         .update({
           review_status: status,
           reviewed_at: reviewing ? new Date().toISOString() : null,
-          reviewed_by: reviewing ? (user?.id ?? null) : null,
+          reviewed_by: reviewing ? user?.id ?? null : null,
         })
         .eq("id", cloId)
         .eq("type", "CLO")
@@ -149,7 +150,9 @@ export const useSetCLOReviewStatus = () => {
         queryKey: queryKeys.outcomeAttainment.lists(),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.cqiPlans.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.cqiInstitutional.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cqiInstitutional.all,
+      });
     },
   });
 };
@@ -275,6 +278,7 @@ export const useCreateCLO = () => {
       return clo;
     },
     onSuccess: () => {
+      captureAnalyticsEvent("outcome_created", { outcome_type: "CLO" });
       queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.outcomeMappings.lists(),

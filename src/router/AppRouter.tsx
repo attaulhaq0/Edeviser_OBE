@@ -1,9 +1,10 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import RouteGuard from "@/router/RouteGuard";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { criticalRouteSegments, criticalRoutes } from "@/lib/criticalRoutes";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 // ---------------------------------------------------------------------------
 // Public pages (no auth required)
@@ -507,38 +508,47 @@ const AdminSecurityPage = lazy(
 // ---------------------------------------------------------------------------
 // Page-level error fallback
 // ---------------------------------------------------------------------------
-const PageErrorFallback = () => (
-  <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-    <div className="rounded-full bg-red-50 p-4 mb-4">
-      <svg
-        className="h-8 w-8 text-red-500"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+const PageErrorFallback = () => {
+  // QA signal: a route-level error UI was actually shown to the user.
+  useEffect(() => {
+    captureAnalyticsEvent("route_error_shown", {
+      path: window.location.pathname,
+    });
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+      <div className="rounded-full bg-red-50 p-4 mb-4">
+        <svg
+          className="h-8 w-8 text-red-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+      </div>
+      <h2 className="text-lg font-bold text-gray-900 mb-2">
+        Page failed to load
+      </h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Something went wrong loading this page.
+      </p>
+      <Button
+        type="button"
+        onClick={() => window.location.reload()}
+        variant="tactile"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-        />
-      </svg>
+        Reload page
+      </Button>
     </div>
-    <h2 className="text-lg font-bold text-gray-900 mb-2">
-      Page failed to load
-    </h2>
-    <p className="text-sm text-gray-500 mb-4">
-      Something went wrong loading this page.
-    </p>
-    <Button
-      type="button"
-      onClick={() => window.location.reload()}
-      variant="tactile"
-    >
-      Reload page
-    </Button>
-  </div>
-);
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Shared loading fallback

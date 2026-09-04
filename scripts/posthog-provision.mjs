@@ -76,7 +76,10 @@ const funnel = (name, events) => ({
   },
 });
 
-/** Dashboards (mirrors design.md §Dashboards). */
+/** Dashboards. Event names are the REAL catalog emitted by src/ (verified
+ * 2026-09-04) — every insight queries an event the app actually sends, so no
+ * insight can sit empty. Chain-pair insights must be read together: a widening
+ * gap between the two lines is a broken-pipeline signal. */
 const DASHBOARDS = [
   {
     name: "Investor — Users & Engagement",
@@ -86,30 +89,54 @@ const DASHBOARDS = [
         kind: "weekly",
         math: "weekly_active",
       }),
-      trend("Sessions started", "$session_id"),
-      trend("Sign-ups", "$identify", { math: "dau" }),
+      trend("Sign-ups", "signup_completed"),
+      trend("Logins by role", "login_succeeded", { breakdown: "role" }),
       funnel("Signup → first submission", [
-        "$identify",
+        "signup_completed",
         "assignment_submitted",
       ]),
-      trend("Pageviews by role", "$pageview", { breakdown: "role" }),
+      trend("Marketplace purchases by category", "marketplace_item_purchased", {
+        breakdown: "item_category",
+      }),
+      trend("Tutor adoption (daily users)", "tutor_message_sent", {
+        kind: "unique",
+      }),
+      trend("Quizzes created by teachers", "quiz_created", {
+        breakdown: "is_adaptive",
+      }),
     ],
   },
   {
     name: "Engine Health — OBE",
     insights: [
+      trend("Outcomes created by type", "outcome_created", {
+        breakdown: "outcome_type",
+      }),
       trend("Submissions", "assignment_submitted"),
+      trend("Grades submitted", "grade_submitted"),
+      trend("Students seeing grades", "grade_viewed"),
+      funnel("Submission → grade → student saw grade", [
+        "assignment_submitted",
+        "grade_submitted",
+        "grade_viewed",
+      ]),
       trend("Quizzes attempted", "quiz_attempt_submitted"),
-      trend("Marketplace purchases", "marketplace_item_purchased"),
+      funnel("Adaptive quiz completion", [
+        "adaptive_quiz_started",
+        "adaptive_quiz_submitted",
+      ]),
       trend("Tutor messages", "tutor_message_sent"),
     ],
   },
   {
     name: "Engine Health — Habit/Gamification",
     insights: [
-      trend("Logins (daily)", "$identify", { kind: "unique" }),
-      trend("Streak milestone views", "streak_milestone_seen"),
-      trend("Badge views", "badge_viewed"),
+      trend("Logins (daily)", "login_succeeded", { kind: "unique" }),
+      trend("Streak milestones seen", "streak_milestone_seen", {
+        breakdown: "milestone_days",
+      }),
+      trend("Badge collections viewed", "badge_viewed"),
+      trend("Leaderboard views", "leaderboard_viewed"),
       trend("Purchases by category", "marketplace_item_purchased", {
         breakdown: "item_category",
       }),
@@ -117,18 +144,33 @@ const DASHBOARDS = [
         math: "avg",
         anonymize: true,
       }),
+      funnel("Gamification loop", [
+        "login_succeeded",
+        "leaderboard_viewed",
+        "marketplace_item_purchased",
+      ]),
     ],
   },
   {
     name: "QA & Broken Chains (+AI)",
     insights: [
       trend("Runtime exceptions", "$exception", { kind: "total" }),
-      trend("Route errors shown", "route_error_shown"),
-      trend("Failed purchases", "marketplace_purchase_failed"),
-      trend("Grade→XP drift (graded vs xp_grade_awarded)", "xp_grade_awarded", {
+      trend("Route errors shown", "route_error_shown", { kind: "total" }),
+      trend("Failed logins", "login_failed", { kind: "total" }),
+      trend("Failed purchases", "marketplace_purchase_failed", {
         kind: "total",
       }),
-      funnel("Grade release → XP award", ["grade_viewed", "xp_grade_awarded"]),
+      // Broken-chain pair: submissions climbing while grades stay flat means
+      // ungraded work is piling up (teacher grading pipeline stall).
+      trend("OBE chain: submissions", "assignment_submitted", {
+        math: "total",
+      }),
+      trend("OBE chain: grades released", "grade_submitted", { math: "total" }),
+      trend("Quiz attempts", "quiz_attempt_submitted", { math: "total" }),
+      trend("Tutor response rating (avg)", "tutor_response_rated", {
+        math: "avg",
+        anonymize: true,
+      }),
     ],
   },
 ];
@@ -208,7 +250,19 @@ const main = async () => {
     for (const insight of dashboard.insights) {
       const existing = insightByName.get(insight.name);
       if (existing) {
-        if (existing.dashboardIds.includes(dashboardId)) {
+        // --update: repair the filters of an existing (possibly broken) insight
+        // whose name matches a definition here — e.g. insights created against
+        // events the app never emitted.
+        const shouldUpdate = process.argv.includes("--update");
+        if (shouldUpdate) {
+          await patch(`/insights/${existing.id}/`, {
+            filters: insight.filters,
+            dashboards: [...existing.dashboardIds, dashboardId],
+          });
+          console.log(
+            `   🔧 insight "${insight.name}" — filters updated (--update)`
+          );
+        } else if (existing.dashboardIds.includes(dashboardId)) {
           console.log(`   ⏭️  insight "${insight.name}" — already attached`);
         } else {
           // Orphaned by a previous buggy run (wrong attachment field): repair.

@@ -7,6 +7,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useAuth } from "@/hooks/useAuth";
 import type {
   CreateILOFormData,
@@ -96,6 +97,7 @@ export const useCreateILO = () => {
       return ilo;
     },
     onSuccess: () => {
+      captureAnalyticsEvent("outcome_created", { outcome_type: "ILO" });
       queryClient.invalidateQueries({ queryKey: queryKeys.ilos.lists() });
     },
   });

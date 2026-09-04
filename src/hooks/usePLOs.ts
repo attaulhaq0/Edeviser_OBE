@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { fetchUserInstitutionId } from "@/lib/userInstitution";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreatePLOFormData } from "@/lib/schemas/plo";
 import type { LearningOutcome } from "@/types/app";
@@ -124,6 +125,7 @@ export const useCreatePLO = () => {
       return plo;
     },
     onSuccess: () => {
+      captureAnalyticsEvent("outcome_created", { outcome_type: "PLO" });
       queryClient.invalidateQueries({ queryKey: queryKeys.plos.lists() });
     },
   });

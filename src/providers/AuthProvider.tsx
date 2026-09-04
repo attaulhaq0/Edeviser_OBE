@@ -556,6 +556,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { success: false, error: mapSignupError(error.message) };
       }
 
+      // Analytics: registration completed (consent-gated wrapper; the event is
+      // attributed to the pre-auth anonymous distinct_id and merges on identify).
+      captureAnalyticsEvent("signup_completed", {
+        verification_required: !data.session,
+      });
+
       // Supabase returns `session=null` when email confirmation is required
       // (production default). `session` is populated when confirmation is
       // disabled or an auto-confirm hook ran.
