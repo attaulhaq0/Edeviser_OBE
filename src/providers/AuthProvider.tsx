@@ -37,6 +37,7 @@ import {
   hasAnalyticsConsent,
   identifyAnalyticsUser,
   resetAnalyticsUser,
+  captureAnalyticsEvent,
 } from "@/lib/analyticsConsent";
 
 // ---------------------------------------------------------------------------
@@ -378,6 +379,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         // Record on both client and server
         recordFailedAttempt(email);
+        captureAnalyticsEvent("login_failed");
         const serverResult = await recordServerFailedAttempt(email);
 
         // After recording, check if the account just got locked (either side)
@@ -404,6 +406,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(data.user);
       setProfile(userProfile);
       identifyAuthenticatedUser(data.user, userProfile);
+      captureAnalyticsEvent("login_succeeded", {
+        role: userProfile?.role ?? "unknown",
+      });
       // Do not depend on the asynchronous SIGNED_IN subscription callback to
       // release RouteGuard. The profile request above has already completed, so
       // leaving this true can strand a successful local sign-in on its loading

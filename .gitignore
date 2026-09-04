@@ -121,3 +121,6 @@ runtime-governance-scratch/
 
 # Local artifacts & captures
 pdf-forge-exports/
+
+# Generated QA artifacts (source of truth is the .md)
+docs/qa/*.pdf

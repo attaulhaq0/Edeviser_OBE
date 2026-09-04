@@ -94,6 +94,9 @@ export const usePurchaseItem = () => {
       toast.success("Purchase successful!");
     },
     onError: (error: Error) => {
+      captureAnalyticsEvent("marketplace_purchase_failed", {
+        item_id: error.message, // conservative: log the friendly error text, never the raw body
+      });
       toast.error(error.message);
     },
   });
