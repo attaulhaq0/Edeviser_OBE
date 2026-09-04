@@ -30,6 +30,7 @@ import {
   useLogWellnessHabit,
 } from "@/hooks/useWellnessHabits";
 import { useSemesterRange } from "@/hooks/useSemesterRange";
+import { useStreakMilestones } from "@/hooks/useStreakMilestones";
 import {
   computeHabitSummary,
   PERFECT_DAY_XP,
@@ -124,6 +125,9 @@ const HabitHeatmapContent = () => {
     studentId,
     heatmapData
   );
+  // Achieved 30/60/100-day milestones (renders markers on the grid and
+  // fires the consent-gated `streak_milestone_seen` analytics event).
+  const milestones = useStreakMilestones(heatmapData);
   const { data: xpByDate } = useHeatmapXpByDate(studentId, resolvedRange);
   const { data: preferences } = useWellnessPreferences(studentId);
   const { data: todayLogs } = useWellnessHabitLogs(studentId, today);
@@ -342,6 +346,7 @@ const HabitHeatmapContent = () => {
             <HeatmapGrid
               data={heatmapData ?? []}
               semesterRange={resolvedRange}
+              milestones={milestones}
               onCellClick={handleCellClick}
               onCellHover={handleCellHover}
             />
