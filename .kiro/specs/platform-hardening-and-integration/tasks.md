@@ -90,7 +90,7 @@ Method: static call-path traces on merged `main` + live Supabase MCP introspecti
 |---|---|---|---|
 | 1 | P2 | T16: "design-system rebuild" only partially applied (header fixed; raw `<button>` + two hand-rolled gradient header strips remained) | **FIXED 2026-09-04** — conformance pass on `AttendanceMarker.tsx` (see T16 entry) |
 | 2 | P2 | T24: rubric "versioning" is clone-with-audit lineage; no numeric version columns | **RECORDED** (T31) — needs product decision; not buildable without semantics sign-off |
-| 3 | P3 | V1/V2 production re-test pending frontend deploy — client guards on main; DB enforcement already live (partition trigger + title CHECKs verified live) | **TRACKED** — re-run the two QA probes after the next Vercel deploy of main |
+| 3 | P3 | V1/V2 production re-test pending frontend deploy — client guards on main; DB enforcement already live (partition trigger + title CHECKs verified live) | **DEPLOYED + BUNDLE-VERIFIED 2026-09-04** — production alias `e-deviser.vercel.app` serves the `83870c1e` build (Vercel deployment 6268552614, success); recursive bundle scan (522 chunks) found all guard literals: `Grade bands overlap:` / `Grade bands leave a gap:` in `InstitutionSettings-*.js`, `must contain letters or numbers` in `ILOForm-*.js`, plus `respond_teacher_handoff` and `record_attendance_v1` — client guards LIVE. UI probes now unblocked for QA |
 | 4 | P3 | Deploy-base resolver drift risk (cancelled/blocked runs never re-scanned) | **FIXED** — PR #315 merged (base anchored on last evaluated run; 4 new tests; CLI smoke-verified) |
 
 **Verdict: 🟡 PASS WITH WARNINGS → warnings now closed (1 fixed, 2 recorded with owners/decisions). Spec is safe to consider DONE.**
