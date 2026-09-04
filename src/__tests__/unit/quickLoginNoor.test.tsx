@@ -58,7 +58,7 @@ import LoginPage from "@/pages/LoginPage";
 
 const setupMocks = (
   role = "student",
-  email = "student01@noor-international.test",
+  email = "student01@noor-international.edu",
   userId = "user-1"
 ) => {
   mockGetSession.mockResolvedValue({
@@ -183,7 +183,7 @@ describe("Quick Login for Noor International Testing", () => {
   });
 
   it("authenticates student and navigates to /student/dashboard", async () => {
-    setupMocks("student", "student01@noor-international.test", "student-id-1");
+    setupMocks("student", "student01@noor-international.edu", "student-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -198,7 +198,7 @@ describe("Quick Login for Noor International Testing", () => {
       () => {
         expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
-          email: "student01@noor-international.test",
+          email: "student01@noor-international.edu",
           password: expect.any(String),
         });
         expect(mockNavigate).toHaveBeenCalledWith("/student/dashboard", {
@@ -210,7 +210,7 @@ describe("Quick Login for Noor International Testing", () => {
   });
 
   it("authenticates parent with verified child link and navigates to /parent/dashboard", async () => {
-    setupMocks("parent", "parent01@noor-international.test", "parent-id-1");
+    setupMocks("parent", "parent01@noor-international.edu", "parent-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -225,7 +225,7 @@ describe("Quick Login for Noor International Testing", () => {
       () => {
         expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
-          email: "parent01@noor-international.test",
+          email: "parent01@noor-international.edu",
           password: expect.any(String),
         });
         expect(mockNavigate).toHaveBeenCalledWith("/parent/dashboard", {
@@ -237,7 +237,7 @@ describe("Quick Login for Noor International Testing", () => {
   });
 
   it("authenticates teacher with assigned courses and navigates to /teacher/dashboard", async () => {
-    setupMocks("teacher", "okonkwo@noor-international.test", "teacher-id-1");
+    setupMocks("teacher", "okonkwo@noor-international.edu", "teacher-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -252,7 +252,7 @@ describe("Quick Login for Noor International Testing", () => {
       () => {
         expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
-          email: "okonkwo@noor-international.test",
+          email: "okonkwo@noor-international.edu",
           password: expect.any(String),
         });
         expect(mockNavigate).toHaveBeenCalledWith("/teacher/dashboard", {
@@ -266,7 +266,7 @@ describe("Quick Login for Noor International Testing", () => {
   it("authenticates coordinator with program access and navigates to /coordinator/dashboard", async () => {
     setupMocks(
       "coordinator",
-      "curriculum@noor-international.test",
+      "curriculum@noor-international.edu",
       "coord-id-1"
     );
     const user = userEvent.setup();
@@ -283,7 +283,7 @@ describe("Quick Login for Noor International Testing", () => {
       () => {
         expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
-          email: "curriculum@noor-international.test",
+          email: "curriculum@noor-international.edu",
           password: expect.any(String),
         });
         expect(mockNavigate).toHaveBeenCalledWith("/coordinator/dashboard", {
@@ -295,7 +295,7 @@ describe("Quick Login for Noor International Testing", () => {
   });
 
   it("authenticates admin and navigates to /admin/dashboard", async () => {
-    setupMocks("admin", "principal@noor-international.test", "admin-id-1");
+    setupMocks("admin", "principal@noor-international.edu", "admin-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -310,7 +310,7 @@ describe("Quick Login for Noor International Testing", () => {
       () => {
         expect(mockSignOut).toHaveBeenCalled();
         expect(mockSignInWithPassword).toHaveBeenCalledWith({
-          email: "principal@noor-international.test",
+          email: "principal@noor-international.edu",
           password: expect.any(String),
         });
         expect(mockNavigate).toHaveBeenCalledWith("/admin/dashboard", {
@@ -322,7 +322,7 @@ describe("Quick Login for Noor International Testing", () => {
   });
 
   it("aborts redirect and displays error when account role mismatch occurs", async () => {
-    setupMocks("student", "parent01@noor-international.test", "mismatch-id-1");
+    setupMocks("student", "parent01@noor-international.edu", "mismatch-id-1");
     const user = userEvent.setup();
     renderLoginPage();
 

@@ -17,7 +17,7 @@ lives only in:
 
 Ask the project owner for the current value, or read it from your local
 `.env.local`. To rotate again: reset `auth.users.encrypted_password` for the
-`@gulf-academy.test`, `@noor-international.test`, and `@demo.com` accounts
+`@gulf-academy.test`, `@noor-international.edu`, and `@demo.com` accounts
 (bcrypt via `crypt(pw, gen_salt('bf', 10))`), then update `VITE_DEMO_PASSWORD`
 to match. Never commit the literal back into source.
 
@@ -113,22 +113,22 @@ to match. Never commit the literal back into source.
 | Field        | Value                             |
 | ------------ | --------------------------------- |
 | Slug         | `noor-international`              |
-| Email domain | `@noor-international.test`        |
+| Email domain | `@noor-international.edu`         |
 | Grade band   | 6–8                               |
 | Locale       | Mixed English + bilingual UI test |
 
 ### Staff Accounts
 
-| Role                           | Email                                | Full Name            |
-| ------------------------------ | ------------------------------------ | -------------------- |
-| **Admin** (Principal)          | `principal@noor-international.test`  | Mrs. Priya Venkatesh |
-| **Coordinator** (Curriculum)   | `curriculum@noor-international.test` | Dr. James O'Connor   |
-| **Coordinator** (Welfare)      | `welfare@noor-international.test`    | Ms. Amina Diallo     |
-| **Coordinator** (Assessment)   | `assessment@noor-international.test` | Mr. Benjamin Cohen   |
-| **Teacher** (Math 6)           | `kim@noor-international.test`        | Ms. Rachel Kim       |
-| **Teacher** (English 7)        | `okonkwo@noor-international.test`    | Mr. David Okonkwo    |
-| **Teacher** (Science 8)        | `rodriguez@noor-international.test`  | Ms. Elena Rodriguez  |
-| **Teacher** (Social Studies 7) | `tanaka@noor-international.test`     | Mr. Hiroshi Tanaka   |
+| Role                           | Email                               | Full Name            |
+| ------------------------------ | ----------------------------------- | -------------------- |
+| **Admin** (Principal)          | `principal@noor-international.edu`  | Mrs. Priya Venkatesh |
+| **Coordinator** (Curriculum)   | `curriculum@noor-international.edu` | Dr. James O'Connor   |
+| **Coordinator** (Welfare)      | `welfare@noor-international.edu`    | Ms. Amina Diallo     |
+| **Coordinator** (Assessment)   | `assessment@noor-international.edu` | Mr. Benjamin Cohen   |
+| **Teacher** (Math 6)           | `kim@noor-international.edu`        | Ms. Rachel Kim       |
+| **Teacher** (English 7)        | `okonkwo@noor-international.edu`    | Mr. David Okonkwo    |
+| **Teacher** (Science 8)        | `rodriguez@noor-international.edu`  | Ms. Elena Rodriguez  |
+| **Teacher** (Social Studies 7) | `tanaka@noor-international.edu`     | Mr. Hiroshi Tanaka   |
 
 ### Courses & Classes
 
@@ -141,73 +141,73 @@ to match. Never commit the literal back into source.
 
 ### Student Accounts (40 total)
 
-| #   | Email                               | Full Name         |
-| --- | ----------------------------------- | ----------------- |
-| 1   | `student01@noor-international.test` | Aarav Sharma      |
-| 2   | `student02@noor-international.test` | Mei Lin           |
-| 3   | `student03@noor-international.test` | Diego Fernandez   |
-| 4   | `student04@noor-international.test` | Sofia Rossi       |
-| 5   | `student05@noor-international.test` | Kwame Asante      |
-| 6   | `student06@noor-international.test` | Yuki Sato         |
-| 7   | `student07@noor-international.test` | Anya Petrova      |
-| 8   | `student08@noor-international.test` | Lucas Müller      |
-| 9   | `student09@noor-international.test` | Priya Iyer        |
-| 10  | `student10@noor-international.test` | Tomas Novak       |
-| 11  | `student11@noor-international.test` | Sienna Walsh      |
-| 12  | `student12@noor-international.test` | Mateo García      |
-| 13  | `student13@noor-international.test` | Chioma Eze        |
-| 14  | `student14@noor-international.test` | Hiroto Yamamoto   |
-| 15  | `student15@noor-international.test` | Isla Campbell     |
-| 16  | `student16@noor-international.test` | Rafael Costa      |
-| 17  | `student17@noor-international.test` | Amara Singh       |
-| 18  | `student18@noor-international.test` | Felix Schmidt     |
-| 19  | `student19@noor-international.test` | Camila Vega       |
-| 20  | `student20@noor-international.test` | Theo Bennett      |
-| 21  | `student21@noor-international.test` | Nadia Volkov      |
-| 22  | `student22@noor-international.test` | Joaquin Reyes     |
-| 23  | `student23@noor-international.test` | Eden Cohen        |
-| 24  | `student24@noor-international.test` | Liang Chen        |
-| 25  | `student25@noor-international.test` | Maya Adler        |
-| 26  | `student26@noor-international.test` | Ravi Krishnan     |
-| 27  | `student27@noor-international.test` | Beatrice Lambert  |
-| 28  | `student28@noor-international.test` | Sebastian Pereira |
-| 29  | `student29@noor-international.test` | Aaliyah Brooks    |
-| 30  | `student30@noor-international.test` | Nikhil Verma      |
-| 31  | `student31@noor-international.test` | Isabella Romano   |
-| 32  | `student32@noor-international.test` | Kenji Watanabe    |
-| 33  | `student33@noor-international.test` | Olivia Nguyen     |
-| 34  | `student34@noor-international.test` | Marcus Johansson  |
-| 35  | `student35@noor-international.test` | Layla Mansour     |
-| 36  | `student36@noor-international.test` | Ethan Park        |
-| 37  | `student37@noor-international.test` | Zara Khan         |
-| 38  | `student38@noor-international.test` | Henrik Larsen     |
-| 39  | `student39@noor-international.test` | Catalina Morales  |
-| 40  | `student40@noor-international.test` | Owen Fitzgerald   |
+| #   | Email                              | Full Name         |
+| --- | ---------------------------------- | ----------------- |
+| 1   | `student01@noor-international.edu` | Aarav Sharma      |
+| 2   | `student02@noor-international.edu` | Mei Lin           |
+| 3   | `student03@noor-international.edu` | Diego Fernandez   |
+| 4   | `student04@noor-international.edu` | Sofia Rossi       |
+| 5   | `student05@noor-international.edu` | Kwame Asante      |
+| 6   | `student06@noor-international.edu` | Yuki Sato         |
+| 7   | `student07@noor-international.edu` | Anya Petrova      |
+| 8   | `student08@noor-international.edu` | Lucas Müller      |
+| 9   | `student09@noor-international.edu` | Priya Iyer        |
+| 10  | `student10@noor-international.edu` | Tomas Novak       |
+| 11  | `student11@noor-international.edu` | Sienna Walsh      |
+| 12  | `student12@noor-international.edu` | Mateo García      |
+| 13  | `student13@noor-international.edu` | Chioma Eze        |
+| 14  | `student14@noor-international.edu` | Hiroto Yamamoto   |
+| 15  | `student15@noor-international.edu` | Isla Campbell     |
+| 16  | `student16@noor-international.edu` | Rafael Costa      |
+| 17  | `student17@noor-international.edu` | Amara Singh       |
+| 18  | `student18@noor-international.edu` | Felix Schmidt     |
+| 19  | `student19@noor-international.edu` | Camila Vega       |
+| 20  | `student20@noor-international.edu` | Theo Bennett      |
+| 21  | `student21@noor-international.edu` | Nadia Volkov      |
+| 22  | `student22@noor-international.edu` | Joaquin Reyes     |
+| 23  | `student23@noor-international.edu` | Eden Cohen        |
+| 24  | `student24@noor-international.edu` | Liang Chen        |
+| 25  | `student25@noor-international.edu` | Maya Adler        |
+| 26  | `student26@noor-international.edu` | Ravi Krishnan     |
+| 27  | `student27@noor-international.edu` | Beatrice Lambert  |
+| 28  | `student28@noor-international.edu` | Sebastian Pereira |
+| 29  | `student29@noor-international.edu` | Aaliyah Brooks    |
+| 30  | `student30@noor-international.edu` | Nikhil Verma      |
+| 31  | `student31@noor-international.edu` | Isabella Romano   |
+| 32  | `student32@noor-international.edu` | Kenji Watanabe    |
+| 33  | `student33@noor-international.edu` | Olivia Nguyen     |
+| 34  | `student34@noor-international.edu` | Marcus Johansson  |
+| 35  | `student35@noor-international.edu` | Layla Mansour     |
+| 36  | `student36@noor-international.edu` | Ethan Park        |
+| 37  | `student37@noor-international.edu` | Zara Khan         |
+| 38  | `student38@noor-international.edu` | Henrik Larsen     |
+| 39  | `student39@noor-international.edu` | Catalina Morales  |
+| 40  | `student40@noor-international.edu` | Owen Fitzgerald   |
 
 ### Parent Accounts (20 — linked to students 01–05, 11–15, 21–25, 31–35)
 
-| Email                              | Linked Student   |
-| ---------------------------------- | ---------------- |
-| `parent01@noor-international.test` | Aarav Sharma     |
-| `parent02@noor-international.test` | Mei Lin          |
-| `parent03@noor-international.test` | Diego Fernandez  |
-| `parent04@noor-international.test` | Sofia Rossi      |
-| `parent05@noor-international.test` | Kwame Asante     |
-| `parent11@noor-international.test` | Sienna Walsh     |
-| `parent12@noor-international.test` | Mateo García     |
-| `parent13@noor-international.test` | Chioma Eze       |
-| `parent14@noor-international.test` | Hiroto Yamamoto  |
-| `parent15@noor-international.test` | Isla Campbell    |
-| `parent21@noor-international.test` | Nadia Volkov     |
-| `parent22@noor-international.test` | Joaquin Reyes    |
-| `parent23@noor-international.test` | Eden Cohen       |
-| `parent24@noor-international.test` | Liang Chen       |
-| `parent25@noor-international.test` | Maya Adler       |
-| `parent31@noor-international.test` | Isabella Romano  |
-| `parent32@noor-international.test` | Kenji Watanabe   |
-| `parent33@noor-international.test` | Olivia Nguyen    |
-| `parent34@noor-international.test` | Marcus Johansson |
-| `parent35@noor-international.test` | Layla Mansour    |
+| Email                             | Linked Student   |
+| --------------------------------- | ---------------- |
+| `parent01@noor-international.edu` | Aarav Sharma     |
+| `parent02@noor-international.edu` | Mei Lin          |
+| `parent03@noor-international.edu` | Diego Fernandez  |
+| `parent04@noor-international.edu` | Sofia Rossi      |
+| `parent05@noor-international.edu` | Kwame Asante     |
+| `parent11@noor-international.edu` | Sienna Walsh     |
+| `parent12@noor-international.edu` | Mateo García     |
+| `parent13@noor-international.edu` | Chioma Eze       |
+| `parent14@noor-international.edu` | Hiroto Yamamoto  |
+| `parent15@noor-international.edu` | Isla Campbell    |
+| `parent21@noor-international.edu` | Nadia Volkov     |
+| `parent22@noor-international.edu` | Joaquin Reyes    |
+| `parent23@noor-international.edu` | Eden Cohen       |
+| `parent24@noor-international.edu` | Liang Chen       |
+| `parent25@noor-international.edu` | Maya Adler       |
+| `parent31@noor-international.edu` | Isabella Romano  |
+| `parent32@noor-international.edu` | Kenji Watanabe   |
+| `parent33@noor-international.edu` | Olivia Nguyen    |
+| `parent34@noor-international.edu` | Marcus Johansson |
+| `parent35@noor-international.edu` | Layla Mansour    |
 
 ---
 
@@ -399,13 +399,13 @@ to match. Never commit the literal back into source.
 
 ### 14. Noor International — Bilingual Test
 
-| #    | Test              | Account                               | Expected Result                | ✅/❌ |
-| ---- | ----------------- | ------------------------------------- | ------------------------------ | ----- |
-| 14.1 | Login             | `principal@noor-international.test`   | Dashboard loads                |       |
-| 14.2 | Switch to Arabic  | Language toggle                       | Full RTL layout, Arabic labels |       |
-| 14.3 | Student diversity | `student01@noor-international.test`   | Aarav Sharma dashboard         |       |
-| 14.4 | 4 courses visible | Teacher `kim@noor-international.test` | Math 6 course                  |       |
-| 14.5 | Different data    | Compare Gulf vs Noor dashboards       | Different KPI values           |       |
+| #    | Test              | Account                              | Expected Result                | ✅/❌ |
+| ---- | ----------------- | ------------------------------------ | ------------------------------ | ----- |
+| 14.1 | Login             | `principal@noor-international.edu`   | Dashboard loads                |       |
+| 14.2 | Switch to Arabic  | Language toggle                      | Full RTL layout, Arabic labels |       |
+| 14.3 | Student diversity | `student01@noor-international.edu`   | Aarav Sharma dashboard         |       |
+| 14.4 | 4 courses visible | Teacher `kim@noor-international.edu` | Math 6 course                  |       |
+| 14.5 | Different data    | Compare Gulf vs Noor dashboards      | Different KPI values           |       |
 
 ---
 

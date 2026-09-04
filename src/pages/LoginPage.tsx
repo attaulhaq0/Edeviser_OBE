@@ -49,25 +49,25 @@ import {
 // Noor International demo profiles — LOCAL HOST ONLY.
 // ---------------------------------------------------------------------------
 const NOOR_DEMO_ACCOUNTS = [
-  { role: "admin", email: "principal@noor-international.test", label: "Admin" },
+  { role: "admin", email: "principal@noor-international.edu", label: "Admin" },
   {
     role: "coordinator",
-    email: "curriculum@noor-international.test",
+    email: "curriculum@noor-international.edu",
     label: "Coordinator",
   },
   {
     role: "teacher",
-    email: "okonkwo@noor-international.test",
+    email: "okonkwo@noor-international.edu",
     label: "Teacher",
   },
   {
     role: "student",
-    email: "student01@noor-international.test",
+    email: "student01@noor-international.edu",
     label: "Student",
   },
   {
     role: "parent",
-    email: "parent01@noor-international.test",
+    email: "parent01@noor-international.edu",
     label: "Parent",
   },
 ] as const;
