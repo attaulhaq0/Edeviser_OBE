@@ -55,6 +55,8 @@ import { computeLevelData } from "@/hooks/useLevel";
 import { useStudentCourses } from "@/hooks/useStudentCourses";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
 import { useTodayViewData } from "@/hooks/useTodayView";
+import { useFriends } from "@/hooks/useFriends";
+import { Link } from "react-router-dom";
 import { useWeeklyReviews } from "@/hooks/useReviewSchedule";
 import { useHeatmapData } from "@/hooks/useHeatmapData";
 import {
@@ -183,6 +185,7 @@ const StudentDashboardScreen = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const studentId = user?.id ?? "";
+  const friends = useFriends(studentId).data ?? [];
 
   const aggregate = useStudentDashboardAggregate(studentId);
   const courses = useStudentCourses(studentId);
@@ -937,6 +940,55 @@ const StudentDashboardScreen = () => {
           </p>
         )}
       </section>
+
+      {/* ── Friends online rail (community presence; task 6.8) ── */}
+      {friends.length > 0 && (
+        <section className="rounded-2xl bg-white p-3.5 shadow-md">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-transparent text-xs">
+              👥
+            </span>
+            <p className="text-xs font-black tracking-tight text-slate-900">
+              {t("dashboard.friends.title", "Friends")}
+            </p>
+            <Link
+              to="/student/friends"
+              className="ms-auto text-[10px] font-bold text-blue-600 hover:underline"
+            >
+              {t("dashboard.friends.viewAll", "View all")}
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {friends.slice(0, 8).map((f) => (
+              <div
+                key={f.student_id}
+                className="flex w-16 shrink-0 flex-col items-center gap-1"
+              >
+                <div className="relative">
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-xs font-bold text-white"
+                    style={{ background: "var(--brand-gradient)" }}
+                    aria-hidden="true"
+                  >
+                    {f.full_name
+                      .split(/\s+/)
+                      .map((w) => w[0] ?? "")
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase() || "?"}
+                  </div>
+                  {f.online && (
+                    <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+                  )}
+                </div>
+                <span className="w-full truncate text-center text-[10px] font-semibold text-gray-700">
+                  {f.full_name.split(" ")[0]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Edeviser Assistant (capability-matrix scoped; task 3.3) ──
           Fail-closed shell: renders only when the experimental AI feature
