@@ -158,7 +158,6 @@ describe("navPresentation", () => {
     ).toBe("/coordinator/accreditation");
     expect(getMoreNavItems("admin").map((item) => item.labelKey)).toEqual([
       "nav.marketplace",
-      "nav.institutionStructure",
       "nav.bulkImport",
       "nav.badgeDefinitions",
       "nav.security",

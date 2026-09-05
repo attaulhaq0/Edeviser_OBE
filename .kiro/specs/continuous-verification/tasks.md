@@ -58,4 +58,39 @@
 ## Phase 5 — Drift & reporting
 - [ ] 5.1 `promise-matrix.md` seeded from QA manual statuses; re-scored per run
 - [ ] 5.2 Weekly verification pass + report (doc + dashboard screenshot)
+
+## Phase 6 — Backend→Frontend coverage audit ✅ (2026-09-05 session)
+- [x] 6.1 Full coverage map: 5 roles (student 41, parent 21, teacher 5,
+      coordinator 4, admin 3 live), ~130 tables, 96 public secdef functions
+      (104 incl. platform schemas — scope-reconciled), 63 Edge Functions,
+      8 pg_cron jobs, 38 triggers, ~110 routes, 77→74 nav items
+- [x] 6.2 P1 fixes: `/teacher/content` nav 404 (materials live in Modules →
+      nav item removed + redirect route `/teacher/content` → `/teacher/modules`);
+      Student social feature wired (friends route + nav + leaderboard Friends
+      tab); admin pending-onboarding approvals surfaced
+- [x] 6.3 Orphaned pages surfaced in nav: admin historical-evidence,
+      graduate-attributes; coordinator trends
+- [x] 6.4 Nav de-dup: admin `Institution Structure` removed (duplicate of
+      Departments → same DepartmentManager)
+- [x] 6.5 SECURITY: `mv_historical_evidence` anon/auth SELECT revoked
+      (migration `20260905205552_lock_mv_historical_evidence_select`, applied
+      live; owner-semantics MV bypassed RLS; ACL now `postgres,service_role`)
+- [x] 6.6 Permanent guards: `navRouteParity.test.ts` (parses the real router
+      tree, asserts every nav destination resolves + no duplicate nav entries —
+      catches the 404-sidebar-link class), `studentFriendsPage.test.tsx` smoke,
+      `mvHistoricalEvidence.rls.test.ts` (skip-safe preview suite: anon/student
+      MV denial + fail-closed `get_historical_evidence` + worker-RPC denial)
+- [x] 6.7 `.env.example` token leak reverted (real phc_ token was pasted into
+      the committed file); `POSTHOG_PERSONAL_API_KEY` stored in gitignored
+      `.env` only
+- [ ] 6.8 P3 follow-ups: student `notification-preferences` + `sessions` and
+      coordinator `sessions`/`cohort-comparison` still link-orphaned (routes
+      work; low-traffic surfaces); uncertain-caller Edge Functions
+      (`generate-reflection-digest`, `resolve-mystery-reward`,
+      `check-bonus-question`, `improvement-bonus-check`, `generate-fee-receipt`,
+      `bulk-grade-export`) need a runtime tracing pass before any deletion;
+      dashboard "Friends online" rail (StudentDashboardScreen) — hook + design
+      documented, layout insertion pending
+- [ ] 6.9 Friends seed data: populate demo friendships so the investor demo
+      shows the feature populated (friendships table live, 0 rows)
 - [ ] 5.3 (Deferred) Slack alerts · OpenTelemetry · mutation testing · k6 expansion

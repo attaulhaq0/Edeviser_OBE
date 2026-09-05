@@ -154,6 +154,52 @@ fix-forward strategy converges Git onto production content instead.
 **Deploy Impact: NONE** (frontend analytics + local tooling only; no migrations,
 no Edge Functions). All pre-commit gates run before PR.
 
+## Session record — 2026-09-05: backend→frontend coverage audit + P1 fixes (PRs #319–#322)
+**Coverage map built.** 5 roles (live: student 41, parent 21, teacher 5,
+coordinator 4, admin 3); ~130 tables; 287 DB functions (96 public secdef —
+104 total incl. vault/graphql/net/pgbouncer/supabase_functions, scope
+reconciled); 63 Edge Functions; 8 live pg_cron jobs + 10 Vercel crons; 38
+triggers; ~110 routes; 5 role shells.
+
+**P1 fixed.** (1) `/teacher/content` sidebar item 404ed — route never existed;
+materials management lives in `ModuleManager` (`/teacher/modules`) → nav item
+removed + redirect route added. (2) Student social feature fully built but
+unrouted: `friendships` table (live, RLS, 2 policies), `send_friend_request` /
+`respond_friend_request` secdef RPCs (authenticated, guarded), `useFriends`
+hooks (presence/requests/classmates/friends-leaderboard),
+`StudentFriendsPage` → now routed `/student/friends` + student nav (community
+group) + **leaderboard "Friends" tab** (`useFriendsLeaderboard`). (3) Admin
+pending-onboarding approvals surfaced (`/admin/onboarding/pending` nav).
+
+**P2 fixed.** Admin `historical-evidence` + `graduate-attributes` and
+coordinator `trends` surfaced in nav (were router-only orphans). Nav de-dup:
+admin "Institution Structure" removed (duplicate destination of Departments).
+
+**SECURITY (P1, live-applied).** `mv_historical_evidence` — materialized view,
+**no RLS, no security_invoker** (owner semantics → source RLS bypassed),
+SELECT granted to anon+authenticated → cross-tenant OBE aggregates were
+anon-readable, contradicting the admin-gated `get_historical_evidence`.
+Migration `20260905205552_lock_mv_historical_evidence_select` applied via MCP:
+ACL now `postgres,service_role` (live-verified). Note: 0 secdef functions have
+default ACLs anywhere (verified) — explicit-ACL ≠ safe, so every exposed
+function body was reviewed; all authenticated-exposed dashboards/RPCs enforce
+uid/role/institution guards; anon-exposed set is RLS helpers + public-portfolio
+oracle + token-gated invite preview (documented allowlist).
+
+**Permanent guards added.** `navRouteParity.test.ts` (parses the real router
+tree incl. criticalRouteSegments; asserts every nav destination resolves and
+no duplicate nav entries — would have caught the teacher-content 404),
+`studentFriendsPage.test.tsx`, `mvHistoricalEvidence.rls.test.ts` (skip-safe
+preview suite). `.env.example` token leak reverted; `POSTHOG_PERSONAL_API_KEY`
+in gitignored `.env` only.
+
+**Deferred (6.8/6.9):** dashboard Friends rail; friends demo seed; runtime
+tracing for 6 uncertain-caller Edge Functions; remaining link-orphans.
+
+**Deploy Impact: MIGRATIONS** (one REVOKE-only migration, live-applied +
+forward-only file committed). Gates: tsc 0, lint 0, vitest 6712+ (full run in
+g6.log), i18n parity OK, parity+friends tests 15/15.
+
 ## Session record — 2026-09-04 (night): real event catalog shipped (PRs #319–#320)
 **Goal.** The four "no matching events" dashboards queried events nothing emitted.
 Wired the real catalog at the correct call sites and made every provisioned
