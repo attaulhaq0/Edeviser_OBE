@@ -51,6 +51,7 @@ import {
   Swords,
   Workflow,
   UserCog,
+  UserPlus,
   Wallet,
   Bell,
   MessageSquare,
@@ -90,11 +91,6 @@ const adminNavItems: NavItem[] = [
     icon: FileText,
   },
   { to: "/admin/settings/profile", labelKey: "nav.me", icon: UserCog },
-  {
-    to: "/admin/settings/institution",
-    labelKey: "nav.institutionStructure",
-    icon: Building2,
-  },
   { to: "/admin/users", labelKey: "nav.users", icon: Users },
   { to: "/admin/departments", labelKey: "nav.departments", icon: Building2 },
   { to: "/admin/programs", labelKey: "nav.programs", icon: BookOpen },
@@ -106,6 +102,21 @@ const adminNavItems: NavItem[] = [
   { to: "/admin/fees", labelKey: "nav.fees", icon: DollarSign },
   { to: "/admin/import", labelKey: "nav.bulkImport", icon: ClipboardList },
   { to: "/admin/reports", labelKey: "nav.reports", icon: FileText },
+  {
+    to: "/admin/historical-evidence",
+    labelKey: "nav.historicalEvidence",
+    icon: TrendingUp,
+  },
+  {
+    to: "/admin/graduate-attributes",
+    labelKey: "nav.graduateAttributes",
+    icon: GraduationCap,
+  },
+  {
+    to: "/admin/onboarding/pending",
+    labelKey: "nav.onboardingApprovals",
+    icon: ClipboardCheck,
+  },
   { to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ScrollText },
   { to: "/admin/governance", labelKey: "nav.aiGovernance", icon: ShieldAlert },
   { to: "/admin/security", labelKey: "nav.security", icon: ShieldAlert },
@@ -144,6 +155,7 @@ const coordinatorNavItems: NavItem[] = [
   { to: "/coordinator/plos", labelKey: "nav.plos", icon: Target },
   { to: "/coordinator/matrix", labelKey: "nav.matrix", icon: Grid3X3 },
   { to: "/coordinator/sankey", labelKey: "nav.sankeyDiagram", icon: GitBranch },
+  { to: "/coordinator/trends", labelKey: "nav.trends", icon: TrendingUp },
   {
     to: "/coordinator/gap-analysis",
     labelKey: "nav.gapAnalysis",
@@ -218,11 +230,15 @@ const teacherNavItems: NavItem[] = [
     icon: FileQuestion,
   },
   { to: "/teacher/rubrics", labelKey: "nav.rubrics", icon: TableProperties },
-  { to: "/teacher/content", labelKey: "nav.courseMaterials", icon: BookOpen },
   {
     to: "/teacher/tutor-handoffs",
     labelKey: "nav.tutorHandoffs",
     icon: Handshake,
+  },
+  {
+    to: "/teacher/tutor-analytics",
+    labelKey: "nav.tutorAnalytics",
+    icon: TrendingUp,
   },
   { to: "/teacher/attendance", labelKey: "nav.attendance", icon: CalendarDays },
   {
@@ -309,6 +325,12 @@ const studentNavItems: NavItem[] = [
     to: "/student/leaderboard",
     labelKey: "nav.leaderboard",
     icon: Trophy,
+    group: "community",
+  },
+  {
+    to: "/student/friends",
+    labelKey: "nav.friends",
+    icon: UserPlus,
     group: "community",
   },
   {

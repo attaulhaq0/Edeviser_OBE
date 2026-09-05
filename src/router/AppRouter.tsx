@@ -173,6 +173,9 @@ const StudentProfilePage = lazy(
 const StudentPortfolio = lazy(
   () => import("@/pages/student/portfolio/StudentPortfolio")
 );
+const StudentFriendsPage = lazy(
+  () => import("@/features/student/friends/StudentFriendsPage")
+);
 const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
 const ParentSupportPage = lazy(
   () => import("@/pages/parent/support/ParentSupportPage")
@@ -930,6 +933,11 @@ const AppRouter = () => (
             <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
             <Route path="tutor-analytics" element={<TutorAnalyticsPage />} />
             <Route path="content-review" element={<ContentReviewPage />} />
+            {/* Legacy deep-link alias: materials are managed in Modules. */}
+            <Route
+              path="content"
+              element={<Navigate to="/teacher/modules" replace />}
+            />
             <Route path="tutor-handoffs" element={<TeacherHandoffPage />} />
             <Route path="calendar" element={<CalendarView />} />
             <Route path="timetable" element={<TimetableView />} />
@@ -964,6 +972,7 @@ const AppRouter = () => (
               element={<StudentAssignmentDetailPage />}
             />
             <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route path="friends" element={<StudentFriendsPage />} />
             <Route
               path="onboarding/complete-profile"
               element={<CompleteProfilePage />}

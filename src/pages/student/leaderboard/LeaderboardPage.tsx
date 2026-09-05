@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { useMemo, useCallback, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { parseAsString, useQueryState } from "nuqs";
 import {
@@ -16,6 +17,7 @@ import {
   Crown,
   Lock,
   Loader2,
+  UserPlus,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducedMotion } from "framer-motion";
@@ -53,6 +55,7 @@ import {
   useStudentPercentileBand,
 } from "@/hooks/useLeagueLeaderboard";
 import { useStudentCourseProgram } from "@/hooks/useStudentCourseProgram";
+import { useFriendsLeaderboard } from "@/hooks/useFriends";
 import TeamLeaderboard from "@/pages/student/leaderboard/TeamLeaderboard";
 import { useTeamRealtime } from "@/hooks/useTeamRealtime";
 import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
@@ -94,7 +97,12 @@ const TIMEFRAME_OPTIONS: Array<{ value: LeaderboardTimeframe; label: string }> =
     { value: "all_time", label: "All Time" },
   ];
 
-type LeaderboardTab = "top_xp" | "personal_best" | "most_improved" | "league";
+type LeaderboardTab =
+  | "top_xp"
+  | "personal_best"
+  | "most_improved"
+  | "league"
+  | "friends";
 
 // ─── Medal helpers ───────────────────────────────────────────────────────────
 
@@ -657,6 +665,90 @@ const LeaderboardLockedState = () => {
 
 // ─── LeaderboardPage ─────────────────────────────────────────────────────────
 
+// ─── FriendsRankingList — friends-scoped XP ranking (Friends tab) ────────────
+// Backed by `useFriendsLeaderboard` (accepted friendships + caller, ranked by
+// total XP). Zero-friends renders an invite CTA into the Friends page.
+const FriendsRankingList = ({ studentId }: { studentId: string }) => {
+  const { t } = useTranslation("student");
+  const { data: rows, isLoading } = useFriendsLeaderboard(studentId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Shimmer key={i} className="h-14 rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!rows || rows.length <= 1) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center">
+        <UserPlus className="mx-auto h-8 w-8 text-gray-400" />
+        <p className="mt-2 text-sm font-semibold text-gray-700">
+          {t("leaderboard.friendsEmpty", "Add friends to compare XP rankings")}
+        </p>
+        <Link
+          to="/student/friends"
+          className="mt-3 inline-block rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-slate-50"
+        >
+          {t("leaderboard.addFriends", "Find friends")}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {rows.map((r) => (
+        <div
+          key={r.student_id}
+          className={cn(
+            "flex items-center gap-3 rounded-xl border p-3",
+            r.isMe ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
+          )}
+        >
+          <span className="w-8 shrink-0 text-center text-sm font-black text-gray-500">
+            {r.rank}
+          </span>
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+            style={{ background: "var(--brand-gradient)" }}
+            aria-hidden="true"
+          >
+            {r.full_name
+              .split(/\s+/)
+              .map((w) => w[0] ?? "")
+              .join("")
+              .slice(0, 2)
+              .toUpperCase() || "?"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-gray-900">
+              {r.full_name}
+              {r.isMe ? " (You)" : ""}
+            </p>
+            <p className="text-xs text-gray-500">
+              {t("leaderboard.levelShort", "Level")} {r.level}
+            </p>
+          </div>
+          <span className="shrink-0 text-sm font-black text-gray-900">
+            {r.xp_total.toLocaleString()} XP
+          </span>
+        </div>
+      ))}
+      <Link
+        to="/student/friends"
+        className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white p-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-slate-50"
+      >
+        <UserPlus className="h-4 w-4" />
+        {t("leaderboard.manageFriends", "Manage friends")}
+      </Link>
+    </div>
+  );
+};
+
 const LeaderboardPage = () => {
   const { t } = useTranslation("student");
   const { user, institutionId } = useAuth();
@@ -869,6 +961,11 @@ const LeaderboardPage = () => {
                 label: "League",
                 icon: Shield,
               },
+              {
+                value: "friends" as LeaderboardTab,
+                label: "Friends",
+                icon: UserPlus,
+              },
             ].map((opt) => {
               const Icon = opt.icon;
               return (
@@ -893,7 +990,9 @@ const LeaderboardPage = () => {
           </div>
 
           {/* Tab Content */}
-          {tab === "personal_best" ? (
+          {tab === "friends" ? (
+            <FriendsRankingList studentId={userId} />
+          ) : tab === "personal_best" ? (
             <PersonalBestChart studentId={userId} />
           ) : tab === "most_improved" ? (
             <MostImprovedList
