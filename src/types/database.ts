@@ -11141,6 +11141,10 @@ export type Database = {
         Returns: string
       }
       get_coordinator_accreditation_readiness: { Args: never; Returns: Json }
+      get_coordinator_analytics_v1: {
+        Args: { p_program_id: string }
+        Returns: Json
+      }
       get_coordinator_cqi_patterns_v1: {
         Args: { p_program_id: string }
         Returns: Json
