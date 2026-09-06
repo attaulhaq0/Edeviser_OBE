@@ -6,6 +6,10 @@
     "upcomingDeadlines": "المواعيد النهائية القادمة",
     "learningPath": "مسار التعلم",
     "dailyHabits": "العادات اليومية",
+    "friends": {
+      "title": "الأصدقاء",
+      "viewAll": "عرض الكل ←"
+    },
     "greeting": {
       "morning": "صباح الخير",
       "afternoon": "مساء الخير",

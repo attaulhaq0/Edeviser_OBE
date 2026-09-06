@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
+import { recordQuizAttemptGrade } from "@/lib/quizEvidence";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -121,6 +122,15 @@ export const useSubmitQuizAttempt = () => {
         .single();
 
       if (error) throw error;
+
+      // 7.3(a): canonical evidence path — a graded attempt now produces its
+      // submission + grade pair server-side and flows through the ONE
+      // attainment trigger (evidence → CLO/PLO/ILO rollup). Practice attempts
+      // are skipped here AND refused server-side. Failures throw so the user
+      // sees the attempt could not be recorded (no silent evidence loss).
+      if ((input.mode ?? "graded") === "graded") {
+        await recordQuizAttemptGrade(quiz_attempt_id);
+      }
 
       // Trigger post-quiz analytics recalculation (fire-and-forget)
       supabase.functions

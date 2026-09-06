@@ -842,4 +842,42 @@ BEGIN
 
   RAISE NOTICE 'Section W seed data complete: badge tiers, spotlight schedule, league thresholds, habit levels.';
 
+  -- ============================================================================
+  -- Section X: Quiz fixtures (task 7.3c) — one published quiz per course,
+  -- linked to that course's CLOs via quiz_clos (and clo_ids). Gives the quiz
+  -- surfaces real data after a fresh `supabase db reset`. Quiz attempts are
+  -- intentionally NOT seeded: attempt evidence must be produced by the
+  -- canonical path (record_quiz_attempt_grade_v1, task 7.3a).
+  -- ============================================================================
+  IF NOT EXISTS (SELECT 1 FROM public.quizzes LIMIT 1) THEN
+    INSERT INTO public.quizzes (id, course_id, title, description, clo_ids, is_published, due_date)
+    SELECT
+      gen_random_uuid(),
+      c.id,
+      'Quiz 1 — ' || c.name,
+      'Seeded quiz fixture linked to this course''s CLOs (task 7.3c).',
+      COALESCE((
+        SELECT jsonb_agg(lo.id ORDER BY lo.sort_order)
+        FROM public.learning_outcomes lo
+        WHERE lo.course_id = c.id AND lo.type = 'CLO'
+      ), '[]'::jsonb),
+      true,
+      now() + interval '21 days'
+    FROM public.courses c
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.quizzes q WHERE q.course_id = c.id
+    );
+
+    INSERT INTO public.quiz_clos (quiz_id, clo_id)
+    SELECT q.id, lo.id
+    FROM public.quizzes q
+    JOIN public.learning_outcomes lo
+      ON lo.course_id = q.course_id AND lo.type = 'CLO'
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.quiz_clos qc WHERE qc.quiz_id = q.id
+    );
+
+    RAISE NOTICE 'Section X seed data complete: quiz fixtures with CLO links.';
+  END IF;
+
 END $$;

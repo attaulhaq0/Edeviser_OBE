@@ -55,6 +55,8 @@ import {
   Wallet,
   Bell,
   MessageSquare,
+  CalendarClock,
+  SlidersHorizontal,
 } from "lucide-react";
 import type { UserRole } from "@/types/app";
 import type { NavGroup } from "@/lib/navGroups";
@@ -157,6 +159,11 @@ const coordinatorNavItems: NavItem[] = [
   { to: "/coordinator/sankey", labelKey: "nav.sankeyDiagram", icon: GitBranch },
   { to: "/coordinator/trends", labelKey: "nav.trends", icon: TrendingUp },
   {
+    to: "/coordinator/cohort-comparison",
+    labelKey: "nav.cohortComparison",
+    icon: Users,
+  },
+  {
     to: "/coordinator/gap-analysis",
     labelKey: "nav.gapAnalysis",
     icon: Search,
@@ -198,6 +205,11 @@ const coordinatorNavItems: NavItem[] = [
     icon: MessageSquare,
   },
   { to: "/coordinator/timetable", labelKey: "nav.timetable", icon: Clock },
+  {
+    to: "/coordinator/sessions",
+    labelKey: "nav.sessions",
+    icon: CalendarClock,
+  },
   {
     to: "/coordinator/notifications",
     labelKey: "nav.notifications",
@@ -241,6 +253,8 @@ const teacherNavItems: NavItem[] = [
     icon: TrendingUp,
   },
   { to: "/teacher/attendance", labelKey: "nav.attendance", icon: CalendarDays },
+  { to: "/teacher/calendar", labelKey: "nav.calendar", icon: Calendar },
+  { to: "/teacher/timetable", labelKey: "nav.timetable", icon: Clock },
   {
     to: "/teacher/discussions",
     labelKey: "nav.discussions",
@@ -316,6 +330,12 @@ const studentNavItems: NavItem[] = [
     group: "tools",
   },
   {
+    to: "/student/sessions",
+    labelKey: "nav.sessions",
+    icon: CalendarClock,
+    group: "tools",
+  },
+  {
     to: "/student/challenges",
     labelKey: "nav.quests",
     icon: Swords,
@@ -361,6 +381,12 @@ const studentNavItems: NavItem[] = [
     to: "/student/notifications",
     labelKey: "nav.notifications",
     icon: Bell,
+    group: "tools",
+  },
+  {
+    to: "/student/notification-preferences",
+    labelKey: "nav.notificationPreferences",
+    icon: SlidersHorizontal,
     group: "tools",
   },
   {

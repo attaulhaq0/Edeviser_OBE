@@ -191,12 +191,23 @@ function suggestFocus(
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
+/** Server-to-server guard: require the managed server key or CRON_SECRET. */
+function assertServerCaller(req: Request): void {
+  const auth = req.headers.get("authorization") ?? "";
+  const bearer = auth.replace(/^Bearer\s+/i, "").trim();
+  const cron = Deno.env.get("CRON_SECRET");
+  if (bearer && bearer === cron) return;
+  if (bearer && bearer === getManagedServerKey()) return;
+  throw new Error("Unauthorized: managed server key or cron secret required");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    assertServerCaller(req);
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       getManagedServerKey()

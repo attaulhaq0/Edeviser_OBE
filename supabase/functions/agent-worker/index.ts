@@ -348,13 +348,21 @@ const processJob = async (
       .eq("id", runId);
     return "completed";
   } catch (error) {
+    // 7.4 observability: retain the bounded error message alongside the
+    // classification — the classification alone (e.g. `proactive_job_failed`)
+    // hid the root cause of loop failures for months.
+    const errorMessage = error instanceof Error ? error.message : String(error);
     const classification =
       error instanceof AIProviderError
         ? "provider_unavailable"
         : error instanceof AgentOrchestratorError
         ? error.kind
-        : "proactive_job_failed";
+        : `proactive_job_failed: ${errorMessage.slice(0, 200)}`;
     const retryable = isRetryableFailure(error);
+    console.error(
+      `[agent-worker] proactive job failed (job=${job.id} attempt):`,
+      errorMessage
+    );
     await admin
       .from("agent_runs")
       .update({

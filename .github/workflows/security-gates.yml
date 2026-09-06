@@ -98,6 +98,7 @@ jobs:
           npm run db:check-replay
           npm run db:check-dup-names
           npm run db:check-edge-schema
+          npm run check:rls-coverage
           npm run check:runtime-dependencies
 
   supabase-posture:

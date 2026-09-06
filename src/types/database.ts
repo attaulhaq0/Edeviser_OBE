@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -9194,33 +9194,36 @@ export type Database = {
       }
       submissions: {
         Row: {
-          assignment_id: string
+          assignment_id: string | null
           file_url: string | null
           id: string
           is_late: boolean
           plagiarism_score: number | null
+          quiz_attempt_id: string | null
           status: Database["public"]["Enums"]["submission_status"]
           student_id: string
           submitted_at: string
           text_content: string | null
         }
         Insert: {
-          assignment_id: string
+          assignment_id?: string | null
           file_url?: string | null
           id?: string
           is_late?: boolean
           plagiarism_score?: number | null
+          quiz_attempt_id?: string | null
           status?: Database["public"]["Enums"]["submission_status"]
           student_id: string
           submitted_at?: string
           text_content?: string | null
         }
         Update: {
-          assignment_id?: string
+          assignment_id?: string | null
           file_url?: string | null
           id?: string
           is_late?: boolean
           plagiarism_score?: number | null
+          quiz_attempt_id?: string | null
           status?: Database["public"]["Enums"]["submission_status"]
           student_id?: string
           submitted_at?: string
@@ -9232,6 +9235,13 @@ export type Database = {
             columns: ["assignment_id"]
             isOneToOne: false
             referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_quiz_attempt_id_fkey"
+            columns: ["quiz_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
             referencedColumns: ["id"]
           },
           {
@@ -11137,6 +11147,17 @@ export type Database = {
       }
       get_coordinator_dashboard: { Args: never; Returns: Json }
       get_coordinator_workspace: { Args: never; Returns: Json }
+      get_course_assessment_coverage_v1: {
+        Args: { p_course_id: string }
+        Returns: {
+          assignment_count: number
+          blooms_level: string
+          clo_id: string
+          clo_title: string
+          covered: boolean
+          quiz_count: number
+        }[]
+      }
       get_earn_spend_ratio: {
         Args: { p_institution_id: string }
         Returns: {
@@ -11383,6 +11404,10 @@ export type Database = {
           attendance_pct: number
           student_id: string
         }[]
+      }
+      record_quiz_attempt_grade_v1: {
+        Args: { p_attempt_id: string }
+        Returns: string
       }
       refresh_mv_historical_evidence: { Args: never; Returns: undefined }
       refresh_student_learning_state_v1: {
