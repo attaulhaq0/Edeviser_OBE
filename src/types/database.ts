@@ -2949,11 +2949,16 @@ export type Database = {
       courses: {
         Row: {
           academic_year: string
+          assessment_model: string
           code: string
           color: string | null
           created_at: string
+          curriculum_code: string | null
+          framework_id: string | null
+          grade_scale_id: string | null
           id: string
           is_active: boolean
+          key_stage: string | null
           name: string
           name_ar: string | null
           program_id: string
@@ -2965,11 +2970,16 @@ export type Database = {
         }
         Insert: {
           academic_year: string
+          assessment_model?: string
           code: string
           color?: string | null
           created_at?: string
+          curriculum_code?: string | null
+          framework_id?: string | null
+          grade_scale_id?: string | null
           id?: string
           is_active?: boolean
+          key_stage?: string | null
           name: string
           name_ar?: string | null
           program_id: string
@@ -2981,11 +2991,16 @@ export type Database = {
         }
         Update: {
           academic_year?: string
+          assessment_model?: string
           code?: string
           color?: string | null
           created_at?: string
+          curriculum_code?: string | null
+          framework_id?: string | null
+          grade_scale_id?: string | null
           id?: string
           is_active?: boolean
+          key_stage?: string | null
           name?: string
           name_ar?: string | null
           program_id?: string
@@ -2996,6 +3011,20 @@ export type Database = {
           team_formation_mode?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "courses_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "competency_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_grade_scale_id_fkey"
+            columns: ["grade_scale_id"]
+            isOneToOne: false
+            referencedRelation: "grade_scales"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "courses_program_id_fkey"
             columns: ["program_id"]
@@ -3783,6 +3812,7 @@ export type Database = {
           id: string
           ilo_id: string
           plo_id: string
+          raw_score: Json | null
           score_percent: number
           student_id: string
           submission_id: string
@@ -3795,6 +3825,7 @@ export type Database = {
           id?: string
           ilo_id: string
           plo_id: string
+          raw_score?: Json | null
           score_percent: number
           student_id: string
           submission_id: string
@@ -3807,6 +3838,7 @@ export type Database = {
           id?: string
           ilo_id?: string
           plo_id?: string
+          raw_score?: Json | null
           score_percent?: number
           student_id?: string
           submission_id?: string
@@ -4418,6 +4450,58 @@ export type Database = {
           },
         ]
       }
+      grade_scales: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          definition: Json
+          id: string
+          institution_id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          definition: Json
+          id?: string
+          institution_id: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          definition?: Json
+          id?: string
+          institution_id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grade_scales_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_scales_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_scales_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grades: {
         Row: {
           ai_applied: boolean
@@ -4778,6 +4862,7 @@ export type Database = {
       }
       institution_settings: {
         Row: {
+          accreditation_bodies: string[]
           accreditation_body: string
           attainment_thresholds: Json
           created_at: string
@@ -4794,6 +4879,7 @@ export type Database = {
           wellness_xp_amount: number
         }
         Insert: {
+          accreditation_bodies?: string[]
           accreditation_body?: string
           attainment_thresholds?: Json
           created_at?: string
@@ -4810,6 +4896,7 @@ export type Database = {
           wellness_xp_amount?: number
         }
         Update: {
+          accreditation_bodies?: string[]
           accreditation_body?: string
           attainment_thresholds?: Json
           created_at?: string
@@ -11249,6 +11336,7 @@ export type Database = {
         Returns: Json
       }
       get_teacher_dashboard: { Args: { p_teacher_id: string }; Returns: Json }
+      get_unit_close_review_v1: { Args: { p_course_id: string }; Returns: Json }
       get_wellness_aggregate_stats: {
         Args: { p_institution_id: string }
         Returns: {
