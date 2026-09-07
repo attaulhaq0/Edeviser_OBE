@@ -81,6 +81,25 @@ describe("8.9-QA Q5 — who performs it (ownership routing)", () => {
   it("unknown causes fail safe to the teacher (no dead-end routing)", () => {
     expect(ownerForCause("future-unknown-signal")).toBe("teacher");
   });
+
+  it("prototype-chain property names never leak a non-owner (CI regression)", () => {
+    // Caught by Property 2 on CI: fc.string can generate "constructor",
+    // "toString", etc. — the lookup must use an own-property guard.
+    for (const dangerous of [
+      "constructor",
+      "toString",
+      "hasOwnProperty",
+      "valueOf",
+      "__proto__",
+    ]) {
+      expect(ownerForCause(dangerous)).toBe("teacher");
+      const draft = buildInterventionDraftPlan({
+        ...BASE_CASE,
+        dominant_cause: dangerous,
+      });
+      expect(OWNERS).toContain(draft.recommended_owner);
+    }
+  });
 });
 
 describe("8.9-QA Q7 — should we change the curriculum", () => {

@@ -87,8 +87,16 @@ export interface InterventionDraftPlan {
 export const isKnownCause = (cause: string): cause is KnownCause =>
   (KNOWN_CAUSES as readonly string[]).includes(cause);
 
+/**
+ * Deterministic ownership routing. NOTE: hasOwnProperty guard — a plain
+ * `OWNER_BY_CAUSE[cause]` lookup would hit Object.prototype for strings like
+ * "constructor"/"toString" and leak a non-owner value (caught by the
+ * property suite on CI).
+ */
 export const ownerForCause = (cause: string): RecommendedOwner =>
-  OWNER_BY_CAUSE[cause] ?? "teacher";
+  Object.prototype.hasOwnProperty.call(OWNER_BY_CAUSE, cause)
+    ? OWNER_BY_CAUSE[cause]
+    : "teacher";
 
 /**
  * Deterministic draft plan for a classified problem case.
