@@ -1,0 +1,2 @@
+--  applied via Supabase Dashboard/MCP (version 20260905231402).
+-- Schema changes are already live. This file exists for migration chain parity.

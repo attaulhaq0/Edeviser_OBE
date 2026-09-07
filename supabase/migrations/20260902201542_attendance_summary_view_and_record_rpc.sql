@@ -1,0 +1,2 @@
+-- attendance_summary_view_and_record_rpc applied via Supabase Dashboard/MCP (version 20260902201542).
+-- Schema changes are already live. This file exists for migration chain parity.
