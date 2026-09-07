@@ -70,6 +70,7 @@ BEGIN
           JOIN public.course_sections cs2 ON cs2.id = sc2.section_id
           WHERE oa2.course_id = p_course_id AND oa2.outcome_id = lo.id AND oa2.scope = 'student_course'
           GROUP BY sc2.section_id
+        ) s) AS min_section_avg,
         -- has assessment coverage
         EXISTS (
           SELECT 1 FROM public.assignments a
