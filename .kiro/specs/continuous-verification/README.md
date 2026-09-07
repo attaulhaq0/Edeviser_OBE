@@ -1008,3 +1008,17 @@ attested as in session P).**
 
 **8.9 status: ENGINE ✅ · UI ✅ · ROUTING ✅ · QA SUITE ✅ · AI EXPLANATION ✅ (deployed v31) ·
 WRITE PATH ✅ (deploy pending)**. Remaining: fixture confusion matrix (8.9-QA Q8 accuracy).
+
+**DEPLOY ATTESTATION (post-merge, same day):** PR #328 merged to main as `a1bd44fd`;
+**agent-orchestrator v33 ACTIVE, verify_jwt=true**, deployed from clean synced main via the
+Supabase CLI (`--use-api`) and verified via `supabase functions list` + MCP `get_edge_function`
+(sha256 f24eceb4…). The registry's `create_learning_intervention@1.0.0` routing is LIVE.
+Two operational notes recorded honestly: (1) an intermediate v32 was briefly deployed from a
+stale local main ref (pre-merge code, missing the registry entry) and was superseded by v33
+within one minute — no proposals of the new type existed in that window, so there was no
+functional impact; lesson: always `git fetch` before a production deploy (the deploy-guard
+discipline exists for exactly this). (2) The PR Preview showed a sticky `MIGRATIONS_FAILED`
+status while its database was in fact fully migrated (all 486 versions in the ledger, logs
+showing mid-replay when the check failed); a fresh empty push re-triggered the deployment
+cycle which refreshed the status to FUNCTIONS_DEPLOYED and CI #1179 passed — the smoke's
+status-poll is only as reliable as the integration's status refresh.
