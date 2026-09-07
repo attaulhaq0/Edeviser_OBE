@@ -4,20 +4,21 @@
 > `supabase/migrations/`, `src/types/database.ts`, `.env.local`.
 
 ## Phase 0 — Groundwork ✅ (2026-02 session)
+
 - [x] QA manual extended: OBE/Habit/AI/auth/realtime suites (verification-ready)
 - [x] Live DB audit: engines, triggers, data counts (OBE/quiz/marketplace/agent)
 - [x] Seed accounts locked & live-verified: 73 seed (5 `@demo.com`, 68 Noor),
       1 real user
 - [x] Seed email rename `noor-international.test` → `noor-international.edu`
-      (auth.users + auth.identities.identity_data + profiles + institution allowlist
-      + login_attempts + parent_student_links + 7 repo files; 0 residuals; logins OK)
+      (auth.users + auth.identities.identity_data + profiles + institution allowlist + login_attempts + parent_student_links + 7 repo files; 0 residuals; logins OK)
 - [x] Repo inventory: PostHog/Sentry/Playwright/CI assets mapped (README.md)
 
 ## Phase 1 — PostHog wiring (code) ✅
+
 - [x] 1.1 `src/lib/seedAccounts.ts` — locked-domain classification (no user IDs)
 - [x] 1.2 `analyticsConsent.ts` — add `account_type` + `environment` person props;
       enable autocapture, `capture_pageview: "history_change"`, session recording
-      (`session_recording` with maskAllInputs + maskTextSelector "*"), `defaults`
+      (`session_recording` with maskAllInputs + maskTextSelector "\*"), `defaults`
       preset `2026-05-30`, `person_profiles: "identified_only"`; consent gate kept.
       NOTE: the config key is `session_recording` in posthog-js 1.4xx (NOT
       `session_replay`); verified against live @posthog/types definitions.
@@ -28,6 +29,7 @@
       studentPortfolio shimmer timeout) — not caused by this phase.
 
 ## Phase 2 — PostHog project setup (manual, guided by posthog-setup-guide.md)
+
 - [ ] 2.1 Create org projects `edeviser-prod` + `edeviser-qa` (US host)
 - [ ] 2.2 Set "filter internal and test users" = `account_type = seed` on both;
       bulk-apply to the 17 existing insights (API endpoint in guide)
@@ -37,6 +39,7 @@
 - [ ] 2.5 Enable session replay recording rules (100% in qa, sampled in prod)
 
 ## Phase 3 — Dashboards (script-provisioned)
+
 - [ ] 3.1 `scripts/posthog-provision.mjs` — create dashboards/insights via API
       (needs POSTHOG_PERSONAL_API_KEY; definitions in design.md §Dashboards)
 - [ ] 3.2 Investor dashboard (Users & Engagement)
@@ -48,6 +51,7 @@
       pending (next task)
 
 ## Phase 4 — Chain verification (staging only)
+
 - [ ] 4.1 pgTAP invariant suites (obe/habit/xp-idempotency) into existing harness
 - [ ] 4.2 Playwright chain specs: grade cascade, submit→queue, purchase atomicity,
       streak increment (using seeded personas)
@@ -56,10 +60,12 @@
 - [ ] 4.4 `qa_run` event emitted per nightly run (PostHog qa project)
 
 ## Phase 5 — Drift & reporting
+
 - [ ] 5.1 `promise-matrix.md` seeded from QA manual statuses; re-scored per run
 - [ ] 5.2 Weekly verification pass + report (doc + dashboard screenshot)
 
 ## Phase 6 — Backend→Frontend coverage audit ✅ (2026-09-05 session)
+
 - [x] 6.1 Full coverage map: 5 roles (student 41, parent 21, teacher 5,
       coordinator 4, admin 3 live), ~130 tables, 96 public secdef functions
       (104 incl. platform schemas — scope-reconciled), 63 Edge Functions,
@@ -80,7 +86,7 @@
       catches the 404-sidebar-link class), `studentFriendsPage.test.tsx` smoke,
       `mvHistoricalEvidence.rls.test.ts` (skip-safe preview suite: anon/student
       MV denial + fail-closed `get_historical_evidence` + worker-RPC denial)
-- [x] 6.7 `.env.example` token leak reverted (real phc_ token was pasted into
+- [x] 6.7 `.env.example` token leak reverted (real phc\_ token was pasted into
       the committed file); `POSTHOG_PERSONAL_API_KEY` stored in gitignored
       `.env` only
 - [x] 6.8 P3 follow-ups — CLOSED (2026-09-05 second pass):
@@ -90,18 +96,13 @@
         icons CalendarClock/SlidersHorizontal; navRouteParity test green 21/21)
   - [x] dashboard "Friends online" rail (shipped in #323) + friends locale keys
         added to student.json en/ar
-  - [x] uncertain-caller Edge Functions TRACED (final verdicts):
-        - `resolve-mystery-reward`, `check-bonus-question` → WORKING (hooks +
-          components exist)
-        - `bulk-grade-export` → wired (`useBulkOperations`)
-        - `generate-fee-receipt` → wired (`useFees`)
-        - `generate-reflection-digest` → WIRED (new Vercel cron proxy
-          `api/cron/reflection-digest.ts` + monthly cron `0 9 1 * *`; server-key
-          auth guard added; feeds live-consumed `reflection_digests`)
-        - `improvement-bonus-check` → SUPERSEDED by DB trigger
-          `trg_improvement_bonus` on evidence INSERT (no pg_net/http to call the
-          edge function); edge function hardened (idempotent evidence-id ref,
-          server-side score, auth guard) as a server utility
+  - [x] uncertain-caller Edge Functions TRACED (final verdicts): - `resolve-mystery-reward`, `check-bonus-question` → WORKING (hooks +
+        components exist) - `bulk-grade-export` → wired (`useBulkOperations`) - `generate-fee-receipt` → wired (`useFees`) - `generate-reflection-digest` → WIRED (new Vercel cron proxy
+        `api/cron/reflection-digest.ts` + monthly cron `0 9 1 * *`; server-key
+        auth guard added; feeds live-consumed `reflection_digests`) - `improvement-bonus-check` → SUPERSEDED by DB trigger
+        `trg_improvement_bonus` on evidence INSERT (no pg_net/http to call the
+        edge function); edge function hardened (idempotent evidence-id ref,
+        server-side score, auth guard) as a server utility
 - [x] 6.9 Friends demo data seeded LIVE: friendships now 27 accepted + 2 pending
       across Noor seed students (verified live 2026-09-05)
 - [x] 6.10 XP integrity + gamification hardening (2026-09-05 session):
@@ -137,10 +138,12 @@
 > only be checked off when its acceptance criteria pass.
 
 ### 7.0 — Audit baseline (recorded; do not re-run)
+
 - [x] Live + local evidence captured 2026-09-06: per-domain row counts, trigger/RPC/cron inventories,
       advisor findings, edge-function list, seed analysis, route/hook overview.
 
 ### F1 — Ghost/orphaned demo data; evidence provenance broken
+
 - [ ] 7.1 SENIOR ENGINEERING FIX — Reconcile demo data + harden evidence provenance.
       Problem: `submissions`=552 reference 17 assignment UUIDs while `assignments`=0 live ⇒ the whole
       grade→evidence→attainment chain ran on ghost assignments; `evidence` rows point at non-existent
@@ -168,6 +171,7 @@
       single cascade path.
 
 ### F2 — OBE core metadata empty; no real institutional tenant
+
 - [ ] 7.2 SENIOR ENGINEERING FIX — Tenant bootstrap + readiness path.
       Problem: programs=4 / courses=4 / outcomes=22 / mappings=26 are the Noor seed tenant only;
       `graduate_attributes=0`, `competency_frameworks=0`; admin onboarding is a form, not a curriculum
@@ -184,6 +188,7 @@
       0 leaks, tenant-scoped dashboards.
 
 ### F3 — Assessment authoring empty; quiz evidence bypasses canonical rollup
+
 - [ ] 7.3 SENIOR ENGINEERING FIX — First-class assessment path + coverage guard.
       Problem: `assignments=0`, `quizzes=0`, `quiz_questions=0`, `quiz_attempts=0`, `question_bank=2`.
       `generateQuizEvidence` writes evidence client-side reusing `submission_id`/`grade_id` = attempt
@@ -219,7 +224,7 @@
       REMAINING: seed-replay verification (shared owner Docker step with 7.1(b)) + 7.3-QA
       preview assertions. NEW FOLLOW-UP: `trg_grade_released_notify` emits a duplicate grade
       notification alongside the rollup trigger's — dedupe under 7.3.)
-      (PROGRESS 2026-09-06 **7.6 EXECUTED**: `get_coordinator_analytics_v1(program_id)` — one
+      (PROGRESS 2026-09-06 **7.7 EXECUTED**: `get_unit_close_review_v1(course_id)` RPC (MCP 20260907113538) + `useUnitCloseReview` hook + `UnitCloseReviewPage` at `/coordinator/unit-close/:courseId`. Section × CLO attainment matrix with weakest-CLO ordering + coverage flags. Live: Mathematics 6 → 4 CLOs × 4 sections = 12 matrix entries, weakest at 75.2%. `n`n(PROGRESS 2026-09-06 **7.6 EXECUTED**: `get_coordinator_analytics_v1(program_id)` — one
       invoker-rights RPC returning the program-scoped payload; the three visualization hooks
       (gap analysis, coverage heatmap, sankey) now consume it via ONE shared queryKey; whole-table
       client reads ELIMINATED; classification still one-source in the shared libs. Live: Math
@@ -231,14 +236,15 @@
       quiz→evidence→attainment. Pass = parity, guard enforced, no FK abuse, chain spec green.
 
 ### F4 — Closed-loop tables never written (states, interventions, CQI, accreditation)
+
 - [ ] 7.4 SENIOR ENGINEERING FIX — Prime and formalize the closed loop.
       Problem: `student_learning_states=0`, `learning_interventions=0`, `intervention_measurements=0`,
       `proactive_agent_jobs=0`, `agent_action_proposals/executions=0`, `cqi_systemic_patterns=0`,
       `cqi_action_plans=0`, `cqi_action_plan_measurements=0`, accreditation reports=0 — the loop
       scaffolding exists (sync trigger, SKIP LOCKED claim/evaluate RPCs, cron jobs) but nothing
       populates it and `private.cron_secrets` is unset.
-      Fix: (a) provision cron secrets; verify `intervention-jobs` (generate_candidates ``5 * * * *``,
-      evaluate_measurements ``*/15 * * * *``) and ``agent-evaluation-jobs`` (``20 * * * *``) actually fire;
+      Fix: (a) provision cron secrets; verify `intervention-jobs` (generate_candidates `5 * * * *`,
+      evaluate_measurements `*/15 * * * *`) and `agent-evaluation-jobs` (`20 * * * *`) actually fire;
       (b) materialize `student_learning_states` from canonical evidence via
       `sync_learning_state_measurements_v1` (version/freshness/hash invariants); (c) wire coordinator
       CQI: systemic pattern → AI draft (cited) → proposal → approval → plan → measurement; (d) surface
@@ -249,7 +255,7 @@
       (PROGRESS 2026-09-06: **PRIMED — loop is live and self-running, one defect open.**
       (a) SECRETS PROVISIONED: `private.cron_secrets['cron_intervention_jobs']` generated in-DB +
       synced to edge `CRON_SECRET`; both crons verified firing (HTTP 200 via x-cron-secret; logs
-      show hourly generation + ``*/15`` evaluation RPCs). Institution flags enabled for the 2 demo
+      show hourly generation + `*/15` evaluation RPCs). Institution flags enabled for the 2 demo
       tenants (Demo University + Noor): `ai_proactive_enabled=true`, `ai_operational_autonomy=A2`
       (both were fail-closed defaults — root-caused the first `enqueued:0`). Gulf `.test` tenant
       left off. **(b) LEARNER STATES LIVE: 41/41** generated via `refresh_student_learning_state_v1`
@@ -274,6 +280,7 @@
       (determinism). Pass = every loop stage writes rows with correct state transitions.
 
 ### F5 — At-risk prediction pipeline dead
+
 - [ ] 7.5 SENIOR ENGINEERING FIX — Make at-risk signals/predictions persist.
       Problem: compute-at-risk-signals + ai-at-risk-prediction are scheduled nightly but
       `ai_feedback=0` for `suggestion_type='at_risk_prediction'` and no signal rows were written;
@@ -292,6 +299,7 @@
       thresholds, validation, UI all verified.
 
 ### F6 — Analytics computed client-side over full tables
+
 - [ ] 7.6 SENIOR ENGINEERING FIX — Scoped server analytics RPCs.
       Problem: `useGapAnalysis`/`useCoverageHeatmap`/`useSankeyData` fetch ALL outcomes/mappings/
       evidence and compute in-browser; `gapAnalysis.ts` recommendations are hardcoded strings;
@@ -307,6 +315,7 @@
       pages consume only RPCs (no raw-table fetches). Pass = parity, scope, perf, no regressions.
 
 ### F7 — Coordinator "moment of value" journey missing
+
 - [ ] 7.7 SENIOR ENGINEERING FIX — Compose post-unit attainment review journey.
       Problem: gap analysis, coverage heatmap, cohort comparison, trends and CQI exist as separate
       pages but the core scenario — "after a unit assessment, see CLO-3 under-attained across 4
@@ -325,6 +334,7 @@
       authorized evidence.
 
 ### F8 — Curriculum ingestion / CLO authoring assistant missing
+
 - [ ] 7.8 SENIOR ENGINEERING FIX — Syllabus → outcomes ingestion with human approval.
       Problem: adopting a real curriculum means hand-typing every CLO/PLO/ILO and mapping them — the
       #1 adoption blocker; no ingestion, extraction, quality-check or auto-mapping exists.
@@ -342,6 +352,7 @@
       delta. Pass = valid gated proposals, full audit trail, no security regressions.
 
 ### F9 — IB/MYP & national-curriculum presets missing
+
 - [ ] 7.9 SENIOR ENGINEERING FIX — Framework/criteria presets + moderation reporting.
       Problem: the outcome model is generic CLO/sub-CLO only; no MYP criteria A–D (0–8, /32→1–7), no
       moderation batches, no IGCSE/MoEHE national learner-attribute presets — an IB or
@@ -359,6 +370,7 @@
       AR/RTL screenshots. Pass = correct conversions, no RLS regression.
 
 ### F10 — Live/local drift & deploy hygiene
+
 - [ ] 7.10 SENIOR ENGINEERING FIX — Reconcile local ↔ live ↔ deployed.
       Problem: working tree carries uncommitted migrations (`20260905230639`, `20260905231218`) +
       edited edge functions + 2 new scripts; deployed functions show mixed build paths
@@ -377,6 +389,7 @@
       exact closure deployed, no uncommitted drift, advisor baseline recorded.
 
 ### F11 — Security advisor INFO/WARN triage + access-surface review
+
 - [ ] 7.11 SENIOR ENGINEERING FIX — Triage no-policy tables, search_path, secdef surface.
       Problem: 12 `rls_enabled_no_policy` INFO — agent tables are intentionally fail-closed, but
       `admin_bootstrap_requests`, `email_deliveries`, `email_delivery_events`, `proactive_agent_jobs`
@@ -394,6 +407,7 @@
       high/critical. Pass = baselined advisor, deny-side green, findings recorded.
 
 ### F12 — Student learning experience disconnected from OBE engine
+
 - [ ] 7.12 SENIOR ENGINEERING FIX — Student surfaces consume real outcome evidence.
       Problem: student OBE surfaces (CLO progress, learning path, mastery recovery, transcript)
       render with no data because no live grades feed attainment; the engagement layer
@@ -422,26 +436,28 @@
 > `decision-intelligence-map.md` (canonical `.kiro/`, mirror `docs/specs/`).
 
 ### 8.0 — Decision Intelligence capability map (recorded; living record)
+
 > Full detail: `decision-intelligence-map.md`. Compact summary of the 8 decision questions:
 
-| Q | Works today (evidence) | Level | Missing | Ideal fix / task |
-|---|---|---|---|---|
-| Q1 What fails? | rollup trigger + gap/heatmap/trends (client-side, 0 rows) | L2 math / L0 operational | live data; section×CLO view | 7.4 · 7.6 · 7.7 |
-| Q2 Why? | systemic-gap contracts (code, 0 rows) | L3 arch / L0 | root-cause taxonomy | 8.9 |
-| Q3 Who affected? | cohort/section/at-risk arch | L2 arch / L0 | scoping on real data | 7.7 · 8.9 |
-| Q4 What intervention? | AI-drafted CQI + intervention machinery (0 rows) | L3 arch / L0 | cited drafts; approval flow | 7.4 · 8.9 |
-| Q5 Who performs? | CQI responsible_person text | L1 | role routing | 8.9 |
-| Q6 Did it work? | measurement contracts (0 rows, no UI) | L4 arch / L0 | priming; results UI | 7.4 · 8.10 |
-| Q7 Change curriculum? | CQI model + generators (0 rows) | L4 arch / L0 | evidence-tied recommendations | 7.4 · 8.10 |
-| Q8 Problem class? | NONE | **MISSING** | taxonomy + classifier | 8.9 |
+| Q                     | Works today (evidence)                                    | Level                    | Missing                       | Ideal fix / task |
+| --------------------- | --------------------------------------------------------- | ------------------------ | ----------------------------- | ---------------- |
+| Q1 What fails?        | rollup trigger + gap/heatmap/trends (client-side, 0 rows) | L2 math / L0 operational | live data; section×CLO view   | 7.4 · 7.6 · 7.7  |
+| Q2 Why?               | systemic-gap contracts (code, 0 rows)                     | L3 arch / L0             | root-cause taxonomy           | 8.9              |
+| Q3 Who affected?      | cohort/section/at-risk arch                               | L2 arch / L0             | scoping on real data          | 7.7 · 8.9        |
+| Q4 What intervention? | AI-drafted CQI + intervention machinery (0 rows)          | L3 arch / L0             | cited drafts; approval flow   | 7.4 · 8.9        |
+| Q5 Who performs?      | CQI responsible_person text                               | L1                       | role routing                  | 8.9              |
+| Q6 Did it work?       | measurement contracts (0 rows, no UI)                     | L4 arch / L0             | priming; results UI           | 7.4 · 8.10       |
+| Q7 Change curriculum? | CQI model + generators (0 rows)                           | L4 arch / L0             | evidence-tied recommendations | 7.4 · 8.10       |
+| Q8 Problem class?     | NONE                                                      | **MISSING**              | taxonomy + classifier         | 8.9              |
 
 ### Wave A — Adaptivity foundation (unblocks ALL market segments; no curriculum-specific code)
+
 - [ ] 8.1 SENIOR ENGINEERING FIX — Scoring-model abstraction + per-course framework framing.
       Problem (live-verified): `evidence.score_percent` / `grades.score_percent` NOT NULL
       percent-only; attainment = avg-of-% with 85/70/50; ONE `grade_scales` + ONE
       `attainment_thresholds` per institution (`institution_settings` UNIQUE); `accreditation_body`
       CHECK = higher-ed only (`HEC,QQA,ABET,NCAAA,AACSB,Generic`) — cannot express MYP A–D 0–8,
-      IGCSE A*–G/9–1, AP 1–5, DP 1–7, NC bands, nor record IB/CIS/BSO/QNSA/NEASC accreditors.
+      IGCSE A\*–G/9–1, AP 1–5, DP 1–7, NC bands, nor record IB/CIS/BSO/QNSA/NEASC accreditors.
       Fix (forward-only): `courses` += `framework_id`, `curriculum_code` (e.g. `0580`, `MYP-SCI-7`),
       `key_stage`, `assessment_model` (`percent|criterion|band_grade|component`), `grade_scale_id`
       (nullable → inherit institution); per-course grade scales; `evidence` += `raw_score jsonb`
@@ -472,6 +488,7 @@
       teacher + coordinator UI. Pass = valid packs, bilingual, approval-trailed.
 
 ### Wave B — Segment pilots (prove "adaptive, not few-school")
+
 - [ ] 8.3 SENIOR ENGINEERING FIX — IB MYP criterion engine + moderation.
       Problem: MYP is criterion-related (A–D × 0–8, total /32 → 1–7; "mark ≈ snapshot / grade ≈
       album"; internal moderation + eAssessment); generic CLO/% model cannot represent it.
@@ -524,6 +541,7 @@
       attainment + reports; RLS per track; regression suite. Pass = isolation, correct rollups.
 
 ### Wave C — Accreditation + go-to-market enablers
+
 - [ ] 8.7 SENIOR ENGINEERING FIX — Per-regime accreditation evidence packs.
       Problem: accreditation generators exist but emit percent-only ILO/PLO/CLO tables; QNSA/BSO/
       CIS/IB-eval regimes need criterion/band/moderation + bilingual evidence.
@@ -549,6 +567,7 @@
       UX milestones; screenshots AR/EN. Pass = end-to-end, isolated, measurable.
 
 ### Wave D — Educational Decision Intelligence (the "answers questions" engine)
+
 - [ ] 8.9 SENIOR ENGINEERING FIX — Problem taxonomy + decision-intelligence engine.
       Problem: the platform cannot answer the decision stack — Why is it failing? Who is affected?
       What intervention? Who performs it? Did it work? Change curriculum? — nor classify the failure
@@ -573,6 +592,7 @@
       test with a passing fixture.
 
 ### Wave E — Ideal Edeviser OBE flow (closed loop; build + prove)
+
 - [ ] 8.10 SENIOR ENGINEERING FIX — Ideal-flow closed-loop orchestration.
       Problem: PLAN/TEACH/ASSESS/MEASURE/DIAGNOSE/INTERVENE/VERIFY/IMPROVE exists only as unprimed
       scaffolding (empty tables, stage-wise); per audit only MEASURE is real code and only
@@ -592,6 +612,7 @@
       Pass = full loop with every stage verified and idempotent.
 
 ### Wave F — Ideal-flow missing stages: TEACH + ASSESS (fixes the OBE Reality Check gaps)
+
 > Context & research (read before implementing — prevents hallucination): the audit's OBE Reality
 > Check classified "Lessons/activities linked to outcomes" and "Assessment blueprint (coverage
 > check auto-flagged)" as **MISSING**. Live-verified: `course_modules` carries only
@@ -659,7 +680,7 @@
       component semantics; IB's "never represent criteria as % only" is satisfied because BOTH are
       stored (raw is never replaced by normalization); record the Discovery-sprint scope (segments:
       1 IB + 1 British multi-track; contract output: 8.1 scoring-model items = MYP A–D 0–8 best-fit
-      boundaries, IGCSE AO weights + A*–G/9–1 boundaries, DP component weights, NC bands,
+      boundaries, IGCSE AO weights + A\*–G/9–1 boundaries, DP component weights, NC bands,
       AP 1–5; constraints: forward-only migrations, RLS + Security Advisor baselines, no
       speculative build before sign-off); gate 8.1 on this record.
       Acceptance: decision + sprint scope recorded in README; Sequencing shows 8.13 before 8.1;
@@ -670,6 +691,7 @@
       the contract sign-off. Pass = contract recorded + reviewed, no speculative engineering.
 
 ### Sequencing
+
 8.13 (Discovery-sprint contract + product-decision record) → 8.1 → 8.2 → pilots 8.3–8.6 →
 8.7–8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
 on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in

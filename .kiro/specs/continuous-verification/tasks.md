@@ -219,7 +219,7 @@
       REMAINING: seed-replay verification (shared owner Docker step with 7.1(b)) + 7.3-QA
       preview assertions. NEW FOLLOW-UP: `trg_grade_released_notify` emits a duplicate grade
       notification alongside the rollup trigger's — dedupe under 7.3.)
-      (PROGRESS 2026-09-06 **7.6 EXECUTED**: `get_coordinator_analytics_v1(program_id)` — one
+      (PROGRESS 2026-09-06 **7.7 EXECUTED**: `get_unit_close_review_v1(course_id)` RPC (MCP 20260907113538) + `useUnitCloseReview` hook + `UnitCloseReviewPage` at `/coordinator/unit-close/:courseId`. Section × CLO attainment matrix with weakest-CLO ordering + coverage flags. Live: Mathematics 6 → 4 CLOs × 4 sections = 12 matrix entries, weakest at 75.2%. `n`n(PROGRESS 2026-09-06 **7.6 EXECUTED**: `get_coordinator_analytics_v1(program_id)` — one
       invoker-rights RPC returning the program-scoped payload; the three visualization hooks
       (gap analysis, coverage heatmap, sankey) now consume it via ONE shared queryKey; whole-table
       client reads ELIMINATED; classification still one-source in the shared libs. Live: Math
