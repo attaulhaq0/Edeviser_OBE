@@ -843,3 +843,42 @@ citation-fail-closed) + ownership routing + full 8.9-QA decision-stack suite (Q1
 
 **Deploy Impact: NONE** (client files, spec docs, scripts, generated types — no migrations
 applied, no edge functions deployed, no config changes).
+
+## Session record — 2026-09-07 (M): 8.9 Q5 ownership routing — live + verified
+
+**Executed (forward-only, 2 migrations applied via MCP + files committed):**
+
+1. **`20260907180222_problem_case_ownership_routing`** — `classify_problem_cases_v1` now
+   emits `recommended_owner` per problem case, derived deterministically from the DOMINANT
+   cause (never from AI): student-signal → `student_support` · teacher-signal →
+   `coordinator` · assessment-signal → `teacher` · prerequisite-signal → `teacher` ·
+   curriculum-design-signal → `coordinator`. Invoker-rights preserved; REVOKE/GRANT
+   re-asserted; COMMENT updated.
+2. **`20260907180347_fix_problem_case_section_spread_alias`** — forward fix for a latent bug
+   discovered while applying (1): the applied `20260907153402` body referenced a nonexistent
+   alias (`en.section_id` where the FROM clause aliases `student_courses` as `sc`) — a 42P01
+   runtime error on EVERY call of the engine, which would also have broken a fresh replay
+   (the first session's live `prosrc` used the correct `sc.`, so the ledger statements had
+   diverged from what was actually executed). The fix migration re-asserts the full function
+   INCLUDING the ownership routing — it is the canonical definition going forward.
+
+**Live verification (recorded per the Live-State Verification Rule):**
+
+- Function body: `has_bug=false`, `has_fix=true`, `has_owner=true`, `has_routing=true`
+  (pg_proc prosrc surface).
+- Runtime: English Language Arts 7 → 3 cases, dominant cause `student-signal` → owner
+  `student_support` each; `section_spread` computed (1.5). Live data currently only exercises
+  the student-signal branch; the other routing branches are deterministic CASE logic.
+- Client: `useProblemClassification.ProblemCase` gained `recommended_owner`; Unit-Close
+  `DecisionIntelligenceSection` renders a localized owner badge; en/ar owner labels
+  (`owners.teacher/coordinator/student_support`); unit test asserts the routing render.
+
+**Gates (all green):** lint 0 · tsc clean · vitest 736 files / 6731 tests · i18n parity ·
+`db:check-dup-names` CLEAN (38 grandfathered) · `db:check-replay` CLEAN — **484 migrations**.
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + owner → intervention assignment flow + full 8.9-QA decision-stack
+suite (Q1–Q8; Q5 routing now deterministically testable).
+
+**Deploy Impact: MIGRATIONS** (2 forward-only migrations live-applied via MCP + files
+committed; `CREATE OR REPLACE FUNCTION` only — no schema objects, no data changes).

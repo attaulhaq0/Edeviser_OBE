@@ -24,6 +24,9 @@ export interface ProblemCase {
     student_id: string;
     attainment: number;
   }> | null;
+  /** Deterministic routing from the dominant cause (8.9 Q5): teacher |
+   * coordinator | student_support. Never derived from AI. */
+  recommended_owner: string | null;
 }
 
 export interface ClassificationResult {

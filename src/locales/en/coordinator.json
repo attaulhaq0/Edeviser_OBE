@@ -408,6 +408,7 @@
       "sectionSpread": "Section spread",
       "caseCount": "{{n}} problem cases",
       "dominantCause": "Dominant cause",
+      "recommendedOwner": "Recommended owner",
       "confidence": "Confidence",
       "signals": "Signals",
       "studentsAssessed": "{{n}} students assessed",
@@ -421,6 +422,11 @@
         "assessment-signal": "Assessment",
         "prerequisite-signal": "Prerequisite gap",
         "curriculum-design-signal": "Curriculum design"
+      },
+      "owners": {
+        "teacher": "Teacher",
+        "coordinator": "Coordinator",
+        "student_support": "Student support"
       }
     }
   }

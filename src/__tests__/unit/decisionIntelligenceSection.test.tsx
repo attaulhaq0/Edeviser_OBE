@@ -47,6 +47,9 @@ const RESULT_WITH_CASES: ClassificationResult = {
       problem_types: ["curriculum-design-signal"],
       dominant_cause: "curriculum-design-signal",
       confidence: 0.8,
+      // 8.9 Q5: deterministic ownership routing from the dominant cause.
+      // curriculum-design-signal → coordinator (mirrors the SQL engine).
+      recommended_owner: "coordinator",
       evidence: [
         { source: "outcome_attainment", clo_id: "clo-1", course_avg: 46.8 },
       ],
@@ -92,6 +95,10 @@ describe("DecisionIntelligenceSection (task 8.9 UI)", () => {
       screen.getByText("Recall key concepts in Science")
     ).toBeInTheDocument();
     expect(screen.getAllByText("Curriculum design").length).toBeGreaterThan(0);
+
+    // 8.9 Q5: deterministic ownership routing renders (cause → owner).
+    expect(screen.getByText(/Recommended owner:/)).toBeInTheDocument();
+    expect(screen.getByText("Coordinator")).toBeInTheDocument();
 
     // Confidence 0.8 → 80%.
     expect(screen.getByText(/Confidence:\s*80%/)).toBeInTheDocument();

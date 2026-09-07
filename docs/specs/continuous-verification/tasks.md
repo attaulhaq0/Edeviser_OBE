@@ -590,6 +590,17 @@
       (`coordinator.unitClose.*`); 4 unit tests passing. Remaining for 8.9 closure: AI explanation
       from authorized evidence (DeepSeek, citation-fail-closed) + ownership routing + full 8.9-QA
       decision-stack suite.)
+      (PROGRESS 2026-09-07 **8.9 Q5 OWNERSHIP ROUTING EXECUTED**: `classify_problem_cases_v1` now
+      emits `recommended_owner` per case, derived deterministically from the DOMINANT cause —
+      student-signal → `student_support`, teacher-signal → `coordinator`, assessment-signal →
+      `teacher`, prerequisite-signal → `teacher`, curriculum-design-signal → `coordinator`.
+      Applied via MCP as `problem_case_ownership_routing` + forward fix
+      `fix_problem_case_section_spread_alias` (the applied 20260907153402 body carried a latent
+      `en.section_id` alias bug — 42P01 on every call — now corrected; live-verified:
+      bug absent, fix + routing present). Unit-Close UI renders the localized owner badge;
+      en/ar owner labels added. Live: English Language Arts 7 → 3 cases, student-signal →
+      student_support. Remaining for 8.9 closure: AI explanation from authorized evidence +
+      full 8.9-QA decision-stack suite.)
 - [ ] 8.9-QA SENIOR QA — Decision-stack test suite (ONE test per decision question).
       Q1 what-is-failing: fixture weak CLO → flagged with evidence. Q2 why: single-cause fixture →
       correct classification. Q3 who-affected: section/demographic scoping correct. Q4 what-

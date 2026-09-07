@@ -31,6 +31,13 @@ const KNOWN_CAUSES = [
 const isKnownCause = (cause: string): boolean =>
   (KNOWN_CAUSES as readonly string[]).includes(cause);
 
+// Ownership routing targets (8.9 Q5) — mirrors the SQL engine's deterministic
+// mapping from dominant cause; unknown values fall back to the raw string.
+const KNOWN_OWNERS = ["teacher", "coordinator", "student_support"] as const;
+
+const isKnownOwner = (owner: string): boolean =>
+  (KNOWN_OWNERS as readonly string[]).includes(owner);
+
 /** Compact, deterministic summary of an evidence citation (scalars only). */
 const describeEvidence = (item: Record<string, unknown>): string =>
   Object.entries(item)
@@ -45,6 +52,10 @@ function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
     isKnownCause(cause)
       ? t(`unitClose.decisionIntelligence.causes.${cause}`)
       : cause;
+  const ownerLabel = (owner: string): string =>
+    isKnownOwner(owner)
+      ? t(`unitClose.decisionIntelligence.owners.${owner}`)
+      : owner;
 
   return (
     <div className="rounded-lg border border-slate-200 p-4">
@@ -70,6 +81,14 @@ function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
             {causeLabel(problemCase.dominant_cause)}
           </Badge>
         </span>
+        {problemCase.recommended_owner && (
+          <span className="inline-flex items-center gap-1">
+            {t("unitClose.decisionIntelligence.recommendedOwner")}:
+            <Badge variant="outline" className="text-[10px]">
+              {ownerLabel(problemCase.recommended_owner)}
+            </Badge>
+          </span>
+        )}
         <span>
           {t("unitClose.decisionIntelligence.confidence")}:{" "}
           {Math.round(problemCase.confidence * 100)}%
