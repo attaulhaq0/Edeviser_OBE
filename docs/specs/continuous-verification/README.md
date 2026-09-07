@@ -155,7 +155,6 @@ fix-forward strategy converges Git onto production content instead.
 no Edge Functions). All pre-commit gates run before PR.
 
 ## Session record — 2026-09-05: backend→frontend coverage audit + P1 fixes (PRs #319–#322)
-
 **Coverage map built.** 5 roles (live: student 41, parent 21, teacher 5,
 coordinator 4, admin 3); ~130 tables; 287 DB functions (96 public secdef —
 104 total incl. vault/graphql/net/pgbouncer/supabase_functions, scope
@@ -202,7 +201,6 @@ forward-only file committed). Gates: tsc 0, lint 0, vitest 6712+ (full run in
 g6.log), i18n parity OK, parity+friends tests 15/15.
 
 ## Session record — 2026-09-04 (night): real event catalog shipped (PRs #319–#320)
-
 **Goal.** The four "no matching events" dashboards queried events nothing emitted.
 Wired the real catalog at the correct call sites and made every provisioned
 insight query an event the app actually sends.
@@ -213,7 +211,6 @@ insight query an event the app actually sends.
 `grade_viewed` (useGrade first-hit, session-deduped per submission),
 `leaderboard_viewed` (useLeaderboard first page, session-deduped),
 `badge_viewed` (useTieredBadges first load, session-deduped),
-
 ---
 
 ## Session record — 2026-09-05 second pass ("fix whats remaining")
@@ -227,8 +224,8 @@ gamification XP chain, and wire the orphaned generators.
    - Student: `sessions`, `notification-preferences` (group `tools`)
    - Coordinator: `sessions`, `cohort-comparison`
    - Teacher: `calendar`, `timetable`
-     New icons `CalendarClock` + `SlidersHorizontal`. `navRouteParity` test green
-     (21/21) — every nav destination resolves, no duplicates.
+   New icons `CalendarClock` + `SlidersHorizontal`. `navRouteParity` test green
+   (21/21) — every nav destination resolves, no duplicates.
 2. **Edge Function tracing — final verdicts:**
    - `resolve-mystery-reward`, `check-bonus-question` → WORKING (hooks + components).
    - `bulk-grade-export` → wired (`useBulkOperations`).
@@ -259,7 +256,7 @@ gamification XP chain, and wire the orphaned generators.
    `xp_total`/`level` via `calculate_level_from_xp`; idempotent per evidence row.
    **Security catch during verification:** Supabase default privileges auto-grant
    EXECUTE to `anon`/`authenticated` on new functions, and `REVOKE ... FROM
-PUBLIC` does NOT remove per-role grants — the first apply left
+   PUBLIC` does NOT remove per-role grants — the first apply left
    `{anon,authenticated,postgres,service_role}`; fixed with explicit
    `REVOKE EXECUTE ... FROM anon, authenticated` (live-verified proacl =
    `{postgres, service_role}`). The migration file includes this explicit revoke
@@ -270,26 +267,23 @@ PUBLIC` does NOT remove per-role grants — the first apply left
    CI stays fail-closed on new ERRORs, never suppresses new WARNs).
 
 ### Gates this session
-
 tsc 0 · lint 0 (touched) · i18n parity OK (common 912, student 688) ·
 `navRouteParity`/`navPresentation`/`studentFriendsPage` 21/21 ·
 `node --check` sync script OK · `vercel.json` valid.
 
 ### Deferred / needs approval
-
 - **XP dedupe + unique index** (product approval required — lowers XP).
 - `connectivity-matrix.json` regeneration via full `npm run audit`
   (`--stage connectivity` is env-gated and regenerates only in the CI/local
   full run).
 - Edge Function redeploy of `generate-reflection-digest` / `improvement-bonus-check`
   via the Git-linked Supabase pipeline on merge (functions hardened locally).
-  `streak_milestone_seen` (useStreakMilestones, deduped per milestone/day),
-  `signup_completed` (AuthProvider signUp success), `route_error_shown`
-  (PageErrorFallback mount). View events are session-deduped (module-level Set)
-  so refetch/polling can't inflate counts.
+`streak_milestone_seen` (useStreakMilestones, deduped per milestone/day),
+`signup_completed` (AuthProvider signUp success), `route_error_shown`
+(PageErrorFallback mount). View events are session-deduped (module-level Set)
+so refetch/polling can't inflate counts.
 
 **Real bugs found during build verification (not just analytics):**
-
 1. `useStreakMilestones` was **dead code** — connectivity matrix `targets: []`,
    no importers, tree-shaken from the build. `HeatmapGrid` always accepted a
    `milestones` prop but no page passed it → milestone markers (30/60/100-day)
@@ -323,7 +317,6 @@ student-engagement/gamification layer (real data) plus an OBE metadata & attainm
 populated only by synthetic seed.
 
 **Evidence captured (live `cdlgtbvxlxjpcddjazzx` + local `ace2acc4`).**
-
 - OBE core (seed-only): programs=4, courses=4, sections=16, outcomes=22, mappings=26, sub_clos=2;
   graduate_attributes=0, competency_frameworks=0.
 - Assessment (empty): assignments=0, quizzes=0, quiz_questions=0, quiz_attempts=0, question_bank=2.
@@ -339,7 +332,7 @@ populated only by synthetic seed.
 - VERIFIED REAL: `trigger_attainment_rollup` (grade→evidence→weighted CLO/PLO/ILO + XP +
   notification), mapping hierarchy/weight-sum validators, intervention claim/evaluate RPCs
   (SKIP LOCKED + lease + dead-letter), measured-CQI comparability contract, cron jobs for
-  intervention generation (`5 * * * *`) + evaluation (`*/15 * * * *`) + agent evaluation
+  intervention generation (``5 * * * *``) + evaluation (``*/15 * * * *``) + agent evaluation
   (`20 * * * *`) — all gated on `private.cron_secrets` (UNSET).
 - Security advisor: 12 `rls_enabled_no_policy` INFO (agent tables intentionally fail-closed; but
   admin_bootstrap_requests, email_deliveries, email_delivery_events, proactive_agent_jobs have no
@@ -370,8 +363,7 @@ is adaptive across Qatar's IB/British/American/MoEHE segments rather than a sing
 percent/higher-ed product.
 
 **Market findings (public sources; no school interviewed, no RFP reviewed).**
-
-- MoEHE 2025 _Educational Systems Guide_ formalizes private-school systems + accreditation + assessment
+- MoEHE 2025 *Educational Systems Guide* formalizes private-school systems + accreditation + assessment
   mechanisms; National Curriculum "General Framework" defines learner attributes and
   outcomes-data-driven curriculum; Arabic + Islamic Education compulsory in private schools.
 - IB: 21 IB World Schools (17 DP / 13 MYP / 14 PYP / 3 CP) incl. Qatar Academy (Doha/Khor/Wakra/Sidra),
@@ -418,7 +410,6 @@ model from a fixed contract (no speculation). Cross-checked against existing tas
 duplication** (only the MISSING stages + the recorded decision/gate were added; no renumbering).
 
 **Tasks recorded (Wave F).**
-
 - **8.11 / 8.11-QA — TEACH stage.** Outcome-linked `lessons` + `lesson_activities` (RLS), `course_modules`
   += `clo_ids`, `class_sessions` += `lesson_id` + `outcome_ids`, teacher unit builder UI, planner +
   learning path consume the structure. Live gap confirmed: no lesson/activity entity, no outcome
@@ -432,22 +423,20 @@ duplication** (only the MISSING stages + the recorded decision/gate were added; 
 - **8.13 / 8.13-QA — Product decision record + Discovery-sprint gate.** Recorded below; gates 8.1.
 
 ## Product decision (recorded 2026-09-06) — scoring model
-
 - `score_percent` REMAINS the canonical normalized value; all existing percent-path arithmetic,
   thresholds (85/70/50), and reports are unchanged (zero-regression guarantee).
 - `evidence.raw_score` (new, nullable jsonb) stores the IMMUTABLE raw semantics: criterion levels
-  and rubric selections (MYP A–D 0–8), band/component scores (IGCSE A\*–G/9–1, AP 1–5, DP 1–7, NC
+  and rubric selections (MYP A–D 0–8), band/component scores (IGCSE A*–G/9–1, AP 1–5, DP 1–7, NC
   bands), weighted assessment-objective components.
 - IB's rule "never represent criteria by % alone" is satisfied because BOTH are stored; raw is
   never replaced by normalization. Percent is a compatibility projection; raw is the evidentiary
   truth.
 
 ## Discovery-sprint gate (recorded 2026-09-06) — before 8.1 scoring-model build
-
 - **Segments:** 1 IB school + 1 British multi-track school (Doha-British-like: NC KS + IGCSE +
   AS/A-Level + BTEC + IB DP under one institution).
 - **Contract output** for task 8.1: MYP A–D 0–8 best-fit boundary table (criterion attainment →
-  1–7 grade), IGCSE assessment-objective weights + A\*–G/9–1 boundary tables, DP component weights,
+  1–7 grade), IGCSE assessment-objective weights + A*–G/9–1 boundary tables, DP component weights,
   NC key-stage band descriptors, AP 1–5.
 - **Constraints:** forward-only migrations only; RLS + Security Advisor baselines recorded before/after;
   no speculative build before sign-off; outcomes of the sprint are recorded back into this spec.
@@ -459,7 +448,6 @@ duplication** (only the MISSING stages + the recorded decision/gate were added; 
 **Trigger.** Principal-engineer hardening directive; this spec = minimum acceptance baseline.
 
 **Implemented now (verified, non-duplicative).**
-
 - **NEW static gate** `scripts/check-rls-coverage.mjs` + `npm run check:rls-coverage`, wired into
   `security-gates.yml` (Migration + runtime governance step). Rationale: Security Advisors surface
   `rls_enabled_no_policy` as INFO and CI blocks only on ERROR — an RLS-less table never blocked a
@@ -510,7 +498,6 @@ and `evidence` has no `raw_score` (no 8.1 scoring-model build has started). Both
 
 **7.1(a) APPLIED LIVE via MCP** — `20260906164527_restore_orphaned_assignments_evidence_provenance`
 (forward-only file committed to match):
-
 - 17 ghost assignments restored **with their original UUIDs** so all 552 submissions, 550 grades,
   and 1650 evidence rows resolve again.
 - Course attribution recovered from each assignment's own evidence (CLO→course), falling back to
@@ -552,7 +539,6 @@ forward-only file committed; no schema objects added/removed; trigger state rest
 **Order:** 8.13 ✅ → 7.1(a)(c) ✅ → **7.3(a) ✅** → next: 7.3(b)(c), 7.4, 7.6, 7.7, 7.8, 8.1…
 
 **Schema (2 migrations via MCP, files committed).**
-
 - `20260906165847_canonical_quiz_evidence_path`: `submissions.assignment_id` nullable +
   `submissions.quiz_attempt_id` (FK) + exactly-one-source CHECK + partial unique index;
   `trigger_attainment_rollup` extended — quiz branch (CLOs from `quiz_clos` → `clo_ids`
@@ -586,7 +572,7 @@ updated (85.76) + PLO `course` (85.76) + ILO `program` rows → quiz notificatio
 Cleanup restored exact baseline: 552/550/1650/0/0/2508/1626 + 28 attainment rows for the test
 student (backup table used, then dropped).
 
-**NEW FINDING (small follow-up):** `trg_grade_released_notify` on `grades` emits a _second_
+**NEW FINDING (small follow-up):** `trg_grade_released_notify` on `grades` emits a *second*
 grade notification alongside the rollup trigger's `emit_notification` — duplicate-notification
 path exists for assignment grades too. Dedupe/unify is a small follow-up under 7.3.
 
@@ -602,7 +588,6 @@ code changes in 6 files; generated types regenerated; all gates green).
 ## Session record — 2026-09-06 (G): 7.3(b)+(c) — coverage guard live; seed quizzes; 7.3 build-complete
 
 **7.3(b) authoring-time coverage guard — DONE.**
-
 - Server truth: `get_course_assessment_coverage_v1(course_id)` — per-CLO coverage across BOTH
   assessment sources (assignments.clo_weights + quizzes.quiz_clos/clo_ids); SECURITY INVOKER
   (caller RLS scopes all rows); EXECUTE authenticated+service_role.
@@ -632,7 +617,6 @@ live demo-tenant quiz fixtures inserted).
 ## Session record — 2026-09-06 (H): 7.4 loop priming — cron + learner states + generation LIVE; one open defect
 
 **Executed (operational activation, approved via "continue" on the recommended order).**
-
 1. **Cron secrets provisioned:** `private.cron_secrets['cron_intervention_jobs']` generated
    in-DB (`gen_random_bytes`, rotation column set) and synced to edge `CRON_SECRET`.
 2. **Learner states materialized:** `refresh_student_learning_state_v1` run for all 41 active
@@ -647,7 +631,7 @@ live demo-tenant quiz fixtures inserted).
 4. **Generation verified:** re-fire → **`enqueued:38`**; the hourly cron then fired autonomously
    and enqueued 40 more (78 total: specialist=intervention → recipient=teacher, **5 at-risk
    students across 4 teachers** — noise suppression confirmed). `evaluate_measurements` → 200,
-   claimed 0 (no executed interventions exist — honest zeros; the `*/15` cron now self-runs).
+   claimed 0 (no executed interventions exist — honest zeros; the ``*/15`` cron now self-runs).
 5. **Worker activation:** agent-worker was flag-gated; found `AI_FEATURE_ENABLED=true`,
    `AI_DAILY_BUDGET_USD=1`, `DEEPSEEK_API_KEY` present; set the missing
    **`AI_PROACTIVE_AGENTS_ENABLED=true`**. Worker then **claimed 10** jobs.
@@ -663,7 +647,6 @@ deeper log access (logs backend intermittently 5xx'd during the pass). **7.4 sta
 a job completes end-to-end (draft → proposal → teacher approval → measurement).
 
 **DEFECT DIAGNOSIS PROGRESS (same-day bisect — major root cause FIXED, remainder isolated).**
-
 1. **Root cause #1 FOUND + FIXED via migration:** the twin read RPC
    `get_student_learning_state_v1` raised `Authentication required` for the worker's
    service-role path (`auth.uid()` is NULL in system calls). Patched via exact-text
@@ -698,7 +681,7 @@ a job completes end-to-end (draft → proposal → teacher approval → measurem
    (`crypt(...)` update on `auth.users`). Diagnostic scripts (`zz_diag_74.*`) deleted.
 
 **Also verified live:** intervention-jobs RPCs returning 200 in the unified logs (hourly
-generation + `*/15` evaluation both self-firing now); `agent-evaluation-jobs` cron intentionally
+generation + ``*/15`` evaluation both self-firing now); `agent-evaluation-jobs` cron intentionally
 left flag-off (separate gate).
 
 **Deploy Impact: CONFIG/OPS** (edge secret set; cron-secrets row inserted; 2 institution
@@ -715,7 +698,6 @@ RPC (7.6), RLS-coverage CI gate, spec sessions A–H, R7–R21, decision-intelli
 guards/SQL Migration Lint/Runtime deployment impact/Live advisors all PASS; Supabase Preview
 branch created (migrations replayed — first fresh-environment validation of the 7.1/7.3 chain).
 Three failures diagnosed:
-
 1. **RLS Smoke** — preview-convergence timing: ran while the Preview was still replaying 445
    migrations ("did not reach FUNCTIONS_DEPLOYED"). Re-run dispatched after convergence.
 2. **Security Scan** — `digest-mismatch` (Blocker): runtime-source-parity compares deployed
@@ -724,15 +706,43 @@ Three failures diagnosed:
    (`audit/baselines/vite-env.allowlist.json` — the env-tagging var from Phase 1 of this spec).
    Security stage now passes locally (0 findings).
 3. **Audit Report** — same audit pipeline aggregation as (2).
-   **Manifest fix:** `generate-reflection-digest` + `improvement-bonus-check` declared in
-   `notifications-runtime` (verifyJwt=true per the live runtime config snapshot) — the fail-closed
-   runtime-dependency resolver had flagged them as unmanaged (their working-tree changes were
-   prettier-only). Resolver now returns `errors: []`, closure = 18 functions across 2 groups.
+**Manifest fix:** `generate-reflection-digest` + `improvement-bonus-check` declared in
+`notifications-runtime` (verifyJwt=true per the live runtime config snapshot) — the fail-closed
+runtime-dependency resolver had flagged them as unmanaged (their working-tree changes were
+prettier-only). Resolver now returns `errors: []`, closure = 18 functions across 2 groups.
 
 **Owner actions:** wait for re-runs → review → merge → approve the production environment gate
 (edge functions) → the follow-up pass verifies worker job completion (closes 7.4) and continues
 7.7 → 7.8 → 8.1.
 
 **Deploy Impact: NONE for this record** (the PR itself: MIGRATIONS + EDGE_FUNCTIONS + CONFIG).
+
+## Session record — 2026-09-06 (J): 8.1 adaptive scoring foundation — schema live + verified
+
+**Executed (Wave A, additive, contract-independent).** Migration
+`20260906173000_adaptive_scoring_foundation` applied via MCP + file committed:
+- **`grade_scales`** table (RLS: institution-scoped SELECT for authenticated, admin-write) with
+  per-institution percent default scales seeded (3 institutions × 1 scale).
+- **`courses`** += 5 columns: `framework_id` (FK competency_frameworks), `curriculum_code`,
+  `key_stage`, `assessment_model` (percent|criterion|band_grade|component, DEFAULT 'percent'),
+  `grade_scale_id` (nullable FK → grade_scales).
+- **`evidence`** += `raw_score jsonb` (nullable; immutable raw criterion/band/component semantics).
+- **`institution_settings`**: higher-ed-only CHECK on `accreditation_body` DROPPED (column +
+  default preserved); new `accreditation_bodies text[]` (NOT NULL DEFAULT '{}') for the
+  authoritative multi-accreditor list.
+
+**Live verification:** 3 scales seeded · 4 courses at percent default · 5 new course columns ·
+`accreditation_bodies` column present · old CHECK gone · evidence FKs still validated ·
+submissions/grades/evidence/attainment/XP counts **unchanged** (552/550/1650/1113/2508) ·
+2 RLS policies on grade_scales.
+
+**Remaining for 8.1 completion (Wave B/C):** MYP/IGCSE/MoEHE boundary tables (8.3/8.4 — gated on
+the Discovery contract output); framework packs (8.2); attainment-engine criterion/band/component
+branching (the percent branch is unchanged and verified); coordinator UI for per-course model
+configuration; student/tutor model-aware surfaces.
+
+**Deploy Impact: MIGRATIONS** (1 forward-only migration live-applied + file committed; additive
+columns/table only; zero existing-row changes; all gates green).
+
 
 > **Mirror convention (session I):** the docs/specs copies are prettier-formatted while .kiro copies are prettier-ignored (see .prettierignore) — parity is CONTENT parity (modulo whitespace and markdown marker/escape normalization, e.g. `*` vs `_` emphasis and `\\*` escapes). Verify with whitespace+backslash-stripped comparison; cron expressions must always be backticked to survive formatting.

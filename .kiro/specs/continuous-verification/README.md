@@ -717,5 +717,32 @@ prettier-only). Resolver now returns `errors: []`, closure = 18 functions across
 
 **Deploy Impact: NONE for this record** (the PR itself: MIGRATIONS + EDGE_FUNCTIONS + CONFIG).
 
+## Session record — 2026-09-06 (J): 8.1 adaptive scoring foundation — schema live + verified
+
+**Executed (Wave A, additive, contract-independent).** Migration
+`20260906173000_adaptive_scoring_foundation` applied via MCP + file committed:
+- **`grade_scales`** table (RLS: institution-scoped SELECT for authenticated, admin-write) with
+  per-institution percent default scales seeded (3 institutions × 1 scale).
+- **`courses`** += 5 columns: `framework_id` (FK competency_frameworks), `curriculum_code`,
+  `key_stage`, `assessment_model` (percent|criterion|band_grade|component, DEFAULT 'percent'),
+  `grade_scale_id` (nullable FK → grade_scales).
+- **`evidence`** += `raw_score jsonb` (nullable; immutable raw criterion/band/component semantics).
+- **`institution_settings`**: higher-ed-only CHECK on `accreditation_body` DROPPED (column +
+  default preserved); new `accreditation_bodies text[]` (NOT NULL DEFAULT '{}') for the
+  authoritative multi-accreditor list.
+
+**Live verification:** 3 scales seeded · 4 courses at percent default · 5 new course columns ·
+`accreditation_bodies` column present · old CHECK gone · evidence FKs still validated ·
+submissions/grades/evidence/attainment/XP counts **unchanged** (552/550/1650/1113/2508) ·
+2 RLS policies on grade_scales.
+
+**Remaining for 8.1 completion (Wave B/C):** MYP/IGCSE/MoEHE boundary tables (8.3/8.4 — gated on
+the Discovery contract output); framework packs (8.2); attainment-engine criterion/band/component
+branching (the percent branch is unchanged and verified); coordinator UI for per-course model
+configuration; student/tutor model-aware surfaces.
+
+**Deploy Impact: MIGRATIONS** (1 forward-only migration live-applied + file committed; additive
+columns/table only; zero existing-row changes; all gates green).
+
 
 > **Mirror convention (session I):** the docs/specs copies are prettier-formatted while .kiro copies are prettier-ignored (see .prettierignore) — parity is CONTENT parity (modulo whitespace and markdown marker/escape normalization, e.g. `*` vs `_` emphasis and `\\*` escapes). Verify with whitespace+backslash-stripped comparison; cron expressions must always be backticked to survive formatting.
