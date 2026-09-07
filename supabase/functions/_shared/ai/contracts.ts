@@ -155,6 +155,10 @@ export const PROTECTED_ACTIONS = [
   "update_ilo",
   "delete_ilo",
   "reorder_ilos",
+  // Task 8.9 — decision-intelligence closed loop: an approved intervention
+  // draft becomes an official learning_interventions record. Coordinator
+  // approval is ALWAYS required (A3 never bypasses).
+  "create_learning_intervention",
 ] as const;
 
 export type ProtectedActionType = (typeof PROTECTED_ACTIONS)[number];
@@ -195,6 +199,11 @@ export const requiredApproverRole = (
   }
   if (action === "acknowledge_child_support_plan") {
     return "parent";
+  }
+  // Task 8.9: official intervention records are coordinator-approved — the
+  // routed owner performs the work, the coordinator owns the record.
+  if (action === "create_learning_intervention") {
+    return "coordinator";
   }
   return "admin";
 };

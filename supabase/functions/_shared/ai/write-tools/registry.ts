@@ -4,6 +4,7 @@ export type ProtectedWriteToolName =
   | "create_goal"
   | "create_planner_session"
   | "create_cqi_action"
+  | "create_learning_intervention"
   | "create_ilo"
   | "update_ilo"
   | "delete_ilo"
@@ -264,6 +265,88 @@ const validateCqiOutput = (value: unknown): Record<string, unknown> => {
 };
 
 // ---------------------------------------------------------------------------
+// Task 8.9 — decision-intelligence closed loop: an approved problem-case
+// draft becomes official learning_interventions rows (one per struggling
+// student). Payload mirrors src/lib/problemCaseActions.ts: the draft plan is
+// deterministic; the proposal carries the cited plan for coordinator review.
+// ---------------------------------------------------------------------------
+const validateLearningIntervention = (
+  value: unknown
+): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, [
+    "courseId",
+    "interventionType",
+    "plan",
+    "studentIds",
+    "recommendedOwner",
+  ]);
+  if (
+    typeof input.courseId !== "string" ||
+    !uuidPattern.test(input.courseId)
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "courseId must be a UUID"
+    );
+  }
+  textField(input, "interventionType", 100);
+  textField(input, "plan", 4000);
+  const studentIds = input.studentIds;
+  if (
+    !Array.isArray(studentIds) ||
+    studentIds.length === 0 ||
+    studentIds.length > 50 ||
+    studentIds.some(
+      (id) => typeof id !== "string" || !uuidPattern.test(id)
+    )
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "studentIds must be 1-50 UUIDs"
+    );
+  }
+  // Unique — the same student must never receive duplicate rows from one
+  // proposal.
+  if (new Set(studentIds as string[]).size !== (studentIds as string[]).length) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "studentIds must not contain duplicates"
+    );
+  }
+  if (input.recommendedOwner !== undefined) {
+    textField(input, "recommendedOwner", 50);
+  }
+  return input;
+};
+
+const validateLearningInterventionOutput = (
+  value: unknown
+): Record<string, unknown> => {
+  const output = row(value, "invalid_output");
+  if (
+    typeof output.executionId !== "string" ||
+    !uuidPattern.test(output.executionId) ||
+    !Array.isArray(output.interventionIds) ||
+    (output.interventionIds as unknown[]).length === 0 ||
+    !(output.interventionIds as unknown[]).every(
+      (id) => typeof id === "string" && uuidPattern.test(id)
+    ) ||
+    typeof output.count !== "number" ||
+    !Number.isSafeInteger(output.count) ||
+    output.count < 1 ||
+    output.count !== (output.interventionIds as unknown[]).length ||
+    typeof output.alreadyExecuted !== "boolean"
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_output",
+      "Learning intervention execution returned an invalid receipt"
+    );
+  }
+  return output;
+};
+
+// ---------------------------------------------------------------------------
 // Task 6.2 — Admin ILO governance protected writes. Payloads mirror the
 // proposal shapes produced by write-tools/outcome-governance.ts so an approved
 // proposal resolves through the registry instead of failing unknown_tool.
@@ -370,6 +453,17 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
     validateInput: validateCqiAction,
     validateOutput: validateCqiOutput,
   },
+  // Task 8.9 — decision-intelligence closed loop: coordinator-approved,
+  // one official learning_interventions row per struggling student.
+  "create_learning_intervention@1.0.0": {
+    name: "create_learning_intervention",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["coordinator"],
+    validateInput: validateLearningIntervention,
+    validateOutput: validateLearningInterventionOutput,
+  },
   // Task 6.2 — Admin ILO governance: approval is ALWAYS required and the only
   // permitted approver role is admin (platform spec guardrails).
   "create_ilo@1.0.0": {
@@ -416,6 +510,9 @@ export const protectedWriteVersionForAction = (
   actionType === "create_goal" ||
   actionType === "create_planner_session" ||
   actionType === "create_cqi_action" ||
+  // Task 8.9 — decision-intervention proposals share the 1.0.0 boundary
+  // version; execution routes through the typed learning-intervention RPC.
+  actionType === "create_learning_intervention" ||
   // Task 6.2 — Admin ILO governance proposals share the 1.0.0 boundary
   // version; execution is routed through typed outcome-governance handlers.
   actionType === "create_ilo" ||
