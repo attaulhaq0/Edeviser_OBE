@@ -90,6 +90,133 @@ const GRANDFATHERED = {
     "20260412192106_seed_default_marketplace_items.sql",
     "20260503100012_seed_default_marketplace_items.sql",
   ],
+
+  // ── MCP reconciliation pairs (2026-09-07) ─────────────────────────────────
+  // The 2026-09-07 migration-history reconciliation aligned local files with
+  // the platform's `supabase_migrations.schema_migrations` ledger. Each pair
+  // below is TWO genuinely applied ledger versions sharing one base-name:
+  // the earlier version is the authored migration file; the later version was
+  // applied via MCP/Dashboard and its local parity file is a COMMENT-ONLY
+  // stub (no statements — replay-safe, later file wins as a no-op). Every
+  // pair was verified against the LIVE ledger on 2026-09-07 (both versions
+  // present, distinct versions, same name), and
+  // `check-migration-replay-order.mjs` reports CLEAN (482 migrations, no
+  // too-early references, no stripped search_path). Do NOT add further
+  // entries except for the same verified applied-history situation.
+  adaptive_scoring_foundation: [
+    "20260906173000_adaptive_scoring_foundation.sql",
+    "20260907083954_adaptive_scoring_foundation.sql",
+  ],
+  agent_feedback_run_tenant_fk: [
+    "20260901000002_agent_feedback_run_tenant_fk.sql",
+    "20260901101937_agent_feedback_run_tenant_fk.sql",
+  ],
+  agent_worker_cron: [
+    "20260906172000_agent_worker_cron.sql",
+    "20260907123915_agent_worker_cron.sql",
+  ],
+  attendance_summary_view_and_record_rpc: [
+    "20260902160000_attendance_summary_view_and_record_rpc.sql",
+    "20260902201542_attendance_summary_view_and_record_rpc.sql",
+  ],
+  db_level_qa_hardening_constraints: [
+    "20260902200000_db_level_qa_hardening_constraints.sql",
+    "20260902224817_db_level_qa_hardening_constraints.sql",
+  ],
+  grades_ai_edited_by_teacher: [
+    "20260902131009_grades_ai_edited_by_teacher.sql",
+    "20260902153138_grades_ai_edited_by_teacher.sql",
+  ],
+  learning_interventions_teacher_write_policies: [
+    "20260902180000_learning_interventions_teacher_write_policies.sql",
+    "20260902223538_learning_interventions_teacher_write_policies.sql",
+  ],
+  lock_mv_historical_evidence_select: [
+    "20260905205526_lock_mv_historical_evidence_select.sql",
+    "20260905205552_lock_mv_historical_evidence_select.sql",
+  ],
+  question_usage_stats_view: [
+    "20260902150000_question_usage_stats_view.sql",
+    "20260902171908_question_usage_stats_view.sql",
+  ],
+  reconcile_table_grants: [
+    "20260901181637_reconcile_table_grants.sql",
+    "20260902000005_reconcile_table_grants.sql",
+  ],
+  respond_teacher_handoff_rpc: [
+    "20260902210000_respond_teacher_handoff_rpc.sql",
+    "20260903082607_respond_teacher_handoff_rpc.sql",
+  ],
+  rubrics_created_by_default_auth_uid: [
+    "20260901232509_rubrics_created_by_default_auth_uid.sql",
+    "20260902090000_rubrics_created_by_default_auth_uid.sql",
+  ],
+  scope_coordinator_analytics: [
+    "20260906174100_scope_coordinator_analytics.sql",
+    "20260906202523_scope_coordinator_analytics.sql",
+  ],
+  send_teacher_nudge_records_intervention: [
+    "20260902190000_send_teacher_nudge_records_intervention.sql",
+    "20260902223712_send_teacher_nudge_records_intervention.sql",
+  ],
+  sub_clo_weight_code: [
+    "20260902170000_sub_clo_weight_code.sql",
+    "20260902222032_sub_clo_weight_code.sql",
+  ],
+  // The 11 `*_applied_via_dashboard.sql` parity stubs from that pass were
+  // misnamed; they were RENAMED (git mv, content unchanged) to the real
+  // ledger names on 2026-09-07. This surfaced the 10 additional pairs below —
+  // each also live-ledger-verified (both versions applied, same name).
+  // Do NOT add further entries except for the same verified applied-history
+  // situation.
+  advisor_hardening_fk_indexes_and_executer_revokes: [
+    "20260824185310_advisor_hardening_fk_indexes_and_executer_revokes.sql",
+    "20260824210000_advisor_hardening_fk_indexes_and_executer_revokes.sql",
+  ],
+  advisor_hardening_fk_indexes_fix: [
+    "20260824185752_advisor_hardening_fk_indexes_fix.sql",
+    "20260824210001_advisor_hardening_fk_indexes_fix.sql",
+  ],
+  agent_evaluation_schedule_timeout: [
+    "20260825142502_agent_evaluation_schedule_timeout.sql",
+    "20260902000003_agent_evaluation_schedule_timeout.sql",
+  ],
+  agentic_platform_tables: [
+    "20260823125015_agentic_platform_tables.sql",
+    "20260831000002_agentic_platform_tables.sql",
+  ],
+  create_intervention_loop_jobs: [
+    "20260824125704_create_intervention_loop_jobs.sql",
+    "20260901000001_create_intervention_loop_jobs.sql",
+  ],
+  cron_secrets_and_agent_evaluation_schedule: [
+    "20260825133723_cron_secrets_and_agent_evaluation_schedule.sql",
+    "20260902000001_cron_secrets_and_agent_evaluation_schedule.sql",
+  ],
+  digital_twin_versions_and_autonomy_settings: [
+    "20260823130338_digital_twin_versions_and_autonomy_settings.sql",
+    "20260831000003_digital_twin_versions_and_autonomy_settings.sql",
+  ],
+  fix_intervention_cron_auth_private_schema: [
+    "20260824201013_fix_intervention_cron_auth_private_schema.sql",
+    "20260824210002_fix_intervention_cron_auth_private_schema.sql",
+  ],
+  gate_agent_evaluation_schedule: [
+    "20260825140333_gate_agent_evaluation_schedule.sql",
+    "20260902000002_gate_agent_evaluation_schedule.sql",
+  ],
+  reorder_learning_outcomes_rpc: [
+    "20260822160236_reorder_learning_outcomes_rpc.sql",
+    "20260831000001_reorder_learning_outcomes_rpc.sql",
+  ],
+  widen_xp_transactions_source_check: [
+    "20260905230606_widen_xp_transactions_source_check.sql",
+    "20260905230639_widen_xp_transactions_source_check.sql",
+  ],
+  wire_improvement_bonus_award: [
+    "20260905231218_wire_improvement_bonus_award.sql",
+    "20260905231402_wire_improvement_bonus_award.sql",
+  ],
 };
 
 /** @returns {{base:string, files:string[]}[]} duplicate base-names (count > 1) */

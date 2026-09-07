@@ -399,5 +399,29 @@
     "outcomeMapping": "ربط المخرجات",
     "CQI": "التحسين المستمر للجودة",
     "courseFile": "ملف المقرر"
+  },
+  "unitClose": {
+    "decisionIntelligence": {
+      "title": "ذكاء القرار",
+      "subtitle": "تصنيف حتمي لمشكلات كل مخرج تعلم — ما الذي يتعثر ولماذا.",
+      "courseAvg": "متوسط المقرر",
+      "sectionSpread": "الفارق بين الشعب",
+      "caseCount": "{{n}} حالة مشكلة",
+      "dominantCause": "السبب الرئيسي",
+      "confidence": "درجة الثقة",
+      "signals": "المؤشرات",
+      "studentsAssessed": "تم تقييم {{n}} طالب",
+      "studentsBelowTarget": "{{n}} طالب تحت المستوى المستهدف",
+      "evidence": "الأدلة",
+      "noCases": "لا توجد حالات مشكلة — جميع المخرجات المقيّمة عند المستوى المستهدف أو أعلى.",
+      "noData": "لا توجد بيانات تحصيل متاحة للتصنيف بعد.",
+      "causes": {
+        "student-signal": "الطالب",
+        "teacher-signal": "المعلم / الشعبة",
+        "assessment-signal": "التقييم",
+        "prerequisite-signal": "فجوة تمهيدية",
+        "curriculum-design-signal": "تصميم المنهج"
+      }
+    }
   }
 }

@@ -399,5 +399,29 @@
     "outcomeMapping": "Outcome Mapping",
     "CQI": "Continuous Quality Improvement",
     "courseFile": "Course File"
+  },
+  "unitClose": {
+    "decisionIntelligence": {
+      "title": "Decision Intelligence",
+      "subtitle": "Deterministic problem classification per outcome — what is failing and why.",
+      "courseAvg": "Course average",
+      "sectionSpread": "Section spread",
+      "caseCount": "{{n}} problem cases",
+      "dominantCause": "Dominant cause",
+      "confidence": "Confidence",
+      "signals": "Signals",
+      "studentsAssessed": "{{n}} students assessed",
+      "studentsBelowTarget": "{{n}} students below target",
+      "evidence": "Evidence",
+      "noCases": "No problem cases detected — every assessed outcome is at or above target.",
+      "noData": "No attainment data available for classification yet.",
+      "causes": {
+        "student-signal": "Student",
+        "teacher-signal": "Teacher / section",
+        "assessment-signal": "Assessment",
+        "prerequisite-signal": "Prerequisite gap",
+        "curriculum-design-signal": "Curriculum design"
+      }
+    }
   }
 }

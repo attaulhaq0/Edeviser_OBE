@@ -583,6 +583,13 @@
       ownership routing (teacher / coordinator / student-support).
       Acceptance: 5 problem classes classified on seeded fixtures with correct dominant cause;
       evidence citations ⊆ authorized set; 0 hallucinated causes.
+      (PROGRESS 2026-09-07 **8.9 UI EXECUTED**: `useProblemClassification` hook +
+      `DecisionIntelligenceSection` on the Unit-Close page (`/coordinator/unit-close/:courseId`) —
+      renders typed problem cases with dominant cause, confidence, cited evidence sources and
+      struggling-student counts; distinct no-data vs no-cases states; en/ar localized
+      (`coordinator.unitClose.*`); 4 unit tests passing. Remaining for 8.9 closure: AI explanation
+      from authorized evidence (DeepSeek, citation-fail-closed) + ownership routing + full 8.9-QA
+      decision-stack suite.)
 - [ ] 8.9-QA SENIOR QA — Decision-stack test suite (ONE test per decision question).
       Q1 what-is-failing: fixture weak CLO → flagged with evidence. Q2 why: single-cause fixture →
       correct classification. Q3 who-affected: section/demographic scoping correct. Q4 what-
