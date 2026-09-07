@@ -244,7 +244,8 @@
       scaffolding exists (sync trigger, SKIP LOCKED claim/evaluate RPCs, cron jobs) but nothing
       populates it and `private.cron_secrets` is unset.
       Fix: (a) provision cron secrets; verify `intervention-jobs` (generate_candidates `5 * * * *`,
-      evaluate_measurements `*/15 * * * *`) and `agent-evaluation-jobs` (`20 * * * *`) actually fire;
+      evaluate_measurements `*/15 * * * *`)
+      (PROGRESS 2026-09-06 **8.9 EXECUTED**: `classify_problem_cases_v1(course_id)` — deterministic problem-classification engine applied via MCP. Classifies CLOs into typed problem cases (student/teacher/assessment/prerequisite/curriculum-design) with confidence + cited evidence. Live: Mathematics 6 → 3 CLOs classified as student-signal (8 struggling students each, course avg 75.2%). Pure SQL — no AI.) and `agent-evaluation-jobs` (`20 * * * *`) actually fire;
       (b) materialize `student_learning_states` from canonical evidence via
       `sync_learning_state_measurements_v1` (version/freshness/hash invariants); (c) wire coordinator
       CQI: systemic pattern → AI draft (cited) → proposal → approval → plan → measurement; (d) surface
@@ -582,6 +583,50 @@
       ownership routing (teacher / coordinator / student-support).
       Acceptance: 5 problem classes classified on seeded fixtures with correct dominant cause;
       evidence citations ⊆ authorized set; 0 hallucinated causes.
+      (PROGRESS 2026-09-07 **8.9 UI EXECUTED**: `useProblemClassification` hook +
+      `DecisionIntelligenceSection` on the Unit-Close page (`/coordinator/unit-close/:courseId`) —
+      renders typed problem cases with dominant cause, confidence, cited evidence sources and
+      struggling-student counts; distinct no-data vs no-cases states; en/ar localized
+      (`coordinator.unitClose.*`); 4 unit tests passing. Remaining for 8.9 closure: AI explanation
+      from authorized evidence (DeepSeek, citation-fail-closed) + ownership routing + full 8.9-QA
+      decision-stack suite.)
+      (PROGRESS 2026-09-07 **8.9 Q5 OWNERSHIP ROUTING EXECUTED**: `classify_problem_cases_v1` now
+      emits `recommended_owner` per case, derived deterministically from the DOMINANT cause —
+      student-signal → `student_support`, teacher-signal → `coordinator`, assessment-signal →
+      `teacher`, prerequisite-signal → `teacher`, curriculum-design-signal → `coordinator`.
+      Applied via MCP as `problem_case_ownership_routing` + forward fix
+      `fix_problem_case_section_spread_alias` (the applied 20260907153402 body carried a latent
+      `en.section_id` alias bug — 42P01 on every call — now corrected; live-verified:
+      bug absent, fix + routing present). Unit-Close UI renders the localized owner badge;
+      en/ar owner labels added. Live: English Language Arts 7 → 3 cases, student-signal →
+      student_support. Remaining for 8.9 closure: AI explanation from authorized evidence +
+      full 8.9-QA decision-stack suite.)
+      (PROGRESS 2026-09-07 **8.9-QA DECISION-STACK SUITE EXECUTED (Q1–Q8)**:
+      `src/lib/problemCaseActions.ts` — deterministic, CITED intervention-draft builder (Q4):
+      citations are the case's own evidence array (never recomputed), `approval_required: true`
+      at type level; routing mirror (Q5); curriculum-change flag for curriculum-design cause
+      (Q7); total 5-class taxonomy with fail-safe fallback (Q8). Unit-Close UI: "Draft
+      intervention" dialog renders the deterministic plan (headline/actions/citations/approval
+      note) — no AI, no writes from this surface. Tests: `decisionStackContract.test.ts` (Q2/Q3/
+      Q5/Q6/Q7 SQL contracts — classifier thresholds, section scoping, routing CASE map,
+      ±5pp measurement thresholds, CQI reopen/resolved feedback), `problemCaseActions.test.ts`,
+      `problemCaseActions.property.test.ts` (3 properties × 100 runs), dialog UI test.
+      Remaining: AI explanation (DeepSeek, citation-fail-closed) + owner → approval-inbox
+      write path (7.7 step / deploy-gated).)
+      (PROGRESS 2026-09-07 **8.9 AI EXPLANATION EXECUTED (code + tests; deploy pending)**:
+      `explain_problem_case` channel added to agent-orchestrator — client sends identifiers
+      ONLY; the evidence packet is derived SERVER-SIDE from `classify_problem_cases_v1`,
+      institution-scoped via program → programs.institution_id (courses has NO institution_id —
+      caught by the edge-fn schema guard), teacher course-ownership enforced; packet framed
+      UNTRUSTED_EVIDENCE_PACKET (OWASP LLM01 check 37); run audited in agent_runs
+      (running → completed/failed); provider failures fail closed (503). Client:
+      `useProblemCaseExplanation` mutation hook (untrusted-response guards) + AI explanation
+      affordance inside the Unit-Close draft dialog (feature-gated). Tests:
+      `orchestratorExplanationContract.test.ts` (8 security invariants),
+      `useProblemCaseExplanation.test.tsx`, UI test. DEPLOY PENDING: agent-orchestrator must be
+      redeployed through the runtime governance gate (owner action — MERGE ≠ DEPLOYMENT).
+      Remaining for 8.9: owner → agent-proposal → approval → learning_interventions write
+      path (new execution RPC + write-tool registry) + fixture confusion matrix.)
 - [ ] 8.9-QA SENIOR QA — Decision-stack test suite (ONE test per decision question).
       Q1 what-is-failing: fixture weak CLO → flagged with evidence. Q2 why: single-cause fixture →
       correct classification. Q3 who-affected: section/demographic scoping correct. Q4 what-

@@ -155,6 +155,7 @@ fix-forward strategy converges Git onto production content instead.
 no Edge Functions). All pre-commit gates run before PR.
 
 ## Session record — 2026-09-05: backend→frontend coverage audit + P1 fixes (PRs #319–#322)
+
 **Coverage map built.** 5 roles (live: student 41, parent 21, teacher 5,
 coordinator 4, admin 3); ~130 tables; 287 DB functions (96 public secdef —
 104 total incl. vault/graphql/net/pgbouncer/supabase_functions, scope
@@ -201,6 +202,7 @@ forward-only file committed). Gates: tsc 0, lint 0, vitest 6712+ (full run in
 g6.log), i18n parity OK, parity+friends tests 15/15.
 
 ## Session record — 2026-09-04 (night): real event catalog shipped (PRs #319–#320)
+
 **Goal.** The four "no matching events" dashboards queried events nothing emitted.
 Wired the real catalog at the correct call sites and made every provisioned
 insight query an event the app actually sends.
@@ -211,6 +213,7 @@ insight query an event the app actually sends.
 `grade_viewed` (useGrade first-hit, session-deduped per submission),
 `leaderboard_viewed` (useLeaderboard first page, session-deduped),
 `badge_viewed` (useTieredBadges first load, session-deduped),
+
 ---
 
 ## Session record — 2026-09-05 second pass ("fix whats remaining")
@@ -224,8 +227,8 @@ gamification XP chain, and wire the orphaned generators.
    - Student: `sessions`, `notification-preferences` (group `tools`)
    - Coordinator: `sessions`, `cohort-comparison`
    - Teacher: `calendar`, `timetable`
-   New icons `CalendarClock` + `SlidersHorizontal`. `navRouteParity` test green
-   (21/21) — every nav destination resolves, no duplicates.
+     New icons `CalendarClock` + `SlidersHorizontal`. `navRouteParity` test green
+     (21/21) — every nav destination resolves, no duplicates.
 2. **Edge Function tracing — final verdicts:**
    - `resolve-mystery-reward`, `check-bonus-question` → WORKING (hooks + components).
    - `bulk-grade-export` → wired (`useBulkOperations`).
@@ -256,7 +259,7 @@ gamification XP chain, and wire the orphaned generators.
    `xp_total`/`level` via `calculate_level_from_xp`; idempotent per evidence row.
    **Security catch during verification:** Supabase default privileges auto-grant
    EXECUTE to `anon`/`authenticated` on new functions, and `REVOKE ... FROM
-   PUBLIC` does NOT remove per-role grants — the first apply left
+PUBLIC` does NOT remove per-role grants — the first apply left
    `{anon,authenticated,postgres,service_role}`; fixed with explicit
    `REVOKE EXECUTE ... FROM anon, authenticated` (live-verified proacl =
    `{postgres, service_role}`). The migration file includes this explicit revoke
@@ -267,23 +270,26 @@ gamification XP chain, and wire the orphaned generators.
    CI stays fail-closed on new ERRORs, never suppresses new WARNs).
 
 ### Gates this session
+
 tsc 0 · lint 0 (touched) · i18n parity OK (common 912, student 688) ·
 `navRouteParity`/`navPresentation`/`studentFriendsPage` 21/21 ·
 `node --check` sync script OK · `vercel.json` valid.
 
 ### Deferred / needs approval
+
 - **XP dedupe + unique index** (product approval required — lowers XP).
 - `connectivity-matrix.json` regeneration via full `npm run audit`
   (`--stage connectivity` is env-gated and regenerates only in the CI/local
   full run).
 - Edge Function redeploy of `generate-reflection-digest` / `improvement-bonus-check`
   via the Git-linked Supabase pipeline on merge (functions hardened locally).
-`streak_milestone_seen` (useStreakMilestones, deduped per milestone/day),
-`signup_completed` (AuthProvider signUp success), `route_error_shown`
-(PageErrorFallback mount). View events are session-deduped (module-level Set)
-so refetch/polling can't inflate counts.
+  `streak_milestone_seen` (useStreakMilestones, deduped per milestone/day),
+  `signup_completed` (AuthProvider signUp success), `route_error_shown`
+  (PageErrorFallback mount). View events are session-deduped (module-level Set)
+  so refetch/polling can't inflate counts.
 
 **Real bugs found during build verification (not just analytics):**
+
 1. `useStreakMilestones` was **dead code** — connectivity matrix `targets: []`,
    no importers, tree-shaken from the build. `HeatmapGrid` always accepted a
    `milestones` prop but no page passed it → milestone markers (30/60/100-day)
@@ -317,6 +323,7 @@ student-engagement/gamification layer (real data) plus an OBE metadata & attainm
 populated only by synthetic seed.
 
 **Evidence captured (live `cdlgtbvxlxjpcddjazzx` + local `ace2acc4`).**
+
 - OBE core (seed-only): programs=4, courses=4, sections=16, outcomes=22, mappings=26, sub_clos=2;
   graduate_attributes=0, competency_frameworks=0.
 - Assessment (empty): assignments=0, quizzes=0, quiz_questions=0, quiz_attempts=0, question_bank=2.
@@ -332,7 +339,7 @@ populated only by synthetic seed.
 - VERIFIED REAL: `trigger_attainment_rollup` (grade→evidence→weighted CLO/PLO/ILO + XP +
   notification), mapping hierarchy/weight-sum validators, intervention claim/evaluate RPCs
   (SKIP LOCKED + lease + dead-letter), measured-CQI comparability contract, cron jobs for
-  intervention generation (``5 * * * *``) + evaluation (``*/15 * * * *``) + agent evaluation
+  intervention generation (`5 * * * *`) + evaluation (`*/15 * * * *`) + agent evaluation
   (`20 * * * *`) — all gated on `private.cron_secrets` (UNSET).
 - Security advisor: 12 `rls_enabled_no_policy` INFO (agent tables intentionally fail-closed; but
   admin_bootstrap_requests, email_deliveries, email_delivery_events, proactive_agent_jobs have no
@@ -363,7 +370,8 @@ is adaptive across Qatar's IB/British/American/MoEHE segments rather than a sing
 percent/higher-ed product.
 
 **Market findings (public sources; no school interviewed, no RFP reviewed).**
-- MoEHE 2025 *Educational Systems Guide* formalizes private-school systems + accreditation + assessment
+
+- MoEHE 2025 _Educational Systems Guide_ formalizes private-school systems + accreditation + assessment
   mechanisms; National Curriculum "General Framework" defines learner attributes and
   outcomes-data-driven curriculum; Arabic + Islamic Education compulsory in private schools.
 - IB: 21 IB World Schools (17 DP / 13 MYP / 14 PYP / 3 CP) incl. Qatar Academy (Doha/Khor/Wakra/Sidra),
@@ -410,6 +418,7 @@ model from a fixed contract (no speculation). Cross-checked against existing tas
 duplication** (only the MISSING stages + the recorded decision/gate were added; no renumbering).
 
 **Tasks recorded (Wave F).**
+
 - **8.11 / 8.11-QA — TEACH stage.** Outcome-linked `lessons` + `lesson_activities` (RLS), `course_modules`
   += `clo_ids`, `class_sessions` += `lesson_id` + `outcome_ids`, teacher unit builder UI, planner +
   learning path consume the structure. Live gap confirmed: no lesson/activity entity, no outcome
@@ -423,20 +432,22 @@ duplication** (only the MISSING stages + the recorded decision/gate were added; 
 - **8.13 / 8.13-QA — Product decision record + Discovery-sprint gate.** Recorded below; gates 8.1.
 
 ## Product decision (recorded 2026-09-06) — scoring model
+
 - `score_percent` REMAINS the canonical normalized value; all existing percent-path arithmetic,
   thresholds (85/70/50), and reports are unchanged (zero-regression guarantee).
 - `evidence.raw_score` (new, nullable jsonb) stores the IMMUTABLE raw semantics: criterion levels
-  and rubric selections (MYP A–D 0–8), band/component scores (IGCSE A*–G/9–1, AP 1–5, DP 1–7, NC
+  and rubric selections (MYP A–D 0–8), band/component scores (IGCSE A\*–G/9–1, AP 1–5, DP 1–7, NC
   bands), weighted assessment-objective components.
 - IB's rule "never represent criteria by % alone" is satisfied because BOTH are stored; raw is
   never replaced by normalization. Percent is a compatibility projection; raw is the evidentiary
   truth.
 
 ## Discovery-sprint gate (recorded 2026-09-06) — before 8.1 scoring-model build
+
 - **Segments:** 1 IB school + 1 British multi-track school (Doha-British-like: NC KS + IGCSE +
   AS/A-Level + BTEC + IB DP under one institution).
 - **Contract output** for task 8.1: MYP A–D 0–8 best-fit boundary table (criterion attainment →
-  1–7 grade), IGCSE assessment-objective weights + A*–G/9–1 boundary tables, DP component weights,
+  1–7 grade), IGCSE assessment-objective weights + A\*–G/9–1 boundary tables, DP component weights,
   NC key-stage band descriptors, AP 1–5.
 - **Constraints:** forward-only migrations only; RLS + Security Advisor baselines recorded before/after;
   no speculative build before sign-off; outcomes of the sprint are recorded back into this spec.
@@ -448,6 +459,7 @@ duplication** (only the MISSING stages + the recorded decision/gate were added; 
 **Trigger.** Principal-engineer hardening directive; this spec = minimum acceptance baseline.
 
 **Implemented now (verified, non-duplicative).**
+
 - **NEW static gate** `scripts/check-rls-coverage.mjs` + `npm run check:rls-coverage`, wired into
   `security-gates.yml` (Migration + runtime governance step). Rationale: Security Advisors surface
   `rls_enabled_no_policy` as INFO and CI blocks only on ERROR — an RLS-less table never blocked a
@@ -498,6 +510,7 @@ and `evidence` has no `raw_score` (no 8.1 scoring-model build has started). Both
 
 **7.1(a) APPLIED LIVE via MCP** — `20260906164527_restore_orphaned_assignments_evidence_provenance`
 (forward-only file committed to match):
+
 - 17 ghost assignments restored **with their original UUIDs** so all 552 submissions, 550 grades,
   and 1650 evidence rows resolve again.
 - Course attribution recovered from each assignment's own evidence (CLO→course), falling back to
@@ -539,6 +552,7 @@ forward-only file committed; no schema objects added/removed; trigger state rest
 **Order:** 8.13 ✅ → 7.1(a)(c) ✅ → **7.3(a) ✅** → next: 7.3(b)(c), 7.4, 7.6, 7.7, 7.8, 8.1…
 
 **Schema (2 migrations via MCP, files committed).**
+
 - `20260906165847_canonical_quiz_evidence_path`: `submissions.assignment_id` nullable +
   `submissions.quiz_attempt_id` (FK) + exactly-one-source CHECK + partial unique index;
   `trigger_attainment_rollup` extended — quiz branch (CLOs from `quiz_clos` → `clo_ids`
@@ -572,7 +586,7 @@ updated (85.76) + PLO `course` (85.76) + ILO `program` rows → quiz notificatio
 Cleanup restored exact baseline: 552/550/1650/0/0/2508/1626 + 28 attainment rows for the test
 student (backup table used, then dropped).
 
-**NEW FINDING (small follow-up):** `trg_grade_released_notify` on `grades` emits a *second*
+**NEW FINDING (small follow-up):** `trg_grade_released_notify` on `grades` emits a _second_
 grade notification alongside the rollup trigger's `emit_notification` — duplicate-notification
 path exists for assignment grades too. Dedupe/unify is a small follow-up under 7.3.
 
@@ -588,6 +602,7 @@ code changes in 6 files; generated types regenerated; all gates green).
 ## Session record — 2026-09-06 (G): 7.3(b)+(c) — coverage guard live; seed quizzes; 7.3 build-complete
 
 **7.3(b) authoring-time coverage guard — DONE.**
+
 - Server truth: `get_course_assessment_coverage_v1(course_id)` — per-CLO coverage across BOTH
   assessment sources (assignments.clo_weights + quizzes.quiz_clos/clo_ids); SECURITY INVOKER
   (caller RLS scopes all rows); EXECUTE authenticated+service_role.
@@ -617,6 +632,7 @@ live demo-tenant quiz fixtures inserted).
 ## Session record — 2026-09-06 (H): 7.4 loop priming — cron + learner states + generation LIVE; one open defect
 
 **Executed (operational activation, approved via "continue" on the recommended order).**
+
 1. **Cron secrets provisioned:** `private.cron_secrets['cron_intervention_jobs']` generated
    in-DB (`gen_random_bytes`, rotation column set) and synced to edge `CRON_SECRET`.
 2. **Learner states materialized:** `refresh_student_learning_state_v1` run for all 41 active
@@ -631,7 +647,7 @@ live demo-tenant quiz fixtures inserted).
 4. **Generation verified:** re-fire → **`enqueued:38`**; the hourly cron then fired autonomously
    and enqueued 40 more (78 total: specialist=intervention → recipient=teacher, **5 at-risk
    students across 4 teachers** — noise suppression confirmed). `evaluate_measurements` → 200,
-   claimed 0 (no executed interventions exist — honest zeros; the ``*/15`` cron now self-runs).
+   claimed 0 (no executed interventions exist — honest zeros; the `*/15` cron now self-runs).
 5. **Worker activation:** agent-worker was flag-gated; found `AI_FEATURE_ENABLED=true`,
    `AI_DAILY_BUDGET_USD=1`, `DEEPSEEK_API_KEY` present; set the missing
    **`AI_PROACTIVE_AGENTS_ENABLED=true`**. Worker then **claimed 10** jobs.
@@ -647,6 +663,7 @@ deeper log access (logs backend intermittently 5xx'd during the pass). **7.4 sta
 a job completes end-to-end (draft → proposal → teacher approval → measurement).
 
 **DEFECT DIAGNOSIS PROGRESS (same-day bisect — major root cause FIXED, remainder isolated).**
+
 1. **Root cause #1 FOUND + FIXED via migration:** the twin read RPC
    `get_student_learning_state_v1` raised `Authentication required` for the worker's
    service-role path (`auth.uid()` is NULL in system calls). Patched via exact-text
@@ -681,7 +698,7 @@ a job completes end-to-end (draft → proposal → teacher approval → measurem
    (`crypt(...)` update on `auth.users`). Diagnostic scripts (`zz_diag_74.*`) deleted.
 
 **Also verified live:** intervention-jobs RPCs returning 200 in the unified logs (hourly
-generation + ``*/15`` evaluation both self-firing now); `agent-evaluation-jobs` cron intentionally
+generation + `*/15` evaluation both self-firing now); `agent-evaluation-jobs` cron intentionally
 left flag-off (separate gate).
 
 **Deploy Impact: CONFIG/OPS** (edge secret set; cron-secrets row inserted; 2 institution
@@ -698,6 +715,7 @@ RPC (7.6), RLS-coverage CI gate, spec sessions A–H, R7–R21, decision-intelli
 guards/SQL Migration Lint/Runtime deployment impact/Live advisors all PASS; Supabase Preview
 branch created (migrations replayed — first fresh-environment validation of the 7.1/7.3 chain).
 Three failures diagnosed:
+
 1. **RLS Smoke** — preview-convergence timing: ran while the Preview was still replaying 445
    migrations ("did not reach FUNCTIONS_DEPLOYED"). Re-run dispatched after convergence.
 2. **Security Scan** — `digest-mismatch` (Blocker): runtime-source-parity compares deployed
@@ -706,10 +724,10 @@ Three failures diagnosed:
    (`audit/baselines/vite-env.allowlist.json` — the env-tagging var from Phase 1 of this spec).
    Security stage now passes locally (0 findings).
 3. **Audit Report** — same audit pipeline aggregation as (2).
-**Manifest fix:** `generate-reflection-digest` + `improvement-bonus-check` declared in
-`notifications-runtime` (verifyJwt=true per the live runtime config snapshot) — the fail-closed
-runtime-dependency resolver had flagged them as unmanaged (their working-tree changes were
-prettier-only). Resolver now returns `errors: []`, closure = 18 functions across 2 groups.
+   **Manifest fix:** `generate-reflection-digest` + `improvement-bonus-check` declared in
+   `notifications-runtime` (verifyJwt=true per the live runtime config snapshot) — the fail-closed
+   runtime-dependency resolver had flagged them as unmanaged (their working-tree changes were
+   prettier-only). Resolver now returns `errors: []`, closure = 18 functions across 2 groups.
 
 **Owner actions:** wait for re-runs → review → merge → approve the production environment gate
 (edge functions) → the follow-up pass verifies worker job completion (closes 7.4) and continues
@@ -721,6 +739,7 @@ prettier-only). Resolver now returns `errors: []`, closure = 18 functions across
 
 **Executed (Wave A, additive, contract-independent).** Migration
 `20260906173000_adaptive_scoring_foundation` applied via MCP + file committed:
+
 - **`grade_scales`** table (RLS: institution-scoped SELECT for authenticated, admin-write) with
   per-institution percent default scales seeded (3 institutions × 1 scale).
 - **`courses`** += 5 columns: `framework_id` (FK competency_frameworks), `curriculum_code`,
@@ -744,5 +763,191 @@ configuration; student/tutor model-aware surfaces.
 **Deploy Impact: MIGRATIONS** (1 forward-only migration live-applied + file committed; additive
 columns/table only; zero existing-row changes; all gates green).
 
-
 > **Mirror convention (session I):** the docs/specs copies are prettier-formatted while .kiro copies are prettier-ignored (see .prettierignore) — parity is CONTENT parity (modulo whitespace and markdown marker/escape normalization, e.g. `*` vs `_` emphasis and `\\*` escapes). Verify with whitespace+backslash-stripped comparison; cron expressions must always be backticked to survive formatting.
+
+## Session record — 2026-09-06 (K): 7.4 milestone — intelligence loop producing REAL output
+
+**MILESTONE.** For the first time in the project''s history, the intelligence loop has produced
+real AI-generated recommendations grounded in deterministic evidence:
+
+- **2 proactive agent jobs COMPLETED** with real DeepSeek usage (4728 + 5585 tokens, 13.5s + 14.8s)
+- Output example (admin run): "The CLO Recall key concepts in Science shows attainment of 46.8%,
+  below the 70% success threshold, last calculated 2026-05-26. Notably, the same 46.8% value
+  appears across all outcomes in this course for this student, which is a data-quality..."
+- Output example (coordinator run): "I have sufficient deterministic context. Let me review the
+  evidence packet fields and provide the program-scoped explanation and recommendation..."
+- Both runs cite the evidence packet fields (deterministic, not hallucinated) and stay within
+  the authorized scope.
+
+**Pipeline status:**
+
+- 542 proactive_agent_jobs total (2 completed, 68 retry with backoff, 472 queued)
+- The hourly cron is self-running (generation + evaluation)
+- The worker processes jobs with real DeepSeek calls (rate-limited but functional)
+- The bounded retry (3 attempts + dead-letter) contains transient rate-limiting
+
+**Remaining for 7.4 closure:**
+
+1. Process the queue over time (the cron will do this autonomously)
+2. Verify proposals are created when the model recommends protected actions
+3. Teacher approval → intervention execution → measurement → closed loop
+4. (c)(d) CQI wiring + UI surfaces (7.7 page built, needs wiring)
+
+**Deploy Impact: CONFIG/OPS** (agent-worker + agent-orchestrator deployed to production with
+the observability + recovery fixes; 2 proactive jobs completed with real AI output).
+
+## Session record — 2026-09-07 (L): 8.9 UI surface + migration-chain integrity restored
+
+**Resumed from session K.** In-flight uncommitted work found on the branch:
+`useProblemClassification` hook (complete) + `UnitCloseReviewPage` referencing a
+not-yet-created `DecisionIntelligenceSection` (build broken). Completed the 8.9 UI surface:
+
+- **`DecisionIntelligenceSection`** (`src/pages/coordinator/unit-close/`) — renders the
+  deterministic `classify_problem_cases_v1` output on the Unit-Close screen: typed problem
+  cases with dominant cause, confidence, cited evidence sources (from the engine's authorized
+  evidence set) and struggling-student counts; course-level summary (avg / section spread /
+  case count); distinct no-data vs no-cases states (the engine's no-data branch omits
+  `course_avg`); loading + error states. NO AI on this surface (deterministic SQL only).
+- **i18n**: `coordinator.unitClose.decisionIntelligence.*` keys added to en + ar (385 keys in
+  parity); cause labels localized for the five canonical problem classes.
+- **Tests**: `src/__tests__/unit/decisionIntelligenceSection.test.tsx` — 4 tests (case render
+  contract incl. evidence citations, struggling-student counts, no-cases empty state, no-data
+  state). Hook module mocked; component contract only.
+- **Types**: `classify_problem_cases_v1` RPC signature added to the `src/types/database.ts`
+  Functions map (matches the live schema; MCP generation output too large for a full-file
+  rewrite this session — full CLI regeneration noted as follow-up).
+- **Migration chain integrity (dup-names guard was RED)**: the 2026-09-06 reconciliation pass
+  left the duplicate-names guard failing with 18 NEW duplicate base-names. Live-ledger
+  verification (`supabase_migrations.schema_migrations`) showed every flagged base-name has
+  two genuinely applied versions. Fixes:
+  1. The 11 `*_applied_via_dashboard.sql` parity stubs were MISNAMED — renamed (git mv,
+     content unchanged) to their real ledger names (per-version live verification:
+     `reorder_learning_outcomes_rpc`, `agentic_platform_tables`,
+     `digital_twin_versions_and_autonomy_settings`, `create_intervention_loop_jobs`,
+     `advisor_hardening_fk_indexes_and_executer_revokes`, `advisor_hardening_fk_indexes_fix`,
+     `fix_intervention_cron_auth_private_schema`, `fix_intervention_cron_eval_typo`,
+     `cron_secrets_and_agent_evaluation_schedule`, `gate_agent_evaluation_schedule`,
+     `agent_evaluation_schedule_timeout`). This surfaced 10 further genuine pairs.
+  2. The 27 genuine applied-history pairs grandfathered in
+     `scripts/check-migration-duplicate-names.mjs` with justification: every pair
+     live-ledger-verified (both versions applied, same name); the replay-winning later file
+     is a COMMENT-ONLY parity stub (no statements — replay-safe no-op);
+     `check-migration-replay-order.mjs` CLEAN (482 migrations, no too-early references).
+
+**Gates (all green):** lint 0 warnings · `tsc --noEmit` clean · vitest 736 files / 6731 tests
+passing · i18n parity OK · `db:check-replay` CLEAN · `db:check-dup-names` CLEAN ·
+`check:runtime-dependencies` errors [].
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + ownership routing + full 8.9-QA decision-stack suite (Q1–Q8).
+
+**Deploy Impact: NONE** (client files, spec docs, scripts, generated types — no migrations
+applied, no edge functions deployed, no config changes).
+
+## Session record — 2026-09-07 (M): 8.9 Q5 ownership routing — live + verified
+
+**Executed (forward-only, 2 migrations applied via MCP + files committed):**
+
+1. **`20260907180222_problem_case_ownership_routing`** — `classify_problem_cases_v1` now
+   emits `recommended_owner` per problem case, derived deterministically from the DOMINANT
+   cause (never from AI): student-signal → `student_support` · teacher-signal →
+   `coordinator` · assessment-signal → `teacher` · prerequisite-signal → `teacher` ·
+   curriculum-design-signal → `coordinator`. Invoker-rights preserved; REVOKE/GRANT
+   re-asserted; COMMENT updated.
+2. **`20260907180347_fix_problem_case_section_spread_alias`** — forward fix for a latent bug
+   discovered while applying (1): the applied `20260907153402` body referenced a nonexistent
+   alias (`en.section_id` where the FROM clause aliases `student_courses` as `sc`) — a 42P01
+   runtime error on EVERY call of the engine, which would also have broken a fresh replay
+   (the first session's live `prosrc` used the correct `sc.`, so the ledger statements had
+   diverged from what was actually executed). The fix migration re-asserts the full function
+   INCLUDING the ownership routing — it is the canonical definition going forward.
+
+**Live verification (recorded per the Live-State Verification Rule):**
+
+- Function body: `has_bug=false`, `has_fix=true`, `has_owner=true`, `has_routing=true`
+  (pg_proc prosrc surface).
+- Runtime: English Language Arts 7 → 3 cases, dominant cause `student-signal` → owner
+  `student_support` each; `section_spread` computed (1.5). Live data currently only exercises
+  the student-signal branch; the other routing branches are deterministic CASE logic.
+- Client: `useProblemClassification.ProblemCase` gained `recommended_owner`; Unit-Close
+  `DecisionIntelligenceSection` renders a localized owner badge; en/ar owner labels
+  (`owners.teacher/coordinator/student_support`); unit test asserts the routing render.
+
+**Gates (all green):** lint 0 · tsc clean · vitest 736 files / 6731 tests · i18n parity ·
+`db:check-dup-names` CLEAN (38 grandfathered) · `db:check-replay` CLEAN — **484 migrations**.
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + owner → intervention assignment flow + full 8.9-QA decision-stack
+suite (Q1–Q8; Q5 routing now deterministically testable).
+
+**Deploy Impact: MIGRATIONS** (2 forward-only migrations live-applied via MCP + files
+committed; `CREATE OR REPLACE FUNCTION` only — no schema objects, no data changes).
+
+## Session record — 2026-09-07 (N): 8.9-QA decision-stack suite (Q1–Q8)
+
+**Executed (client + contract tests; no migrations, no runtime changes):**
+
+- **`src/lib/problemCaseActions.ts`** — deterministic intervention-draft builder (pure,
+  framework-free, i18n-key based):
+  - Q4: citations are the case's OWN evidence array (type-level guarantee — citations ⊆ the
+    authorized evidence set, never recomputed, never invented); `approval_required: true` at
+    type level (official-record mutations stay behind the agent proposal gate).
+  - Q5: routing mirror of the SQL engine (`OWNER_BY_CAUSE`, fail-safe to teacher).
+  - Q7: `curriculum_change_recommended` only for curriculum-design-signal (ties to CQI).
+  - Q8: total 5-class taxonomy + generic fallback for unknown classes.
+- **Unit-Close UI**: per-case "Draft intervention" dialog renders the deterministic plan —
+  headline from cited data, suggested actions, owner badge, citations, curriculum-change
+  flag, approval note. No AI, NO WRITES from this surface.
+- **8.9-QA suite — one test per decision question:**
+  - Q1/Q2/Q3/Q5/Q6/Q7 pinned as SQL contracts in `decisionStackContract.test.ts`
+    (classifier class thresholds + confidence values, section-variance scoping, routing CASE
+    map, ±5pp measurement thresholds + INSUFFICIENT_EVIDENCE gating, CQI reopen/resolved
+    feedback) — following the established migration-contract pattern.
+  - Q4/Q5/Q7/Q8 behavior tests in `problemCaseActions.test.ts`.
+  - Properties (fast-check, 100 runs each): citations ⊆ evidence; total routing; determinism
+    (`problemCaseActions.property.test.ts`).
+  - Dialog UI test in `decisionIntelligenceSection.test.tsx` (Q4 surface).
+- **Live Q1 anchor (recorded):** English Language Arts 7 → 3 cases flagged with evidence
+  (session M runtime verification).
+
+**Gates (all green):** lint 0 · tsc clean · vitest **739 files / 6758 tests** · i18n parity.
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + owner → agent-proposal → approval → `learning_interventions` write
+path (7.7 step, deploy-gated) + fixture-based confusion-matrix accuracy (needs multi-cause
+fixtures).
+
+**Deploy Impact: NONE** (new lib + tests + locale keys + UI affordance only).
+
+## Session record — 2026-09-07 (O): 8.9 AI explanation channel (deploy pending)
+
+**Executed (edge-function code + client hook + tests; DEPLOY PENDING):**
+
+- **agent-orchestrator: `explain_problem_case`** — the coordinator/teacher/admin asks WHY an
+  outcome is underperforming:
+  - client supplies identifiers only (`courseId`, `cloId`); the evidence packet is derived
+    SERVER-SIDE from `classify_problem_cases_v1` — client-sent evidence is never trusted;
+  - authorization: role gate (coordinator/teacher/admin) + institution scoping via
+    `program → programs.institution_id` (the schema guard caught that `courses` has NO
+    `institution_id` — a real bug my first draft had) + teacher course-ownership check;
+  - the packet is framed `UNTRUSTED_EVIDENCE_PACKET` (OWASP LLM01 check 37) with a
+    fail-closed system prompt (never invent data; declare unknowns);
+  - the run is audited in `agent_runs` (insert running → completed with model/usage/latency,
+    or failed with error_classification); provider errors → 503 `provider_unavailable`.
+- **Client**: `useProblemCaseExplanation` mutation hook (untrusted-response guards — runId +
+  explanation required, model defaulted, explanation capped) + an "Explain with AI"
+  affordance inside the Unit-Close draft dialog, gated by `isAiSurfaceEnabled()`.
+- **Tests**: `orchestratorExplanationContract.test.ts` (8 security invariants pinned against
+  the function source), `useProblemCaseExplanation.test.tsx` (3 transport/validation tests),
+  UI affordance test. Full suite: **741 files / 6770 tests**.
+
+**Gates (all green):** lint 0 · tsc clean · vitest 741/6770 · i18n parity ·
+`check-edge-fn-schema` CLEAN (the guard caught the courses.institution_id drift pre-commit) ·
+`check:runtime-dependencies` errors [].
+
+**Deploy Impact: EDGE_FUNCTIONS — PENDING DEPLOY.** `agent-orchestrator` must be redeployed
+through the runtime governance gate (owner action — MERGE ≠ DEPLOYMENT, never attested from
+Codex). No migrations; no config changes.
+
+**Remaining for 8.9:** owner → agent-proposal → approval → `learning_interventions` write
+path (new execution RPC + write-tool registry entry) + fixture-based confusion matrix.

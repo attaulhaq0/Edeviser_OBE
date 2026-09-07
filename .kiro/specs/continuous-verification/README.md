@@ -746,3 +746,186 @@ columns/table only; zero existing-row changes; all gates green).
 
 
 > **Mirror convention (session I):** the docs/specs copies are prettier-formatted while .kiro copies are prettier-ignored (see .prettierignore) — parity is CONTENT parity (modulo whitespace and markdown marker/escape normalization, e.g. `*` vs `_` emphasis and `\\*` escapes). Verify with whitespace+backslash-stripped comparison; cron expressions must always be backticked to survive formatting.
+## Session record — 2026-09-06 (K): 7.4 milestone — intelligence loop producing REAL output
+
+**MILESTONE.** For the first time in the project''s history, the intelligence loop has produced
+real AI-generated recommendations grounded in deterministic evidence:
+
+- **2 proactive agent jobs COMPLETED** with real DeepSeek usage (4728 + 5585 tokens, 13.5s + 14.8s)
+- Output example (admin run): "The CLO Recall key concepts in Science shows attainment of 46.8%,
+  below the 70% success threshold, last calculated 2026-05-26. Notably, the same 46.8% value
+  appears across all outcomes in this course for this student, which is a data-quality..."
+- Output example (coordinator run): "I have sufficient deterministic context. Let me review the
+  evidence packet fields and provide the program-scoped explanation and recommendation..."
+- Both runs cite the evidence packet fields (deterministic, not hallucinated) and stay within
+  the authorized scope.
+
+**Pipeline status:**
+- 542 proactive_agent_jobs total (2 completed, 68 retry with backoff, 472 queued)
+- The hourly cron is self-running (generation + evaluation)
+- The worker processes jobs with real DeepSeek calls (rate-limited but functional)
+- The bounded retry (3 attempts + dead-letter) contains transient rate-limiting
+
+**Remaining for 7.4 closure:**
+1. Process the queue over time (the cron will do this autonomously)
+2. Verify proposals are created when the model recommends protected actions
+3. Teacher approval → intervention execution → measurement → closed loop
+4. (c)(d) CQI wiring + UI surfaces (7.7 page built, needs wiring)
+
+**Deploy Impact: CONFIG/OPS** (agent-worker + agent-orchestrator deployed to production with
+the observability + recovery fixes; 2 proactive jobs completed with real AI output).
+
+## Session record — 2026-09-07 (L): 8.9 UI surface + migration-chain integrity restored
+
+**Resumed from session K.** In-flight uncommitted work found on the branch:
+`useProblemClassification` hook (complete) + `UnitCloseReviewPage` referencing a
+not-yet-created `DecisionIntelligenceSection` (build broken). Completed the 8.9 UI surface:
+
+- **`DecisionIntelligenceSection`** (`src/pages/coordinator/unit-close/`) — renders the
+  deterministic `classify_problem_cases_v1` output on the Unit-Close screen: typed problem
+  cases with dominant cause, confidence, cited evidence sources (from the engine's authorized
+  evidence set) and struggling-student counts; course-level summary (avg / section spread /
+  case count); distinct no-data vs no-cases states (the engine's no-data branch omits
+  `course_avg`); loading + error states. NO AI on this surface (deterministic SQL only).
+- **i18n**: `coordinator.unitClose.decisionIntelligence.*` keys added to en + ar (385 keys in
+  parity); cause labels localized for the five canonical problem classes.
+- **Tests**: `src/__tests__/unit/decisionIntelligenceSection.test.tsx` — 4 tests (case render
+  contract incl. evidence citations, struggling-student counts, no-cases empty state, no-data
+  state). Hook module mocked; component contract only.
+- **Types**: `classify_problem_cases_v1` RPC signature added to the `src/types/database.ts`
+  Functions map (matches the live schema; MCP generation output too large for a full-file
+  rewrite this session — full CLI regeneration noted as follow-up).
+- **Migration chain integrity (dup-names guard was RED)**: the 2026-09-06 reconciliation pass
+  left the duplicate-names guard failing with 18 NEW duplicate base-names. Live-ledger
+  verification (`supabase_migrations.schema_migrations`) showed every flagged base-name has
+  two genuinely applied versions. Fixes:
+  1. The 11 `*_applied_via_dashboard.sql` parity stubs were MISNAMED — renamed (git mv,
+     content unchanged) to their real ledger names (per-version live verification:
+     `reorder_learning_outcomes_rpc`, `agentic_platform_tables`,
+     `digital_twin_versions_and_autonomy_settings`, `create_intervention_loop_jobs`,
+     `advisor_hardening_fk_indexes_and_executer_revokes`, `advisor_hardening_fk_indexes_fix`,
+     `fix_intervention_cron_auth_private_schema`, `fix_intervention_cron_eval_typo`,
+     `cron_secrets_and_agent_evaluation_schedule`, `gate_agent_evaluation_schedule`,
+     `agent_evaluation_schedule_timeout`). This surfaced 10 further genuine pairs.
+  2. The 27 genuine applied-history pairs grandfathered in
+     `scripts/check-migration-duplicate-names.mjs` with justification: every pair
+     live-ledger-verified (both versions applied, same name); the replay-winning later file
+     is a COMMENT-ONLY parity stub (no statements — replay-safe no-op);
+     `check-migration-replay-order.mjs` CLEAN (482 migrations, no too-early references).
+
+**Gates (all green):** lint 0 warnings · `tsc --noEmit` clean · vitest 736 files / 6731 tests
+passing · i18n parity OK · `db:check-replay` CLEAN · `db:check-dup-names` CLEAN ·
+`check:runtime-dependencies` errors [].
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + ownership routing + full 8.9-QA decision-stack suite (Q1–Q8).
+
+**Deploy Impact: NONE** (client files, spec docs, scripts, generated types — no migrations
+applied, no edge functions deployed, no config changes).
+
+## Session record — 2026-09-07 (M): 8.9 Q5 ownership routing — live + verified
+
+**Executed (forward-only, 2 migrations applied via MCP + files committed):**
+
+1. **`20260907180222_problem_case_ownership_routing`** — `classify_problem_cases_v1` now
+   emits `recommended_owner` per problem case, derived deterministically from the DOMINANT
+   cause (never from AI): student-signal → `student_support` · teacher-signal →
+   `coordinator` · assessment-signal → `teacher` · prerequisite-signal → `teacher` ·
+   curriculum-design-signal → `coordinator`. Invoker-rights preserved; REVOKE/GRANT
+   re-asserted; COMMENT updated.
+2. **`20260907180347_fix_problem_case_section_spread_alias`** — forward fix for a latent bug
+   discovered while applying (1): the applied `20260907153402` body referenced a nonexistent
+   alias (`en.section_id` where the FROM clause aliases `student_courses` as `sc`) — a 42P01
+   runtime error on EVERY call of the engine, which would also have broken a fresh replay
+   (the first session's live `prosrc` used the correct `sc.`, so the ledger statements had
+   diverged from what was actually executed). The fix migration re-asserts the full function
+   INCLUDING the ownership routing — it is the canonical definition going forward.
+
+**Live verification (recorded per the Live-State Verification Rule):**
+- Function body: `has_bug=false`, `has_fix=true`, `has_owner=true`, `has_routing=true`
+  (pg_proc prosrc surface).
+- Runtime: English Language Arts 7 → 3 cases, dominant cause `student-signal` → owner
+  `student_support` each; `section_spread` computed (1.5). Live data currently only exercises
+  the student-signal branch; the other routing branches are deterministic CASE logic.
+- Client: `useProblemClassification.ProblemCase` gained `recommended_owner`; Unit-Close
+  `DecisionIntelligenceSection` renders a localized owner badge; en/ar owner labels
+  (`owners.teacher/coordinator/student_support`); unit test asserts the routing render.
+
+**Gates (all green):** lint 0 · tsc clean · vitest 736 files / 6731 tests · i18n parity ·
+`db:check-dup-names` CLEAN (38 grandfathered) · `db:check-replay` CLEAN — **484 migrations**.
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + owner → intervention assignment flow + full 8.9-QA decision-stack
+suite (Q1–Q8; Q5 routing now deterministically testable).
+
+**Deploy Impact: MIGRATIONS** (2 forward-only migrations live-applied via MCP + files
+committed; `CREATE OR REPLACE FUNCTION` only — no schema objects, no data changes).
+
+## Session record — 2026-09-07 (N): 8.9-QA decision-stack suite (Q1–Q8)
+
+**Executed (client + contract tests; no migrations, no runtime changes):**
+
+- **`src/lib/problemCaseActions.ts`** — deterministic intervention-draft builder (pure,
+  framework-free, i18n-key based):
+  - Q4: citations are the case's OWN evidence array (type-level guarantee — citations ⊆ the
+    authorized evidence set, never recomputed, never invented); `approval_required: true` at
+    type level (official-record mutations stay behind the agent proposal gate).
+  - Q5: routing mirror of the SQL engine (`OWNER_BY_CAUSE`, fail-safe to teacher).
+  - Q7: `curriculum_change_recommended` only for curriculum-design-signal (ties to CQI).
+  - Q8: total 5-class taxonomy + generic fallback for unknown classes.
+- **Unit-Close UI**: per-case "Draft intervention" dialog renders the deterministic plan —
+  headline from cited data, suggested actions, owner badge, citations, curriculum-change
+  flag, approval note. No AI, NO WRITES from this surface.
+- **8.9-QA suite — one test per decision question:**
+  - Q1/Q2/Q3/Q5/Q6/Q7 pinned as SQL contracts in `decisionStackContract.test.ts`
+    (classifier class thresholds + confidence values, section-variance scoping, routing CASE
+    map, ±5pp measurement thresholds + INSUFFICIENT_EVIDENCE gating, CQI reopen/resolved
+    feedback) — following the established migration-contract pattern.
+  - Q4/Q5/Q7/Q8 behavior tests in `problemCaseActions.test.ts`.
+  - Properties (fast-check, 100 runs each): citations ⊆ evidence; total routing; determinism
+    (`problemCaseActions.property.test.ts`).
+  - Dialog UI test in `decisionIntelligenceSection.test.tsx` (Q4 surface).
+- **Live Q1 anchor (recorded):** English Language Arts 7 → 3 cases flagged with evidence
+  (session M runtime verification).
+
+**Gates (all green):** lint 0 · tsc clean · vitest **739 files / 6758 tests** · i18n parity.
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + owner → agent-proposal → approval → `learning_interventions` write
+path (7.7 step, deploy-gated) + fixture-based confusion-matrix accuracy (needs multi-cause
+fixtures).
+
+**Deploy Impact: NONE** (new lib + tests + locale keys + UI affordance only).
+
+## Session record — 2026-09-07 (O): 8.9 AI explanation channel (deploy pending)
+
+**Executed (edge-function code + client hook + tests; DEPLOY PENDING):**
+
+- **agent-orchestrator: `explain_problem_case`** — the coordinator/teacher/admin asks WHY an
+  outcome is underperforming:
+  - client supplies identifiers only (`courseId`, `cloId`); the evidence packet is derived
+    SERVER-SIDE from `classify_problem_cases_v1` — client-sent evidence is never trusted;
+  - authorization: role gate (coordinator/teacher/admin) + institution scoping via
+    `program → programs.institution_id` (the schema guard caught that `courses` has NO
+    `institution_id` — a real bug my first draft had) + teacher course-ownership check;
+  - the packet is framed `UNTRUSTED_EVIDENCE_PACKET` (OWASP LLM01 check 37) with a
+    fail-closed system prompt (never invent data; declare unknowns);
+  - the run is audited in `agent_runs` (insert running → completed with model/usage/latency,
+    or failed with error_classification); provider errors → 503 `provider_unavailable`.
+- **Client**: `useProblemCaseExplanation` mutation hook (untrusted-response guards — runId +
+  explanation required, model defaulted, explanation capped) + an "Explain with AI"
+  affordance inside the Unit-Close draft dialog, gated by `isAiSurfaceEnabled()`.
+- **Tests**: `orchestratorExplanationContract.test.ts` (8 security invariants pinned against
+  the function source), `useProblemCaseExplanation.test.tsx` (3 transport/validation tests),
+  UI affordance test. Full suite: **741 files / 6770 tests**.
+
+**Gates (all green):** lint 0 · tsc clean · vitest 741/6770 · i18n parity ·
+`check-edge-fn-schema` CLEAN (the guard caught the courses.institution_id drift pre-commit) ·
+`check:runtime-dependencies` errors [].
+
+**Deploy Impact: EDGE_FUNCTIONS — PENDING DEPLOY.** `agent-orchestrator` must be redeployed
+through the runtime governance gate (owner action — MERGE ≠ DEPLOYMENT, never attested from
+Codex). No migrations; no config changes.
+
+**Remaining for 8.9:** owner → agent-proposal → approval → `learning_interventions` write
+path (new execution RPC + write-tool registry entry) + fixture-based confusion matrix.
