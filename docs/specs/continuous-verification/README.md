@@ -647,7 +647,7 @@ live demo-tenant quiz fixtures inserted).
 4. **Generation verified:** re-fire → **`enqueued:38`**; the hourly cron then fired autonomously
    and enqueued 40 more (78 total: specialist=intervention → recipient=teacher, **5 at-risk
    students across 4 teachers** — noise suppression confirmed). `evaluate_measurements` → 200,
-   claimed 0 (no executed interventions exist — honest zeros; the \*/15 cron now self-runs).
+   claimed 0 (no executed interventions exist — honest zeros; the `*/15` cron now self-runs).
 5. **Worker activation:** agent-worker was flag-gated; found `AI_FEATURE_ENABLED=true`,
    `AI_DAILY_BUDGET_USD=1`, `DEEPSEEK_API_KEY` present; set the missing
    **`AI_PROACTIVE_AGENTS_ENABLED=true`**. Worker then **claimed 10** jobs.
@@ -698,8 +698,41 @@ a job completes end-to-end (draft → proposal → teacher approval → measurem
    (`crypt(...)` update on `auth.users`). Diagnostic scripts (`zz_diag_74.*`) deleted.
 
 **Also verified live:** intervention-jobs RPCs returning 200 in the unified logs (hourly
-generation + \*/15 evaluation both self-firing now); `agent-evaluation-jobs` cron intentionally
+generation + `*/15` evaluation both self-firing now); `agent-evaluation-jobs` cron intentionally
 left flag-off (separate gate).
 
 **Deploy Impact: CONFIG/OPS** (edge secret set; cron-secrets row inserted; 2 institution
 settings rows updated; 41 learner-state rows materialized; 78 queue rows — no schema change).
+
+## Session record — 2026-09-06 (I): PR #324 opened through governance; CI triage
+
+**PR #324** (`feat/continuous-verification-loop-priming` → main) carries the full implementation:
+5 migrations, canonical quiz evidence path, coverage guard + banners, seed fixtures, worker
+observability + ProposalBoundaryError recovery, learning_state_server_path fix, scoped analytics
+RPC (7.6), RLS-coverage CI gate, spec sessions A–H, R7–R21, decision-intelligence map.
+
+**CI triage (first run):** required `security-gate` **PASS**; Lint/Type Check/Test-adjacent/RLS
+guards/SQL Migration Lint/Runtime deployment impact/Live advisors all PASS; Supabase Preview
+branch created (migrations replayed — first fresh-environment validation of the 7.1/7.3 chain).
+Three failures diagnosed:
+
+1. **RLS Smoke** — preview-convergence timing: ran while the Preview was still replaying 445
+   migrations ("did not reach FUNCTIONS_DEPLOYED"). Re-run dispatched after convergence.
+2. **Security Scan** — `digest-mismatch` (Blocker): runtime-source-parity compares deployed
+   function digests vs PR HEAD — **expected pre-deploy**; resolves at the gated post-merge
+   deploy. Plus a locally-surfaced `VITE_ENV` Blocker: fixed by a deliberate allowlist entry
+   (`audit/baselines/vite-env.allowlist.json` — the env-tagging var from Phase 1 of this spec).
+   Security stage now passes locally (0 findings).
+3. **Audit Report** — same audit pipeline aggregation as (2).
+   **Manifest fix:** `generate-reflection-digest` + `improvement-bonus-check` declared in
+   `notifications-runtime` (verifyJwt=true per the live runtime config snapshot) — the fail-closed
+   runtime-dependency resolver had flagged them as unmanaged (their working-tree changes were
+   prettier-only). Resolver now returns `errors: []`, closure = 18 functions across 2 groups.
+
+**Owner actions:** wait for re-runs → review → merge → approve the production environment gate
+(edge functions) → the follow-up pass verifies worker job completion (closes 7.4) and continues
+7.7 → 7.8 → 8.1.
+
+**Deploy Impact: NONE for this record** (the PR itself: MIGRATIONS + EDGE_FUNCTIONS + CONFIG).
+
+> **Mirror convention (session I):** the docs/specs copies are prettier-formatted while .kiro copies are prettier-ignored (see .prettierignore) — parity is CONTENT parity (modulo whitespace and markdown marker/escape normalization, e.g. `*` vs `_` emphasis and `\\*` escapes). Verify with whitespace+backslash-stripped comparison; cron expressions must always be backticked to survive formatting.

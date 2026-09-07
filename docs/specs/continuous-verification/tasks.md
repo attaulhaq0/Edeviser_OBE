@@ -243,8 +243,8 @@
       `cqi_action_plans=0`, `cqi_action_plan_measurements=0`, accreditation reports=0 — the loop
       scaffolding exists (sync trigger, SKIP LOCKED claim/evaluate RPCs, cron jobs) but nothing
       populates it and `private.cron_secrets` is unset.
-      Fix: (a) provision cron secrets; verify `intervention-jobs` (generate*candidates 5 \* \* \* *,
-      evaluate*measurements */15 \* \* \* _) and `agent-evaluation-jobs` (20 _ \* \* _) actually fire;
+      Fix: (a) provision cron secrets; verify `intervention-jobs` (generate_candidates `5 * * * *`,
+      evaluate_measurements `*/15 * * * *`) and `agent-evaluation-jobs` (`20 * * * *`) actually fire;
       (b) materialize `student_learning_states` from canonical evidence via
       `sync_learning_state_measurements_v1` (version/freshness/hash invariants); (c) wire coordinator
       CQI: systemic pattern → AI draft (cited) → proposal → approval → plan → measurement; (d) surface
@@ -255,7 +255,7 @@
       (PROGRESS 2026-09-06: **PRIMED — loop is live and self-running, one defect open.**
       (a) SECRETS PROVISIONED: `private.cron_secrets['cron_intervention_jobs']` generated in-DB +
       synced to edge `CRON_SECRET`; both crons verified firing (HTTP 200 via x-cron-secret; logs
-      show hourly generation + _/15 evaluation RPCs). Institution flags enabled for the 2 demo
+      show hourly generation + `*/15` evaluation RPCs). Institution flags enabled for the 2 demo
       tenants (Demo University + Noor): `ai_proactive_enabled=true`, `ai_operational_autonomy=A2`
       (both were fail-closed defaults — root-caused the first `enqueued:0`). Gulf `.test` tenant
       left off. **(b) LEARNER STATES LIVE: 41/41** generated via `refresh_student_learning_state_v1`
