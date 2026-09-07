@@ -601,6 +601,18 @@
       en/ar owner labels added. Live: English Language Arts 7 → 3 cases, student-signal →
       student_support. Remaining for 8.9 closure: AI explanation from authorized evidence +
       full 8.9-QA decision-stack suite.)
+      (PROGRESS 2026-09-07 **8.9-QA DECISION-STACK SUITE EXECUTED (Q1–Q8)**:
+      `src/lib/problemCaseActions.ts` — deterministic, CITED intervention-draft builder (Q4):
+      citations are the case's own evidence array (never recomputed), `approval_required: true`
+      at type level; routing mirror (Q5); curriculum-change flag for curriculum-design cause
+      (Q7); total 5-class taxonomy with fail-safe fallback (Q8). Unit-Close UI: "Draft
+      intervention" dialog renders the deterministic plan (headline/actions/citations/approval
+      note) — no AI, no writes from this surface. Tests: `decisionStackContract.test.ts` (Q2/Q3/
+      Q5/Q6/Q7 SQL contracts — classifier thresholds, section scoping, routing CASE map,
+      ±5pp measurement thresholds, CQI reopen/resolved feedback), `problemCaseActions.test.ts`,
+      `problemCaseActions.property.test.ts` (3 properties × 100 runs), dialog UI test.
+      Remaining: AI explanation (DeepSeek, citation-fail-closed) + owner → approval-inbox
+      write path (7.7 step / deploy-gated).)
 - [ ] 8.9-QA SENIOR QA — Decision-stack test suite (ONE test per decision question).
       Q1 what-is-failing: fixture weak CLO → flagged with evidence. Q2 why: single-cause fixture →
       correct classification. Q3 who-affected: section/demographic scoping correct. Q4 what-

@@ -860,3 +860,39 @@ suite (Q1–Q8; Q5 routing now deterministically testable).
 
 **Deploy Impact: MIGRATIONS** (2 forward-only migrations live-applied via MCP + files
 committed; `CREATE OR REPLACE FUNCTION` only — no schema objects, no data changes).
+
+## Session record — 2026-09-07 (N): 8.9-QA decision-stack suite (Q1–Q8)
+
+**Executed (client + contract tests; no migrations, no runtime changes):**
+
+- **`src/lib/problemCaseActions.ts`** — deterministic intervention-draft builder (pure,
+  framework-free, i18n-key based):
+  - Q4: citations are the case's OWN evidence array (type-level guarantee — citations ⊆ the
+    authorized evidence set, never recomputed, never invented); `approval_required: true` at
+    type level (official-record mutations stay behind the agent proposal gate).
+  - Q5: routing mirror of the SQL engine (`OWNER_BY_CAUSE`, fail-safe to teacher).
+  - Q7: `curriculum_change_recommended` only for curriculum-design-signal (ties to CQI).
+  - Q8: total 5-class taxonomy + generic fallback for unknown classes.
+- **Unit-Close UI**: per-case "Draft intervention" dialog renders the deterministic plan —
+  headline from cited data, suggested actions, owner badge, citations, curriculum-change
+  flag, approval note. No AI, NO WRITES from this surface.
+- **8.9-QA suite — one test per decision question:**
+  - Q1/Q2/Q3/Q5/Q6/Q7 pinned as SQL contracts in `decisionStackContract.test.ts`
+    (classifier class thresholds + confidence values, section-variance scoping, routing CASE
+    map, ±5pp measurement thresholds + INSUFFICIENT_EVIDENCE gating, CQI reopen/resolved
+    feedback) — following the established migration-contract pattern.
+  - Q4/Q5/Q7/Q8 behavior tests in `problemCaseActions.test.ts`.
+  - Properties (fast-check, 100 runs each): citations ⊆ evidence; total routing; determinism
+    (`problemCaseActions.property.test.ts`).
+  - Dialog UI test in `decisionIntelligenceSection.test.tsx` (Q4 surface).
+- **Live Q1 anchor (recorded):** English Language Arts 7 → 3 cases flagged with evidence
+  (session M runtime verification).
+
+**Gates (all green):** lint 0 · tsc clean · vitest **739 files / 6758 tests** · i18n parity.
+
+**Remaining for 8.9 closure:** AI explanation from authorized evidence (DeepSeek,
+citation-fail-closed) + owner → agent-proposal → approval → `learning_interventions` write
+path (7.7 step, deploy-gated) + fixture-based confusion-matrix accuracy (needs multi-cause
+fixtures).
+
+**Deploy Impact: NONE** (new lib + tests + locale keys + UI affordance only).

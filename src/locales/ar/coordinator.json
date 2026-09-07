@@ -428,6 +428,39 @@
         "coordinator": "المنسق",
         "student_support": "دعم الطلاب"
       }
+    },
+    "draft": {
+    "open": "مسودة تدخل",
+    "title": "مسودة تدخل حتمية",
+    "subtitle": "مبنية من الأدلة المستشهد بها فقط — لا يوجد ذكاء اصطناعي هنا.",
+    "owner": "المالك المقترح",
+    "actions": "الإجراءات المقترحة",
+    "citations": "الاستشهادات",
+    "curriculumChange": "يوصى بتغيير المنهج — يتم التوجيه عبر تحسين الجودة المستمر.",
+    "approvalRequired": "الموافقة مطلوبة قبل إنشاء أي سجل تدخل رسمي.",
+    "close": "إغلاق",
+    "headline": {
+      "student-signal": "طلاب فرد دون المستوى المستهدف في \"{{title}}\" ({{avg}}%).",
+      "teacher-signal": "تتفاوت أداء الشعب بشكل كبير في \"{{title}}\" — يُنصح بمراجعة ممارسات التدريس.",
+      "assessment-signal": "\"{{title}}\" يفتقر إلى تغطية تقييم كافية.",
+      "prerequisite-signal": "فجوات المخرجات الفرعية تغذي الأداء الضعيف في \"{{title}}\".",
+      "curriculum-design-signal": "يكافح الفصل بأكمله في \"{{title}}\" — يُنصح بمراجعة تصميم المنهج.",
+      "generic": "\"{{title}}\" يُظهر إشارة أداء تحتاج إلى مراجعة."
+    },
+    "actionLabels": {
+      "review_struggling_students": "مراجعة أدلة الطلاب المتعثرين المذكورين",
+      "schedule_targeted_support": "جدولة دعم مستهدف للطلاب المتأثرين",
+      "notify_owner": "إخطار المالك المقترح",
+      "compare_section_practice": "مقارنة ممارسات التدريس بين الشعب",
+      "observe_high_variance_sections": "مراقبة الشعب ذات التباين العالي",
+      "align_teaching_plan": "مواءمة خطة التدريس بين الشعب",
+      "author_coverage_guarded_assessment": "إنشاء تقييم محمي بالتغطية لهذا المخرج",
+      "link_clo_to_assessment": "ربط هذا المخرج بتقييم موجود",
+      "remediate_sub_clos": "معالجة المخرجات الفرعية الضعيفة أولاً",
+      "sequence_prerequisite_review": "جدولة مراجعة تمهيدية قبل إعادة التدريس",
+      "open_cqi_pattern": "فتح نمط جودة منهجي لهذا المخرج",
+      "review_curriculum_design": "مراجعة تصميم المنهج لهذه الوحدة"
+      }
     }
   }
 }

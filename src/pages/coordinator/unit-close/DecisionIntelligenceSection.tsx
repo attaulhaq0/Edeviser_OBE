@@ -7,9 +7,18 @@
 // (⊆ the authorized evidence set), and the students below target — answering
 // "what is failing" and "why" for the coordinator at unit-close time.
 
-import { BrainCircuit, FileSearch, Users } from "lucide-react";
+import { BrainCircuit, FileSearch, ScrollText, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,6 +26,7 @@ import {
   type ProblemCase,
 } from "@/hooks/useProblemClassification";
 import { getAttainmentColor } from "@/lib/attainmentClassifier";
+import { buildInterventionDraftPlan } from "@/lib/problemCaseActions";
 
 // The five canonical problem classes from the classification engine. Unknown
 // causes (future engine versions) fall back to the raw string.
@@ -56,6 +66,8 @@ function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
     isKnownOwner(owner)
       ? t(`unitClose.decisionIntelligence.owners.${owner}`)
       : owner;
+  // Deterministic draft plan (Q4) — citations are the case's own evidence.
+  const draft = buildInterventionDraftPlan(problemCase);
 
   return (
     <div className="rounded-lg border border-slate-200 p-4">
@@ -148,6 +160,84 @@ function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
           </ul>
         </div>
       )}
+
+      <div className="mt-3">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="text-xs">
+              <ScrollText className="me-1 h-3 w-3" />
+              {t("unitClose.draft.open")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("unitClose.draft.title")}</DialogTitle>
+              <DialogDescription>
+                {t("unitClose.draft.subtitle")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              <p className="font-medium">
+                {t(draft.headline_key, {
+                  title: draft.clo_title,
+                  avg: Math.round(problemCase.course_avg),
+                })}
+              </p>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span>{t("unitClose.draft.owner")}:</span>
+                <Badge variant="outline" className="text-[10px]">
+                  {ownerLabel(draft.recommended_owner)}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">
+                  {t("unitClose.draft.actions")}
+                </p>
+                <ul className="mt-1 list-disc space-y-1 ps-5 text-xs text-slate-500">
+                  {draft.action_keys.map((actionKey) => (
+                    <li key={actionKey}>
+                      {t(`unitClose.draft.actionLabels.${actionKey}`)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {draft.curriculum_change_recommended && (
+                <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  {t("unitClose.draft.curriculumChange")}
+                </p>
+              )}
+              <div>
+                <p className="text-xs font-medium text-slate-500">
+                  {t("unitClose.draft.citations")}
+                </p>
+                <ul className="mt-1 space-y-1">
+                  {draft.citations.map((item, index) => {
+                    const source =
+                      typeof item.source === "string"
+                        ? item.source
+                        : "outcome_attainment";
+                    return (
+                      <li
+                        key={index}
+                        className="flex items-center gap-1 text-xs text-slate-500"
+                      >
+                        <FileSearch className="h-3 w-3 shrink-0 text-slate-400" />
+                        <Badge variant="outline" className="text-[10px]">
+                          {source}
+                        </Badge>
+                        <span>{describeEvidence(item)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+              <p className="text-xs text-slate-400">
+                {t("unitClose.draft.approvalRequired")}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

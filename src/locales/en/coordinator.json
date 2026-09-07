@@ -428,6 +428,39 @@
         "coordinator": "Coordinator",
         "student_support": "Student support"
       }
+    },
+    "draft": {
+    "open": "Draft intervention",
+    "title": "Deterministic intervention draft",
+    "subtitle": "Built from the cited evidence only — no AI on this surface.",
+    "owner": "Recommended owner",
+    "actions": "Suggested actions",
+    "citations": "Citations",
+    "curriculumChange": "Curriculum change recommended — route through CQI.",
+    "approvalRequired": "Approval is required before any official intervention record is created.",
+    "close": "Close",
+    "headline": {
+      "student-signal": "Individual students are below target on \"{{title}}\" ({{avg}}%).",
+      "teacher-signal": "Section performance varies widely on \"{{title}}\" — teaching-practice review indicated.",
+      "assessment-signal": "\"{{title}}\" lacks adequate assessment coverage.",
+      "prerequisite-signal": "Sub-outcome gaps feed weak performance on \"{{title}}\".",
+      "curriculum-design-signal": "The whole cohort struggles on \"{{title}}\" — curriculum-design review indicated.",
+      "generic": "\"{{title}}\" shows a performance signal that needs review."
+    },
+    "actionLabels": {
+      "review_struggling_students": "Review the listed struggling students' evidence",
+      "schedule_targeted_support": "Schedule targeted support for affected students",
+      "notify_owner": "Notify the recommended owner",
+      "compare_section_practice": "Compare teaching practice across sections",
+      "observe_high_variance_sections": "Observe the high-variance sections",
+      "align_teaching_plan": "Align the teaching plan across sections",
+      "author_coverage_guarded_assessment": "Author a coverage-guarded assessment for this outcome",
+      "link_clo_to_assessment": "Link this outcome to an existing assessment",
+      "remediate_sub_clos": "Remediate the weak sub-outcomes first",
+      "sequence_prerequisite_review": "Sequence a prerequisite review before re-teaching",
+      "open_cqi_pattern": "Open a CQI systemic pattern for this outcome",
+      "review_curriculum_design": "Review the curriculum design for this unit"
+      }
     }
   }
 }

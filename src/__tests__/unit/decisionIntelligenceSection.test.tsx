@@ -15,9 +15,25 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import i18n from "@/lib/i18n";
 import type { ClassificationResult } from "@/hooks/useProblemClassification";
+
+// happy-dom does not implement ResizeObserver / pointer-capture, which the
+// Radix Dialog (draft dialog) relies on.
+class MockResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal("ResizeObserver", MockResizeObserver);
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false;
+}
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
 
 // ---------------------------------------------------------------------------
 // Mocks (must precede the component import)
@@ -144,6 +160,41 @@ describe("DecisionIntelligenceSection (task 8.9 UI)", () => {
 
     expect(
       screen.getByText("No attainment data available for classification yet.")
+    ).toBeInTheDocument();
+  });
+
+  it("opens the deterministic intervention draft dialog (Q4)", async () => {
+    const user = userEvent.setup();
+    mockUseProblemClassification.mockReturnValue({
+      data: RESULT_WITH_CASES,
+      isLoading: false,
+      isError: false,
+    });
+    render(<DecisionIntelligenceSection courseId="course-1" />);
+
+    await user.click(
+      screen.getByRole("button", { name: /Draft intervention/ })
+    );
+
+    // Deterministic headline from cited evidence (not AI prose) — the fixture
+    // case is curriculum-design-signal, so the cohort-review headline renders.
+    expect(
+      screen.getByText(/Deterministic intervention draft/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /The whole cohort struggles on "Recall key concepts in Science"/
+      )
+    ).toBeInTheDocument();
+    // Q7: the curriculum-change recommendation is flagged for this cause.
+    expect(
+      screen.getByText(/Curriculum change recommended — route through CQI\./)
+    ).toBeInTheDocument();
+    // The draft carries the approval gate note — no writes from this surface.
+    expect(
+      screen.getByText(
+        "Approval is required before any official intervention record is created."
+      )
     ).toBeInTheDocument();
   });
 });
