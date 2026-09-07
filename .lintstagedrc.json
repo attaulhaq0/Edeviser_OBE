@@ -1,4 +1,6 @@
 {
-  "*.{ts,tsx}": ["npx eslint --max-warnings 0 --no-warn-ignored"],
+  "*.{ts,tsx}": [
+    "npx eslint --max-warnings 0 --no-warn-ignored --cache --cache-location node_modules/.cache/.eslintcache-staged --cache-strategy content"
+  ],
   "*.{ts,tsx,json,md,yml,yaml}": ["npx prettier --check"]
 }
