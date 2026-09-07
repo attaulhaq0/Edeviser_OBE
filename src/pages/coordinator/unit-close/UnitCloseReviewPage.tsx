@@ -23,6 +23,7 @@ import {
   type UnitCloseMatrixEntry,
 } from "@/hooks/useUnitCloseReview";
 import DecisionIntelligenceSection from "./DecisionIntelligenceSection";
+import InterventionLifecycleSection from "./InterventionLifecycleSection";
 import { getAttainmentColor } from "@/lib/attainmentClassifier";
 
 const belowTargetCell = (v: number | null) => {
@@ -167,6 +168,7 @@ export default function UnitCloseReviewPage() {
       </Card>
 
       <DecisionIntelligenceSection courseId={courseId} />
+      <InterventionLifecycleSection courseId={courseId} />
     </div>
   );
 }

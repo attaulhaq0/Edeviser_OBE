@@ -1009,6 +1009,25 @@ attested as in session P).**
 **8.9 status: ENGINE ✅ · UI ✅ · ROUTING ✅ · QA SUITE ✅ · AI EXPLANATION ✅ (deployed v31) ·
 WRITE PATH ✅ (deploy pending)**. Remaining: fixture confusion matrix (8.9-QA Q8 accuracy).
 
+## Session record — 2026-09-07 (R): 7.4(d) intervention lifecycle surface
+
+**Executed (client only; no migrations, no runtime changes):**
+
+- **`useLearningInterventions`** — TanStack Query hook reading
+  `learning_interventions` **directly through the caller's RLS** (the table's
+  SELECT policy already scopes subject/teacher/coordinator/admin — no new RPC
+  needed). Course-scoped (Unit-Close view) or all-scope; student name joined
+  via the `profiles` FK; every field guard-mapped (prototype-chain-safe).
+- **`InterventionLifecycleSection`** on the Unit-Close page — read-only
+  lifecycle view: student, intervention type, localized status badge
+  (draft/proposed/approved/active/completed/cancelled), source, created date,
+  plan text from the approved payload. **No writes from this surface** —
+  status transitions are owned by the intervention generation/evaluation
+  machinery. en/ar localized; empty + error + loading states distinct.
+- **Tests**: render contract, empty state, error state (3 cases).
+
+**Deploy Impact: NONE** (client + i18n + tests only).
+
 **DEPLOY ATTESTATION (post-merge, same day):** PR #328 merged to main as `a1bd44fd`;
 **agent-orchestrator v33 ACTIVE, verify_jwt=true**, deployed from clean synced main via the
 Supabase CLI (`--use-api`) and verified via `supabase functions list` + MCP `get_edge_function`
