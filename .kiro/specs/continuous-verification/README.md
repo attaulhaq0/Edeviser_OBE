@@ -929,3 +929,52 @@ Codex). No migrations; no config changes.
 
 **Remaining for 8.9:** owner → agent-proposal → approval → `learning_interventions` write
 path (new execution RPC + write-tool registry entry) + fixture-based confusion matrix.
+
+## Session record — 2026-09-07 (P): PR #326 merged — production chain fully green + orchestrator deployed
+
+**The complete landing chain, executed end-to-end:**
+
+1. **PR #326** opened (feat/continuous-verification-loop-priming → main) carrying sessions L–O
+   (10 commits) + the hooks fix.
+2. **First CI run failed at RLS Smoke: `MIGRATIONS_FAILED`** on the Git-linked Preview — the
+   same failure already present on `main` itself (status dated 2026-08-25, i.e. predating this
+   work). Reproduced locally via full `supabase db reset` Docker replay, which pinpointed:
+   - `20260907113538_unit_close_review_rpc.sql` — SQL-string-escaped double apostrophes
+     (`''CLO''`) + UTF-8 BOM → `42601 syntax error at or near "CLO"` on every fresh replay;
+     rewritten to match production's live body (replay-parity repair).
+   - `20260907180222/180347` — one lost line (`) s) AS min_section_avg,`) from file
+     construction; restored (MCP-applied bodies had been correct).
+3. **Second CI run: RLS Smoke now reached the tests — and exposed a REAL PRODUCTION BUG:**
+   `outcomeCascade.rls.test.ts` failed 4/9 on the fresh replay. Root cause via docker logs:
+   `trigger_attainment_rollup: column w.clo_id does not exist` — the assignment branch of the
+   rollup referenced `w.clo_id` while the LATERAL alias is `w(item, ord)`; the body-wide
+   `EXCEPTION WHEN OTHERS THEN RAISE WARNING` silently swallowed it, so **every
+   assignment-grade evidence/attainment/CLO→PLO→ILO rollup has been silently skipped in
+   PRODUCTION since 20260906165847 (Sept 6)**. Fixed forward-only:
+   `20260907190000_fix_assignment_rollup_clo_weights` (extract `(w.item->>'clo_id')::uuid`),
+   applied to production via MCP. Verified: local replay 485 migrations clean;
+   outcomeCascade 9/9 on the replayed DB; production md5 updated (be252d2c…).
+4. **Third CI run: two fast-check counterexamples** — Property 2 caught a genuine
+   prototype-chain lookup bug in `ownerForCause` (`OWNER_BY_CAUSE["constructor"]` returned a
+   function instead of undefined); fixed with a `hasOwnProperty` guard + regression tests;
+   and the two TS errors the refactor introduced (caught by CI Type Check — local tsc had run
+   before the edit; fixed and verified locally before push).
+5. **Final CI run #1173: SUCCESS + Security Gates #215: SUCCESS** — RLS Smoke **all 16 files
+   passing** against the Preview (FUNCTIONS_DEPLOYED) for the first time since the chain grew
+   past 484 migrations; Type Check, Unit+Property, E2E, Lighthouse, CodeQL, gitleaks, semgrep,
+   advisors, runtime governance all green.
+6. **Merged** squash → main `046731fe`.
+7. **agent-orchestrator deployed to production from main** via Supabase CLI
+   (`--use-api`): **v31 ACTIVE, verify_jwt=true** — `explain_problem_case` is now LIVE.
+8. lint-staged SIGKILL root-caused as the agent-shell 300s timeout killing the eslint child;
+   fixed properly with an eslint content-cache in `.lintstagedrc.json`.
+
+**Owner-instructed deployment attestation:** the production deploy was executed from a clean,
+synced `main` at `046731fe` (deploy-guard discipline), version v31 verified ACTIVE via
+`supabase functions list` and MCP `get_edge_function`.
+
+**Deploy Impact: MIGRATIONS + EDGE_FUNCTIONS** (all applied/deployed and attested live).
+
+**Remaining for 8.9:** owner → agent-proposal → approval → `learning_interventions` write path
+(registry entry + execution RPC) + fixture confusion matrix. Then 7.4(c)/(d), 7.8, 8.2 UI,
+8.10.
