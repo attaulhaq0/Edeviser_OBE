@@ -746,3 +746,31 @@ columns/table only; zero existing-row changes; all gates green).
 
 
 > **Mirror convention (session I):** the docs/specs copies are prettier-formatted while .kiro copies are prettier-ignored (see .prettierignore) — parity is CONTENT parity (modulo whitespace and markdown marker/escape normalization, e.g. `*` vs `_` emphasis and `\\*` escapes). Verify with whitespace+backslash-stripped comparison; cron expressions must always be backticked to survive formatting.
+## Session record — 2026-09-06 (K): 7.4 milestone — intelligence loop producing REAL output
+
+**MILESTONE.** For the first time in the project''s history, the intelligence loop has produced
+real AI-generated recommendations grounded in deterministic evidence:
+
+- **2 proactive agent jobs COMPLETED** with real DeepSeek usage (4728 + 5585 tokens, 13.5s + 14.8s)
+- Output example (admin run): "The CLO Recall key concepts in Science shows attainment of 46.8%,
+  below the 70% success threshold, last calculated 2026-05-26. Notably, the same 46.8% value
+  appears across all outcomes in this course for this student, which is a data-quality..."
+- Output example (coordinator run): "I have sufficient deterministic context. Let me review the
+  evidence packet fields and provide the program-scoped explanation and recommendation..."
+- Both runs cite the evidence packet fields (deterministic, not hallucinated) and stay within
+  the authorized scope.
+
+**Pipeline status:**
+- 542 proactive_agent_jobs total (2 completed, 68 retry with backoff, 472 queued)
+- The hourly cron is self-running (generation + evaluation)
+- The worker processes jobs with real DeepSeek calls (rate-limited but functional)
+- The bounded retry (3 attempts + dead-letter) contains transient rate-limiting
+
+**Remaining for 7.4 closure:**
+1. Process the queue over time (the cron will do this autonomously)
+2. Verify proposals are created when the model recommends protected actions
+3. Teacher approval → intervention execution → measurement → closed loop
+4. (c)(d) CQI wiring + UI surfaces (7.7 page built, needs wiring)
+
+**Deploy Impact: CONFIG/OPS** (agent-worker + agent-orchestrator deployed to production with
+the observability + recovery fixes; 2 proactive jobs completed with real AI output).
