@@ -967,3 +967,33 @@ synced `main` at `046731fe` (deploy-guard discipline), version v31 verified ACTI
 **Remaining for 8.9:** owner → agent-proposal → approval → `learning_interventions` write path
 (registry entry + execution RPC) + fixture confusion matrix. Then 7.4(c)/(d), 7.8, 8.2 UI,
 8.10.
+
+## Session record — 2026-09-07 (Q): 8.9 CLOSED — approval-gated intervention write path
+
+**Executed (code + tests; migration live-applied via MCP; orchestrator redeploy after merge):**
+
+- **`create_learning_intervention`** protected write tool — the final 8.9 chain link:
+  DIAGNOSE (`classify_problem_cases_v1`) → deterministic cited draft
+  (`problemCaseActions`) → **PROPOSAL** (`agent_action_proposals`) → **COORDINATOR
+  APPROVAL** → **execute_approved_learning_intervention_v1** → official
+  `learning_interventions` rows (one per struggling student, `status='approved'`,
+  `approved_by`) → VERIFY (existing `intervention_measurements` machinery).
+- **contracts.ts**: `PROTECTED_ACTIONS` += `create_learning_intervention`;
+  `requiredApproverRole` = coordinator (owner performs, coordinator owns the record).
+- **registry**: `create_learning_intervention@1.0.0` — exact payload keys, 1–50 unique
+  student UUIDs, receipt validation (count ↔ ids).
+- **orchestrator**: `execute_proposal` dispatches to the dedicated RPC.
+- **Migration `20260907222635` (live-applied via MCP, file committed)**:
+  `execute_approved_learning_intervention_v1` — SECURITY DEFINER, `search_path=''`,
+  service_role-only grant, coordinator-only; proposal contract validated; scope re-checked at
+  execution time (course → program → institution + coordinator identity, per-student active
+  enrollment); receipt into `agent_action_executions`; proposal race guard (40001).
+- **Tests**: `learningInterventionWritePath.test.ts` — registry boundary (unsupported fields,
+  duplicate/empty/oversized studentIds, receipt-count mismatch), contracts routing, dispatch +
+  migration contract. Full suite green (2 known load-timing flakes pass in isolation).
+
+**Deploy Impact: MIGRATIONS (live-applied) + EDGE_FUNCTIONS (orchestrator redeploy post-merge,
+attested as in session P).**
+
+**8.9 status: ENGINE ✅ · UI ✅ · ROUTING ✅ · QA SUITE ✅ · AI EXPLANATION ✅ (deployed v31) ·
+WRITE PATH ✅ (deploy pending)**. Remaining: fixture confusion matrix (8.9-QA Q8 accuracy).
