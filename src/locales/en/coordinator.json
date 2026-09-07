@@ -401,6 +401,20 @@
     "courseFile": "Course File"
   },
   "unitClose": {
+    "interventions": {
+      "title": "Intervention lifecycle",
+      "subtitle": "Official intervention records for this course — read-only; status is owned by the evaluation machinery.",
+      "error": "Intervention records are unavailable right now.",
+      "empty": "No interventions yet — approved drafts from the decision-intelligence surface appear here.",
+      "status": {
+        "draft": "Draft",
+        "proposed": "Proposed",
+        "approved": "Approved",
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
     "decisionIntelligence": {
       "title": "Decision Intelligence",
       "subtitle": "Deterministic problem classification per outcome — what is failing and why.",
