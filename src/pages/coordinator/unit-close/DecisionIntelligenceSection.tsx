@@ -27,6 +27,8 @@ import {
 } from "@/hooks/useProblemClassification";
 import { getAttainmentColor } from "@/lib/attainmentClassifier";
 import { buildInterventionDraftPlan } from "@/lib/problemCaseActions";
+import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
+import { useProblemCaseExplanation } from "@/ai/hooks/useProblemCaseExplanation";
 
 // The five canonical problem classes from the classification engine. Unknown
 // causes (future engine versions) fall back to the raw string.
@@ -55,7 +57,13 @@ const describeEvidence = (item: Record<string, unknown>): string =>
     .map(([field, value]) => `${field}: ${String(value)}`)
     .join(" · ");
 
-function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
+function ProblemCaseCard({
+  problemCase,
+  courseId,
+}: {
+  problemCase: ProblemCase;
+  courseId: string;
+}) {
   const { t } = useTranslation("coordinator");
   const strugglingCount = problemCase.struggling_students?.length ?? 0;
   const causeLabel = (cause: string): string =>
@@ -68,6 +76,10 @@ function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
       : owner;
   // Deterministic draft plan (Q4) — citations are the case's own evidence.
   const draft = buildInterventionDraftPlan(problemCase);
+  // 8.9: AI explanation — the server derives the evidence packet; the client
+  // only sends identifiers. Gated by the platform AI feature flag.
+  const aiEnabled = isAiSurfaceEnabled();
+  const explanation = useProblemCaseExplanation();
 
   return (
     <div className="rounded-lg border border-slate-200 p-4">
@@ -234,6 +246,43 @@ function ProblemCaseCard({ problemCase }: { problemCase: ProblemCase }) {
               <p className="text-xs text-slate-400">
                 {t("unitClose.draft.approvalRequired")}
               </p>
+              {aiEnabled && (
+                <div className="rounded-lg border border-slate-200 p-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={explanation.isPending}
+                    onClick={() =>
+                      explanation.mutate({
+                        courseId,
+                        cloId: problemCase.clo_id,
+                      })
+                    }
+                  >
+                    {explanation.isPending
+                      ? t("unitClose.draft.explainLoading")
+                      : t("unitClose.draft.explain")}
+                  </Button>
+                  {explanation.isError && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {t("unitClose.draft.explainError")}
+                    </p>
+                  )}
+                  {explanation.data && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs font-medium text-slate-500">
+                        {t("unitClose.draft.aiSection")}
+                        {explanation.data.model !== "unknown" &&
+                          ` · ${explanation.data.model}`}
+                      </p>
+                      <p className="whitespace-pre-wrap text-xs text-slate-600">
+                        {explanation.data.explanation}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -332,6 +381,7 @@ export default function DecisionIntelligenceSection({
               <ProblemCaseCard
                 key={problemCase.clo_id}
                 problemCase={problemCase}
+                courseId={courseId}
               />
             ))}
           </>

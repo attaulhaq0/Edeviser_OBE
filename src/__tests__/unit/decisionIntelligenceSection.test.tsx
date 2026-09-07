@@ -43,6 +43,16 @@ vi.mock("@/hooks/useProblemClassification", () => ({
   useProblemClassification: () => mockUseProblemClassification(),
 }));
 
+// 8.9 AI explanation affordance: feature gate + mutation hook are mocked;
+// the gate is ON so the affordance contract can be tested.
+const mockExplanation = vi.fn();
+vi.mock("@/ai/lib/featureGate", () => ({
+  isAiSurfaceEnabled: () => true,
+}));
+vi.mock("@/ai/hooks/useProblemCaseExplanation", () => ({
+  useProblemCaseExplanation: () => mockExplanation(),
+}));
+
 import DecisionIntelligenceSection from "@/pages/coordinator/unit-close/DecisionIntelligenceSection";
 
 // ---------------------------------------------------------------------------
@@ -95,6 +105,12 @@ const RESULT_NO_DATA = {
 describe("DecisionIntelligenceSection (task 8.9 UI)", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockExplanation.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+      isError: false,
+      data: null,
+    });
     await i18n.changeLanguage("en");
   });
 
@@ -195,6 +211,43 @@ describe("DecisionIntelligenceSection (task 8.9 UI)", () => {
       screen.getByText(
         "Approval is required before any official intervention record is created."
       )
+    ).toBeInTheDocument();
+  });
+
+  it("renders the AI explanation affordance and its validated result", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+    mockUseProblemClassification.mockReturnValue({
+      data: RESULT_WITH_CASES,
+      isLoading: false,
+      isError: false,
+    });
+    mockExplanation.mockReturnValue({
+      mutate,
+      isPending: false,
+      isError: false,
+      data: {
+        runId: "run-1",
+        explanation: "Course average is 46.8%, below the 70% target.",
+        model: "deepseek-chat",
+      },
+    });
+    render(<DecisionIntelligenceSection courseId="course-1" />);
+
+    // The AI affordance lives inside the draft dialog — open it first.
+    await user.click(
+      screen.getByRole("button", { name: /Draft intervention/ })
+    );
+    await user.click(screen.getByRole("button", { name: /Explain with AI/ }));
+    expect(mutate).toHaveBeenCalledWith({
+      courseId: "course-1",
+      cloId: "clo-1",
+    });
+    expect(
+      screen.getByText(/AI explanation · deepseek-chat/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Course average is 46.8%, below the 70% target.")
     ).toBeInTheDocument();
   });
 });

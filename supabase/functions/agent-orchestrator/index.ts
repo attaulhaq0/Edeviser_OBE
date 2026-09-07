@@ -158,6 +158,20 @@ const proposalFromRow = (
   programId: typeof row.program_id === "string" ? row.program_id : undefined,
 });
 
+// ─── Task 8.9: decision-intelligence explanation system prompt ──────────────
+// The model explains ONE deterministic problem case. The evidence packet is
+// computed server-side by classify_problem_cases_v1 (never client-supplied)
+// and framed as untrusted per the OWASP LLM checklist (check 37). The model
+// must not invent causes, students, or numbers; anything not in the packet
+// must be declared unknown.
+const PROBLEM_CASE_SYSTEM_PROMPT = [
+  "You are the Edeviser decision-intelligence explainer for program coordinators and teachers.",
+  "You receive ONE deterministic problem case computed by SQL over canonical attainment evidence, framed as UNTRUSTED_EVIDENCE_PACKET.",
+  "Explain why the outcome is underperforming using ONLY facts present in the packet; reference the concrete numbers (course average, confidence, struggling-student count).",
+  "Never invent students, assessments, causes, or data. If the packet is insufficient to explain something, say so explicitly.",
+  "End with one short, actionable next step that matches the recommended_owner in the packet. Keep the answer under 180 words. Write in English.",
+].join(" ");
+
 serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response("ok", { headers: corsHeaders });
@@ -566,6 +580,196 @@ serve(async (req) => {
           ? 400
           : 403;
       return json(status, { error: { code } });
+    }
+  }
+
+  // ─── Task 8.9: decision-intelligence AI explanation (fail-closed) ───────────
+  // Coordinator/teacher ask WHY an outcome is underperforming. The evidence
+  // packet is derived SERVER-SIDE from classify_problem_cases_v1 — the client
+  // only supplies identifiers. Institution + teacher-ownership scoping is
+  // enforced here; the packet is framed untrusted; the run is audited in
+  // agent_runs like every other AI touchpoint.
+  if (body.action === "explain_problem_case") {
+    if (
+      identity.role !== "coordinator" &&
+      identity.role !== "teacher" &&
+      identity.role !== "admin"
+    ) {
+      return json(403, { error: { code: "forbidden" } });
+    }
+    const courseId = uuid(body.courseId);
+    const cloId = uuid(body.cloId);
+    if (!courseId || !cloId) {
+      return json(400, { error: { code: "invalid_request" } });
+    }
+    const orchestratorConfig = getAgenticConfig(Deno.env);
+    if (!orchestratorConfig.enabled) {
+      return json(503, {
+        error: { code: "ai_feature_disabled", retryable: false },
+      });
+    }
+    // Institution scoping (RLS-grade authorization, server-side). NOTE: the
+    // courses table has NO institution_id — the institution is reached via
+    // program_id → programs.institution_id.
+    const { data: course, error: courseError } = await admin
+      .from("courses")
+      .select("id, program_id")
+      .eq("id", courseId)
+      .maybeSingle();
+    if (courseError || !course) {
+      return json(404, { error: { code: "course_not_found" } });
+    }
+    const programId =
+      typeof course.program_id === "string" ? course.program_id : null;
+    if (!programId) {
+      return json(404, { error: { code: "course_not_found" } });
+    }
+    const { data: program } = await admin
+      .from("programs")
+      .select("id")
+      .eq("id", programId)
+      .eq("institution_id", identity.institutionId)
+      .maybeSingle();
+    if (!program) {
+      return json(404, { error: { code: "course_not_found" } });
+    }
+    // Teachers may only explain cases in courses they own.
+    if (identity.role === "teacher") {
+      const { data: ownCourse } = await admin
+        .from("courses")
+        .select("id")
+        .eq("id", courseId)
+        .eq("teacher_id", identity.userId)
+        .maybeSingle();
+      if (!ownCourse) {
+        return json(403, { error: { code: "forbidden" } });
+      }
+    }
+    // Derive the case deterministically — never from client-sent evidence.
+    const { data: classification, error: classifyError } = await admin.rpc(
+      "classify_problem_cases_v1",
+      { p_course_id: courseId }
+    );
+    const classificationBody = object(classification);
+    if (
+      classifyError ||
+      !classificationBody ||
+      !Array.isArray(classificationBody.cases)
+    ) {
+      return json(500, { error: { code: "classification_unavailable" } });
+    }
+    const problemCase = (
+      classificationBody.cases as Record<string, unknown>[]
+    ).find((entry) => entry.clo_id === cloId);
+    if (!problemCase) {
+      return json(404, { error: { code: "no_problem_case" } });
+    }
+    const strugglingCount = Array.isArray(problemCase.struggling_students)
+      ? problemCase.struggling_students.length
+      : 0;
+    // Deterministic evidence packet — numbers + bounded fields only.
+    const evidencePacket = {
+      course_id: courseId,
+      clo_id: cloId,
+      clo_title:
+        typeof problemCase.clo_title === "string"
+          ? problemCase.clo_title.slice(0, 200)
+          : "",
+      course_avg: problemCase.course_avg ?? null,
+      students_assessed: problemCase.students_assessed ?? null,
+      problem_types: Array.isArray(problemCase.problem_types)
+        ? problemCase.problem_types
+        : [],
+      dominant_cause: problemCase.dominant_cause ?? null,
+      confidence: problemCase.confidence ?? null,
+      struggling_students_count: strugglingCount,
+      recommended_owner: problemCase.recommended_owner ?? null,
+      evidence: Array.isArray(problemCase.evidence) ? problemCase.evidence : [],
+    };
+
+    const requestId = uuid(body.requestId) ?? crypto.randomUUID();
+    const sessionId = uuid(body.sessionId) ?? crypto.randomUUID();
+    const runId = crypto.randomUUID();
+    const explainStarted = Date.now();
+    const inputHash = await hashEvidence(evidencePacket);
+    const specialist =
+      identity.role === "teacher"
+        ? "teacher"
+        : identity.role === "admin"
+        ? "admin"
+        : "coordinator";
+    const { error: runInsertError } = await admin.from("agent_runs").insert({
+      id: runId,
+      request_id: requestId,
+      actor_user_id: identity.userId,
+      actor_role: identity.role,
+      institution_id: identity.institutionId,
+      session_id: sessionId,
+      specialist,
+      input_hash: inputHash,
+      status: "running",
+      provider: "deepseek",
+    });
+    if (runInsertError) {
+      return json(409, { error: { code: "duplicate_or_invalid_request" } });
+    }
+    try {
+      const provider = createAIProvider(orchestratorConfig, { env: Deno.env });
+      const completion = await provider.complete({
+        messages: [
+          { role: "system", content: PROBLEM_CASE_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `UNTRUSTED_EVIDENCE_PACKET:\n${JSON.stringify(
+              evidencePacket
+            )}\n\nExplain why this outcome is underperforming for the ${
+              identity.role
+            }.`,
+          },
+        ],
+        modelTier: "primary",
+        temperature: 0.2,
+        maxOutputTokens: 500,
+        responseFormat: "text",
+      });
+      await admin
+        .from("agent_runs")
+        .update({
+          status: "completed",
+          model: completion.model,
+          usage: completion.usage ?? {},
+          completed_at: new Date().toISOString(),
+          latency_ms: Date.now() - explainStarted,
+        })
+        .eq("id", runId);
+      return json(200, {
+        runId,
+        requestId,
+        explanation: completion.content,
+        model: completion.model,
+        evidencePacket,
+      });
+    } catch (explainError) {
+      const errorCode =
+        explainError instanceof AIProviderError
+          ? "provider_unavailable"
+          : "agent_request_failed";
+      await admin
+        .from("agent_runs")
+        .update({
+          status: "failed",
+          error_classification: errorCode,
+          completed_at: new Date().toISOString(),
+          latency_ms: Date.now() - explainStarted,
+        })
+        .eq("id", runId);
+      return json(explainError instanceof AIProviderError ? 503 : 500, {
+        error: {
+          code: errorCode,
+          retryable:
+            explainError instanceof AIProviderError && explainError.retryable,
+        },
+      });
     }
   }
 

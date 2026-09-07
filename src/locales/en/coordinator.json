@@ -438,6 +438,10 @@
     "citations": "Citations",
     "curriculumChange": "Curriculum change recommended — route through CQI.",
     "approvalRequired": "Approval is required before any official intervention record is created.",
+    "explain": "Explain with AI",
+    "explainLoading": "Explaining…",
+    "explainError": "AI explanation unavailable right now.",
+    "aiSection": "AI explanation",
     "close": "Close",
     "headline": {
       "student-signal": "Individual students are below target on \"{{title}}\" ({{avg}}%).",

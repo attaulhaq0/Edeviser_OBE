@@ -613,6 +613,20 @@
       `problemCaseActions.property.test.ts` (3 properties × 100 runs), dialog UI test.
       Remaining: AI explanation (DeepSeek, citation-fail-closed) + owner → approval-inbox
       write path (7.7 step / deploy-gated).)
+      (PROGRESS 2026-09-07 **8.9 AI EXPLANATION EXECUTED (code + tests; deploy pending)**:
+      `explain_problem_case` channel added to agent-orchestrator — client sends identifiers
+      ONLY; the evidence packet is derived SERVER-SIDE from `classify_problem_cases_v1`,
+      institution-scoped via program → programs.institution_id (courses has NO institution_id —
+      caught by the edge-fn schema guard), teacher course-ownership enforced; packet framed
+      UNTRUSTED_EVIDENCE_PACKET (OWASP LLM01 check 37); run audited in agent_runs
+      (running → completed/failed); provider failures fail closed (503). Client:
+      `useProblemCaseExplanation` mutation hook (untrusted-response guards) + AI explanation
+      affordance inside the Unit-Close draft dialog (feature-gated). Tests:
+      `orchestratorExplanationContract.test.ts` (8 security invariants),
+      `useProblemCaseExplanation.test.tsx`, UI test. DEPLOY PENDING: agent-orchestrator must be
+      redeployed through the runtime governance gate (owner action — MERGE ≠ DEPLOYMENT).
+      Remaining for 8.9: owner → agent-proposal → approval → learning_interventions write
+      path (new execution RPC + write-tool registry) + fixture confusion matrix.)
 - [ ] 8.9-QA SENIOR QA — Decision-stack test suite (ONE test per decision question).
       Q1 what-is-failing: fixture weak CLO → flagged with evidence. Q2 why: single-cause fixture →
       correct classification. Q3 who-affected: section/demographic scoping correct. Q4 what-

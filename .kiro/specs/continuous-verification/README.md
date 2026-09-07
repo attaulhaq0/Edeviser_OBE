@@ -896,3 +896,36 @@ path (7.7 step, deploy-gated) + fixture-based confusion-matrix accuracy (needs m
 fixtures).
 
 **Deploy Impact: NONE** (new lib + tests + locale keys + UI affordance only).
+
+## Session record — 2026-09-07 (O): 8.9 AI explanation channel (deploy pending)
+
+**Executed (edge-function code + client hook + tests; DEPLOY PENDING):**
+
+- **agent-orchestrator: `explain_problem_case`** — the coordinator/teacher/admin asks WHY an
+  outcome is underperforming:
+  - client supplies identifiers only (`courseId`, `cloId`); the evidence packet is derived
+    SERVER-SIDE from `classify_problem_cases_v1` — client-sent evidence is never trusted;
+  - authorization: role gate (coordinator/teacher/admin) + institution scoping via
+    `program → programs.institution_id` (the schema guard caught that `courses` has NO
+    `institution_id` — a real bug my first draft had) + teacher course-ownership check;
+  - the packet is framed `UNTRUSTED_EVIDENCE_PACKET` (OWASP LLM01 check 37) with a
+    fail-closed system prompt (never invent data; declare unknowns);
+  - the run is audited in `agent_runs` (insert running → completed with model/usage/latency,
+    or failed with error_classification); provider errors → 503 `provider_unavailable`.
+- **Client**: `useProblemCaseExplanation` mutation hook (untrusted-response guards — runId +
+  explanation required, model defaulted, explanation capped) + an "Explain with AI"
+  affordance inside the Unit-Close draft dialog, gated by `isAiSurfaceEnabled()`.
+- **Tests**: `orchestratorExplanationContract.test.ts` (8 security invariants pinned against
+  the function source), `useProblemCaseExplanation.test.tsx` (3 transport/validation tests),
+  UI affordance test. Full suite: **741 files / 6770 tests**.
+
+**Gates (all green):** lint 0 · tsc clean · vitest 741/6770 · i18n parity ·
+`check-edge-fn-schema` CLEAN (the guard caught the courses.institution_id drift pre-commit) ·
+`check:runtime-dependencies` errors [].
+
+**Deploy Impact: EDGE_FUNCTIONS — PENDING DEPLOY.** `agent-orchestrator` must be redeployed
+through the runtime governance gate (owner action — MERGE ≠ DEPLOYMENT, never attested from
+Codex). No migrations; no config changes.
+
+**Remaining for 8.9:** owner → agent-proposal → approval → `learning_interventions` write
+path (new execution RPC + write-tool registry entry) + fixture-based confusion matrix.
