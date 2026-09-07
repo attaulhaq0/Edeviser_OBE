@@ -85,6 +85,7 @@ describe("8.9-QA Q5 — who performs it (ownership routing)", () => {
   it("prototype-chain property names never leak a non-owner (CI regression)", () => {
     // Caught by Property 2 on CI: fc.string can generate "constructor",
     // "toString", etc. — the lookup must use an own-property guard.
+    const owners: string[] = ["teacher", "coordinator", "student_support"];
     for (const dangerous of [
       "constructor",
       "toString",
@@ -97,7 +98,7 @@ describe("8.9-QA Q5 — who performs it (ownership routing)", () => {
         ...BASE_CASE,
         dominant_cause: dangerous,
       });
-      expect(OWNERS).toContain(draft.recommended_owner);
+      expect(owners).toContain(draft.recommended_owner);
     }
   });
 });

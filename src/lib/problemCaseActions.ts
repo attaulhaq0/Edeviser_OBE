@@ -95,7 +95,7 @@ export const isKnownCause = (cause: string): cause is KnownCause =>
  */
 export const ownerForCause = (cause: string): RecommendedOwner =>
   Object.prototype.hasOwnProperty.call(OWNER_BY_CAUSE, cause)
-    ? OWNER_BY_CAUSE[cause]
+    ? (OWNER_BY_CAUSE[cause] as RecommendedOwner)
     : "teacher";
 
 /**
