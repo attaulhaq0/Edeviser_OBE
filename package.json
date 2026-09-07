@@ -29,6 +29,7 @@
     "check:playwright-contracts": "tsx scripts/check-playwright-contracts.ts",
     "check:edge-imports": "node scripts/check-edge-imports.mjs",
     "check:runtime-dependencies": "node scripts/resolve-runtime-deployment-impact.mjs --validate",
+    "check:rls-coverage": "node scripts/check-rls-coverage.mjs",
     "check:migration-ledger": "node scripts/check-migration-ledger.mjs",
     "i18n:check": "node scripts/check-i18n-parity.mjs",
     "analyze": "cross-env ANALYZE=true vite build",

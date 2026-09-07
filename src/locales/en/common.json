@@ -80,6 +80,8 @@
     "profile": "Profile",
     "me": "Me",
     "notifications": "Notifications",
+    "sessions": "Sessions",
+    "notificationPreferences": "Notification Preferences",
     "studentTriage": "Student Triage",
     "curriculumStudio": "Curriculum Studio",
     "rubricBuilder": "Rubric Builder",
@@ -183,6 +185,11 @@
     "code": "Code",
     "selectOption": "Select an option",
     "noResults": "No results found"
+  },
+  "coverageGuard": {
+    "heading": "{{uncovered}} of {{total}} outcomes in this course have no linked assessments yet",
+    "more": "…and {{count}} more",
+    "footnote": "Add assessments for these outcomes or record an exemption with your coordinator — unassessed outcomes cannot show attainment evidence."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

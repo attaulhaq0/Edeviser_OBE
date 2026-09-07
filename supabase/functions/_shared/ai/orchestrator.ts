@@ -22,6 +22,7 @@ import type {
 } from "./provider.ts";
 import {
   createHumanApprovalProposal,
+  ProposalBoundaryError,
   type ProposalAuthorizer,
   type ProposalStore,
 } from "./proposals.ts";
@@ -578,6 +579,24 @@ ${safeToolOutput(result)}`,
           (error.kind === "invalid_input" ||
             error.kind === "missing_context" ||
             error.kind === "unauthorized")
+        ) {
+          messages.push({
+            role: "tool",
+            toolCallId: call.id,
+            content: JSON.stringify({
+              error: { code: error.kind, recoverable: true },
+            }),
+          });
+          continue;
+        }
+        // 7.4: proposal-boundary rejections are recoverable for proactive
+        // runs — a malformed or out-of-scope proposal must not kill the whole
+        // intervention draft; the model gets the boundary code and can correct
+        // the proposal (or finish with a text-only recommendation).
+        if (
+          error instanceof ProposalBoundaryError &&
+          (error.kind === "invalid_proposal" ||
+            error.kind === "unauthorized_scope")
         ) {
           messages.push({
             role: "tool",

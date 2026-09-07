@@ -111,7 +111,9 @@ export const useStudentCourses = (studentId: string | undefined) => {
 
         if (submissionError) throw submissionError;
         for (const row of submissionRows ?? []) {
-          completedAssignmentIds.add(row.assignment_id);
+          if (row.assignment_id !== null) {
+            completedAssignmentIds.add(row.assignment_id);
+          }
         }
       }
 

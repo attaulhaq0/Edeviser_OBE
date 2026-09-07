@@ -6,6 +6,10 @@
     "upcomingDeadlines": "Upcoming Deadlines",
     "learningPath": "Learning Path",
     "dailyHabits": "Daily Habits",
+    "friends": {
+      "title": "Friends",
+      "viewAll": "View all →"
+    },
     "greeting": {
       "morning": "Good morning",
       "afternoon": "Good afternoon",

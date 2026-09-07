@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { InlineNoCLOs } from "@/components/shared/EmptyState";
+import { AssessmentCoverageWarning } from "@/components/shared/AssessmentCoverageWarning";
 import {
   ArrowLeft,
   Loader2,
@@ -592,6 +593,9 @@ const AssignmentFormFields = ({
           <h2 className="text-lg font-bold tracking-tight mb-4">
             CLO Linking &amp; Weight Distribution
           </h2>
+          {/* 7.3(b): authoring-time coverage guard — surface unassessed course
+              CLOs while the teacher is already linking outcomes. */}
+          <AssessmentCoverageWarning courseId={selectedCourseId} />
           {selectedCourseId ? (
             <CLOWeightSection
               clos={clos}

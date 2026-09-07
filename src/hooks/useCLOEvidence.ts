@@ -49,7 +49,11 @@ export const useCLOEvidence = (cloId?: string, studentId?: string) => {
       if (subError) throw subError;
 
       const assignmentIds = [
-        ...new Set((submissions ?? []).map((s) => s.assignment_id)),
+        ...new Set(
+          (submissions ?? [])
+            .map((s) => s.assignment_id)
+            .filter((id): id is string => id !== null)
+        ),
       ];
 
       const { data: assignments, error: assignError } = await supabase
@@ -65,7 +69,7 @@ export const useCLOEvidence = (cloId?: string, studentId?: string) => {
         assignmentMap.set(a.id, a.title);
       }
 
-      const submissionAssignmentMap = new Map<string, string>();
+      const submissionAssignmentMap = new Map<string, string | null>();
       for (const s of submissions ?? []) {
         submissionAssignmentMap.set(s.id, s.assignment_id);
       }

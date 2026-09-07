@@ -207,7 +207,12 @@ export const useLearningPath = (
           .in("assignment_id", assignmentIds);
 
         if (subErr) throw subErr;
-        submissions = subs ?? [];
+        // Quiz-originated submissions (assignment_id null) never belong to an
+        // assignment learning path — exclude them here.
+        submissions = (subs ?? []).filter(
+          (s): s is typeof s & { assignment_id: string } =>
+            s.assignment_id !== null
+        );
 
         const { data: gradeData, error: gradeErr } = await supabase
           .from("grades")

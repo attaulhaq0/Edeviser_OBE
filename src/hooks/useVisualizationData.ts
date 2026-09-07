@@ -1,4 +1,13 @@
-// Task 117.4: Visualization TanStack Query hooks
+// =============================================================================
+// useVisualizationData — coordinator analytics hooks (task 7.6)
+// =============================================================================
+// 7.6: all three views are fed by ONE program-scoped RPC
+// (`get_coordinator_analytics_v1`, invoker-rights — the caller's RLS scopes
+// every row). The deterministic classification lives in the shared libs
+// (gapAnalysis / coverageHeatmap / sankeyTransform) — unchanged; the client no
+// longer reads whole tables. The three hooks share one queryKey so TanStack
+// dedupes the payload to a single request per program.
+// =============================================================================
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -11,141 +20,174 @@ import {
 import { analyzeGaps, type GapResult } from "@/lib/gapAnalysis";
 import { buildHeatmapMatrix, type HeatmapMatrix } from "@/lib/coverageHeatmap";
 
-export const useSankeyData = (
-  programId?: string,
-  _courseId?: string,
-  _semesterId?: string
-) => {
-  return useQuery({
-    queryKey: queryKeys.sankeyData.list({ programId }),
-    queryFn: async (): Promise<{
-      nodes: SankeyNode[];
-      links: SankeyLink[];
-    }> => {
-      // Parallel reads (was a 3-step serial waterfall). Columns corrected to
-      // the real schema: outcome_mappings uses source/target_outcome_id (not
-      // parent/child) and outcome_attainment uses attainment_percent (not
-      // score_percent), so the flow now renders real mappings instead of empty.
-      const [outcomesRes, mappingsRes, attainmentsRes] = await Promise.all([
-        supabase.from("learning_outcomes").select("id, type, title"),
-        supabase
-          .from("outcome_mappings")
-          .select("source_outcome_id, target_outcome_id, weight"),
-        supabase
-          .from("outcome_attainment")
-          .select("outcome_id, attainment_percent"),
-      ]);
-      if (outcomesRes.error) throw outcomesRes.error;
-      if (mappingsRes.error) throw mappingsRes.error;
-      if (attainmentsRes.error) throw attainmentsRes.error;
+interface CoordinatorAnalyticsPayload {
+  outcomes: Array<{
+    id: string;
+    title: string;
+    type: "ILO" | "PLO" | "CLO";
+    mapped_children_count: number;
+    evidence_count: number;
+  }>;
+  mappings: Array<{
+    source_outcome_id: string;
+    target_outcome_id: string;
+    weight: number;
+  }>;
+  courses: Array<{ id: string; name: string }>;
+  clos: Array<{ id: string; title: string; course_id: string }>;
+  evidence: Array<{
+    clo_id: string;
+    course_id: string;
+    score_percent: number;
+  }>;
+  attainment: Array<{
+    outcome_id: string;
+    attainment_percent: number;
+  }>;
+}
 
-      return transformToSankey(
-        (outcomesRes.data ?? []).map((o) => ({
-          id: o.id,
-          type: o.type as "ILO" | "PLO" | "CLO",
-          title: o.title,
-        })),
-        (mappingsRes.data ?? []).map((m) => ({
-          parent_id: m.source_outcome_id,
-          child_id: m.target_outcome_id,
-          weight: Number(m.weight ?? 0),
-        })),
-        (attainmentsRes.data ?? []).map((a) => ({
-          outcome_id: a.outcome_id,
-          score_percent: Number(a.attainment_percent ?? 0),
-        }))
+const sharedAnalyticsKey = (programId: string | undefined) => [
+  "coordinator-analytics",
+  programId,
+];
+
+/** One scoped RPC per program — shared by gap analysis, heatmap and sankey. */
+const useCoordinatorAnalyticsPayload = (programId: string | undefined) => {
+  return useQuery({
+    queryKey: sharedAnalyticsKey(programId),
+    queryFn: async (): Promise<CoordinatorAnalyticsPayload> => {
+      if (!programId) {
+        return {
+          outcomes: [],
+          mappings: [],
+          courses: [],
+          clos: [],
+          evidence: [],
+          attainment: [],
+        };
+      }
+      const { data, error } = await supabase.rpc(
+        "get_coordinator_analytics_v1",
+        { p_program_id: programId }
       );
+      if (error) throw error;
+      return (data ?? {}) as unknown as CoordinatorAnalyticsPayload;
     },
     enabled: !!programId,
     staleTime: 5 * 60_000,
   });
 };
 
-export const useGapAnalysis = (programId?: string, _semesterId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.gapAnalysisData.list({ programId }),
-    queryFn: async (): Promise<GapResult[]> => {
-      // Parallel reads. source_outcome_id is the parent in the canonical
-      // parent → child mapping; evidence is keyed by clo_id.
-      const [outcomesRes, mappingsRes, evidenceRes] = await Promise.all([
-        supabase.from("learning_outcomes").select("id, title, type"),
-        supabase.from("outcome_mappings").select("source_outcome_id"),
-        supabase.from("evidence").select("clo_id"),
-      ]);
-      if (outcomesRes.error) throw outcomesRes.error;
-      if (mappingsRes.error) throw mappingsRes.error;
-      if (evidenceRes.error) throw evidenceRes.error;
-
-      const mappings = mappingsRes.data ?? [];
-      const evidence = evidenceRes.data ?? [];
-
-      const childCountMap = new Map<string, number>();
-      for (const m of mappings) {
-        const pid = m.source_outcome_id;
-        childCountMap.set(pid, (childCountMap.get(pid) ?? 0) + 1);
-      }
-
-      const evidenceCountMap = new Map<string, number>();
-      const assessedCLOs = new Set<string>();
-      for (const e of evidence) {
-        const cid = e.clo_id;
-        evidenceCountMap.set(cid, (evidenceCountMap.get(cid) ?? 0) + 1);
-        assessedCLOs.add(cid);
-      }
-
-      return analyzeGaps(
-        (outcomesRes.data ?? []).map((o) => ({
+export const useSankeyData = (
+  programId?: string,
+  _courseId?: string,
+  _semesterId?: string
+) => {
+  const {
+    data: payload,
+    isLoading,
+    isError,
+    refetch,
+  } = useCoordinatorAnalyticsPayload(programId);
+  const query = useQuery({
+    queryKey: queryKeys.sankeyData.list({ programId }),
+    queryFn: async (): Promise<{
+      nodes: SankeyNode[];
+      links: SankeyLink[];
+    }> => {
+      return transformToSankey(
+        (payload?.outcomes ?? []).map((o) => ({
           id: o.id,
+          type: o.type,
           title: o.title,
-          type: o.type as "ILO" | "PLO" | "CLO",
-          mapped_children_count: childCountMap.get(o.id) ?? 0,
-          evidence_count: evidenceCountMap.get(o.id) ?? 0,
-          has_assessments: assessedCLOs.has(o.id),
+        })),
+        (payload?.mappings ?? []).map((m) => ({
+          parent_id: m.source_outcome_id,
+          child_id: m.target_outcome_id,
+          weight: Number(m.weight ?? 0),
+        })),
+        (payload?.attainment ?? []).map((a) => ({
+          outcome_id: a.outcome_id,
+          score_percent: Number(a.attainment_percent ?? 0),
         }))
       );
     },
-    enabled: !!programId,
+    enabled: !!programId && !!payload,
     staleTime: 5 * 60_000,
   });
+  return {
+    data: query.data,
+    isLoading: isLoading || query.isLoading,
+    isError: isError || query.isError,
+    refetch,
+  };
+};
+
+export const useGapAnalysis = (programId?: string, _semesterId?: string) => {
+  const {
+    data: payload,
+    isLoading,
+    isError,
+    refetch,
+  } = useCoordinatorAnalyticsPayload(programId);
+  const query = useQuery({
+    queryKey: queryKeys.gapAnalysisData.list({ programId }),
+    queryFn: async (): Promise<GapResult[]> => {
+      return analyzeGaps(
+        (payload?.outcomes ?? []).map((o) => ({
+          id: o.id,
+          title: o.title,
+          type: o.type,
+          mapped_children_count: o.mapped_children_count,
+          evidence_count: o.evidence_count,
+          has_assessments: o.evidence_count > 0,
+        }))
+      );
+    },
+    enabled: !!programId && !!payload,
+    staleTime: 5 * 60_000,
+  });
+  return {
+    data: query.data,
+    isLoading: isLoading || query.isLoading,
+    isError: isError || query.isError,
+    refetch,
+  };
 };
 
 export const useCoverageHeatmap = (
   programId?: string,
   _semesterId?: string
 ) => {
-  return useQuery({
+  const {
+    data: payload,
+    isLoading,
+    isError,
+    refetch,
+  } = useCoordinatorAnalyticsPayload(programId);
+  const query = useQuery({
     queryKey: queryKeys.coverageHeatmapData.list({ programId }),
     queryFn: async (): Promise<HeatmapMatrix> => {
-      // Parallel reads (was serial). evidence has NO course_id column, so we
-      // resolve each evidence row's course via its CLO (learning_outcomes
-      // .course_id) and use the real attainment column (score_percent on
-      // evidence).
-      const [closRes, coursesRes, evidenceRes] = await Promise.all([
-        supabase
-          .from("learning_outcomes")
-          .select("id, title, course_id")
-          .eq("type", "CLO"),
-        supabase.from("courses").select("id, name"),
-        supabase.from("evidence").select("clo_id, score_percent"),
-      ]);
-      if (closRes.error) throw closRes.error;
-      if (coursesRes.error) throw coursesRes.error;
-      if (evidenceRes.error) throw evidenceRes.error;
-
-      const clos = closRes.data ?? [];
-      const cloToCourse = new Map(clos.map((c) => [c.id, c.course_id ?? ""]));
-
+      // Scoped evidence rows keep the exact buildHeatmapMatrix math
+      // (per-cell count + running average) — identical output to the old
+      // whole-table read, restricted to the program's CLOs.
       return buildHeatmapMatrix(
-        clos.map((c) => ({ id: c.id, title: c.title })),
-        (coursesRes.data ?? []).map((c) => ({ id: c.id, name: c.name })),
-        (evidenceRes.data ?? []).map((e) => ({
+        (payload?.clos ?? []).map((c) => ({ id: c.id, title: c.title })),
+        (payload?.courses ?? []).map((c) => ({ id: c.id, name: c.name })),
+        (payload?.evidence ?? []).map((e) => ({
           clo_id: e.clo_id,
-          course_id: cloToCourse.get(e.clo_id) ?? "",
+          course_id: e.course_id,
           score_percent: Number(e.score_percent ?? 0),
         }))
       );
     },
-    enabled: !!programId,
+    enabled: !!programId && !!payload,
     staleTime: 5 * 60_000,
   });
+  return {
+    data: query.data,
+    isLoading: isLoading || query.isLoading,
+    isError: isError || query.isError,
+    refetch,
+  };
 };

@@ -6,6 +6,7 @@ import { createQuizSchema, type CreateQuizFormData } from "@/lib/schemas/quiz";
 import { useQuiz, useCreateQuiz, useUpdateQuiz } from "@/hooks/useQuizzes";
 import { useTeacherCourses } from "@/hooks/useCourses";
 import { useCLOs } from "@/hooks/useCLOs";
+import { AssessmentCoverageWarning } from "@/components/shared/AssessmentCoverageWarning";
 import {
   Form,
   FormField,
@@ -144,6 +145,10 @@ const QuizFormFields = ({
                 </FormItem>
               )}
             />
+
+            {/* 7.3(b): authoring-time coverage guard — surface unassessed
+                course CLOs while the teacher is already here. */}
+            <AssessmentCoverageWarning courseId={selectedCourseId} />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField

@@ -333,6 +333,9 @@ const SemesterTrendView = lazy(
 const CohortComparisonView = lazy(
   () => import("@/pages/coordinator/cohort-comparison/CohortComparisonView")
 );
+const UnitCloseReviewPage = lazy(
+  () => import("@/pages/coordinator/unit-close/UnitCloseReviewPage")
+);
 
 // Team Management (task 129)
 const TeamManager = lazy(() => import("@/pages/teacher/teams/TeamManager"));
@@ -797,6 +800,7 @@ const AppRouter = () => (
             <Route path="sankey" element={<SankeyDiagramView />} />
             <Route path="gap-analysis" element={<GapAnalysisView />} />
             <Route path="coverage-heatmap" element={<CoverageHeatmapView />} />
+            <Route path="unit-close/:courseId" element={<UnitCloseReviewPage />} />
             <Route path="trends" element={<SemesterTrendView />} />
             <Route
               path="cohort-comparison"

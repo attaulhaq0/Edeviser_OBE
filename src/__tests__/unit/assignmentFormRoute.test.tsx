@@ -23,6 +23,24 @@ vi.mock("@/hooks/useAssignments", () => ({
   useUpdateAssignment: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+// 7.3(b): the coverage guard uses a react-query hook; mock it so the render
+// test does not need a QueryClientProvider (all-covered → banner renders null).
+vi.mock("@/hooks/useCourseAssessmentCoverage", () => ({
+  useCourseAssessmentCoverage: () => ({
+    data: [
+      {
+        clo_id: "00000000-0000-0000-0000-00000000000a",
+        clo_title: "Covered CLO",
+        blooms_level: null,
+        assignment_count: 1,
+        quiz_count: 0,
+        covered: true,
+      },
+    ],
+    isLoading: false,
+  }),
+}));
+
 vi.mock("@/hooks/useAcademicCalendar", () => ({
   useAcademicCalendarEvents: () => ({ data: [] }),
 }));

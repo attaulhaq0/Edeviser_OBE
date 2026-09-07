@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -2949,11 +2949,16 @@ export type Database = {
       courses: {
         Row: {
           academic_year: string
+          assessment_model: string
           code: string
           color: string | null
           created_at: string
+          curriculum_code: string | null
+          framework_id: string | null
+          grade_scale_id: string | null
           id: string
           is_active: boolean
+          key_stage: string | null
           name: string
           name_ar: string | null
           program_id: string
@@ -2965,11 +2970,16 @@ export type Database = {
         }
         Insert: {
           academic_year: string
+          assessment_model?: string
           code: string
           color?: string | null
           created_at?: string
+          curriculum_code?: string | null
+          framework_id?: string | null
+          grade_scale_id?: string | null
           id?: string
           is_active?: boolean
+          key_stage?: string | null
           name: string
           name_ar?: string | null
           program_id: string
@@ -2981,11 +2991,16 @@ export type Database = {
         }
         Update: {
           academic_year?: string
+          assessment_model?: string
           code?: string
           color?: string | null
           created_at?: string
+          curriculum_code?: string | null
+          framework_id?: string | null
+          grade_scale_id?: string | null
           id?: string
           is_active?: boolean
+          key_stage?: string | null
           name?: string
           name_ar?: string | null
           program_id?: string
@@ -2996,6 +3011,20 @@ export type Database = {
           team_formation_mode?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "courses_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "competency_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_grade_scale_id_fkey"
+            columns: ["grade_scale_id"]
+            isOneToOne: false
+            referencedRelation: "grade_scales"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "courses_program_id_fkey"
             columns: ["program_id"]
@@ -3783,6 +3812,7 @@ export type Database = {
           id: string
           ilo_id: string
           plo_id: string
+          raw_score: Json | null
           score_percent: number
           student_id: string
           submission_id: string
@@ -3795,6 +3825,7 @@ export type Database = {
           id?: string
           ilo_id: string
           plo_id: string
+          raw_score?: Json | null
           score_percent: number
           student_id: string
           submission_id: string
@@ -3807,6 +3838,7 @@ export type Database = {
           id?: string
           ilo_id?: string
           plo_id?: string
+          raw_score?: Json | null
           score_percent?: number
           student_id?: string
           submission_id?: string
@@ -4418,6 +4450,58 @@ export type Database = {
           },
         ]
       }
+      grade_scales: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          definition: Json
+          id: string
+          institution_id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          definition: Json
+          id?: string
+          institution_id: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          definition?: Json
+          id?: string
+          institution_id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grade_scales_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_scales_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_scales_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grades: {
         Row: {
           ai_applied: boolean
@@ -4778,6 +4862,7 @@ export type Database = {
       }
       institution_settings: {
         Row: {
+          accreditation_bodies: string[]
           accreditation_body: string
           attainment_thresholds: Json
           created_at: string
@@ -4794,6 +4879,7 @@ export type Database = {
           wellness_xp_amount: number
         }
         Insert: {
+          accreditation_bodies?: string[]
           accreditation_body?: string
           attainment_thresholds?: Json
           created_at?: string
@@ -4810,6 +4896,7 @@ export type Database = {
           wellness_xp_amount?: number
         }
         Update: {
+          accreditation_bodies?: string[]
           accreditation_body?: string
           attainment_thresholds?: Json
           created_at?: string
@@ -9194,33 +9281,36 @@ export type Database = {
       }
       submissions: {
         Row: {
-          assignment_id: string
+          assignment_id: string | null
           file_url: string | null
           id: string
           is_late: boolean
           plagiarism_score: number | null
+          quiz_attempt_id: string | null
           status: Database["public"]["Enums"]["submission_status"]
           student_id: string
           submitted_at: string
           text_content: string | null
         }
         Insert: {
-          assignment_id: string
+          assignment_id?: string | null
           file_url?: string | null
           id?: string
           is_late?: boolean
           plagiarism_score?: number | null
+          quiz_attempt_id?: string | null
           status?: Database["public"]["Enums"]["submission_status"]
           student_id: string
           submitted_at?: string
           text_content?: string | null
         }
         Update: {
-          assignment_id?: string
+          assignment_id?: string | null
           file_url?: string | null
           id?: string
           is_late?: boolean
           plagiarism_score?: number | null
+          quiz_attempt_id?: string | null
           status?: Database["public"]["Enums"]["submission_status"]
           student_id?: string
           submitted_at?: string
@@ -9232,6 +9322,13 @@ export type Database = {
             columns: ["assignment_id"]
             isOneToOne: false
             referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_quiz_attempt_id_fkey"
+            columns: ["quiz_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
             referencedColumns: ["id"]
           },
           {
@@ -11131,12 +11228,27 @@ export type Database = {
         Returns: string
       }
       get_coordinator_accreditation_readiness: { Args: never; Returns: Json }
+      get_coordinator_analytics_v1: {
+        Args: { p_program_id: string }
+        Returns: Json
+      }
       get_coordinator_cqi_patterns_v1: {
         Args: { p_program_id: string }
         Returns: Json
       }
       get_coordinator_dashboard: { Args: never; Returns: Json }
       get_coordinator_workspace: { Args: never; Returns: Json }
+      get_course_assessment_coverage_v1: {
+        Args: { p_course_id: string }
+        Returns: {
+          assignment_count: number
+          blooms_level: string
+          clo_id: string
+          clo_title: string
+          covered: boolean
+          quiz_count: number
+        }[]
+      }
       get_earn_spend_ratio: {
         Args: { p_institution_id: string }
         Returns: {
@@ -11224,6 +11336,7 @@ export type Database = {
         Returns: Json
       }
       get_teacher_dashboard: { Args: { p_teacher_id: string }; Returns: Json }
+      get_unit_close_review_v1: { Args: { p_course_id: string }; Returns: Json }
       get_wellness_aggregate_stats: {
         Args: { p_institution_id: string }
         Returns: {
@@ -11383,6 +11496,10 @@ export type Database = {
           attendance_pct: number
           student_id: string
         }[]
+      }
+      record_quiz_attempt_grade_v1: {
+        Args: { p_attempt_id: string }
+        Returns: string
       }
       refresh_mv_historical_evidence: { Args: never; Returns: undefined }
       refresh_student_learning_state_v1: {

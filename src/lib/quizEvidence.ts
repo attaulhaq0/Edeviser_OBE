@@ -1,112 +1,53 @@
+﻿// =============================================================================
+// quizEvidence.ts — Canonical quiz evidence path (continuous-verification 7.3a)
 // =============================================================================
-// Quiz Evidence Generator — Wires quiz scores into the CLO attainment pipeline
-// =============================================================================
+// Quiz attempts no longer generate evidence client-side. The previous
+// implementation here inserted `evidence` rows directly with
+// `submission_id`/`grade_id` set to the quiz-attempt UUID (an FK violation
+// waiting to happen) and hand-rolled `outcome_attainment` for CLO scope only —
+// a second, weaker attainment engine that bypassed
+// `trigger_attainment_rollup` (no PLO/ILO rollup, no notification consistency).
+//
+// The canonical path is now server-side: `record_quiz_attempt_grade_v1`
+// creates the real submission + grade pair for the attempt, and the ONE
+// attainment trigger does the rest (evidence with denormalized PLO/ILO,
+// CLO→PLO/ILO rollup, quiz-scoped notification — and deliberately no 15-XP
+// award, because quiz XP remains the client-side award-xp 'quiz_completion'
+// economy).
+//
+// Practice attempts are refused server-side (they must never generate
+// evidence); the caller is still expected to skip the call for practice mode.// =============================================================================
 
 import { supabase } from "@/lib/supabase";
 
-type AttainmentLevel = "excellent" | "satisfactory" | "developing" | "not_yet";
-
-interface QuizEvidenceInput {
-  attemptId: string;
-  quizId: string;
-  studentId: string;
-  scorePercent: number;
-  cloIds: string[];
-}
-
 /**
- * Generate evidence records from a quiz attempt score, feeding into the same
- * CLO attainment pipeline used by assignment grades.
+ * Create the canonical submission + grade pair for a *graded* quiz attempt.
  *
- * Creates one evidence record per linked CLO, then cascades the attainment rollup.
+ * Fires `trigger_attainment_rollup` (evidence → CLO/PLO/ILO attainment) with
+ * zero change to the quiz XP economy. Idempotent: calling twice returns the
+ * same submission id and never duplicates grades or evidence.
+ *
+ * @param attemptId The graded quiz attempt (must have a score; must not be
+ *                  practice mode).
+ * @returns The id of the canonical submission row created for the attempt.
  */
-export async function generateQuizEvidence(
-  input: QuizEvidenceInput
-): Promise<void> {
-  const { attemptId, quizId, studentId, scorePercent, cloIds } = input;
+export async function recordQuizAttemptGrade(
+  attemptId: string
+): Promise<string> {
+  const { data, error } = await supabase.rpc("record_quiz_attempt_grade_v1", {
+    p_attempt_id: attemptId,
+  });
 
-  if (cloIds.length === 0) return;
+  if (error) throw error;
 
-  const attainmentLevel = classifyAttainment(scorePercent);
+  const submissionId =
+    typeof data === "string" ? data : (data as unknown as { id?: string })?.id;
 
-  // Insert evidence records (one per CLO)
-  // Cast through unknown to handle nullable FK columns for quiz-sourced evidence
-  const evidenceRows = cloIds.map((cloId) => ({
-    student_id: studentId,
-    clo_id: cloId,
-    score_percent: scorePercent,
-    attainment_level: attainmentLevel,
-  }));
-
-  const { error: evidenceErr } = await (
-    supabase.from("evidence") as unknown as {
-      insert: (v: unknown) => Promise<{ error: { message: string } | null }>;
-    }
-  ).insert(
-    evidenceRows.map((r) => ({
-      ...r,
-      submission_id: attemptId, // re-use submission_id FK for quiz attempt reference
-      grade_id: attemptId, // re-use grade_id FK for quiz attempt reference
-      plo_id: null,
-      ilo_id: null,
-    }))
-  );
-
-  if (evidenceErr) {
-    console.error(
-      "[QuizEvidence] Failed to insert evidence:",
-      evidenceErr.message
-    );
+  if (!submissionId) {
+    throw new Error("Quiz evidence recording returned no submission id");
   }
-
-  // Fetch the quiz's course_id for attainment rollup
-  const { data: quiz } = await supabase
-    .from("quizzes")
-    .select("course_id")
-    .eq("id", quizId)
-    .maybeSingle();
-
-  if (!quiz) return;
-
-  // Upsert CLO attainment for each linked CLO
-  for (const cloId of cloIds) {
-    try {
-      const { data: evidenceList } = await supabase
-        .from("evidence")
-        .select("score_percent")
-        .eq("student_id", studentId)
-        .eq("clo_id", cloId);
-
-      if (!evidenceList || evidenceList.length === 0) continue;
-
-      const avgPercent =
-        evidenceList.reduce((sum, e) => sum + (e.score_percent ?? 0), 0) /
-        evidenceList.length;
-
-      await supabase.from("outcome_attainment").upsert(
-        {
-          outcome_id: cloId,
-          student_id: studentId,
-          course_id: quiz.course_id,
-          scope: "student_course",
-          attainment_percent: Math.round(avgPercent * 100) / 100,
-          sample_count: evidenceList.length,
-          last_calculated_at: new Date().toISOString(),
-        },
-        { onConflict: "outcome_id,student_id,course_id,scope" }
-      );
-    } catch (err) {
-      console.error(
-        `[QuizEvidence] CLO attainment upsert failed for ${cloId}:`,
-        err
-      );
-    }
-  }
+  return submissionId;
 }
 
-function classifyAttainment(percent: number): AttainmentLevel {
-  if (percent >= 85) return "excellent";
-  if (percent >= 70) return "satisfactory";
-  if (percent >= 50) return "developing";
-  return "not_yet";
-}
+// (legacy client-side generateQuizEvidence removed 2026-09-06 — task 7.3a;
+// the canonical path is server-side via record_quiz_attempt_grade_v1)
