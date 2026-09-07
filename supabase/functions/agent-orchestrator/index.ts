@@ -484,6 +484,8 @@ serve(async (req) => {
             const executionFunction =
               targetProposal.actionType === "create_cqi_action"
                 ? "execute_approved_cqi_action_v1"
+                : targetProposal.actionType === "create_learning_intervention"
+                ? "execute_approved_learning_intervention_v1"
                 : "execute_approved_agent_personal_action_v1";
             const { data: result, error: executionError } = await admin.rpc(
               executionFunction,
