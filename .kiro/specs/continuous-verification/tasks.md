@@ -238,7 +238,8 @@
       scaffolding exists (sync trigger, SKIP LOCKED claim/evaluate RPCs, cron jobs) but nothing
       populates it and `private.cron_secrets` is unset.
       Fix: (a) provision cron secrets; verify `intervention-jobs` (generate_candidates ``5 * * * *``,
-      evaluate_measurements ``*/15 * * * *``) and ``agent-evaluation-jobs`` (``20 * * * *``) actually fire;
+      evaluate_measurements ``*/15 * * * *``)
+      (PROGRESS 2026-09-06 **8.9 EXECUTED**: ``classify_problem_cases_v1(course_id)`` — deterministic problem-classification engine applied via MCP. Classifies CLOs into typed problem cases (student/teacher/assessment/prerequisite/curriculum-design) with confidence + cited evidence. Live: Mathematics 6 → 3 CLOs classified as student-signal (8 struggling students each, course avg 75.2%). Pure SQL — no AI.) and ``agent-evaluation-jobs`` (``20 * * * *``) actually fire;
       (b) materialize `student_learning_states` from canonical evidence via
       `sync_learning_state_measurements_v1` (version/freshness/hash invariants); (c) wire coordinator
       CQI: systemic pattern → AI draft (cited) → proposal → approval → plan → measurement; (d) surface
