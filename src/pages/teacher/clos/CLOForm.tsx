@@ -16,6 +16,7 @@ import {
 } from "@/hooks/useCLOs";
 import { useTeacherCourses } from "@/hooks/useCourses";
 import { usePLOs } from "@/hooks/usePLOs";
+import { useCLOSuggestions, type CLOSuggestion } from "@/hooks/useCLOSuggestions";
 import {
   Form,
   FormField,
@@ -66,6 +67,44 @@ interface PLOMappingEntry {
   enabled: boolean;
 }
 
+// ─── CLO suggestion chips (7.8 in-form suggestions from curriculum-ingest) ──
+
+const CLOSuggestionChips = ({
+  courseId,
+  onApply,
+}: {
+  courseId: string;
+  onApply: (s: CLOSuggestion) => void;
+}) => {
+  const { t } = useTranslation("teacher");
+  const { data: suggestions } = useCLOSuggestions(courseId, true);
+
+  if (!suggestions || suggestions.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-medium text-slate-500">
+        {t("cloForm.ingestSuggestions")}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {suggestions.map((s) => (
+          <button
+            key={s.titleEn}
+            type="button"
+            className="rounded-full border border-slate-300 bg-white px-2.5 py-0.5 text-[11px] text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-100"
+            onClick={() => onApply(s)}
+          >
+            {s.titleEn}
+          </button>
+        ))}
+      </div>
+      <p className="mt-1.5 text-[10px] text-slate-400">
+        {t("cloForm.ingestSuggestionsHint")}
+      </p>
+    </div>
+  );
+};
+
 // ─── CLO Details Form (Create) ──────────────────────────────────────────────
 
 const CreateCLODetailsForm = () => {
@@ -89,6 +128,26 @@ const CreateCLODetailsForm = () => {
   });
 
   const watchedBloomsLevel = form.watch("blooms_level");
+  const watchedCourseId = form.watch("course_id");
+
+  const handleSuggestionApply = (s: CLOSuggestion) => {
+    form.setValue("title", s.titleEn, { shouldValidate: true });
+    if (s.titleAr) form.setValue("title_ar", s.titleAr, { shouldValidate: false });
+    if (s.descriptionEn) {
+      form.setValue("description", s.descriptionEn, { shouldValidate: false });
+    }
+    const levelByNumber: Record<number, BloomsLevel> = {
+      1: "remembering",
+      2: "understanding",
+      3: "applying",
+      4: "analyzing",
+      5: "evaluating",
+      6: "creating",
+    };
+    form.setValue("blooms_level", levelByNumber[s.blooms] ?? "applying", {
+      shouldValidate: true,
+    });
+  };
 
   const handleVerbClick = (verb: string) => {
     const currentTitle = form.getValues("title");
@@ -201,6 +260,14 @@ const CreateCLODetailsForm = () => {
               </FormItem>
             )}
           />
+
+          {/* 7.8 — in-form CLO suggestions from curriculum-ingest (approved) */}
+          {watchedCourseId && (
+            <CLOSuggestionChips
+              courseId={watchedCourseId}
+              onApply={handleSuggestionApply}
+            />
+          )}
 
           <FormField
             control={form.control}
