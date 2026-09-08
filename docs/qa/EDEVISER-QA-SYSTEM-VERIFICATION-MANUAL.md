@@ -417,6 +417,11 @@ Route inventory below is derived from `src/router/AppRouter.tsx` (the single rou
   6. Student A (refresh): assignment shows grade + feedback; `/student/progress/clos` shows changed attainment; `/student/xp-history` shows a "Grade released" XP entry (~15 XP, possibly multiplied); bell shows a "Grade Released" notification.
   7. Coordinator: dashboard/coverage views reflect the new evidence for the mapped PLO.
   8. Admin: outcome-chain / outcomes views reflect the ILO rollup.
+  > **2026-09-08 AUDIT CORRECTION:** the cascade runtime is now **VERIFIED** by the
+  > `outcomeCascade` integration suite (9/9 on a fresh replay; see continuous-verification spec
+  > sessions P–R) including a silent-failure hotfix (`20260907190000`). OBE-06's `QA-Assign-1`
+  > is a PROCEDURE-CREATED fixture (this test's own Step 1), not a pre-seeded prerequisite — a
+  > BLOCKED verdict requires showing the assignment UI cannot create it.
 - **PASS condition:** all eight observations occur; the student's displayed % equals the rubric math.
 - **FAIL suspects:** PLO/ILO aggregate views grey/zero while student-level values are correct (Risk OBE-H2 scope mismatch).
 - **Evidence:** before/after screenshots of attainment, XP history, notification.
@@ -462,6 +467,7 @@ Route inventory below is derived from `src/router/AppRouter.tsx` (the single rou
 #### TEST OBE-14 (P1) — Quizzes & adaptive quizzes — **BLOCKED by data**
 
 - **State:** `quizzes`/`quiz_questions`/`quiz_attempts` = 0 rows live. The pipeline (auto-grade, adaptive engine, Bloom's progression, review schedule) is implemented but has never run with real data.
+- **2026-09-08 AUDIT CORRECTION:** the blocker is a dependency chain, not missing seed data alone — AI generation emits `publish_official_content` PROPOSALS; approval happens in the teacher-dashboard approval inbox (not the generation screen); execution (task 7.10, `execute_approved_teacher_content_v1`) persists drafts into `question_bank`. Until a proposal is approved+executed, `question_bank`/`quiz_questions` stay empty. Re-run this test after exercising the full generate → approve → execute chain.
 - **Once a quiz exists:** create quiz (MCQ/TF/fill-blank + one short-answer) → student takes it → auto-score instant; short-answer "pending manual" until teacher grades; review page shows per-question correctness; retry rules per quiz settings.
 - **INTERNAL:** `quizGrader.ts` + `auto-grade-quiz` edge fn; quiz evidence path `quizEvidence.ts` is CLO-only (Risk OBE-M1).
 
@@ -500,6 +506,12 @@ Route inventory below is derived from `src/router/AppRouter.tsx` (the single rou
 
 1. `/student/planner` → start a focus session. 2. Complete it; add a note. 3. XP history shows a "study session" entry. 4. `/student/habits` heatmap shows today filled.
 
+> **2026-09-08 AUDIT CORRECTION:** (a) the planner Start affordance was fixed (task 7.9 —
+> compact cards previously suppressed Start); (b) the **Today view** (`/today`) is the other
+> actionable path (4 focus-navigation sites); (c) the historic self-awarded-XP 403 (GAM-X1)
+> was fixed in full-profile-audit-remediation 9.2 (`study_session` allow-listed with
+> server-capped amounts) — this run now adjudicates it at runtime.
+
 - **FAIL signal (SUSPECTED):** session completes but **no XP arrives** — an earlier audit found self-awarded XP for `study_session`/planner/wellness sources was server-rejected (403, silently swallowed). This test adjudicates Risk GAM-X1.
 - **Negative:** double-click Complete / refresh mid-completion → exactly one XP entry, one session record.
 - **INTERNAL:** `useSessionCompletion` → `study_sessions` → `session_evidence` → `award-xp(source=study_session, reference_id=sessionId)` → `check-badges(trigger=study_session)` → weekly-goal XP → review-session XP. Dedup via unique `(student_id, reference_id)`.
@@ -522,6 +534,7 @@ Route inventory below is derived from `src/router/AppRouter.tsx` (the single rou
 
 - **Expected:** dashboard increases by the history entry's amount; level matches thresholds (L2=100, L3=250, L4≈400, L5≈500); multipliers shown when applied.
 - **INTERNAL:** `xp_total` is updated by `award-xp` (full SUM recompute) **and** the grade trigger (+15 increment) — two mechanisms that can drift (Risk GAM-H1). If total ≠ sum of history, FAIL for developer follow-up.
+- **2026-09-08 AUDIT CORRECTION:** accounting PASS verified live (xp_total 2194 = tx_sum, level 12 = `calculate_level_from_xp(2194)`, 95 txs for student01). Keep PASS **separate from** real-user XP generation, which remains UNVERIFIED until HABIT-04/OBE-06 runtime runs land real transactions (all current txs are seeded/demo: login/grade/submission/perfect_day/streak).
 
 #### TEST GAM-02 (P1) — Level-up moment
 

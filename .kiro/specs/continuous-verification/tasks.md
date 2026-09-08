@@ -728,7 +728,7 @@
 > QA-report arithmetic corrected: 3 clean PASS + 1 mixed (OBE-06-BE runtime now VERIFIED);
 > HABIT-04 is one FAIL (UI defect), not BLOCKED+FAIL.
 
-- [ ] 7.9 SENIOR ENGINEERING FIX — Planner: enable Start on planned study sessions (compact cards).
+- [x] 7.9 SENIOR ENGINEERING FIX — Planner: enable Start on planned study sessions (compact cards).
       Problem (QA HABIT-04, live-verified): `StudySessionCard` renders Start/Edit only when
       `(canStart || canEdit) && !compact`, and `WeeklyCalendarGrid` renders cards with
       `compact` — so on `/student/planner` every planned session shows a status badge but no
@@ -743,7 +743,7 @@
       Risk GAM-X1) → `check-badges(trigger=study_session)` → heatmap today filled; double-click
       yields one record (dedup via `(student_id, reference_id)`).
       QA: full HABIT-04 run from the manual (adjudicates GAM-X1 at runtime).
-- [ ] 7.10 SENIOR ENGINEERING FIX — AI question drafts: teacher approval surface + persistence
+- [x] 7.10 SENIOR ENGINEERING FIX — AI question drafts: teacher approval surface + persistence
       executor (root cause of QA OBE-14-02/03/04 — do NOT file those separately).
       Problem (live-verified): `generate-quiz-questions` correctly emits an
       `agent_action_proposals` row (`action_type='publish_official_content'`, payload
@@ -770,13 +770,15 @@
       `question_bank` rows (approved, generation_source='ai') → QuestionBank/ReviewQueue render
       them → attach to quiz (`quiz_questions`) → manual OBE-14 end-to-end unblocked
       (auto-grade path included).
-- [ ] 7.11 QA-REPORT RECORD — classification corrections (docs only).
+- [x] 7.11 QA-REPORT RECORD — classification corrections (docs only).
       Record in the QA manual: OBE-06-BE runtime VERIFIED (integration suite); OBE-14 note
       updated to the dependency chain (blocked by 7.10, not by missing seed data alone);
       HABIT-04 navigation corrected (Today view actionable today; planner path after 7.9);
       GAM-01 PASS retained with real-user-generation UNVERIFIED note; PASS/FAIL/BLOCKED
       arithmetic corrected (3 clean PASS + 1 mixed; HABIT-04 = single FAIL).
       Acceptance: manual reflects the corrections; re-run list attached to 7.9/7.10 closures.
+      (DONE 2026-09-08: corrections applied to `docs/qa/EDEVISER-QA-SYSTEM-VERIFICATION-MANUAL.md`
+      — see the dated audit-correction notes in OBE-06, OBE-14, HABIT-04, GAM-01.)
 
 ### Sequencing
 8.13 (Discovery-sprint contract + product-decision record) → 8.1 → 8.2 → pilots 8.3–8.6 →
