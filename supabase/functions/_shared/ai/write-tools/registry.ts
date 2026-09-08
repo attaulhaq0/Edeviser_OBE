@@ -5,6 +5,7 @@ export type ProtectedWriteToolName =
   | "create_planner_session"
   | "create_cqi_action"
   | "create_learning_intervention"
+  | "publish_official_content"
   | "create_ilo"
   | "update_ilo"
   | "delete_ilo"
@@ -347,6 +348,152 @@ const validateLearningInterventionOutput = (
 };
 
 // ---------------------------------------------------------------------------
+// Task 7.10 — AI question drafts (QA OBE-14 root cause): the generator emits
+// `publish_official_content` proposals whose payload carries the validated
+// question drafts. Approval (assigned teacher) + execution persists them into
+// `question_bank` (approved, generation_source='ai') via
+// execute_approved_teacher_content_v1. Question shape mirrors the generator's
+// ValidatedQuestion (generate-quiz-questions/index.ts).
+// ---------------------------------------------------------------------------
+const QUESTION_TYPES = ["mcq", "true_false", "short_answer", "fill_in_blank"];
+
+const validateQuizQuestionDraft = (value: unknown): void => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[] entries must be objects"
+    );
+  }
+  const q = value as Record<string, unknown>;
+  const requiredStrings: ReadonlyArray<[string, number]> = [
+    ["question_text", 2000],
+  ];
+  for (const [field, max] of requiredStrings) {
+    if (typeof q[field] !== "string" || (q[field] as string).length === 0) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        `questions[].${field} is required`
+      );
+    }
+    if ((q[field] as string).length > max) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        `questions[].${field} exceeds ${max} characters`
+      );
+    }
+  }
+  if (typeof q.clo_id !== "string" || !uuidPattern.test(q.clo_id)) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].clo_id must be a UUID"
+    );
+  }
+  if (typeof q.id !== "string" || !uuidPattern.test(q.id)) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].id must be a UUID"
+    );
+  }
+  if (
+    typeof q.bloom_level !== "number" ||
+    !Number.isInteger(q.bloom_level) ||
+    q.bloom_level < 1 ||
+    q.bloom_level > 6
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].bloom_level must be an integer 1-6"
+    );
+  }
+  if (
+    typeof q.question_type !== "string" ||
+    !QUESTION_TYPES.includes(q.question_type)
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].question_type is invalid"
+    );
+  }
+  if (
+    typeof q.difficulty_rating !== "number" ||
+    !Number.isFinite(q.difficulty_rating) ||
+    q.difficulty_rating < 0 ||
+    q.difficulty_rating > 5
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].difficulty_rating must be 0-5"
+    );
+  }
+  if (q.options !== null && q.options !== undefined && !Array.isArray(q.options)) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].options must be an array or null"
+    );
+  }
+  if (!q.correct_answer || typeof q.correct_answer !== "object" || Array.isArray(q.correct_answer)) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions[].correct_answer must be an object"
+    );
+  }
+};
+
+const validatePublishOfficialContent = (
+  value: unknown
+): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, ["kind", "questions"]);
+  if (input.kind !== "quiz_question_drafts") {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "kind must be quiz_question_drafts"
+    );
+  }
+  const questions = input.questions;
+  if (
+    !Array.isArray(questions) ||
+    questions.length === 0 ||
+    questions.length > 50
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "questions must be 1-50 drafts"
+    );
+  }
+  for (const draft of questions) {
+    validateQuizQuestionDraft(draft);
+  }
+  return input;
+};
+
+const validateTeacherContentOutput = (
+  value: unknown
+): Record<string, unknown> => {
+  const output = row(value, "invalid_output");
+  if (
+    typeof output.executionId !== "string" ||
+    !uuidPattern.test(output.executionId) ||
+    !Array.isArray(output.questionIds) ||
+    (output.questionIds as unknown[]).length === 0 ||
+    !(output.questionIds as unknown[]).every(
+      (id) => typeof id === "string" && uuidPattern.test(id)
+    ) ||
+    typeof output.count !== "number" ||
+    !Number.isSafeInteger(output.count) ||
+    output.count < 1 ||
+    output.count !== (output.questionIds as unknown[]).length ||
+    typeof output.alreadyExecuted !== "boolean"
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_output",
+      "Teacher content execution returned an invalid receipt"
+    );
+  }
+  return output;
+};
+
+// ---------------------------------------------------------------------------
 // Task 6.2 — Admin ILO governance protected writes. Payloads mirror the
 // proposal shapes produced by write-tools/outcome-governance.ts so an approved
 // proposal resolves through the registry instead of failing unknown_tool.
@@ -453,6 +600,18 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
     validateInput: validateCqiAction,
     validateOutput: validateCqiOutput,
   },
+  // Task 7.10 — AI question drafts: the assigned teacher approves; execution
+  // persists the drafts into question_bank (approved) via
+  // execute_approved_teacher_content_v1.
+  "publish_official_content@1.0.0": {
+    name: "publish_official_content",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["teacher"],
+    validateInput: validatePublishOfficialContent,
+    validateOutput: validateTeacherContentOutput,
+  },
   // Task 8.9 — decision-intelligence closed loop: coordinator-approved,
   // one official learning_interventions row per struggling student.
   "create_learning_intervention@1.0.0": {
@@ -510,6 +669,9 @@ export const protectedWriteVersionForAction = (
   actionType === "create_goal" ||
   actionType === "create_planner_session" ||
   actionType === "create_cqi_action" ||
+  // Task 7.10 — AI question drafts share the 1.0.0 boundary version;
+  // execution persists approved drafts into question_bank.
+  actionType === "publish_official_content" ||
   // Task 8.9 — decision-intervention proposals share the 1.0.0 boundary
   // version; execution routes through the typed learning-intervention RPC.
   actionType === "create_learning_intervention" ||

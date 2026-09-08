@@ -255,6 +255,12 @@ const TeacherDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
+      {/* ── 7.10: approval inbox as a first-class dashboard section. The
+          assigned teacher's pending protected-action proposals (e.g. AI
+          question drafts) surface here directly — decisions are re-validated
+          server-side by the orchestrator. ── */}
+      {aiSurfacesEnabled && <DashboardApprovalInbox />}
+
       {/* ── Hero carousel (briefing + real teaching momentum) ── */}
       <HeroCarousel
         ariaLabel={t("dashboard.hero.label", "Teaching highlights")}
