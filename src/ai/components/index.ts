@@ -27,3 +27,4 @@ export { default as AgentFeedbackControls } from "@/ai/components/AgentFeedbackC
 
 export { default as LearningStateSummary } from "@/ai/components/LearningStateSummary";
 export { default as OutcomeAlignmentSummary } from "@/ai/components/OutcomeAlignmentSummary";
+export { default as CurriculumIngestPanel } from '@/ai/components/CurriculumIngestPanel';

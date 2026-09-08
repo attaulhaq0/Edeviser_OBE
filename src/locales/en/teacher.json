@@ -107,6 +107,8 @@
     "noMapping": "No PLO mapping yet"
   },
   "bilingual": {
+    "ingestSuggestions": "Suggested CLOs (from curriculum ingestion)",
+    "ingestSuggestionsHint": "Click a suggestion to prefill the form — review and edit before saving.",
     "arabicTitle": "Arabic Title",
     "arabicTitlePlaceholder": "Enter title in Arabic (optional)"
   },

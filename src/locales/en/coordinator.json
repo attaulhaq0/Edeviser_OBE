@@ -400,6 +400,22 @@
     "CQI": "Continuous Quality Improvement",
     "courseFile": "Course File"
   },
+  "curriculumIngest": {
+    "title": "Curriculum Ingestion",
+    "subtitle": "Paste or upload a syllabus — AI extracts candidate CLOs for coordinator approval. Nothing is written until you approve.",
+    "courseLabel": "Target course",
+    "coursePlaceholder": "Select a course",
+    "namePlaceholder": "Syllabus name (e.g. Mathematics 6 — Term 1)",
+    "textPlaceholder": "Paste the syllabus text here (at least 200 characters)…",
+    "upload": "Upload .txt / .md",
+    "run": "Extract CLO candidates",
+    "running": "Extracting…",
+    "errorToast": "Curriculum ingestion is unavailable right now.",
+    "fileTooLarge": "File is too large (max 512 KB).",
+    "successToast": "{{count}} candidate CLOs extracted — sent for your approval.",
+    "candidateCount": "{{count}} candidates",
+    "approvalNote": "Approve this proposal in the inbox above to write the CLOs into the course."
+  },
   "unitClose": {
     "interventions": {
       "title": "Intervention lifecycle",

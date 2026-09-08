@@ -66,6 +66,7 @@ import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 import {
   AgentChatSurface,
   AgentTaskInbox,
+  CurriculumIngestPanel,
   EdeviserAssistantPanel,
   InsightCardsSurface,
 } from "@/ai/components";
@@ -313,6 +314,7 @@ const CoordinatorDashboardScreen = () => {
   );
 
   const [now] = useState(() => Date.now());
+  const [ingestCourseId, setIngestCourseId] = useState("");
   const calendarQuery = useAcademicCalendarEvents();
   const programItems = useMemo<TimelineEntry[]>(() => {
     const events = calendarQuery.data ?? [];
@@ -906,6 +908,12 @@ const CoordinatorDashboardScreen = () => {
           pending curriculum-ingest / intervention / CQI proposals surface
           here directly; decisions are re-validated server-side. ── */}
       {isAiSurfaceEnabled() && <CoordinatorApprovalInbox />}
+
+      {/* ── 7.8: curriculum ingestion panel — paste/upload a syllabus,
+          extract CLO candidates (DRY-RUN), approve in the inbox. ── */}
+      {isAiSurfaceEnabled() && (
+        <CurriculumIngestPanel courseId={ingestCourseId} onCourseChange={setIngestCourseId} />
+      )}
 
       {/* ── Ask-Edeviser assistant (capability-matrix scoped; task 3.3) ──
           Gated behind the experimental AI feature flag; the /coordinator
