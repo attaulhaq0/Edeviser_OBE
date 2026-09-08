@@ -108,6 +108,11 @@ vi.mock("@/hooks/useCqiInstitutionalIntelligence", () => ({
     data: [],
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
+  })),
+  useDetectCqiPatterns: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
   })),
 }));
 

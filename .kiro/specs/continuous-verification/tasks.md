@@ -244,9 +244,6 @@
       `sync_learning_state_measurements_v1` (version/freshness/hash invariants); (c) wire coordinator
       CQI: systemic pattern → AI draft (cited) → proposal → approval → plan → measurement; (d) surface
       the intervention lifecycle in teacher + coordinator UI.
-      Acceptance: cron runs produce rows; learning-state invariants hold; one full intervention
-      measurement transitions PENDING → IMPROVED/NO_MATERIAL_CHANGE/DECLINED with a deterministic
-      delta; a CQI plan + measurement exist after one executed cycle.
       (PROGRESS 2026-09-06: **PRIMED — loop is live and self-running, one defect open.**
       (a) SECRETS PROVISIONED: `private.cron_secrets['cron_intervention_jobs']` generated in-DB +
       synced to edge `CRON_SECRET`; both crons verified firing (HTTP 200 via x-cron-secret; logs

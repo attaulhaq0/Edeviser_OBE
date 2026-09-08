@@ -11123,6 +11123,7 @@ export type Database = {
         Returns: boolean
       }
       classify_problem_cases_v1: { Args: { p_course_id: string }; Returns: Json }
+      detect_systemic_attainment_gaps_v1: { Args: { p_program_id: string }; Returns: number }
       get_curriculum_ingest_suggestions_v1: { Args: { p_course_id: string }; Returns: Json }
       consume_invitation: { Args: { p_token: string }; Returns: boolean }
       course_material_institution: {

@@ -45,7 +45,7 @@ import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
 import { usePLOs } from "@/hooks/usePLOs";
 import { useEDeviserIntelligence } from "@/hooks/useEDeviserIntelligence";
-import { useCoordinatorCqiPatterns } from "@/hooks/useCqiInstitutionalIntelligence";
+import { useCoordinatorCqiPatterns, useDetectCqiPatterns } from "@/hooks/useCqiInstitutionalIntelligence";
 import type { CqiCoordinatorDraft } from "@/lib/edeviserIntelligence";
 import {
   Plus,
@@ -542,6 +542,22 @@ const CqiIntelligencePanel = () => {
   const [programId, setProgramId] = useState("");
   const [draft, setDraft] = useState<CqiCoordinatorDraft | null>(null);
   const patternsQuery = useCoordinatorCqiPatterns(programId);
+  const detectMutation = useDetectCqiPatterns();
+
+  const runPatternDetection = async () => {
+    if (!programId) return;
+    try {
+      const checked = await detectMutation.mutateAsync(programId);
+      // Refetch the coordinator's authorized patterns so the detected rows
+      // appear in the section below without a manual refresh.
+      await patternsQuery.refetch();
+      toast.success(
+        `Pattern detection ran: ${checked} systemic pattern row(s) checked.`
+      );
+    } catch {
+      toast.error("CQI pattern detection is unavailable right now.");
+    }
+  };
 
   const requestDraft = async () => {
     if (!programId) return;
@@ -598,6 +614,18 @@ const CqiIntelligencePanel = () => {
             <Sparkles className="h-4 w-4" />
           )}
           Draft from evidence
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => void runPatternDetection()}
+          disabled={!programId || detectMutation.isPending}
+        >
+          {detectMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          Run pattern detection
         </Button>
       </div>
       {programId && (
