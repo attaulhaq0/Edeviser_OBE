@@ -47,7 +47,6 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import { Button, HeroCarousel, SectionHeader, Shimmer } from "@/design-system";
-import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";
 import { usePrograms } from "@/hooks/usePrograms";
 import {
@@ -66,9 +65,23 @@ import { cn } from "@/lib/utils";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 import {
   AgentChatSurface,
+  AgentTaskInbox,
   EdeviserAssistantPanel,
   InsightCardsSurface,
 } from "@/ai/components";
+import { useAuth } from "@/hooks/useAuth";
+
+/**
+ * 7.8/8.9: approval-inbox surface host for the coordinator dashboard —
+ * pending protected-action proposals (curriculum ingestion, learning
+ * interventions, CQI actions) surface directly. `viewer` gates display only;
+ * the orchestrator re-derives identity and revalidates every decision.
+ */
+const CoordinatorApprovalInbox = () => {
+  const { user, role } = useAuth();
+  if (!user || !role) return null;
+  return <AgentTaskInbox viewer={{ role, userId: user.id }} />;
+};
 
 const BRAND_SURFACE = "#0f172a";
 const HERO_SURFACE = "#0f172a";
@@ -889,12 +902,18 @@ const CoordinatorDashboardScreen = () => {
         </section>
       </div>
 
+      {/* ── 7.8/8.9: approval inbox as a first-class dashboard section —
+          pending curriculum-ingest / intervention / CQI proposals surface
+          here directly; decisions are re-validated server-side. ── */}
+      {isAiSurfaceEnabled() && <CoordinatorApprovalInbox />}
+
       {/* ── Ask-Edeviser assistant (capability-matrix scoped; task 3.3) ──
           Gated behind the experimental AI feature flag; the /coordinator
           registry row permits insight-cards + conversation. Fail-closed. ── */}
       {isAiSurfaceEnabled() ? (
         <EdeviserAssistantPanel
           surfaceHosts={{
+            "approval-inbox": CoordinatorApprovalInbox,
             "insight-cards": InsightCardsSurface,
             conversation: AgentChatSurface,
           }}

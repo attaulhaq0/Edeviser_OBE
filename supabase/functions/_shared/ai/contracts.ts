@@ -159,6 +159,9 @@ export const PROTECTED_ACTIONS = [
   // draft becomes an official learning_interventions record. Coordinator
   // approval is ALWAYS required (A3 never bypasses).
   "create_learning_intervention",
+  // Task 7.8 — curriculum ingestion: extracted CLO candidates + tentative
+  // mappings become official outcomes ONLY after coordinator approval.
+  "ingest_curriculum",
 ] as const;
 
 export type ProtectedActionType = (typeof PROTECTED_ACTIONS)[number];
@@ -203,6 +206,10 @@ export const requiredApproverRole = (
   // Task 8.9: official intervention records are coordinator-approved — the
   // routed owner performs the work, the coordinator owns the record.
   if (action === "create_learning_intervention") {
+    return "coordinator";
+  }
+  // Task 7.8: curriculum ingestion writes program outcomes — coordinator-owned.
+  if (action === "ingest_curriculum") {
     return "coordinator";
   }
   return "admin";

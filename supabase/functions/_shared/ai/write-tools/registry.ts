@@ -6,6 +6,7 @@ export type ProtectedWriteToolName =
   | "create_cqi_action"
   | "create_learning_intervention"
   | "publish_official_content"
+  | "ingest_curriculum"
   | "create_ilo"
   | "update_ilo"
   | "delete_ilo"
@@ -494,6 +495,175 @@ const validateTeacherContentOutput = (
 };
 
 // ---------------------------------------------------------------------------
+// Task 7.8 — curriculum ingestion: the payload mirrors the curriculum-ingest
+// edge function's extraction (candidate CLOs with bilingual titles, Bloom's
+// level 1-6, tentative PLO/ILO mapping references into EXISTING outcomes).
+// Execution inserts CLO rows + outcome_mappings through the existing
+// validated hierarchy/weight-sum constraints.
+// ---------------------------------------------------------------------------
+const validateIngestCurriculum = (value: unknown): Record<string, unknown> => {
+  const input = row(value, "invalid_input");
+  exactKeys(input, ["kind", "course_id", "program_id", "syllabus_name", "clos"]);
+  if (input.kind !== "curriculum_ingest") {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "kind must be curriculum_ingest"
+    );
+  }
+  for (const field of ["course_id", "program_id"]) {
+    if (typeof input[field] !== "string" || !uuidPattern.test(input[field])) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        `${field} must be a UUID`
+      );
+    }
+  }
+  textField(input, "syllabus_name", 200);
+  const clos = input.clos;
+  if (
+    !Array.isArray(clos) ||
+    clos.length === 0 ||
+    clos.length > 30 ||
+    clos.some((c) => !c || typeof c !== "object" || Array.isArray(c))
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_input",
+      "clos must be 1-30 candidate objects"
+    );
+  }
+  for (const c of clos as Record<string, unknown>[]) {
+    if (
+      Object.keys(c).some(
+        (key) =>
+          ![
+            "title_en",
+            "title_ar",
+            "description_en",
+            "blooms",
+            "plo_id",
+            "plo_weight",
+            "ilo_id",
+            "ilo_weight",
+          ].includes(key)
+      )
+    ) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[] entries contain unsupported fields"
+      );
+    }
+    if (
+      typeof c.title_en !== "string" ||
+      c.title_en.trim().length === 0 ||
+      c.title_en.length > 300
+    ) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[].title_en must be 1-300 characters"
+      );
+    }
+    if (
+      c.title_ar !== null &&
+      c.title_ar !== undefined &&
+      (typeof c.title_ar !== "string" || c.title_ar.length > 300)
+    ) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[].title_ar must be at most 300 characters"
+      );
+    }
+    if (
+      typeof c.blooms !== "number" ||
+      !Number.isInteger(c.blooms) ||
+      c.blooms < 1 ||
+      c.blooms > 6
+    ) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[].blooms must be an integer 1-6"
+      );
+    }
+    for (const field of ["plo_id", "ilo_id"]) {
+      if (
+        c[field] !== null &&
+        c[field] !== undefined &&
+        (typeof c[field] !== "string" || !uuidPattern.test(c[field]))
+      ) {
+        throw new ProtectedWriteBoundaryError(
+          "invalid_input",
+          `clos[].${field} must be a UUID or null`
+        );
+      }
+    }
+    for (const field of ["plo_weight", "ilo_weight"]) {
+      if (
+        c[field] !== null &&
+        c[field] !== undefined &&
+        (typeof c[field] !== "number" ||
+          !Number.isFinite(c[field]) ||
+          c[field] <= 0 ||
+          c[field] > 1)
+      ) {
+        throw new ProtectedWriteBoundaryError(
+          "invalid_input",
+          `clos[].${field} must be within (0, 1]`
+        );
+      }
+    }
+    if (c.ilo_id !== null && c.ilo_id !== undefined && c.plo_id === null) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[].ilo_id requires plo_id (ILO maps through the PLO)"
+      );
+    }
+    // 7.8 execution rule mirrored at the boundary: a newly ingested CLO has a
+    // single parent chain (PLO weight 1.0; first ILO mapping weight 1.0) so the
+    // deferred weight-sum trigger cannot reject at commit time.
+    if (c.plo_id !== null && c.plo_id !== undefined && c.plo_weight !== 1) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[].plo_weight must be 1.0 for a newly ingested CLO"
+      );
+    }
+    if (
+      c.ilo_id !== null &&
+      c.ilo_id !== undefined &&
+      c.ilo_weight !== 1
+    ) {
+      throw new ProtectedWriteBoundaryError(
+        "invalid_input",
+        "clos[].ilo_weight must be 1.0 for a newly mapped ILO"
+      );
+    }
+  }
+  return input;
+};
+
+const validateIngestOutput = (value: unknown): Record<string, unknown> => {
+  const output = row(value, "invalid_output");
+  if (
+    typeof output.executionId !== "string" ||
+    !uuidPattern.test(output.executionId) ||
+    !Array.isArray(output.cloIds) ||
+    (output.cloIds as unknown[]).length === 0 ||
+    !(output.cloIds as unknown[]).every(
+      (id) => typeof id === "string" && uuidPattern.test(id)
+    ) ||
+    typeof output.count !== "number" ||
+    !Number.isSafeInteger(output.count) ||
+    output.count < 1 ||
+    output.count !== (output.cloIds as unknown[]).length ||
+    typeof output.alreadyExecuted !== "boolean"
+  ) {
+    throw new ProtectedWriteBoundaryError(
+      "invalid_output",
+      "Curriculum ingestion returned an invalid receipt"
+    );
+  }
+  return output;
+};
+
+// ---------------------------------------------------------------------------
 // Task 6.2 — Admin ILO governance protected writes. Payloads mirror the
 // proposal shapes produced by write-tools/outcome-governance.ts so an approved
 // proposal resolves through the registry instead of failing unknown_tool.
@@ -612,6 +782,17 @@ export const PROTECTED_WRITE_REGISTRY: Readonly<
     validateInput: validatePublishOfficialContent,
     validateOutput: validateTeacherContentOutput,
   },
+  // Task 7.8 — curriculum ingestion: coordinator approves; execution inserts
+  // CLO rows + mappings through the validated hierarchy/weight constraints.
+  "ingest_curriculum@1.0.0": {
+    name: "ingest_curriculum",
+    version: "1.0.0",
+    risk: "protected",
+    approvalRequired: true,
+    allowedApproverRoles: ["coordinator"],
+    validateInput: validateIngestCurriculum,
+    validateOutput: validateIngestOutput,
+  },
   // Task 8.9 — decision-intelligence closed loop: coordinator-approved,
   // one official learning_interventions row per struggling student.
   "create_learning_intervention@1.0.0": {
@@ -669,6 +850,9 @@ export const protectedWriteVersionForAction = (
   actionType === "create_goal" ||
   actionType === "create_planner_session" ||
   actionType === "create_cqi_action" ||
+  // Task 7.8 — curriculum-ingest proposals share the 1.0.0 boundary version;
+  // execution inserts outcomes/mappings via the typed ingestion RPC.
+  actionType === "ingest_curriculum" ||
   // Task 7.10 — AI question drafts share the 1.0.0 boundary version;
   // execution persists approved drafts into question_bank.
   actionType === "publish_official_content" ||
