@@ -735,6 +735,70 @@
       migration/RLS/security constraints); assert no task builds 8.1 scoring-model specifics before
       the contract sign-off. Pass = contract recorded + reviewed, no speculative engineering.
 
+### Wave G — QA-report audit remediation (2026-09-07; source: audited QA report vs live system)
+
+> Context & research (verified against live Supabase + current main, NOT the QA report's
+> claims): the 2026-09-07 QA report over-classified two findings as BLOCKED and missed the
+> root causes. Audit outcome: OBE-06 runtime cascade is PROVEN (outcomeCascade integration
+> suite 9/9 on a fresh replay after `20260907190000`); OBE-06's missing `QA-Assign-1` is a
+> PROCEDURE-CREATED fixture (manual OBE-05/06 step 1), not a product bug; GAM-01 accounting
+> PASS verified to the digit (xp_total 2194 = tx_sum, level 12 = calculate_level_from_xp(2194));
+> OBE-14 has ONE root cause (proposal flow has no teacher approval surface + no execution
+> handler — `publish_official_content` quiz_question_drafts appears in zero migrations and the
+> registry; AgentTaskInbox renders admin-only) with OBE-14-02/03/04 as downstream symptoms.
+> QA-report arithmetic corrected: 3 clean PASS + 1 mixed (OBE-06-BE runtime now VERIFIED);
+> HABIT-04 is one FAIL (UI defect), not BLOCKED+FAIL.
+
+- [ ] 7.9 SENIOR ENGINEERING FIX — Planner: enable Start on planned study sessions (compact cards).
+      Problem (QA HABIT-04, live-verified): `StudySessionCard` renders Start/Edit only when
+      `(canStart || canEdit) && !compact`, and `WeeklyCalendarGrid` renders cards with
+      `compact` — so on `/student/planner` every planned session shows a status badge but no
+      action ("visible but not actionable"). The full completion chain behind it is
+      implemented and allow-listed (FocusModePage → `useSessionCompletion` →
+      `award-xp(study_session)` in `VALID_SOURCES` + `selfTriggeredSources`, server-capped
+      0–60 → `check-badges`); TodayView navigates to focus correctly (4 call sites).
+      Fix: render the Start affordance in compact mode (icon button; keep edit
+      dialog-suppressed), or make the compact card click-through to focus.
+      Acceptance: planned card on `/student/planner` → Start → `/student/focus/:id` → timer
+      runs → complete → EXACTLY one `study_session` XP transaction (server cap; adjudicates
+      Risk GAM-X1) → `check-badges(trigger=study_session)` → heatmap today filled; double-click
+      yields one record (dedup via `(student_id, reference_id)`).
+      QA: full HABIT-04 run from the manual (adjudicates GAM-X1 at runtime).
+- [ ] 7.10 SENIOR ENGINEERING FIX — AI question drafts: teacher approval surface + persistence
+      executor (root cause of QA OBE-14-02/03/04 — do NOT file those separately).
+      Problem (live-verified): `generate-quiz-questions` correctly emits an
+      `agent_action_proposals` row (`action_type='publish_official_content'`, payload
+      `quiz_question_drafts`, approver=assigned teacher, 7-day expiry) per the agentic
+      guardrails — but (a) the only proposal inbox (`AgentTaskInbox`) renders on the ADMIN
+      dashboard (`AdminDashboardScreen`) — the owning teacher has no visible approval surface;
+      (b) `executeApprovedPersonalAction` dispatch has no branch for the action and
+      `PROTECTED_WRITE_REGISTRY` has no `publish_official_content` tool → `execute_proposal`
+      fails `unknown_tool`; (c) `execute_approved_agent_personal_action_v1` hard-rejects
+      non-student actors. Net: approved drafts can never persist → `question_bank` stays at its
+      2 manual rows → `quiz_questions=0` → quiz execution (OBE-14-04) blocked. The legacy
+      ReviewQueuePage reads `question_bank status='pending_review'` — a path nothing feeds.
+      Fix (smallest root-cause scope): (1) `PROTECTED_WRITE_REGISTRY` +=
+      `publish_official_content@1.0.0` (validator: `kind='quiz_question_drafts'`, bounded
+      questions array matching the generator's validated schema); (2) new
+      `execute_approved_teacher_content_v1(p_proposal_id, p_actor_id)` RPC — SECURITY DEFINER,
+      search_path='', teacher-only (assigned-teacher re-check), proposal contract + expiry +
+      race guard, INSERT approved questions into `question_bank`
+      (generation_source='ai', status='approved'), `agent_action_executions` receipt — mirror
+      the CQI RPC pattern; (3) orchestrator `execute_proposal` dispatch branch; (4) mount
+      `AgentTaskInbox` on the teacher dashboard (same feature gate as admin); (5) link
+      proposal status from GenerateQuestionsPage results panel.
+      Acceptance: generate → teacher inbox shows the draft proposal → approve → execute → N
+      `question_bank` rows (approved, generation_source='ai') → QuestionBank/ReviewQueue render
+      them → attach to quiz (`quiz_questions`) → manual OBE-14 end-to-end unblocked
+      (auto-grade path included).
+- [ ] 7.11 QA-REPORT RECORD — classification corrections (docs only).
+      Record in the QA manual: OBE-06-BE runtime VERIFIED (integration suite); OBE-14 note
+      updated to the dependency chain (blocked by 7.10, not by missing seed data alone);
+      HABIT-04 navigation corrected (Today view actionable today; planner path after 7.9);
+      GAM-01 PASS retained with real-user-generation UNVERIFIED note; PASS/FAIL/BLOCKED
+      arithmetic corrected (3 clean PASS + 1 mixed; HABIT-04 = single FAIL).
+      Acceptance: manual reflects the corrections; re-run list attached to 7.9/7.10 closures.
+
 ### Sequencing
 
 8.13 (Discovery-sprint contract + product-decision record) → 8.1 → 8.2 → pilots 8.3–8.6 →

@@ -53,19 +53,39 @@ const StudySessionCard = ({
         compact && "p-2"
       )}
     >
-      {/* Title + Status */}
+      {/* Title + Status (+ compact Start affordance) */}
       <div className="flex items-start justify-between gap-1">
         <h4 className="text-xs font-semibold text-gray-900 line-clamp-1">
           {session.title}
         </h4>
-        <Badge
-          className={cn(
-            "shrink-0 text-[10px] px-1.5 py-0",
-            statusConfig.className
+        <div className="flex shrink-0 items-center gap-1">
+          {/* 7.9: planned sessions must stay actionable in compact grids —
+              the Start affordance was previously suppressed in compact mode,
+              leaving planned sessions "visible but not actionable" on
+              /student/planner (QA HABIT-04). Edit remains dialog-mode-only. */}
+          {compact && canStart && onStart && (
+            <button
+              type="button"
+              aria-label="Start session"
+              title="Start session"
+              className={cn(
+                "rounded p-1 text-blue-700 transition-colors",
+                "hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              )}
+              onClick={() => onStart(session)}
+            >
+              <Play className="h-3.5 w-3.5" />
+            </button>
           )}
-        >
-          {statusConfig.label}
-        </Badge>
+          <Badge
+            className={cn(
+              "shrink-0 text-[10px] px-1.5 py-0",
+              statusConfig.className
+            )}
+          >
+            {statusConfig.label}
+          </Badge>
+        </div>
       </div>
 
       {/* Time + Duration + Course */}

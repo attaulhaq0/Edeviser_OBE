@@ -152,19 +152,42 @@ describe("StudySessionCard", () => {
     expect(onEdit).toHaveBeenCalledWith(session);
   });
 
-  it("does not show action buttons in compact mode", () => {
+  it("compact mode: shows the Start affordance for planned sessions (7.9)", async () => {
+    const user = userEvent.setup();
     const onStart = vi.fn();
-    const onEdit = vi.fn();
+    const session = makeSession();
     render(
       <StudySessionCard
-        session={makeSession()}
+        session={session}
         onStart={onStart}
-        onEdit={onEdit}
+        onEdit={vi.fn()}
         compact
       />
     );
-    expect(screen.queryByRole("button", { name: /start/i })).toBeNull();
+    // 7.9: planned sessions must remain actionable in compact grids — the
+    // Start affordance renders as an icon button; Edit stays dialog-only.
+    const startButton = screen.getByRole("button", {
+      name: /start session/i,
+    });
+    await user.click(startButton);
+    expect(onStart).toHaveBeenCalledWith(session);
     expect(screen.queryByRole("button", { name: /edit/i })).toBeNull();
+  });
+
+  it("compact mode: no Start affordance for completed sessions", () => {
+    render(
+      <StudySessionCard
+        session={makeSession({ status: "completed" })}
+        onStart={vi.fn()}
+        compact
+      />
+    );
+    expect(screen.queryByRole("button", { name: /start session/i })).toBeNull();
+  });
+
+  it("compact mode: no Start affordance when no handler provided", () => {
+    render(<StudySessionCard session={makeSession()} compact />);
+    expect(screen.queryByRole("button", { name: /start session/i })).toBeNull();
   });
 
   it("does not show action buttons when no handlers provided", () => {
