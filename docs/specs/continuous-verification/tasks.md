@@ -805,3 +805,17 @@
 8.7–8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
 on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in
 8.0 / `decision-intelligence-map.md` update as each task lands.
+(DONE 2026-09-08 **7.8 EXECUTED**: `curriculum-ingest` edge function (paste-in syllabus â†’
+DeepSeek extraction grounded in real program PLO/ILO ids â†’ DRY-RUN `ingest_curriculum`
+proposal) + `ingest_curriculum@1.0.0` registry tool + `execute_approved_curriculum_ingest_v1`
+(migration `20260908062316`, live-applied) + coordinator dashboard approval inbox +
+orchestrator dispatch. **DEPLOYED**: `curriculum-ingest` v1 + `agent-orchestrator` v35
+ACTIVE from main `d26b6fe0`. 7.8 remainder: file-upload path (vs paste), CLOForm
+in-form suggestions, 7.8-QA 3-fixture run.)
+
+### Sequencing
+
+8.13 (Discovery-sprint contract + product-decision record) â†’ 8.1 â†’ 8.2 â†’ pilots 8.3â€“8.6 â†’
+8.7â€“8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
+on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in
+8.0 / `decision-intelligence-map.md` update as each task lands.
