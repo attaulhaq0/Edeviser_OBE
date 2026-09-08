@@ -486,6 +486,8 @@ serve(async (req) => {
                 ? "execute_approved_cqi_action_v1"
                 : targetProposal.actionType === "create_learning_intervention"
                 ? "execute_approved_learning_intervention_v1"
+                : targetProposal.actionType === "ingest_curriculum"
+                ? "execute_approved_curriculum_ingest_v1"
                 : targetProposal.actionType === "publish_official_content"
                 ? "execute_approved_teacher_content_v1"
                 : "execute_approved_agent_personal_action_v1";
