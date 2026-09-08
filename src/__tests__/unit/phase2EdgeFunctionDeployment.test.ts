@@ -44,9 +44,10 @@ describe("Phase 2 production Edge Function deployment scope", () => {
       )?.functions
       // Manifest evolved 6 → 7 when agent-evaluation-jobs and
       // intervention-jobs joined the tutor-intelligence runtime group
-      // (commit 74685a4), and 7 → 8 when generate-quiz-questions joined
-      // (commit 6aa4e8c); the closure contract tracks the live manifest.
-    ).toHaveLength(8);
+      // (commit 74685a4), 7 → 8 when generate-quiz-questions joined
+      // (commit 6aa4e8c), and 8 → 9 when curriculum-ingest joined
+      // (PR #333, task 7.8); the closure contract tracks the live manifest.
+    ).toHaveLength(9);
   });
 
   it("does not treat frontend-only changes as a production function trigger", () => {
