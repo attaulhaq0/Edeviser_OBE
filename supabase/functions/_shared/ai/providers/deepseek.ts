@@ -176,7 +176,7 @@ export const createDeepSeekProvider = (
         return false;
       }
     },
-    async complete(): Promise<AICompletionResponse> {
+    async complete(request: AICompletionRequest): Promise<AICompletionResponse> {
       const apiKey = dependencies.env.get("DEEPSEEK_API_KEY")?.trim();
       if (!apiKey) {
         throw new AIProviderError(

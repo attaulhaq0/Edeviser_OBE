@@ -422,26 +422,31 @@ serve(async (req) => {
         if (provider.healthCheck) {
           const healthy = await provider.healthCheck();
           if (!healthy) {
-            console.warn("AI provider health check failed - skipping batch");
             return json(200, {
               success: true,
               skipped: true,
               reason: "provider_unhealthy",
             });
           }
-          console.log("AI provider health check passed");
         }
       } catch (err) {
-        console.warn(
-          "AI provider health check errored - skipping batch",
-          err instanceof Error ? err.message : String(err)
-        );
         return json(200, {
           success: true,
           skipped: true,
           reason: "provider_health_check_error",
         });
       }
+    }
+
+    // Health check: verify provider reachable before processing.
+    if (request.action === "scheduled_scan") {
+      try {
+        const provider = createAIProvider(config, { env: Deno.env });
+        if (provider.healthCheck) {
+          const healthy = await provider.healthCheck();
+          if (!healthy) return json(200, { success: true, skipped: true, reason: "provider_unhealthy" });
+        }
+      } catch { return json(200, { success: true, skipped: true, reason: "provider_health_check_error" }); }
     }
 
     // AI Testing Mode Gate - background agents only run during active testing sessions.
@@ -552,16 +557,6 @@ serve(async (req) => {
       if (status === "completed") totals.completed += 1;
       else if (status === "dead_letter") totals.deadLetter += 1;
       else totals.retry += 1;
-      // Structured log for each job outcome
-      console.log(
-        JSON.stringify({
-          event: "proactive_job_processed",
-          jobId: job.id,
-          status,
-          specialist: job.specialist,
-          timestamp: new Date().toISOString(),
-        })
-      );
     }
     return json(200, {
       success: true,
