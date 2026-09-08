@@ -1,18 +1,19 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
-interface TranscriptRequest {
+export interface TranscriptRequest {
   student_id: string;
   semester_id?: string;
 }
 
-interface TranscriptResult {
+export interface TranscriptResult {
   download_url: string;
   file_name: string;
 }
 
 export const useGenerateTranscript = () => {
-  return useMutation({
+  return useMutation<TranscriptResult, Error, TranscriptRequest>({
+    mutationKey: ["transcript", "generate"] as const,
     mutationFn: async (req: TranscriptRequest): Promise<TranscriptResult> => {
       const { data, error } = await supabase.functions.invoke(
         "generate-transcript",

@@ -230,4 +230,15 @@ describe("CQIManager", () => {
     // A date input control is present for the deadline field
     expect(document.querySelector('input[type="date"]')).toBeInTheDocument();
   });
+  // ─── Pattern Detection Button (Req 7.4c) ──
+
+  it("renders Run pattern detection button", () => {
+    render(<CQIManager />, { wrapper: createWrapper() });
+    expect(screen.getByText("Run pattern detection")).toBeInTheDocument();
+  });
+
+  it("renders Draft from evidence button", () => {
+    render(<CQIManager />, { wrapper: createWrapper() });
+    expect(screen.getByText("Draft from evidence")).toBeInTheDocument();
+  });
 });

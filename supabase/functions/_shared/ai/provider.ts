@@ -74,4 +74,5 @@ export class AIProviderError extends Error {
 export interface AIProvider {
   readonly name: string;
   complete(request: AICompletionRequest): Promise<AICompletionResponse>;
+  healthCheck?(): Promise<boolean>;
 }

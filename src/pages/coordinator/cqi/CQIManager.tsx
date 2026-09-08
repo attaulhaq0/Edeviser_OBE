@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import AiTestingModePanel from "@/components/shared/AiTestingModePanel";
 import { PCard, Shimmer } from "@/design-system";
 import { AdminCardHeader } from "@/design-system";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
@@ -45,7 +46,10 @@ import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
 import { usePLOs } from "@/hooks/usePLOs";
 import { useEDeviserIntelligence } from "@/hooks/useEDeviserIntelligence";
-import { useCoordinatorCqiPatterns, useDetectCqiPatterns } from "@/hooks/useCqiInstitutionalIntelligence";
+import {
+  useCoordinatorCqiPatterns,
+  useDetectCqiPatterns,
+} from "@/hooks/useCqiInstitutionalIntelligence";
 import type { CqiCoordinatorDraft } from "@/lib/edeviserIntelligence";
 import {
   Plus,
@@ -101,12 +105,14 @@ interface CQIPlanFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   plan?: CQIActionPlan | null;
+  initialValues?: Partial<CQIPlanFormData>;
 }
 
 const CQIPlanFormDialog = ({
   open,
   onOpenChange,
   plan,
+  initialValues,
 }: CQIPlanFormDialogProps) => {
   const { user } = useAuth();
   const isEdit = !!plan;
@@ -119,17 +125,27 @@ const CQIPlanFormDialog = ({
   const form = useForm<CQIPlanFormData>({
     resolver: zodResolver(cqiPlanSchema) as never,
     defaultValues: {
-      program_id: plan?.program_id ?? "",
-      semester_id: plan?.semester_id ?? "",
-      outcome_id: plan?.outcome_id ?? "",
-      outcome_type: (plan?.outcome_type as "PLO" | "CLO") ?? "PLO",
-      baseline_attainment: plan?.baseline_attainment ?? 0,
-      target_attainment: plan?.target_attainment ?? 70,
-      action_description: plan?.action_description ?? "",
-      responsible_person: plan?.responsible_person ?? "",
-      root_cause: plan?.root_cause ?? "",
-      due_date: plan?.due_date ?? "",
-      evidence_of_improvement: plan?.evidence_of_improvement ?? "",
+      program_id: plan?.program_id ?? initialValues?.program_id ?? "",
+      semester_id: plan?.semester_id ?? initialValues?.semester_id ?? "",
+      outcome_id: plan?.outcome_id ?? initialValues?.outcome_id ?? "",
+      outcome_type:
+        (plan?.outcome_type as "PLO" | "CLO") ??
+        (initialValues?.outcome_type as "PLO" | "CLO") ??
+        "PLO",
+      baseline_attainment:
+        plan?.baseline_attainment ?? initialValues?.baseline_attainment ?? 0,
+      target_attainment:
+        plan?.target_attainment ?? initialValues?.target_attainment ?? 70,
+      action_description:
+        plan?.action_description ?? initialValues?.action_description ?? "",
+      responsible_person:
+        plan?.responsible_person ?? initialValues?.responsible_person ?? "",
+      root_cause: plan?.root_cause ?? initialValues?.root_cause ?? "",
+      due_date: plan?.due_date ?? initialValues?.due_date ?? "",
+      evidence_of_improvement:
+        plan?.evidence_of_improvement ??
+        initialValues?.evidence_of_improvement ??
+        "",
     },
   });
 
@@ -535,7 +551,13 @@ const EvaluateDialog = ({ open, onOpenChange, plan }: EvaluateDialogProps) => {
 
 // ─── Coordinator Intelligence ──────────────────────────────────────────────
 
-const CqiIntelligencePanel = () => {
+interface CqiIntelligencePanelProps {
+  onCreateFromPattern?: (values: Partial<CQIPlanFormData>) => void;
+}
+
+const CqiIntelligencePanel = ({
+  onCreateFromPattern,
+}: CqiIntelligencePanelProps) => {
   const { data: paginatedPrograms } = usePrograms();
   const programs = paginatedPrograms?.data ?? [];
   const intelligence = useEDeviserIntelligence();
@@ -632,7 +654,9 @@ const CqiIntelligencePanel = () => {
         <div className="rounded-xl border border-slate-200/60 p-4 text-sm">
           <p className="font-medium">Authorised systemic patterns</p>
           {patternsQuery.isLoading && (
-            <p className="mt-2 text-muted-foreground">Loading current CQI evidence…</p>
+            <p className="mt-2 text-muted-foreground">
+              Loading current CQI evidence…
+            </p>
           )}
           {patternsQuery.isError && (
             <p className="mt-2 text-muted-foreground">
@@ -641,25 +665,53 @@ const CqiIntelligencePanel = () => {
           )}
           {patternsQuery.data?.length === 0 && (
             <p className="mt-2 text-muted-foreground">
-              No active or historical systemic patterns are available for this program.
+              No active or historical systemic patterns are available for this
+              program.
             </p>
           )}
           {patternsQuery.data && patternsQuery.data.length > 0 && (
             <div className="mt-3 space-y-2">
               {patternsQuery.data.map((pattern) => (
-                <div key={pattern.id} className="rounded-lg border border-slate-100 p-3">
+                <div
+                  key={pattern.id}
+                  className="rounded-lg border border-slate-100 p-3"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">
-                      {pattern.outcome_type} attainment: {pattern.current_attainment}%
+                      {pattern.outcome_type} attainment:{" "}
+                      {pattern.current_attainment}%
                     </span>
                     <span className="text-xs uppercase text-muted-foreground">
                       {pattern.status.replace("_", " ")}
                     </span>
+                    {onCreateFromPattern && pattern.status !== "resolved" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ms-auto h-7 text-xs"
+                        onClick={() =>
+                          onCreateFromPattern({
+                            outcome_id: pattern.outcome_id,
+                            outcome_type: pattern.outcome_type as "PLO" | "CLO",
+                            baseline_attainment: pattern.current_attainment,
+                            target_attainment: pattern.target_threshold,
+                          })
+                        }
+                      >
+                        <Plus className="me-1 h-3 w-3" />
+                        Create Plan
+                      </Button>
+                    )}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Baseline {pattern.baseline_attainment}% · target {pattern.target_threshold}% · {pattern.sample_count} students
+                    Baseline {pattern.baseline_attainment}% · target{" "}
+                    {pattern.target_threshold}% · {pattern.sample_count}{" "}
+                    students
                     {pattern.last_measurement_state
-                      ? ` · ${pattern.last_measurement_state.replace(/_/g, " ")}`
+                      ? ` · ${pattern.last_measurement_state.replace(
+                          /_/g,
+                          " "
+                        )}`
                       : ""}
                   </p>
                 </div>
@@ -792,11 +844,19 @@ const CQIManager = () => {
   const deleteMutation = useDeleteCQIPlan();
 
   const [formOpen, setFormOpen] = useState(false);
+  const [initialFormValues, setInitialFormValues] =
+    useState<Partial<CQIPlanFormData> | null>(null);
   const [editingPlan, setEditingPlan] = useState<CQIActionPlan | null>(null);
   const [deletingPlan, setDeletingPlan] = useState<CQIActionPlan | null>(null);
   const [evaluatingPlan, setEvaluatingPlan] = useState<CQIActionPlan | null>(
     null
   );
+
+  const handleCreateFromPattern = (values: Partial<CQIPlanFormData>) => {
+    setEditingPlan(null);
+    setInitialFormValues(values);
+    setFormOpen(true);
+  };
 
   const handleEdit = (plan: CQIActionPlan) => {
     setEditingPlan(plan);
@@ -872,16 +932,20 @@ const CQIManager = () => {
         </div>
       </PCard>
 
-      <CqiIntelligencePanel />
+      <CqiIntelligencePanel onCreateFromPattern={handleCreateFromPattern} />
 
       {/* Form Dialog */}
       <CQIPlanFormDialog
         open={formOpen}
         onOpenChange={(open) => {
           setFormOpen(open);
-          if (!open) setEditingPlan(null);
+          if (!open) {
+            setEditingPlan(null);
+            setInitialFormValues(null);
+          }
         }}
         plan={editingPlan}
+        initialValues={initialFormValues ?? undefined}
       />
 
       {/* Evaluate Dialog */}
@@ -896,6 +960,8 @@ const CQIManager = () => {
       )}
 
       {/* Delete Confirmation */}
+      <AiTestingModePanel />
+
       <ConfirmDialog
         open={!!deletingPlan}
         onOpenChange={(open) => {
