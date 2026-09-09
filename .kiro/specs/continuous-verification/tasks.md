@@ -905,4 +905,91 @@ on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering
 - [ ] 9.6.3 docs/agent/ — framework-aware AI context (tutor knows assessment model per
       course; CQI detector is framework-agnostic).
 - [ ] 9.6.4 README.md session record — 2026-09-09 framework audit, dashboard counts,
-      PostHog configuration state. -->
+      PostHog configuration state.
+
+### 9.7 — QNSA/GCC Compliance Matrix (16 standards, live-verified)
+> 🟢=Compliant 🟡=Partial 🔴=Missing. Based on live cdlgtbvxlxjpcddjazzx query.
+
+| # | Standard | Status | Live Evidence | Gap |
+|---|----------|--------|---------------|-----|
+| 1 | Curriculum Hierarchy (ILO→PLO→CLO) | 🟢 | 4/4/13 outcomes, 26 mappings | More per-framework outcomes |
+| 2 | Assessment Models | 🟡 | 4 models, 7 criterion_bounds, 10 grade_bounds | 0 non-percent courses live |
+| 3 | Evidence Chain | 🟢 | 552→550→1650→1113, trigger_attainment_rollup | All percent seed data |
+| 4 | Bilingual (AR/EN) | 🟡 | i18next, RTL, MoEHE bilingual seeds | No AR user E2E tested |
+| 5 | QNSA Self-Study Pack | 🟡 | get_moehe_evidence_pack RPC deployed | Never generated live |
+| 6 | Compulsory Subjects | 🟡 | curriculum_code on courses | No compulsory courses |
+| 7 | Student Data Privacy | 🟢 | RLS all tables, session_recording masked | DPA not documented |
+| 8 | Continuous Improvement | 🟡 | 3 CQI plans, detector RPC | 0 patterns detected |
+| 9 | Teacher CPD | 🔴 | No CPD tracking | Missing entirely |
+| 10 | Parent Engagement | 🟡 | 20 links, parent portal | 0 parent actions |
+| 11 | Stakeholder Satisfaction | 🟡 | Teacher NPS created (0 responses) | No student/parent survey |
+| 12 | Accreditation Bodies | 🟢 | QNSA,CIS,BSO,IB,NEASC,HEC,QQA,ABET,NCAAA,AACSB | — |
+| 13 | Multi-Framework Isolation | 🟡 | institution_framework_assignments | Never single-framework tested |
+| 14 | AI Agentic Guardrails | 🟡 | L1/L2/L3, DeepSeek-only | 4 msgs — untested |
+| 15 | Gamification & Habits | 🟢 | 2510 XP, 1737 habits | No framework-aware |
+| 16 | Attendance | 🟢 | 4830 records | — |
+
+- [ ] **E2E-1 (P0): IB MYP Science — Criterion Grade Chain**
+      Roles: Coordinator→Teacher→Student. Flow: MYP Science course (criterion model) →
+      assign A–D task (0-8) → submit → grade per criterion → `compute_myp_criterion_grade`
+      /32→1-7 → attainment via trigger. Assert: criterion_boundaries consulted; grade 1-7;
+      evidence.raw_score has criterion jsonb; no percent leak.
+
+- [ ] **E2E-2 (P0): IGCSE Maths 0580 — AO-Weighted Chain**
+      Roles: Coordinator→Teacher→Student. Flow: IGCSE 0580 (band_grade) → AO1/AO2/AO3
+      weighted task → submit → grade band → `compute_igcse_grade` → 9-1/U → AO-weighted
+      attainment. Assert: grade_boundaries used; AO weights sum 100%; grade is 9-1/U.
+
+- [ ] **E2E-3 (P0): QNSA Bilingual Evidence Pack**
+      Roles: Coordinator→Admin. Flow: MoEHE tenant → Arabic course → grade →
+      `get_moehe_evidence_pack(program_id)` → AR/EN titles, learnerAttributes,
+      outcomeAttainment with citations, 0 PII, RTL correct, compulsory subjects flagged.
+
+- [ ] **E2E-4 (P1): AI Tutor — Full Conversation + Observability**
+      Roles: Student→Teacher. Flow: student message → RAG retrieval → DeepSeek SSE →
+      `tutor_message_sent` + `$ai_generation` events → rate → `tutor_response_rated` →
+      teacher analytics. Assert: tokens>0; citations from embeddings; 3 PostHog events.
+
+- [ ] **E2E-5 (P1): CQI Closed Loop — Pattern→Plan→Verify**
+      Roles: Coordinator→Admin. Flow: detector runs → cqi_systemic_patterns populated →
+      CQIManager → create plan → execute → attainment remeasured → evaluated.
+      Assert: pattern with below-threshold outcome+≥2 students; plan transitions.
+
+- [ ] **E2E-6 (P1): Parent Portal — View Progress + Notification**
+      Roles: Parent→Student→Teacher. Flow: parent linked → views child attainment,
+      grades, attendance, habits → teacher grades → notification → parent views.
+      Assert: RLS limits to linked children only; notification delivered.
+
+- [ ] **E2E-7 (P0): Multi-Track Academy — 3 Frameworks, 0 Leakage**
+      Roles: Coordinator→Teacher→Student. Flow: MYP+IGCSE+MoEHE assigned → 3 courses
+      (1/framework) → each student sees ONLY own framework. Assert: competency_frameworks
+      RLS returns only assigned; MYP never sees grade_boundaries; zero cross-leakage.
+
+- [ ] **E2E-8 (P1): Adaptive Quiz — Start→Adapt→Submit→Grade**
+      Roles: Teacher→Student. Flow: adaptive quiz (CLO-linked) → start → adaptive
+      selects questions by attainment → difficulty adjusts ±0.3/-0.5 → submit →
+      auto-grade → attainment updated → XP awarded. Assert: questions>0; difficulty
+      changes; attainment for linked CLOs updated.
+
+- [ ] **E2E-9 (P2): Student Planner — Task→XP→Badge→Heatmap**
+      Roles: Student. Flow: create task → complete → `planner_task_completed` →
+      award-xp(planner_task) → XP txn → check-badges → badge → gamification updated →
+      heatmap filled → streak milestone if ≥7 days. Assert: 1 XP txn (dedup); badge
+      if criteria met; heatmap cell filled.
+
+- [ ] **E2E-10 (P1): Agentic Intervention — Proposal→Approve→Execute→Verify**
+      Roles: Coordinator→Admin→Teacher. Flow: pattern detected → AI drafts proposal →
+      inbox → approve → execute → learning_interventions → teacher applies →
+      remeasure → closure. Assert: proposal transitions; intervention with student
+      list; remeasured attainment vs baseline.
+
+### 9.9 — Immediate Actions (working now)
+- [ ] 9.9.1 Create seed tenant: IB-Only School (MYP only, 2 courses, criterion model)
+- [ ] 9.9.2 Create seed tenant: British-Only School (IGCSE only, band_grade model)
+- [ ] 9.9.3 Create seed tenant: Qatar National School (MoEHE only, bilingual, compulsory)
+- [ ] 9.9.4 Create seed tenant: Multi-Track Academy (MYP+IGCSE+MoEHE, 3 frameworks)
+- [ ] 9.9.5 Create E2E test: E2E-1 (MYP criterion chain) as Vitest integration spec
+- [ ] 9.9.6 Run CQI detector → populate cqi_systemic_patterns → verify PostHog dashboard
+      [Accreditation dashboard](https://us.posthog.com/project/393668/dashboard/2079405)
+- [ ] 9.9.7 Add `assessment_model` property to PostHog outcome_created/grade_submitted
+      events (read from course row) for framework-aware analytics filtering. -->
