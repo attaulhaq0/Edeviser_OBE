@@ -242,10 +242,6 @@ export const createDeepSeekProvider = (
         const controller = new AbortController();
         const onAbort = () => controller.abort(request.signal?.reason);
         request.signal?.addEventListener("abort", onAbort, { once: true });
-        const timeout = setTimeout(
-          () => controller.abort("timeout"),
-          config.deepSeek.timeoutMs
-        );
         let response: Response | null = null;
         try {
           response = await fetchImpl(

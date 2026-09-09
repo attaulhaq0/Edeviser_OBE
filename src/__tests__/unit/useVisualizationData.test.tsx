@@ -50,7 +50,7 @@ describe("useGapAnalysis", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(rpc).toHaveBeenCalledWith("get_coordinator_analytics_v1", { p_program_id: "prog-1" });
     expect(result.current.data).toBeDefined();
-    expect(result.current.data!.length).toBeGreaterThan(0);
+    expect(result.current.data?.length ?? 0).toBeGreaterThan(0);
     // CLOs always return fully_mapped (they have no children to map)
     const plo = result.current.data!.find((g: any) => g.outcome_type === "PLO");
     expect(plo).toBeDefined();
@@ -63,7 +63,7 @@ describe("useGapAnalysis", () => {
     });
     const { result } = renderHook(() => useGapAnalysis("prog-1"), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.data![0].status).toBe("unmapped");
+    expect(result.current.data?.[0]?.status).toBe("unmapped");
   });
 
   it("is not enabled without a programId", () => {

@@ -54,7 +54,7 @@ describe("useActivateAiTesting", () => {
   it("activates testing with default parameters", async () => {
     rpc.mockResolvedValueOnce({ data: { sessionId: "s2", expiresAt: "2026-09-09T14:00:00Z", durationHours: 2, maxCostUsd: 0.1 }, error: null });
     const { result } = renderHook(() => useActivateAiTesting(), { wrapper });
-    const output = await result.current.mutateAsync();
+    const output = await result.current.mutateAsync(undefined);
     expect(output.sessionId).toBe("s2");
     expect(output.durationHours).toBe(2);
     expect(rpc).toHaveBeenCalledWith("activate_ai_testing", { p_duration_hours: 2, p_max_cost_usd: 0.1 });

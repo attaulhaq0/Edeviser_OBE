@@ -57,7 +57,8 @@ export type AIProviderErrorKind =
   | "provider"
   | "malformed_response"
   | "cancelled"
-  | "budget";
+  | "budget"
+  | "provider_unavailable";
 
 export class AIProviderError extends Error {
   constructor(
