@@ -15,6 +15,7 @@ import SkipToMain from "@/components/shared/SkipToMain";
 import { offlineQueue } from "@/lib/offlineQueue";
 import { queryClient } from "@/lib/queryClient";
 import { lazy, Suspense } from "react";
+import CookieConsentBanner from "@/components/shared/CookieConsentBanner";
 
 const ReactQueryDevtoolsLazy = lazy(() =>
   import("@tanstack/react-query-devtools").then((m) => ({
@@ -40,6 +41,7 @@ const App = () => (
                   <SkipToMain />
                   <AppRouter />
                   <GamificationFeedbackHost />
+                  <CookieConsentBanner />
                   <Toaster richColors position="bottom-center" />
                 </ThemeProvider>
               </LanguageProvider>

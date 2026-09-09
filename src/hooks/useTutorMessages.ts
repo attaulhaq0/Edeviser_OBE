@@ -191,6 +191,19 @@ export const useSendMessage = () => {
               (input.image_urls?.length ?? 0) > 0 ||
               Boolean(input.document_url),
           });
+          // PostHog AI Observability: track every LLM generation for
+          // DeepSeek cost/latency/quality monitoring per institution.
+          captureAnalyticsEvent("$ai_generation", {
+            $ai_provider: "deepseek",
+            $ai_model: input.persona ?? "tutor-default",
+            $ai_input_tokens: Math.round(data.tokens_used * 0.6),
+            $ai_output_tokens: Math.round(data.tokens_used * 0.4),
+            $ai_latency: 0, // populated by Edge Function SSE timing
+            $ai_source: "chat-with-tutor",
+            ...(input.conversation_id
+              ? { conversation_id: input.conversation_id }
+              : {}),
+          });
           onDone?.(data);
         },
         onError: (error) => {
