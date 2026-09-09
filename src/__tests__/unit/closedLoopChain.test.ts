@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 // Feature: continuous-verification, Task 7.4-QA
-// Validates: CQI closed-loop chain — pattern detection ? plan creation ? status transitions
+// Validates: CQI closed-loop chain ï¿½ pattern detection ? plan creation ? status transitions
 // Each chain step has a deterministic test with explicit expected state transitions.
 import { describe, expect, it } from "vitest";
 
@@ -136,7 +136,7 @@ describe("Closed-loop data contracts", () => {
 describe("AI testing mode gates", () => {
   it("Q9: background agents skip when no testing session is active", () => {
     // The agent-worker and intervention-jobs check is_ai_testing_active()
-    // before processing. This is a contract test — the gate must exist.
+    // before processing. This is a contract test ï¿½ the gate must exist.
     const gateFunctions = [
       "is_ai_testing_active",
       "activate_ai_testing",
