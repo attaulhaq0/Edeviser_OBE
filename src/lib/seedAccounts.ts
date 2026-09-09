@@ -4,6 +4,9 @@
 // (live-verified against Supabase auth.users). Classification is by EMAIL DOMAIN
 // (with institution-ID fallback) — never by hardcoded user IDs, and seed emails are
 // intentionally legitimate-looking, so domain lists here are the only source of truth.
+//
+// Set VITE_POSTHOG_INCLUDE_SEED=true in dev/preview to include seed account data
+// in PostHog dashboards during development and testing. Production always filters.
 
 /** Email domains owned exclusively by seeded QA/demo accounts. */
 export const SEED_EMAIL_DOMAINS = [
@@ -37,11 +40,18 @@ export const getEmailDomain = (
  * True when the account belongs to the locked QA/demo population. Used ONLY for
  * analytics person properties (PostHog `account_type` / test-account filtering);
  * it must never gate product behavior or authorization.
+ *
+ * When VITE_POSTHOG_INCLUDE_SEED is "true" (dev/preview), seed accounts report
+ * as "real" so their events appear in PostHog dashboards. This flag must never
+ * be enabled in production.
  */
 export const isSeedAccount = (
   email?: string | null,
   institutionId?: string | null
 ): boolean => {
+  // Allow seed data visibility in dev/preview environments for testing.
+  if (import.meta.env.VITE_POSTHOG_INCLUDE_SEED === "true") return false;
+
   const domain = getEmailDomain(email);
   if (domain && SEED_DOMAIN_SET.has(domain)) return true;
   if (institutionId && SEED_INSTITUTION_SET.has(institutionId)) return true;
