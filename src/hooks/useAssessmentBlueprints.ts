@@ -36,7 +36,8 @@ export const useCourseBlueprints = (courseId: string | undefined) =>
         .eq("course_id", courseId as string)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((b: any) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (data ?? []).map((b: any) => ({
         id: b.id,
         courseId: b.course_id,
         title: b.title,

@@ -52,6 +52,7 @@ describe("useGapAnalysis", () => {
     expect(result.current.data).toBeDefined();
     expect(result.current.data?.length ?? 0).toBeGreaterThan(0);
     // CLOs always return fully_mapped (they have no children to map)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const plo = result.current.data!.find((g: any) => g.outcome_type === "PLO");
     expect(plo).toBeDefined();
   });
