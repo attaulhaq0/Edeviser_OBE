@@ -2,6 +2,7 @@
 // usePlannerTasks — CRUD mutations for planner tasks with XP on completion
 // =============================================================================
 
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";

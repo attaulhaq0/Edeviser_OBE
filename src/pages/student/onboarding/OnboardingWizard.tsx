@@ -11,6 +11,7 @@ import {
   useUpdateProgress,
 } from "@/hooks/useOnboardingProgress";
 import type { UpdateProgressInput } from "@/hooks/useOnboardingProgress";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useProcessOnboarding } from "@/hooks/useStudentProfile";
 import { DAY1_STEPS, ONBOARDING_STEPS } from "@/lib/onboardingConstants";
 import type { OnboardingStepId } from "@/lib/onboardingConstants";
@@ -266,6 +267,7 @@ export const OnboardingWizard = ({
       // Refresh the AuthProvider's profile so `onboarding_completed` flips to
       // true and StudentLayout removes the wizard overlay immediately.
       await refetchProfile();
+        captureAnalyticsEvent("onboarding_completed");
     } catch (err) {
       // Never silently swallow (engineering-guardrails): surface the failure so
       // it is visible in the console and picked up by error monitoring. The

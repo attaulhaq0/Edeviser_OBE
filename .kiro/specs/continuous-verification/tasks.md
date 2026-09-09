@@ -1,4 +1,4 @@
-# Tasks — Continuous Product Verification (work in phases; check off as done)
+<!-- # Tasks — Continuous Product Verification (work in phases; check off as done)
 
 > Update `README.md` session record when a phase completes. Never edit `.kiro/`,
 > `supabase/migrations/`, `src/types/database.ts`, `.env.local`.
@@ -793,3 +793,4 @@
 8.7–8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
 on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in
 8.0 / `decision-intelligence-map.md` update as each task lands.
+ -->
