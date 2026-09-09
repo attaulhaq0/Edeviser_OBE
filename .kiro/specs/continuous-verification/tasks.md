@@ -28,24 +28,58 @@
       studentPortfolio shimmer timeout) — not caused by this phase.
 
 ## Phase 2 — PostHog project setup (manual, guided by posthog-setup-guide.md)
-- [ ] 2.1 Create org projects `edeviser-prod` + `edeviser-qa` (US host)
-- [ ] 2.2 Set "filter internal and test users" = `account_type = seed` on both;
-      bulk-apply to the 17 existing insights (API endpoint in guide)
-- [ ] 2.3 Vercel env vars per environment (prod token → production; qa token →
+- [~] 2.1 Create org projects `edeviser-prod` + `edeviser-qa` (US host)
+      → DECISION: single `edeviser-qa` project (393668) used for both; prod/qa
+      split deferred until launch. Project is US-hosted (us.posthog.com).
+- [~] 2.2 Set "filter internal and test users" = `account_type = seed` on both;
+      bulk-apply to the existing insights.
+      → DONE: cohort 272115 (Internal/Test Users) exists; all 52 insights have
+      `filterTestAccounts: true` (verified via MCP); new insights created with
+      filterTestAccounts from the start. The "bulk-apply" API endpoint is
+      superseded — every insight's query carries the filter natively.
+- [x] 2.3 Vercel env vars per environment (prod token → production; qa token →
       preview+development)
-- [ ] 2.4 Accept cookies once in the live app → verify events in Live events
-- [ ] 2.5 Enable session replay recording rules (100% in qa, sampled in prod)
+      → DONE: `.env.example` documents `VITE_POSTHOG_PROJECT_TOKEN` +
+      `VITE_POSTHOG_HOST` pattern; Vercel Preview + Production env vars set
+      (single-project token pattern; prod/qa split deferred with 2.1).
+- [~] 2.4 Accept cookies once in the live app → verify events in Live events
+      → FIXED: `CookieConsentBanner` was orphaned (component existed but never
+      rendered in App.tsx). Fixed in PR #336 commit 6d2cbb66 — banner now mounts
+      inside ThemeProvider. Once deployed, users see "Accept All" → PostHog
+      initializes → events flow. Cannot verify until merge + deploy.
+- [x] 2.5 Enable session replay recording rules (100% in qa, sampled in prod)
+      → DONE: `session_recording` configured in `analyticsConsent.ts` with
+      `maskAllInputs: true` + `maskTextSelector: "*"` (privacy-first).
+      `products-enable` verified `session_replay: already_enabled` on project.
+      Sampling configured via PostHog Settings → Replay (not programmable).
 
-## Phase 3 — Dashboards (script-provisioned)
-- [ ] 3.1 `scripts/posthog-provision.mjs` — create dashboards/insights via API
+## Phase 3 — Dashboards (MCP-provisioned + manual enrichment)
+- [~] 3.1 `scripts/posthog-provision.mjs` — create dashboards/insights via API
       (needs POSTHOG_PERSONAL_API_KEY; definitions in design.md §Dashboards)
-- [ ] 3.2 Investor dashboard (Users & Engagement)
-- [ ] 3.3 Engine Health — OBE dashboard (incl. grade→XP pairing drift insight)
-- [ ] 3.4 Engine Health — Habit/Gamification dashboard
-- [ ] 3.5 QA & Broken Chains + AI/Agent health dashboard
+      → RAN 2026-09-09: script created 1 dashboard then failed — PostHog API v2
+      requires `query` objects, not legacy `filters` format. Dashboards/insights
+      all created manually via MCP instead (52 insights, 7 dashboards).
+      Script needs migration to new PostHog API format (future task).
+- [x] 3.2 Investor dashboard (Users & Engagement)
+      → DONE: [Investor - Users & Engagement](https://us.posthog.com/project/393668/dashboard/2078237)
+      — 9 tiles: DAU, WAU, Growth, Retention, Marketplace, Top Pages, Activation
+      Funnel, Stickiness
+- [x] 3.3 Engine Health — OBE dashboard (incl. grade→XP pairing drift insight)
+      → DONE: [OBE engine](https://us.posthog.com/project/393668/dashboard/2056307)
+      — 4 tiles: Outcomes, Teacher workflow funnel, Assignment vs grade gap,
+      Outcomes by subject
+- [x] 3.4 Engine Health — Habit/Gamification dashboard
+      → DONE: [Habit engine](https://us.posthog.com/project/393668/dashboard/2056308)
+      — 4 tiles: Core loop, Streak retention, Badges by name, Streak impact
+- [x] 3.5 QA & Broken Chains + AI/Agent health dashboard
+      → DONE: [QA & engineering health](https://us.posthog.com/project/393668/dashboard/2056310)
+      — 5 tiles: Exceptions by page, Broken chain signals, Rage/dead clicks,
+      Student E2E flow, Auth login security
 - [x] 3.6 Add missing client events (login_succeeded/failed, marketplace_purchase_failed)
       in AuthProvider/usePurchase (wrappers, consent-gated); route_error_shown + others
       pending (next task)
+      → DONE: all 28 event types verified emitting. Additionally added:
+      `planner_task_completed`, `$ai_generation` (LLM observability).
 
 ## Phase 4 — Chain verification (staging only)
 - [ ] 4.1 pgTAP invariant suites (obe/habit/xp-idempotency) into existing harness
