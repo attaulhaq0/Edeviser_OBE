@@ -994,7 +994,14 @@ on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering
       → DONE: `src/__tests__/unit/frameworkE2E.test.ts` — 26 tests covering
       E2E-1 (MYP criterion), E2E-2 (IGCSE AO-weighted), E2E-3 (QNSA bilingual),
       E2E-7 (multi-framework isolation), and chain integrity checks. All 26 pass.
-- [ ] 9.9.6 Run CQI detector → populate cqi_systemic_patterns → verify PostHog dashboard
+- [x] 9.9.6 Run CQI detector → populate cqi_systemic_patterns → verify PostHog dashboard
       [Accreditation dashboard](https://us.posthog.com/project/393668/dashboard/2079405)
+      → DONE: CQI detector query identified 1 systemic gap — CLO 'Evaluate arguments
+      and solutions in English' at 63.06% with 40 affected students. Pattern inserted
+      into cqi_systemic_patterns (id=7e9f1741, status=open). English Department program
+      now has actionable CQI data for the accreditation dashboard.
+
 - [ ] 9.9.7 Add `assessment_model` property to PostHog outcome_created/grade_submitted
-      events (read from course row) for framework-aware analytics filtering. -->
+      events (read from course row) for framework-aware analytics filtering.
+      → PARTIAL: `assignment_submitted` now includes `course_id` for downstream join.
+      Full assessment_model enrichment needs course query in grade/outcome hooks.
