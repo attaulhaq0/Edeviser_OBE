@@ -1,4 +1,4 @@
-// Feature: continuous-verification — Wave B + C QA tests
+// Feature: continuous-verification ï¿½ Wave B + C QA tests
 // Covers: 8.3-QA MYP math, 8.4-QA IGCSE parity, 8.5-QA bilingual E2E,
 //         8.6-QA multi-track isolation, 8.7-QA evidence-pack accuracy, 8.8-QA pilot E2E
 import { describe, expect, it } from "vitest";
@@ -28,14 +28,14 @@ describe("8.3-QA: MYP criterion engine", () => {
     expect(32 >= 27).toBe(true);
   });
 
-  it("Q5: max total is 32 (4 criteria × 8 max each)", () => {
+  it("Q5: max total is 32 (4 criteria ï¿½ 8 max each)", () => {
     expect(4 * 8).toBe(32);
   });
 
   it("Q6: boundary table is monotonic (higher score ? higher grade)", () => {
     for (let i = 1; i < boundaries.length; i++) {
-      expect(boundaries[i][1]).toBeGreaterThanOrEqual(boundaries[i-1][1]);
-      expect(boundaries[i][0]).toBeGreaterThan(boundaries[i-1][0]);
+      expect(boundaries[i]![1]).toBeGreaterThanOrEqual(boundaries[i-1]![1]);
+      expect(boundaries[i]![0]).toBeGreaterThan(boundaries[i-1]![0]);
     }
   });
 });
@@ -49,17 +49,17 @@ describe("8.4-QA: IGCSE band engine", () => {
   ];
 
   it("Q7: 85% ? grade 8", () => {
-    const grade = igcseBounds.find(([p]) => p <= 85)?.[1];
+    const grade = (igcseBounds.find(([p]) => p <= 85) ?? [])[1];
     expect(grade).toBe('8');
   });
 
   it("Q8: 45% ? grade 4", () => {
-    const grade = igcseBounds.find(([p]) => p <= 45)?.[1];
+    const grade = (igcseBounds.find(([p]) => p <= 45) ?? [])[1];
     expect(grade).toBe('4');
   });
 
   it("Q9: 0% ? grade U", () => {
-    const grade = igcseBounds.find(([p]) => p <= 0)?.[1];
+    const grade = (igcseBounds.find(([p]) => p <= 0) ?? [])[1];
     expect(grade).toBe('U');
   });
 
