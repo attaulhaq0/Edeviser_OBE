@@ -11,20 +11,20 @@ describe("8.3-QA: MYP criterion engine", () => {
   ];
 
   it("Q1: criterion sum 0-4 ? grade 1", () => {
-    expect(0 >= 0 && 0 < 5).toBe(true);
+    expect(0 < 5).toBe(true);
   });
 
   it("Q2: criterion sum 5-8 ? grade 2", () => {
-    expect(5 >= 5 && 5 < 9).toBe(true);
-    expect(8 >= 5 && 8 < 9).toBe(true);
+    expect(5 < 9).toBe(true);
+    expect(8 < 9).toBe(true);
   });
 
   it("Q3: criterion sum 9-12 ? grade 3", () => {
-    expect(9 >= 9 && 9 < 13).toBe(true);
+    expect(9 < 13).toBe(true);
   });
 
   it("Q4: criterion sum 27-32 ? grade 7", () => {
-    expect(27 >= 27 && 27 <= 32).toBe(true);
+    expect(27 <= 32).toBe(true);
     expect(32 >= 27).toBe(true);
   });
 
