@@ -192,7 +192,9 @@ const evaluateMeasurements = async (
     // undiagnosable. Surface the Postgres error + code so the next occurrence
     // (e.g. lock timeout during claim contention) is immediately explainable.
     throw new Error(
-      `Measurement claim failed: ${claimError.message} (code ${claimError.code ?? "n/a"})`
+      `Measurement claim failed: ${claimError.message} (code ${
+        claimError.code ?? "n/a"
+      })`
     );
   }
 
@@ -219,7 +221,9 @@ const evaluateMeasurements = async (
         .limit(1);
       if (stateError)
         throw new Error(
-          `Learning state lookup failed: ${stateError.message} (code ${stateError.code ?? "n/a"})`
+          `Learning state lookup failed: ${stateError.message} (code ${
+            stateError.code ?? "n/a"
+          })`
         );
 
       const mastery = (stateRows ?? [])[0]?.mastery;
@@ -239,7 +243,9 @@ const evaluateMeasurements = async (
       );
       if (completeError)
         throw new Error(
-          `Official measurement failed: ${completeError.message} (code ${completeError.code ?? "n/a"})`
+          `Official measurement failed: ${completeError.message} (code ${
+            completeError.code ?? "n/a"
+          })`
         );
       const evaluationState =
         object(completedRow)?.evaluation_state === "INSUFFICIENT_EVIDENCE"
@@ -314,6 +320,32 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_URL")!,
       getManagedServerKey()
     );
+
+    // AI Testing Mode Gate - generation requires active testing session.
+    if (
+      request.action === "generate_candidates" ||
+      request.action === "run_all"
+    ) {
+      const institutionId = request.institutionId;
+      if (institutionId) {
+        const { data: testingActive, error: testingError } = await admin.rpc(
+          "is_ai_testing_active",
+          { p_institution_id: institutionId }
+        );
+        if (testingError) {
+          console.warn("AI testing mode check failed", testingError);
+        } else if (!testingActive) {
+          return json(200, {
+            success: true,
+            skipped: true,
+            reason: "ai_testing_not_active",
+            message:
+              "AI testing mode is not active. Skipping candidate generation.",
+            action: request.action,
+          });
+        }
+      }
+    }
 
     if (request.action === "evaluate_measurements") {
       return json(200, {

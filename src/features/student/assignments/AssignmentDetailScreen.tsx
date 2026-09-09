@@ -237,6 +237,7 @@ const AssignmentDetailScreen = () => {
         onSuccess: () => {
           captureAnalyticsEvent("assignment_submitted", {
             is_late: deadlineStatus.isLate,
+            course_id: assignmentData.course_id,
           });
           setSelectedFile(null);
           draftManager.clearDraft(`submission-draft-${id ?? "unknown"}`);

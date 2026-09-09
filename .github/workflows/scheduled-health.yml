@@ -235,3 +235,57 @@ jobs:
             "select version from supabase_migrations.schema_migrations order by version" \
             > remote-migrations.json
           node scripts/check-migration-ledger.mjs remote-migrations.json
+
+  qa-run-report:
+    name: QA Run Report → PostHog
+    needs:
+      - full-test-suite
+      - security-audit
+      - supabase-infra-audit
+      - branch-migration-health
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit qa_run event to PostHog
+        env:
+          POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
+          POSTHOG_HOST: ${{ vars.POSTHOG_HOST || 'https://us.i.posthog.com' }}
+        run: |
+          set -euo pipefail
+          TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          FULL_TEST="${{ needs.full-test-suite.result }}"
+          SEC_AUDIT="${{ needs.security-audit.result }}"
+          INFRA="${{ needs.supabase-infra-audit.result }}"
+          BRANCH="${{ needs.branch-migration-health.result }}"
+
+          ALL_PASSED="true"
+          for r in "$FULL_TEST" "$SEC_AUDIT" "$INFRA" "$BRANCH"; do
+            [[ "$r" != "success" && "$r" != "skipped" ]] && ALL_PASSED="false"
+          done
+
+          curl -s -X POST "${POSTHOG_HOST}/capture/" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg token "$POSTHOG_PROJECT_TOKEN" \
+              --arg ts "$TIMESTAMP" \
+              --arg passed "$ALL_PASSED" \
+              --arg full "$FULL_TEST" \
+              --arg sec "$SEC_AUDIT" \
+              --arg infra "$INFRA" \
+              --arg branch "$BRANCH" \
+              '{
+                api_key: $token,
+                event: "qa_run",
+                timestamp: $ts,
+                distinct_id: "scheduled-health",
+                properties: {
+                  all_passed: ($passed == "true"),
+                  full_test_suite: $full,
+                  security_audit: $sec,
+                  infra_audit: $infra,
+                  branch_health: $branch,
+                  environment: "production"
+                }
+              }')"
+
+          echo "qa_run event emitted → passed=$ALL_PASSED"

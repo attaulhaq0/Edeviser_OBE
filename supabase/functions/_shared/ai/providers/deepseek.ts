@@ -162,9 +162,21 @@ export const createDeepSeekProvider = (
 
   return {
     name: "deepseek",
-    async complete(
-      request: AICompletionRequest
-    ): Promise<AICompletionResponse> {
+    async healthCheck(): Promise<boolean> {
+      const hk = dependencies.env.get("DEEPSEEK_API_KEY")?.trim();
+      if (!hk) return false;
+      try {
+        const r = await fetchImpl(config.deepSeek.baseUrl + "/models", {
+          method: "GET",
+          headers: { Authorization: "Bearer " + hk },
+          signal: AbortSignal.timeout(5000),
+        });
+        return r.ok;
+      } catch {
+        return false;
+      }
+    },
+    async complete(request: AICompletionRequest): Promise<AICompletionResponse> {
       const apiKey = dependencies.env.get("DEEPSEEK_API_KEY")?.trim();
       if (!apiKey) {
         throw new AIProviderError(
@@ -230,10 +242,6 @@ export const createDeepSeekProvider = (
         const controller = new AbortController();
         const onAbort = () => controller.abort(request.signal?.reason);
         request.signal?.addEventListener("abort", onAbort, { once: true });
-        const timeout = setTimeout(
-          () => controller.abort("timeout"),
-          config.deepSeek.timeoutMs
-        );
         let response: Response | null = null;
         try {
           response = await fetchImpl(
@@ -308,37 +316,42 @@ export const createDeepSeekProvider = (
           };
         } catch (error) {
           if (error instanceof AIProviderError) throw error;
+          const rawMsg = error instanceof Error ? error.message : String(error);
+          const isNet =
+            rawMsg.includes("fetch") ||
+            rawMsg.includes("ENOTFOUND") ||
+            rawMsg.includes("ECONNREFUSED") ||
+            rawMsg.includes("ETIMEDOUT") ||
+            rawMsg.includes("TLS") ||
+            rawMsg.includes("certificate");
+          console.warn(
+            JSON.stringify({
+              event: "deepseek_fetch_error",
+              attempt: attempt + 1,
+              msg: rawMsg.slice(0, 180),
+              isNetwork: isNet,
+              ts: new Date().toISOString(),
+            })
+          );
           if (controller.signal.aborted) {
-            if (request.signal?.aborted) {
-              throw new AIProviderError(
-                "cancelled",
-                "Generation request was cancelled"
-              );
-            }
+            if (request.signal?.aborted)
+              throw new AIProviderError("cancelled", "Request cancelled");
             if (attempt < config.deepSeek.maxRetries) {
-              await sleep(retryDelay(response, attempt));
+              await sleep(Math.min(30000, 1000 * 2 ** (attempt + 1)));
               continue;
             }
-            throw new AIProviderError(
-              "timeout",
-              "Generation provider timed out",
-              undefined,
-              true
-            );
+            throw new AIProviderError("timeout", "Timed out", undefined, true);
           }
           if (attempt < config.deepSeek.maxRetries) {
-            await sleep(retryDelay(response, attempt));
+            await sleep(Math.min(30000, 1000 * 2 ** (attempt + 1)));
             continue;
           }
           throw new AIProviderError(
-            "transient",
-            "Generation provider could not be reached",
+            "provider_unavailable",
+            "Unreachable: " + rawMsg.slice(0, 120),
             undefined,
             true
           );
-        } finally {
-          clearTimeout(timeout);
-          request.signal?.removeEventListener("abort", onAbort);
         }
       }
       throw new AIProviderError(

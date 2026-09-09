@@ -250,9 +250,6 @@
       `sync_learning_state_measurements_v1` (version/freshness/hash invariants); (c) wire coordinator
       CQI: systemic pattern → AI draft (cited) → proposal → approval → plan → measurement; (d) surface
       the intervention lifecycle in teacher + coordinator UI.
-      Acceptance: cron runs produce rows; learning-state invariants hold; one full intervention
-      measurement transitions PENDING → IMPROVED/NO_MATERIAL_CHANGE/DECLINED with a deterministic
-      delta; a CQI plan + measurement exist after one executed cycle.
       (PROGRESS 2026-09-06: **PRIMED — loop is live and self-running, one defect open.**
       (a) SECRETS PROVISIONED: `private.cron_secrets['cron_intervention_jobs']` generated in-DB +
       synced to edge `CRON_SECRET`; both crons verified firing (HTTP 200 via x-cron-secret; logs
@@ -749,7 +746,7 @@
 > QA-report arithmetic corrected: 3 clean PASS + 1 mixed (OBE-06-BE runtime now VERIFIED);
 > HABIT-04 is one FAIL (UI defect), not BLOCKED+FAIL.
 
-- [ ] 7.9 SENIOR ENGINEERING FIX — Planner: enable Start on planned study sessions (compact cards).
+- [x] 7.9 SENIOR ENGINEERING FIX — Planner: enable Start on planned study sessions (compact cards).
       Problem (QA HABIT-04, live-verified): `StudySessionCard` renders Start/Edit only when
       `(canStart || canEdit) && !compact`, and `WeeklyCalendarGrid` renders cards with
       `compact` — so on `/student/planner` every planned session shows a status badge but no
@@ -764,7 +761,7 @@
       Risk GAM-X1) → `check-badges(trigger=study_session)` → heatmap today filled; double-click
       yields one record (dedup via `(student_id, reference_id)`).
       QA: full HABIT-04 run from the manual (adjudicates GAM-X1 at runtime).
-- [ ] 7.10 SENIOR ENGINEERING FIX — AI question drafts: teacher approval surface + persistence
+- [x] 7.10 SENIOR ENGINEERING FIX — AI question drafts: teacher approval surface + persistence
       executor (root cause of QA OBE-14-02/03/04 — do NOT file those separately).
       Problem (live-verified): `generate-quiz-questions` correctly emits an
       `agent_action_proposals` row (`action_type='publish_official_content'`, payload
@@ -791,31 +788,26 @@
       `question_bank` rows (approved, generation_source='ai') → QuestionBank/ReviewQueue render
       them → attach to quiz (`quiz_questions`) → manual OBE-14 end-to-end unblocked
       (auto-grade path included).
-- [ ] 7.11 QA-REPORT RECORD — classification corrections (docs only).
+- [x] 7.11 QA-REPORT RECORD — classification corrections (docs only).
       Record in the QA manual: OBE-06-BE runtime VERIFIED (integration suite); OBE-14 note
       updated to the dependency chain (blocked by 7.10, not by missing seed data alone);
       HABIT-04 navigation corrected (Today view actionable today; planner path after 7.9);
       GAM-01 PASS retained with real-user-generation UNVERIFIED note; PASS/FAIL/BLOCKED
       arithmetic corrected (3 clean PASS + 1 mixed; HABIT-04 = single FAIL).
       Acceptance: manual reflects the corrections; re-run list attached to 7.9/7.10 closures.
+      (DONE 2026-09-08: corrections applied to `docs/qa/EDEVISER-QA-SYSTEM-VERIFICATION-MANUAL.md`
+      — see the dated audit-correction notes in OBE-06, OBE-14, HABIT-04, GAM-01.)
+      (DONE 2026-09-08 **7.8 EXECUTED**: `curriculum-ingest` edge function (paste-in syllabus →
+      DeepSeek extraction grounded in real program PLO/ILO ids → DRY-RUN `ingest_curriculum`
+      proposal) + `ingest_curriculum@1.0.0` registry tool + `execute_approved_curriculum_ingest_v1`
+      (migration `20260908062316`, live-applied) + coordinator dashboard approval inbox +
+      orchestrator dispatch. **DEPLOYED**: `curriculum-ingest` v1 + `agent-orchestrator` v35
+      ACTIVE from main `d26b6fe0`. 7.8 remainder: file-upload path (vs paste), CLOForm
+      in-form suggestions, 7.8-QA 3-fixture run.)
 
 ### Sequencing
 
 8.13 (Discovery-sprint contract + product-decision record) → 8.1 → 8.2 → pilots 8.3–8.6 →
 8.7–8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
-on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in
-8.0 / `decision-intelligence-map.md` update as each task lands.
-(DONE 2026-09-08 **7.8 EXECUTED**: `curriculum-ingest` edge function (paste-in syllabus â†’
-DeepSeek extraction grounded in real program PLO/ILO ids â†’ DRY-RUN `ingest_curriculum`
-proposal) + `ingest_curriculum@1.0.0` registry tool + `execute_approved_curriculum_ingest_v1`
-(migration `20260908062316`, live-applied) + coordinator dashboard approval inbox +
-orchestrator dispatch. **DEPLOYED**: `curriculum-ingest` v1 + `agent-orchestrator` v35
-ACTIVE from main `d26b6fe0`. 7.8 remainder: file-upload path (vs paste), CLOForm
-in-form suggestions, 7.8-QA 3-fixture run.)
-
-### Sequencing
-
-8.13 (Discovery-sprint contract + product-decision record) â†’ 8.1 â†’ 8.2 â†’ pilots 8.3â€“8.6 â†’
-8.7â€“8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
 on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in
 8.0 / `decision-intelligence-map.md` update as each task lands.

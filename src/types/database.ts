@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -1321,6 +1321,70 @@ export type Database = {
           },
         ]
       }
+      ai_testing_sessions: {
+        Row: {
+          activated_by: string
+          created_at: string
+          deactivated_at: string | null
+          expires_at: string
+          id: string
+          institution_id: string
+          max_daily_cost_usd: number
+          notes: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activated_by: string
+          created_at?: string
+          deactivated_at?: string | null
+          expires_at?: string
+          id?: string
+          institution_id: string
+          max_daily_cost_usd?: number
+          notes?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activated_by?: string
+          created_at?: string
+          deactivated_at?: string | null
+          expires_at?: string
+          id?: string
+          institution_id?: string
+          max_daily_cost_usd?: number
+          notes?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_testing_sessions_activated_by_fkey"
+            columns: ["activated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_testing_sessions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_testing_sessions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcement_attachments: {
         Row: {
           announcement_id: string
@@ -1442,6 +1506,187 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_blueprint_slots: {
+        Row: {
+          assessment_type: string
+          blueprint_id: string
+          clo_ids: string[]
+          created_at: string
+          due_window_end: string | null
+          due_window_start: string | null
+          flags: Json | null
+          id: string
+          sequence_order: number
+          title: string
+          unit_id: string | null
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          assessment_type?: string
+          blueprint_id: string
+          clo_ids?: string[]
+          created_at?: string
+          due_window_end?: string | null
+          due_window_start?: string | null
+          flags?: Json | null
+          id?: string
+          sequence_order?: number
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          assessment_type?: string
+          blueprint_id?: string
+          clo_ids?: string[]
+          created_at?: string
+          due_window_end?: string | null
+          due_window_start?: string | null
+          flags?: Json | null
+          id?: string
+          sequence_order?: number
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_blueprint_slots_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprint_slots_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "course_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_blueprints: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          assessment_model: string
+          course_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          framework_id: string | null
+          id: string
+          institution_id: string
+          program_id: string | null
+          semester_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          assessment_model?: string
+          course_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          framework_id?: string | null
+          id?: string
+          institution_id: string
+          program_id?: string | null
+          semester_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          assessment_model?: string
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          framework_id?: string | null
+          id?: string
+          institution_id?: string
+          program_id?: string | null
+          semester_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_blueprints_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "competency_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "mv_historical_evidence"
+            referencedColumns: ["semester_id"]
+          },
+          {
+            foreignKeyName: "assessment_blueprints_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
             referencedColumns: ["id"]
           },
         ]
@@ -2865,6 +3110,7 @@ export type Database = {
       }
       course_modules: {
         Row: {
+          clo_ids: string[] | null
           course_id: string
           created_at: string
           description: string | null
@@ -2874,6 +3120,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          clo_ids?: string[] | null
           course_id: string
           created_at?: string
           description?: string | null
@@ -2883,6 +3130,7 @@ export type Database = {
           title: string
         }
         Update: {
+          clo_ids?: string[] | null
           course_id?: string
           created_at?: string
           description?: string | null
@@ -5721,6 +5969,146 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          estimated_minutes: number | null
+          id: string
+          lesson_id: string
+          outcome_ids: string[] | null
+          resources: Json | null
+          sequence_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          lesson_id: string
+          outcome_ids?: string[] | null
+          resources?: Json | null
+          sequence_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          lesson_id?: string
+          outcome_ids?: string[] | null
+          resources?: Json | null
+          sequence_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_activities_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          content: Json | null
+          course_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_minutes: number | null
+          id: string
+          institution_id: string
+          learning_objectives: string | null
+          module_id: string | null
+          outcome_ids: string[] | null
+          sequence_order: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json | null
+          course_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          institution_id: string
+          learning_objectives?: string | null
+          module_id?: string | null
+          outcome_ids?: string[] | null
+          sequence_order?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json | null
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          institution_id?: string
+          learning_objectives?: string | null
+          module_id?: string | null
+          outcome_ids?: string[] | null
+          sequence_order?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "course_modules"
             referencedColumns: ["id"]
           },
         ]
@@ -10948,6 +11336,10 @@ export type Database = {
       }
     }
     Functions: {
+      activate_ai_testing: {
+        Args: { p_duration_hours?: number; p_max_cost_usd?: number }
+        Returns: Json
+      }
       admin_update_parent_link: {
         Args: {
           p_action: string
@@ -11067,6 +11459,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      classify_problem_cases_v1: {
+        Args: { p_course_id: string }
+        Returns: Json
+      }
       complete_intervention_evaluation_v1: {
         Args: {
           p_measurement_id: string
@@ -11122,8 +11518,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      classify_problem_cases_v1: { Args: { p_course_id: string }; Returns: Json }
-      get_curriculum_ingest_suggestions_v1: { Args: { p_course_id: string }; Returns: Json }
+      compute_blueprint_coverage: {
+        Args: { p_blueprint_id: string }
+        Returns: Json
+      }
       consume_invitation: { Args: { p_token: string }; Returns: boolean }
       course_material_institution: {
         Args: { p_object_name: string }
@@ -11152,9 +11550,15 @@ export type Database = {
         Returns: Json
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      deactivate_ai_testing: { Args: never; Returns: undefined }
+      deactivate_expired_ai_sessions: { Args: never; Returns: number }
       delete_department_if_no_programs: {
         Args: { dept_id: string }
         Returns: boolean
+      }
+      detect_systemic_attainment_gaps_v1: {
+        Args: { p_program_id: string }
+        Returns: number
       }
       emit_notification: {
         Args: {
@@ -11192,6 +11596,18 @@ export type Database = {
         Args: { p_actor_id: string; p_proposal_id: string }
         Returns: Json
       }
+      execute_approved_curriculum_ingest_v1: {
+        Args: { p_actor_id: string; p_proposal_id: string }
+        Returns: Json
+      }
+      execute_approved_learning_intervention_v1: {
+        Args: { p_actor_id: string; p_proposal_id: string }
+        Returns: Json
+      }
+      execute_approved_teacher_content_v1: {
+        Args: { p_actor_id: string; p_proposal_id: string }
+        Returns: Json
+      }
       expire_stale_recovery_sessions: { Args: never; Returns: number }
       fail_intervention_evaluation_v1: {
         Args: {
@@ -11225,6 +11641,7 @@ export type Database = {
       }
       get_admin_cqi_effectiveness_v1: { Args: never; Returns: Json }
       get_admin_dashboard: { Args: never; Returns: Json }
+      get_ai_testing_status: { Args: never; Returns: Json }
       get_badge_spotlight: {
         Args: { p_student_id: string; p_week_number: number }
         Returns: string
@@ -11250,6 +11667,11 @@ export type Database = {
           covered: boolean
           quiz_count: number
         }[]
+      }
+      get_course_lessons: { Args: { p_course_id: string }; Returns: Json }
+      get_curriculum_ingest_suggestions_v1: {
+        Args: { p_course_id: string }
+        Returns: Json
       }
       get_earn_spend_ratio: {
         Args: { p_institution_id: string }
@@ -11329,6 +11751,10 @@ export type Database = {
       }
       get_parent_dashboard: { Args: never; Returns: Json }
       get_student_dashboard: { Args: { p_student_id: string }; Returns: Json }
+      get_student_learning_path: {
+        Args: { p_course_id: string }
+        Returns: Json
+      }
       get_student_learning_state_v1: {
         Args: {
           p_course_id?: string
@@ -11369,6 +11795,10 @@ export type Database = {
       increment_team_xp: {
         Args: { p_amount: number; p_team_id: string }
         Returns: undefined
+      }
+      is_ai_testing_active: {
+        Args: { p_institution_id: string }
+        Returns: boolean
       }
       is_pgcron_available: { Args: never; Returns: boolean }
       is_portfolio_publicly_accessible: {
@@ -11713,6 +12143,10 @@ export type Database = {
       validate_grade_scale_partition: {
         Args: { scales: Json }
         Returns: boolean
+      }
+      verify_at_risk_predictions: {
+        Args: { p_institution_id?: string }
+        Returns: Json
       }
     }
     Enums: {

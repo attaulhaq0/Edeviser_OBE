@@ -412,6 +412,73 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       getManagedServerKey()
     );
+
+    // Health check: verify DeepSeek is reachable before processing
+    // any jobs. If the provider is down, skip this batch entirely to avoid
+    // wasting queue capacity on guaranteed failures.
+    if (request.action === "scheduled_scan") {
+      try {
+        const provider = createAIProvider(config, { env: Deno.env });
+        if (provider.healthCheck) {
+          const healthy = await provider.healthCheck();
+          if (!healthy) {
+            return json(200, {
+              success: true,
+              skipped: true,
+              reason: "provider_unhealthy",
+            });
+          }
+        }
+      } catch (err) {
+        return json(200, {
+          success: true,
+          skipped: true,
+          reason: "provider_health_check_error",
+        });
+      }
+    }
+
+    // Health check: verify provider reachable before processing.
+    if (request.action === "scheduled_scan") {
+      try {
+        const provider = createAIProvider(config, { env: Deno.env });
+        if (provider.healthCheck) {
+          const healthy = await provider.healthCheck();
+          if (!healthy) return json(200, { success: true, skipped: true, reason: "provider_unhealthy" });
+        }
+      } catch { return json(200, { success: true, skipped: true, reason: "provider_health_check_error" }); }
+    }
+
+    // AI Testing Mode Gate - background agents only run during active testing sessions.
+    if (request.action === "scheduled_scan") {
+      const institutionId = request.institutionId;
+      if (institutionId) {
+        const { data: testingActive, error: testingError } = await admin.rpc(
+          "is_ai_testing_active",
+          { p_institution_id: institutionId }
+        );
+        if (testingError) {
+          console.warn(
+            "AI testing mode check failed - skipping scheduled scan",
+            testingError
+          );
+          return json(200, {
+            success: true,
+            skipped: true,
+            reason: "ai_testing_check_failed",
+          });
+        }
+        if (!testingActive) {
+          return json(200, {
+            success: true,
+            skipped: true,
+            reason: "ai_testing_not_active",
+            message:
+              "AI testing mode is not active. Activate from the dashboard.",
+          });
+        }
+      }
+    }
     if (request.action === "evidence_event") {
       const { error: refreshError } = await admin.rpc(
         "refresh_student_learning_state_v1",

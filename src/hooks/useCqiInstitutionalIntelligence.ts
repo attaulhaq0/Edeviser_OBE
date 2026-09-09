@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/lib/supabase";
@@ -81,3 +81,29 @@ export const useAdminCqiEffectiveness = () =>
       return adminEffectivenessSchema.parse(data);
     },
   });
+
+/**
+ * 7.4(c): deterministic systemic-pattern detector. Runs the coordinator's
+ * authorized program through detect_systemic_attainment_gaps_v1 â€” the
+ * detector derives patterns ONLY from canonical outcome_attainment (no AI).
+ * Returns the number of pattern rows checked (inserted or refreshed).
+ */
+export const useDetectCqiPatterns = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["cqiInstitutional", "detect"] as const,
+    mutationFn: async (programId: string): Promise<number> => {
+      const { data, error } = await supabase.rpc(
+        "detect_systemic_attainment_gaps_v1" as never,
+        { p_program_id: programId } as never
+      );
+      if (error) throw error;
+      return typeof data === "number" ? data : 0;
+    },
+    onSuccess: (_data, programId) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cqiInstitutional.patterns(programId),
+      });
+    },
+  });
+};
