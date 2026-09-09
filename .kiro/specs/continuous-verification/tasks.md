@@ -87,7 +87,11 @@
       streak increment (using seeded personas)
 - [ ] 4.3 Route×role matrix sweep (criticalRoutes.ts) nightly in
       `scheduled-health.yml`
-- [ ] 4.4 `qa_run` event emitted per nightly run (PostHog qa project)
+- [x] 4.4 `qa_run` event emitted per nightly run (PostHog qa project)
+      → DONE: `scheduled-health.yml` now includes `qa-run-report` job that
+      emits `qa_run` event to PostHog capture API after all health checks.
+      Event carries `all_passed`, per-job statuses, and `environment` props.
+      Requires `POSTHOG_PROJECT_TOKEN` GitHub Actions secret (public `phc_*` key).
 
 ## Phase 5 — Drift & reporting
 - [ ] 5.1 `promise-matrix.md` seeded from QA manual statuses; re-scored per run
