@@ -262,7 +262,8 @@
       no infinite loop). Needs a dedicated debugging pass (local edge-runtime repro / deeper log
       access) — NOT masked. Also found: worker flag-gated (`AI_PROACTIVE_AGENTS_ENABLED` now true;
       `AI_FEATURE_ENABLED` was already true, `AI_DAILY_BUDGET_USD=1`); `agent-evaluation-jobs`
-      cron remains flag-off (separate gate, intentionally untouched). (c)(d) CQI wiring + UI
+      cron remains flag-off (separate gate, intentionally untouched). (c)(d) CQI wiring + UI (UPDATED 2026-09-09: complete - detector, Create Plan from Pattern, testing mode gates, health checks, exponential backoff, 4 crons unscheduled, 16 contract tests, edge functions deployed v33/v37/v18)
+
       surfaces remain.)
 - [ ] 7.4-QA SENIOR QA — Closed-loop end-to-end proof.
       Method: on a populated Preview tenant invoke `intervention-jobs` manually (x-cron-secret);
@@ -294,6 +295,9 @@
       Problem: `useGapAnalysis`/`useCoverageHeatmap`/`useSankeyData` fetch ALL outcomes/mappings/
       evidence and compute in-browser; `gapAnalysis.ts` recommendations are hardcoded strings;
       all-table reads are a performance + RLS-consistency risk at institutional scale.
+      (EXECUTED 2026-09-09: all three views fed by ONE scoped RPC get_coordinator_analytics_v1;
+      deterministic classification in shared libs; 8 visualization hook tests + 3 property tests
+      covering gap analysis, coverage heatmap, sankey, and RPC deduplication.)
       Fix: program/semester-scoped read RPCs (RLS-enforced) returning gap/coverage/sankey payloads;
       deterministic classification lives in ONE source (SQL or a shared lib the RPC calls); client
       becomes pure presentation.
