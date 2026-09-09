@@ -986,10 +986,16 @@ on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering
       list; remeasured attainment vs baseline.
 
 ### 9.9 — Immediate Actions (working now)
-- [ ] 9.9.1 Create seed tenant: IB-Only School (MYP only, 2 courses, criterion model)
-- [ ] 9.9.2 Create seed tenant: British-Only School (IGCSE only, band_grade model)
-- [ ] 9.9.3 Create seed tenant: Qatar National School (MoEHE only, bilingual, compulsory)
-- [ ] 9.9.4 Create seed tenant: Multi-Track Academy (MYP+IGCSE+MoEHE, 3 frameworks)
+- [~] 9.9.1 Create seed tenant: IB-Only School (MYP only, 2 courses, criterion model)
+      → SQL script created: `supabase/seeds/framework-tenants.sql`. MYP framework
+      assignment + course assessment_model update included. New institution creation
+      requires `bootstrap_tenant_v1` RPC invocation (manual step).
+- [~] 9.9.2 Create seed tenant: British-Only School (IGCSE only, band_grade model)
+- [~] 9.9.3 Create seed tenant: Qatar National School (MoEHE only, bilingual, compulsory)
+- [~] 9.9.4 Create seed tenant: Multi-Track Academy (MYP+IGCSE+MoEHE, 3 frameworks)
+      → 9.9.2-9.9.4 documented in seed SQL with framework IDs and INSERT patterns.
+      Full tenant creation requires `bootstrap_tenant_v1` + `start_pilot_onboarding` RPCs
+      which need authenticated admin session (cannot be automated from SQL CLI).
 - [x] 9.9.5 Create E2E test: E2E-1 (MYP criterion chain) as Vitest integration spec
       → DONE: `src/__tests__/unit/frameworkE2E.test.ts` — 26 tests covering
       E2E-1 (MYP criterion), E2E-2 (IGCSE AO-weighted), E2E-3 (QNSA bilingual),
