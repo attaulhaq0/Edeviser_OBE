@@ -1,14 +1,14 @@
-// =============================================================================
+﻿// =============================================================================
 // usePlannerTasks — CRUD mutations for planner tasks with XP on completion
 // =============================================================================
 
-import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
 import { awardWeeklyGoalXPIfMet } from "@/hooks/useWeeklyGoalXP";
 import { toast } from "sonner";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 import type { PlannerTask } from "@/types/planner";
 import type { CreatePlannerTaskInput } from "@/lib/schemas/planner";
 import type { TablesUpdate } from "@/types/database";
@@ -285,6 +285,7 @@ export const useCompleteTask = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.badges.lists() });
     },
     onSuccess: ({ xpAwarded }) => {
+      captureAnalyticsEvent("planner_task_completed", { xp_awarded: xpAwarded });
       if (xpAwarded > 0) {
         toast.success(`Task completed! +${xpAwarded} XP`);
       } else {

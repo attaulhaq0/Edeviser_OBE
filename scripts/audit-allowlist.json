@@ -1,10 +1,24 @@
 {
   "_comment": "Allowlist for dependency-audit CI gate (scripts/check-audit.cjs). ONLY dev-only advisories with no patched upstream release may be listed. Each entry must state the GHSA id, why it cannot be fixed, and a review-by date.",
-  "advisories": ["GHSA-jmr9-qjv8-65gv"],
+  "advisories": [
+    "GHSA-jmr9-qjv8-65gv",
+    "GHSA-7pqw-9j4j-h8q3",
+    "GHSA-2883-xcg3-v3hh"
+  ],
   "justifications": {
     "GHSA-jmr9-qjv8-65gv": {
       "package": "extract-zip (via @puppeteer/browsers <- lighthouse/@lhci/cli, devDependencies only)",
       "reason": "No patched extract-zip release exists (all versions affected); upstream fix pending. Not bundled into production build; exploit requires running lighthouse extraction locally against a malicious zip.",
+      "review_by": "2026-11-30"
+    },
+    "GHSA-7pqw-9j4j-h8q3": {
+      "package": "extract-zip (via @puppeteer/browsers <- lighthouse/@lhci/cli, devDependencies only)",
+      "reason": "Second advisory on same unpatched extract-zip package; same chain as GHSA-jmr9-qjv8-65gv. Not bundled into production build.",
+      "review_by": "2026-11-30"
+    },
+    "GHSA-2883-xcg3-v3hh": {
+      "package": "js-yaml (via @vercel/node <- @lhci/cli, devDependencies only)",
+      "reason": "js-yaml maxTotalMergeKeys CPU DoS — no patched release yet. Dev-only Lighthouse CI toolchain; never loaded in production browser or edge runtime. Not exploitable remotely.",
       "review_by": "2026-11-30"
     }
   }
