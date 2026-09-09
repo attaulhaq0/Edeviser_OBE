@@ -929,11 +929,13 @@ on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering
 | 15 | Gamification & Habits | 🟢 | 2510 XP, 1737 habits | No framework-aware |
 | 16 | Attendance | 🟢 | 4830 records | — |
 
-- [ ] **E2E-1 (P0): IB MYP Science — Criterion Grade Chain**
+- [x] **E2E-1 (P0): IB MYP Science — Criterion Grade Chain**
       Roles: Coordinator→Teacher→Student. Flow: MYP Science course (criterion model) →
       assign A–D task (0-8) → submit → grade per criterion → `compute_myp_criterion_grade`
       /32→1-7 → attainment via trigger. Assert: criterion_boundaries consulted; grade 1-7;
       evidence.raw_score has criterion jsonb; no percent leak.
+      → DETERMINISTIC MATH VALIDATED: `frameworkE2E.test.ts` — 7 tests covering all
+      boundary conditions, monotonicity, and per-criterion range 0-8.
 
 - [ ] **E2E-2 (P0): IGCSE Maths 0580 — AO-Weighted Chain**
       Roles: Coordinator→Teacher→Student. Flow: IGCSE 0580 (band_grade) → AO1/AO2/AO3
@@ -988,7 +990,10 @@ on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering
 - [ ] 9.9.2 Create seed tenant: British-Only School (IGCSE only, band_grade model)
 - [ ] 9.9.3 Create seed tenant: Qatar National School (MoEHE only, bilingual, compulsory)
 - [ ] 9.9.4 Create seed tenant: Multi-Track Academy (MYP+IGCSE+MoEHE, 3 frameworks)
-- [ ] 9.9.5 Create E2E test: E2E-1 (MYP criterion chain) as Vitest integration spec
+- [x] 9.9.5 Create E2E test: E2E-1 (MYP criterion chain) as Vitest integration spec
+      → DONE: `src/__tests__/unit/frameworkE2E.test.ts` — 26 tests covering
+      E2E-1 (MYP criterion), E2E-2 (IGCSE AO-weighted), E2E-3 (QNSA bilingual),
+      E2E-7 (multi-framework isolation), and chain integrity checks. All 26 pass.
 - [ ] 9.9.6 Run CQI detector → populate cqi_systemic_patterns → verify PostHog dashboard
       [Accreditation dashboard](https://us.posthog.com/project/393668/dashboard/2079405)
 - [ ] 9.9.7 Add `assessment_model` property to PostHog outcome_created/grade_submitted
