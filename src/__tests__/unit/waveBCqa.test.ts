@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 // --- 8.3-QA: MYP criterion math ---------------------------------------
 
 describe("8.3-QA: MYP criterion engine", () => {
-  const boundaries = [
+  const boundaries: [number,number][] = [
     [0,1],[5,2],[9,3],[13,4],[17,5],[22,6],[27,7]
   ];
 
@@ -43,7 +43,7 @@ describe("8.3-QA: MYP criterion engine", () => {
 // --- 8.4-QA: IGCSE grade boundaries -----------------------------------
 
 describe("8.4-QA: IGCSE band engine", () => {
-  const igcseBounds = [
+  const igcseBounds: [number,string][] = [
     [90,'9'],[80,'8'],[70,'7'],[60,'6'],[50,'5'],
     [40,'4'],[30,'3'],[20,'2'],[10,'1'],[0,'U']
   ];
