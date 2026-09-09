@@ -65,7 +65,7 @@ const executeIntervention = (p: Proposal): { intervention_id: string; affected: 
 
 describe('E2E-10: Agentic Intervention — Proposal->Approve->Execute', () => {
   it('P10a: proposal transitions draft->pending->approved->executed', () => {
-    let p: Proposal = { status: 'draft', action_type: 'create_intervention', approver: 'coordinator' };
+    const p: Proposal = { status: 'draft', action_type: 'create_intervention', approver: 'coordinator' };
     expect(transitionProposal(p, 'pending')).toBe('pending');
     p.status = 'pending';
     expect(transitionProposal(p, 'approved')).toBe('approved');

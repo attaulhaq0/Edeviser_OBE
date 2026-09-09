@@ -41,7 +41,7 @@ describe('E2E-5: CQI Closed Loop', () => {
     expect(validatePattern(pattern)).toContain('affected_population must be >= 2');
   });
   it('P5d: plan transitions draft->approved->in_progress->evaluated', () => {
-    let plan = { status: 'draft' };
+    const plan = { status: 'draft' };
     expect(transitionPlan(plan, 'approved')).toBe('approved');
     plan.status = 'approved';
     expect(transitionPlan(plan, 'in_progress')).toBe('in_progress');
