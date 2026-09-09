@@ -1010,3 +1010,31 @@ on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering
       events (read from course row) for framework-aware analytics filtering.
       → PARTIAL: `assignment_submitted` now includes `course_id` for downstream join.
       Full assessment_model enrichment needs course query in grade/outcome hooks.
+
+### 9.10 — PostHog dashboard visibility root-cause + fix (2026-09-09)
+
+> **Root cause identified**: All 73 users are seed accounts →
+> `identifyAnalyticsUser()` sets `account_type: "seed"` → ALL 53 insights have
+> `filterTestAccounts: true` → every custom event IS captured in PostHog but
+> FILTERED OUT of dashboard queries → dashboards show "No matching events".
+> Autocapture events (`$pageview`, `$exception`) DO show because they fire
+> before `identify()` (anonymous). The event pipeline itself is healthy.
+
+- [~] 9.10.1 `VITE_POSTHOG_INCLUDE_SEED` env flag — when `"true"` in dev/preview,
+      `isSeedAccount()` returns `false` so seed users report `account_type: "real"`
+      and ALL insights show their data. Production must keep `"false"`/unset.
+      → PR #338 (`feat/show-events-fix`): `seedAccounts.ts` + `.env.example`.
+- [~] 9.10.2 Immediate insight unblock — OBE outcomes insight (vQO2sA31) updated
+      to `filterTestAccounts: false` via MCP for immediate visibility.
+- [x] 9.10.3 Frontend QA test flow guide —
+      [`docs/qa/FRONTEND-QA-TEST-FLOW.md`](../../docs/qa/FRONTEND-QA-TEST-FLOW.md)
+      — 487-line guide for a new QA tester: 96 routes across 5 roles, 8 chain
+      tests (submit→grade, quiz→attainment, attendance→parent, announcement→all,
+      AI tutor, parent portal, planner→XP→badge, CQI detection), CRUD lifecycle
+      checks, permission isolation, bilingual RTL, validation, cookie consent,
+      responsive, bug report template. Frontend-only (no PostHog/DB access needed).
+- [ ] 9.10.4 Set `VITE_POSTHOG_INCLUDE_SEED=true` in Vercel Preview env vars
+      (manual step after PR #338 merges) → all 8 dashboards populate with seed data.
+- [ ] 9.10.5 Layer 3: create real pilot tenants via `start_pilot_onboarding`
+      (Doha British/IB/Qatar National) so production analytics have
+      `account_type: "real"` data without the seed flag.
