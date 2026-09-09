@@ -831,4 +831,78 @@
 8.7–8.8; 8.9 + 8.10 depend on Phase-7 primes (7.4 / 7.6 / 7.7 / 7.8); 8.10 (closed loop) depends
 on 8.11 (TEACH) + 8.12 (ASSESS). QA task ships in the same PR as its engineering task. Map rows in
 8.0 / `decision-intelligence-map.md` update as each task lands.
- -->
+
+## Phase 9 — Multi-Framework Adaptivity & Qatar Market E2E (2026-09-09)
+
+> OBE is the universal engine (ILO→PLO→CLO→attainment). Accreditation frameworks are grading
+> "skins" on top (IB criterion, IGCSE band, MoEHE attributes). A school using ONLY one framework
+> must never see others — `institution_framework_assignments` scopes via RLS.
+> Qatar market: QNSA self-study, MoEHE bilingual, compulsory Arabic/Islamic/Qatar History.
+
+### 9.0 — Architecture (record; do not build)
+- [x] OBE = engine (outcomes→evidence→attainment); Accreditation = grading skin
+      (assessment_model: percent|criterion|band_grade|component). Every school runs the
+      same OBE engine; the framework selects the grading conversion. Qatar market confirmed:
+      QNSA, MoEHE, IB MYP/DP, IGCSE, AP pending.
+
+### 9.1 — Single-framework isolation verification
+- [ ] 9.1.1 "IB-Only School" tenant — assigned ONLY MYP; verify: coordinator sees MYP
+      criterion scales only; IGCSE/MoEHE framework data invisible (RLS); grade_boundaries
+      empty for this tenant.
+- [ ] 9.1.2 "British-Only School" tenant — IGCSE only; verify: band_grade scales visible;
+      MYP criterion_boundaries invisible; AO1-3 weighted attainment works.
+- [ ] 9.1.3 "Qatar National School" tenant — MoEHE only; verify: bilingual learner
+      attributes (AR/EN); compulsory subject tracking; QNSA evidence pack with Arabic-first UI.
+- [ ] 9.1.4 Multi-tenant RLS isolation: IB student queries competency_frameworks → returns
+      ONLY assigned framework rows (0 cross-tenant leakage); pgTAP isolation suite.
+
+### 9.2 — Multi-track coexistence (Doha-British-like)
+- [ ] 9.2.1 "Multi-Track Academy" — MYP + IGCSE + MoEHE assigned to ONE institution.
+      KS3=IGCSE model; MYP=criterion; Arabic=MoEHE percent. 3 models coexist without conflict.
+- [ ] 9.2.2 Per-course model isolation: MYP Science→criterion grade; IGCSE Maths 0580→
+      band_grade with AO weights; Arabic→percent default. Three courses, three models, one
+      institution, no cross-contamination.
+- [ ] 9.2.3 Grade boundary verification: MYP student→compute_myp_criterion_grade returns
+      1-7; IGCSE student→compute_igcse_grade returns 9-1/U. Never crossed.
+
+### 9.3 — Qatar market compliance verification
+- [ ] 9.3.1 QNSA evidence pack: generate get_moehe_evidence_pack(program_id) → assert
+      bilingual outcome titles (AR/EN), learnerAttributes populated, outcomeAttainment
+      with evidence citations, no PII in export, RTL correct.
+- [ ] 9.3.2 Compulsory subjects: Arabic + Islamic Education + Qatar History marked with
+      curriculum_code; verified in evidence pack; deletion blocked (RLS + trigger guard).
+- [ ] 9.3.3 Arabic-first UI: RTL rendering for MoEHE-tenant; Arabic outcome names displayed;
+      i18n:check green for all AR locale keys in accreditation flows.
+- [ ] 9.3.4 Accreditation body mapping: institution_settings.accreditation_bodies accepts
+      ['QNSA','BSO','CIS','IB']; old accreditation_body CHECK dropped (migration live).
+
+### 9.4 — Full end-to-end per framework
+- [ ] 9.4.1 IB MYP E2E: coordinator creates MYP Science → teacher assigns criterion A–D
+      (0-8) task → student submits → teacher grades per criterion → compute_myp_criterion_grade
+      /32→1-7 → attainment stored → evidence chain intact → moderator views distribution.
+- [ ] 9.4.2 IGCSE E2E: coordinator creates IGCSE Maths 0580 → teacher assigns AO1/AO2/AO3
+      task → student submits → teacher grades raw band → compute_igcse_grade→9-1 →
+      attainment with AO weights.
+- [ ] 9.4.3 MoEHE E2E: coordinator creates Arabic course → teacher assigns task → grades
+      percent → attainment with bilingual labels → QNSA evidence pack generated.
+- [ ] 9.4.4 Cross-framework RLS: IB-only student sees only criterion grades; British-only
+      student sees only band_grade grades. No framework data leaks between tenants.
+
+### 9.5 — PostHog accreditation observability
+- [x] 9.5.1 Accreditation dashboard [2079405](https://us.posthog.com/project/393668/dashboard/2079405)
+      created — framework matrix tile + OBE outcomes + student E2E flow.
+- [ ] 9.5.2 Framework-tagged events: add `assessment_model` property to outcome_created,
+      grade_submitted, assignment_submitted (read from course row) so dashboards filter by
+      MYP vs IGCSE vs MoEHE usage.
+- [ ] 9.5.3 Accreditation events: accreditation_pack_generated when evidence packs produced;
+      cqi_pattern_detected from systemic detector (RPC exists, needs client emit).
+
+### 9.6 — Documentation refresh
+- [ ] 9.6.1 docs/product/ — framework support matrix, Qatar market positioning, multi-track
+      architecture diagram, OBE-vs-accreditation explanation.
+- [ ] 9.6.2 docs/investor/ — framework coverage as competitive moat, Qatar/GCC compliance
+      as barrier-to-entry, multi-track as differentiator.
+- [ ] 9.6.3 docs/agent/ — framework-aware AI context (tutor knows assessment model per
+      course; CQI detector is framework-agnostic).
+- [ ] 9.6.4 README.md session record — 2026-09-09 framework audit, dashboard counts,
+      PostHog configuration state. -->
