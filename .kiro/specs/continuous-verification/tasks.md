@@ -158,7 +158,7 @@
       enrollment fallback; verified **0 orphaned submissions / evidence rows**. (c) RESOLVED BY
       EVIDENCE: all 8 relevant FKs already exist and are convalidated=true — the structural guard
       exists; root cause of the ghosts was a superuser `session_replication_role=replica` bypass
-      (documented, README session E). REMAINING: (b) deterministic seed replay + 7.1-QA preview
+      (documented, README session E). REMAINING: (a) DONE, (c) DONE (orphaned data reconciled, FKs verified); (b) deterministic seed replay + 7.1-QA preview
       replay/diff — owner/CI steps.)
 - [ ] 7.1-QA SENIOR QA — Chain integrity after reconciliation.
       Method: replay in a throwaway Preview branch; diff live vs preview counts; full-outer-join orphan
@@ -232,7 +232,7 @@
 
 ### F4 — Closed-loop tables never written (states, interventions, CQI, accreditation)
 - [ ] 7.4 SENIOR ENGINEERING FIX — Prime and formalize the closed loop.
-      Problem: `student_learning_states=0`, `learning_interventions=0`, `intervention_measurements=0`,
+      (EXECUTED 2026-09-09: (a) cron secrets provisioned; (b) 41/41 learning states fresh; (c) CQI detector wired with Create Plan from Pattern UI + query invalidation; (d) intervention lifecycle surface on Unit-Close; agent-worker + intervention-jobs gated on testing mode with health checks and exponential backoff; 4 pg_cron AI jobs unscheduled; 16 deterministic closed-loop contract tests; edge functions deployed agent-worker v33, orchestrator v37, intervention-jobs v18.) Problem: `student_learning_states=0`, `learning_interventions=0`, `intervention_measurements=0`,
       `proactive_agent_jobs=0`, `agent_action_proposals/executions=0`, `cqi_systemic_patterns=0`,
       `cqi_action_plans=0`, `cqi_action_plan_measurements=0`, accreditation reports=0 — the loop
       scaffolding exists (sync trigger, SKIP LOCKED claim/evaluate RPCs, cron jobs) but nothing
@@ -292,7 +292,7 @@
 
 ### F6 — Analytics computed client-side over full tables
 - [ ] 7.6 SENIOR ENGINEERING FIX — Scoped server analytics RPCs.
-      Problem: `useGapAnalysis`/`useCoverageHeatmap`/`useSankeyData` fetch ALL outcomes/mappings/
+      (EXECUTED 2026-09-09: all three views fed by ONE program-scoped RPC get_coordinator_analytics_v1 (invoker-rights); deterministic classification in shared libs (gapAnalysis/coverageHeatmap/sankeyTransform); 8 visualization hook tests + 3 property tests covering gap analysis, coverage heatmap, sankey, and RPC deduplication.) Problem: `useGapAnalysis`/`useCoverageHeatmap`/`useSankeyData` fetch ALL outcomes/mappings/
       evidence and compute in-browser; `gapAnalysis.ts` recommendations are hardcoded strings;
       all-table reads are a performance + RLS-consistency risk at institutional scale.
       (EXECUTED 2026-09-09: all three views fed by ONE scoped RPC get_coordinator_analytics_v1;
@@ -552,7 +552,7 @@
 
 ### Wave D — Educational Decision Intelligence (the "answers questions" engine)
 - [ ] 8.9 SENIOR ENGINEERING FIX — Problem taxonomy + decision-intelligence engine.
-      Problem: the platform cannot answer the decision stack — Why is it failing? Who is affected?
+      (EXECUTED 2026-09-07: classify_problem_cases_v1 deterministic engine live; ownership routing (Q5) applied via MCP; 8.9-QA decision-stack suite EXECUTED (Q1-Q8); problemCaseActions deterministic cited draft builder; DecisionIntelligenceSection UI on Unit-Close; 4 unit tests passing. Remaining for 8.9 closure: AI explanation from authorized evidence (DeepSeek, citation-fail-closed).) Problem: the platform cannot answer the decision stack — Why is it failing? Who is affected?
       What intervention? Who performs it? Did it work? Change curriculum? — nor classify the failure
       as student / teacher / assessment / prerequisite / curriculum-design problem. Gap-analysis
       recommendations are hardcoded strings (`src/lib/gapAnalysis.ts`); no root-cause model exists.
