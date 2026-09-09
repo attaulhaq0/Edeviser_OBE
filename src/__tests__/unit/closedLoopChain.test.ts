@@ -48,7 +48,6 @@ describe("CQI systemic pattern lifecycle", () => {
 // --- Chain Step 2: CQI Plan Status Machine -----------------------------
 
 describe("CQI action plan status transitions", () => {
-  const planStates = ["planned", "in_progress", "completed", "evaluated"] as const;
   const transitions: Record<string, string | null> = {
     planned: "in_progress",
     in_progress: "completed",
