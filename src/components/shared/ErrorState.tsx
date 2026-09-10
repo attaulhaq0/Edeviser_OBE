@@ -31,7 +31,7 @@ const ErrorState = ({
       className
     )}
   >
-    <div className="mb-4 rounded-full bg-red-50 p-4">
+    <div className="mb-4 rounded-full bg-transparent p-4">
       {icon ?? <AlertCircle className="h-8 w-8 text-red-500" />}
     </div>
     <h3 className="text-lg font-bold tracking-tight text-gray-900">{title}</h3>

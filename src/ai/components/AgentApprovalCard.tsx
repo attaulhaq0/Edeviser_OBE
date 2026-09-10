@@ -159,7 +159,7 @@ const AgentApprovalCard = ({
         {errorCode && (
           <div
             role="alert"
-            className="rounded-lg bg-red-50 p-2.5 text-xs font-semibold text-red-700"
+            className="rounded-lg bg-transparent p-2.5 text-xs font-semibold text-red-700"
           >
             {t(`approvalCard.errors.${errorCode.code}`)}
           </div>

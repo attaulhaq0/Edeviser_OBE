@@ -414,7 +414,7 @@ const TeacherStudentsPage = () => {
                                   {student.low_clo_count} CLOs below 50%
                                 </span>
                                 {prediction ? (
-                                  <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-700">
+                                  <span className="rounded-full bg-transparent px-3 py-1 font-semibold text-blue-700">
                                     Evidence: {prediction}
                                   </span>
                                 ) : null}

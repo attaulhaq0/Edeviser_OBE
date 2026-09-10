@@ -275,7 +275,7 @@ export const CompleteProfilePage = () => {
               {!isComplete && (
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className="h-full rounded-full bg-blue-500"
+                    className="h-full rounded-full bg-transparent0"
                     style={{ width: `${dim.percentage}%` }}
                   />
                 </div>

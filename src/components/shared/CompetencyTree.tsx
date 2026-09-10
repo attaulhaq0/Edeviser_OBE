@@ -50,7 +50,7 @@ const TreeNode = ({
   return (
     <div>
       <div
-        className={`flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-slate-50 cursor-pointer ${
+        className={`flex items-center gap-2 py-1.5 px-2 rounded-lg hover: cursor-pointer ${
           depth > 0 ? "ml-" + depth * 4 : ""
         }`}
         style={{ marginLeft: depth * 16 }}

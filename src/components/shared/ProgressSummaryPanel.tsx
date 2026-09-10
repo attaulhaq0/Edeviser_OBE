@@ -55,7 +55,7 @@ const ProgressSummaryPanel = ({
       <div className="space-y-6 px-5 pb-5">
         {/* KPI Row */}
         <div className="grid grid-cols-3 gap-4">
-          <PCard className="rounded-[14px] bg-amber-50 p-3 text-center shadow-none">
+          <PCard className="rounded-[14px] bg-transparent p-3 text-center shadow-none">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Clock className="h-3.5 w-3.5 text-amber-600" />
             </div>
@@ -69,7 +69,7 @@ const ProgressSummaryPanel = ({
               Study Time
             </p>
           </PCard>
-          <PCard className="rounded-[14px] bg-blue-50 p-3 text-center shadow-none">
+          <PCard className="rounded-[14px] bg-transparent p-3 text-center shadow-none">
             <div className="flex items-center justify-center gap-1 mb-1">
               <BookOpen className="h-3.5 w-3.5 text-blue-600" />
             </div>
@@ -83,7 +83,7 @@ const ProgressSummaryPanel = ({
               Sessions
             </p>
           </PCard>
-          <PCard className="rounded-[14px] bg-green-50 p-3 text-center shadow-none">
+          <PCard className="rounded-[14px] bg-transparent p-3 text-center shadow-none">
             <div className="flex items-center justify-center gap-1 mb-1">
               <CheckSquare className="h-3.5 w-3.5 text-green-600" />
             </div>

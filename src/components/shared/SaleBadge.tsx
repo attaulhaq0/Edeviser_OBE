@@ -16,7 +16,7 @@ const SaleBadge = ({ discountPercentage, className }: SaleBadgeProps) => {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white",
+        "inline-flex items-center gap-1 rounded-full bg-transparent0 px-2 py-0.5 text-xs font-bold text-white",
         className
       )}
     >

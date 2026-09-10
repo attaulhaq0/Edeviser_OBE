@@ -183,7 +183,7 @@ const NotificationBell = () => {
             <span
               aria-live="polite"
               aria-label={t("header.unreadCount", { count: unreadCount })}
-              className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none"
+              className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-transparent0 px-1 text-[10px] font-bold text-white leading-none"
             >
               {badgeCount}
             </span>

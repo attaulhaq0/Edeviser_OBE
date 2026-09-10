@@ -121,7 +121,7 @@ const DiscussionModeration = ({
                       {thread.title}
                     </h3>
                     {thread.is_resolved && (
-                      <span className="flex items-center gap-0.5 text-[10px] font-bold tracking-widest uppercase text-green-600 bg-green-50 px-1.5 py-0.5 rounded shrink-0">
+                      <span className="flex items-center gap-0.5 text-[10px] font-bold tracking-widest uppercase text-green-600 bg-transparent px-1.5 py-0.5 rounded shrink-0">
                         <CheckCircle2 className="h-3 w-3" /> Resolved
                       </span>
                     )}

@@ -50,7 +50,7 @@ const ContentReviewPage = () => {
               className="bg-white border-0 shadow-md rounded-xl p-4"
             >
               <div className="flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-blue-50">
+                <div className="p-2 rounded-lg ">
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">

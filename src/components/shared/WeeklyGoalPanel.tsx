@@ -232,7 +232,7 @@ const WeeklyGoalPanel = ({
           /* Empty state */
           exampleGoals && exampleGoals.length > 0 ? (
             <div className="space-y-3">
-              <div className="flex items-start gap-2 rounded-lg border border-dashed border-teal-300 bg-teal-50/40 p-3">
+              <div className="flex items-start gap-2 rounded-lg border border-dashed border-teal-300 /40 p-3">
                 <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-teal-500" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-800">

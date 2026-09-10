@@ -60,7 +60,7 @@ const TeamBadgeDisplay = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 border border-amber-200"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-transparent border border-amber-200"
               title={`${badge.badge_name} — ${
                 TEAM_BADGE_DESCRIPTIONS[badge.badge_key] ?? ""
               }`}

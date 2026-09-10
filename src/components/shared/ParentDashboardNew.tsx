@@ -78,7 +78,7 @@ const ParentDashboardNew = () => {
             icon={CalendarDays}
             label={t("parentDashboard.deadlines")}
             value={kpis?.upcomingDeadlines ?? 0}
-            iconBgClass="bg-amber-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-amber-600"
           />
         </div>
@@ -134,7 +134,7 @@ const ParentDashboardNew = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="mb-3 rounded-full bg-blue-50 p-3">
+            <div className="mb-3 rounded-full bg-transparent p-3">
               <Users className="h-8 w-8 text-blue-500" aria-hidden="true" />
             </div>
             <p className="max-w-[260px] text-sm text-gray-500">

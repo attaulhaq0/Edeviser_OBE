@@ -313,7 +313,7 @@ export const AdminAccreditationReportsPage: React.FC = () => {
 
         {/* Status Tiles Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-          <div className="rounded-xl p-3 bg-emerald-50 border border-emerald-200 flex flex-col">
+          <div className="rounded-xl p-3 bg-transparent border border-emerald-200 flex flex-col">
             <b className="text-lg font-black text-emerald-700">
               {summary.documented}
             </b>
@@ -322,14 +322,14 @@ export const AdminAccreditationReportsPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="rounded-xl p-3 bg-sky-50 border border-sky-200 flex flex-col">
+          <div className="rounded-xl p-3 bg-transparent border border-sky-200 flex flex-col">
             <b className="text-lg font-black text-sky-700">{summary.partial}</b>
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 mt-1">
               In progress
             </span>
           </div>
 
-          <div className="rounded-xl p-3 bg-rose-50 border border-rose-200 flex flex-col">
+          <div className="rounded-xl p-3 bg-transparent border border-rose-200 flex flex-col">
             <b className="text-lg font-black text-rose-700">
               {summary.blocked}
             </b>

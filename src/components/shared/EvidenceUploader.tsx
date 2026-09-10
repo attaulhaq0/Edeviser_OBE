@@ -284,7 +284,7 @@ const EvidenceUploader = ({
       {/* Error Message */}
       {error && (
         <div
-          className="flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600"
+          className="flex items-center gap-2 rounded-md bg-transparent px-3 py-2 text-sm text-red-600"
           role="alert"
         >
           <AlertCircle className="h-4 w-4 shrink-0" />

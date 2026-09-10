@@ -334,7 +334,7 @@ const BulkImportPage = () => {
 
           {/* Warning for invalid rows */}
           {invalidRows.length > 0 && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
+            <div className="flex items-start gap-2 p-3 rounded-lg text-amber-800 text-sm">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
                 {invalidRows.length} invalid rows will be skipped. Only valid

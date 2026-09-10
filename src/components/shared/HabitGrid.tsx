@@ -36,7 +36,7 @@ const HabitGrid = ({ completedHabits, className }: HabitGridProps) => (
           key={type}
           className={cn(
             "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            done ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-400"
+            done ? "bg-transparent text-green-700" : "bg-gray-50 text-gray-400"
           )}
         >
           <Icon className="h-4 w-4 shrink-0" />

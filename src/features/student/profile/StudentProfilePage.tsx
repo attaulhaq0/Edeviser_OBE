@@ -240,7 +240,7 @@ const StudentProfilePage = () => {
 
         <PCard className="p-4">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+            <span className="flex size-11 items-center justify-center rounded-xl bg-transparent text-orange-600">
               <Flame className="size-6" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">

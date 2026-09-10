@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint . --max-warnings 0",
+    "lint:design": "node scripts/design-lint/check.mjs",
     "preview": "vite preview",
     "smoke:build": "node scripts/smoke-prod-build.mjs",
     "test": "vitest --run",

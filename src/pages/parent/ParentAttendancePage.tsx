@@ -179,7 +179,7 @@ const ParentAttendancePage = () => {
                       <span className="text-3xl font-black text-slate-900 dark:text-slate-100">
                         {attendanceRate}%
                       </span>
-                      <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                      <span className="rounded-full bg-transparent border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
                         Strong attendance
                       </span>
                     </div>
@@ -206,15 +206,15 @@ const ParentAttendancePage = () => {
 
                   {/* Explicit Status Badges with Icon + Label */}
                   <div className="flex flex-wrap gap-2 shrink-0">
-                    <div className="flex items-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-1.5 text-xs font-extrabold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <div className="flex items-center gap-1.5 rounded-xl border border-emerald-100 bg-transparent/80 px-3 py-1.5 text-xs font-extrabold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
                       <Check className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{presentCount} Present</span>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-1.5 text-xs font-extrabold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
+                    <div className="flex items-center gap-1.5 rounded-xl border border-amber-100 bg-transparent/80 px-3 py-1.5 text-xs font-extrabold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{lateCount} Late</span>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-xl border border-red-100 bg-red-50/80 px-3 py-1.5 text-xs font-extrabold text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+                    <div className="flex items-center gap-1.5 rounded-xl border border-red-100 bg-transparent/80 px-3 py-1.5 text-xs font-extrabold text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
                       <X className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{absentCount} Absent</span>
                     </div>
@@ -485,17 +485,17 @@ const ParentAttendancePage = () => {
                         {/* Status pill with Icon + Label */}
                         <div className="shrink-0">
                           {item.status === "absent" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-700">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-red-700">
                               <X className="h-3 w-3" aria-hidden="true" />{" "}
                               Absent
                             </span>
                           ) : item.status === "late" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
                               <Clock className="h-3 w-3" aria-hidden="true" />{" "}
                               Late
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
                               <Check className="h-3 w-3" aria-hidden="true" />{" "}
                               Present
                             </span>

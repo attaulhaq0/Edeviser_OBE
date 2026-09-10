@@ -141,7 +141,7 @@ const CLOListPage = () => {
           </span>
           <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-teal-500 transition-all"
+              className="h-full rounded-full bg-transparent0 transition-all"
               style={{ width: `${readiness.percent}%` }}
             />
           </div>

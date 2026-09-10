@@ -33,10 +33,10 @@ describe("PracticeModeBanner — Text content", () => {
 // ── Banner styling ──────────────────────────────────────────────────────────
 
 describe("PracticeModeBanner — Styling", () => {
-  it("has bg-blue-50 background", () => {
+  it("has bg-transparent background", () => {
     const { container } = render(<PracticeModeBanner />);
     const banner = container.firstElementChild;
-    expect(banner?.className).toContain("bg-blue-50");
+    expect(banner?.className).toContain("bg-transparent");
   });
 
   it("has text-blue-700 text color", () => {

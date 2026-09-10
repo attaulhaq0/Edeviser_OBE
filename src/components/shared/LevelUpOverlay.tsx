@@ -90,7 +90,7 @@ const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
             transition={{ type: "spring", damping: 12, stiffness: 200 }}
           >
             <motion.div
-              className="absolute inset-0 rounded-full bg-blue-500/20 blur-3xl"
+              className="absolute inset-0 rounded-full bg-transparent0/20 blur-3xl"
               initial={prefersReducedMotion ? undefined : { scale: 0 }}
               animate={{ scale: 2.5 }}
               transition={{ duration: 1.5, ease: "easeOut" }}

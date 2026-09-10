@@ -46,7 +46,7 @@ const ActiveBoostIndicator = ({ className }: ActiveBoostIndicatorProps) => {
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200 px-3 py-1.5 text-sm font-semibold text-purple-700 animate-xp-pulse",
+        "inline-flex items-center gap-1.5 rounded-full bg-transparent border border-purple-200 px-3 py-1.5 text-sm font-semibold text-purple-700 animate-xp-pulse",
         className
       )}
     >

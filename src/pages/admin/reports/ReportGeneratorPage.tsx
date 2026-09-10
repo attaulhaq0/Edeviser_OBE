@@ -293,7 +293,7 @@ const ReportGeneratorPage = () => {
       {/* Result Card */}
       {lastResult && (
         <div className={`${adminCardClass} overflow-hidden`}>
-          <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-4 text-emerald-800">
+          <div className="flex items-center gap-2 border-b border-emerald-100 bg-transparent px-4 py-4 text-emerald-800">
             <CheckCircle2 className="size-5" />
             <h2 className="text-base font-black tracking-tight">
               Report Ready

@@ -68,7 +68,7 @@ const LikertScale = ({
             }`}
           >
             {isSelected && (
-              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+              <span className="h-2.5 w-2.5 rounded-full bg-transparent0" />
             )}
           </span>
           {label}
@@ -117,7 +117,7 @@ const FallbackPanel = ({
   onContinue,
 }: FallbackPanelProps) => (
   <div className="flex flex-col items-center py-12 text-center">
-    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-transparent">
       <Info className="h-6 w-6 text-blue-600" />
     </div>
     <h2 className="mb-2 text-lg font-bold tracking-tight text-gray-900">

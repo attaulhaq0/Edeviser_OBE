@@ -51,7 +51,7 @@ const QuestionExplanation = ({
   if (!displayText) return null;
 
   return (
-    <div className="rounded-2xl bg-blue-50/80 p-4">
+    <div className="rounded-2xl bg-transparent/80 p-4">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-700">
           {isVerified

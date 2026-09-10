@@ -49,7 +49,7 @@ const StudySessionCard = ({
   return (
     <div
       className={cn(
-        "rounded-lg border border-blue-200 bg-blue-50/50 p-2.5 transition-shadow hover:shadow-sm",
+        "rounded-lg border border-blue-200 bg-transparent/50 p-2.5 transition-shadow hover:shadow-sm",
         compact && "p-2"
       )}
     >

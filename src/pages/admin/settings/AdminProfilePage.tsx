@@ -378,7 +378,7 @@ const AdminProfilePage = () => {
               key={permission}
               className="flex min-h-12 items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0"
             >
-              <span className="inline-flex size-5 items-center justify-center rounded-md bg-emerald-50 text-xs font-black text-emerald-700">
+              <span className="inline-flex size-5 items-center justify-center rounded-md bg-transparent text-xs font-black text-emerald-700">
                 ✓
               </span>
               <span className="text-sm font-medium text-slate-700">

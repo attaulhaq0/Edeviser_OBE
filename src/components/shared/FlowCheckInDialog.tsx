@@ -146,7 +146,7 @@ const FlowCheckInDialog = ({
 
         {/* Conditional follow-up: "In the zone" */}
         {selected === "in_the_zone" && (
-          <div className="rounded-lg bg-green-50 p-4">
+          <div className="rounded-lg bg-transparent p-4">
             <p className="text-sm font-medium text-green-900">
               Great flow! Keep it up — we'll check back next break.
             </p>
@@ -155,7 +155,7 @@ const FlowCheckInDialog = ({
 
         {/* Conditional follow-up: "Stuck" → AI Tutor link */}
         {selected === "stuck" && (
-          <div className="rounded-lg bg-amber-50 p-4">
+          <div className="rounded-lg bg-transparent p-4">
             <p className="text-sm font-medium text-amber-900">
               Stuck happens — want a hand?
             </p>
@@ -176,7 +176,7 @@ const FlowCheckInDialog = ({
 
         {/* Conditional follow-up: "Too easy" → Bloom's suggestion */}
         {selected === "too_easy" && (
-          <div className="rounded-lg bg-blue-50 p-4">
+          <div className="rounded-lg bg-transparent p-4">
             <p className="text-sm font-medium text-blue-900">
               Ready for more challenge?
             </p>

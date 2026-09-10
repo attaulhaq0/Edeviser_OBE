@@ -275,7 +275,7 @@ const TeacherDashboardScreen = () => {
               }}
             />
             <div className="relative flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-sky-50 text-sky-600">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-transparent text-sky-600">
                 <GraduationCap className="h-6 w-6" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
@@ -329,7 +329,7 @@ const TeacherDashboardScreen = () => {
             </div>
           </div>,
           <div key="momentum" className="flex min-h-29 items-center gap-4 p-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-sky-50 text-sky-600">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-transparent text-sky-600">
               <TrendingUp className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
@@ -383,14 +383,14 @@ const TeacherDashboardScreen = () => {
             label={t("dashboard.avgAttainment", "Avg mastery")}
             value={`${avgAttainment}%`}
             valueClassName={attainmentValueClass(avgAttainment)}
-            iconBgClass="bg-green-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-green-600"
           />
           <KPICard
             icon={PenLine}
             label={t("dashboard.pendingSubmissions", "To grade")}
             value={pending}
-            iconBgClass="bg-teal-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-teal-600"
           />
           <KPICard
@@ -398,7 +398,7 @@ const TeacherDashboardScreen = () => {
             label={t("dashboard.atRiskStudents", "At-risk")}
             value={atRiskCount}
             valueClassName={atRiskCount > 0 ? "text-red-600" : "text-sky-700"}
-            iconBgClass={atRiskCount > 0 ? "bg-red-50" : "bg-blue-50"}
+            iconBgClass={atRiskCount > 0 ? "bg-transparent" : "bg-transparent"}
             iconColorClass={atRiskCount > 0 ? "text-red-600" : "text-blue-600"}
           />
         </div>
@@ -463,7 +463,7 @@ const TeacherDashboardScreen = () => {
             ))}
           </div>
         ) : atRisk.isError ? (
-          <div className="rounded-4xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-4xl border border-red-100 bg-transparent p-4 text-sm text-red-700">
             {t("dashboard.triage.error", "Couldn't load student triage.")}
           </div>
         ) : visibleTriage.length > 0 ? (
@@ -565,7 +565,7 @@ const TeacherDashboardScreen = () => {
             title={t("dashboard.prediction.title", "Needs Attention")}
             action={
               predictions.data && predictions.data.length > 0 ? (
-                <span className="rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
+                <span className="rounded-full border border-purple-200 bg-transparent px-2 py-0.5 text-[10px] font-bold text-purple-700">
                   {t("dashboard.prediction.flagged", {
                     defaultValue: "{{n}} evidence-backed flags",
                     n: predictions.data.length,

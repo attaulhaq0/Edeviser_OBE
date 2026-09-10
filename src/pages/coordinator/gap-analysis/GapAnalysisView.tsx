@@ -144,7 +144,7 @@ const GapAnalysisView = () => {
                 label="Fully Mapped"
                 value={`${fullyMappedPct}%`}
                 valueClassName={attainmentValueClass(fullyMappedPct)}
-                iconBgClass="bg-green-50"
+                iconBgClass="bg-transparent"
                 iconColorClass="text-green-600"
                 className="shadow-none ring-1 ring-slate-100"
               />

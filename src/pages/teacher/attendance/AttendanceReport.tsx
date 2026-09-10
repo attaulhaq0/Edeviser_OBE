@@ -160,7 +160,7 @@ const AttendanceReport = () => {
 
           {/* Flagged Students */}
           {belowThreshold.length > 0 && (
-            <Card className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <Card className="bg-transparent border border-red-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
                 <span className="text-sm font-bold text-red-700">

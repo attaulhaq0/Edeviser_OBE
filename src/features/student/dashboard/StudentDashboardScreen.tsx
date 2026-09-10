@@ -360,7 +360,7 @@ const StudentDashboardScreen = () => {
     heroSlides.push(
       <div key="streak" className="flex min-h-29 items-center gap-3 p-3.5">
         <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-amber-50 text-xl"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-transparent text-xl"
           aria-hidden="true"
         >
           🔥
@@ -404,7 +404,7 @@ const StudentDashboardScreen = () => {
     heroSlides.push(
       <div key="league" className="flex min-h-29 items-center gap-3 p-3.5">
         <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-sky-50 text-xl"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-transparent text-xl"
           aria-hidden="true"
         >
           📈
@@ -649,7 +649,7 @@ const StudentDashboardScreen = () => {
               <p className="text-xs font-black tracking-tight text-slate-900">
                 {t("dashboard.habits.title", "Today's Habits")}
               </p>
-              <span className="ms-auto rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-600">
+              <span className="ms-auto rounded-full bg-transparent px-2 py-0.5 text-[9px] font-bold text-green-600">
                 {habitsDone}/4
               </span>
             </div>
@@ -689,7 +689,7 @@ const StudentDashboardScreen = () => {
             </div>
           </div>
           {habitsDone < 4 && (
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-1.5">
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-amber-100 px-2.5 py-1.5">
               <MascotCharacter
                 character="penguin"
                 emotion="default"
@@ -720,7 +720,7 @@ const StudentDashboardScreen = () => {
               <p className="text-xs font-black tracking-tight text-slate-900">
                 {t("dashboard.continuePath.title", "Continue Your Path")}
               </p>
-              <span className="ms-auto rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-600">
+              <span className="ms-auto rounded-full bg-transparent px-2 py-0.5 text-[9px] font-bold text-blue-600">
                 {t("dashboard.continuePath.unit", "Unit 3")}
               </span>
             </div>
@@ -771,7 +771,7 @@ const StudentDashboardScreen = () => {
               {t("dashboard.review.title", "Daily Review")}
             </p>
             {streak > 0 && (
-              <span className="ms-auto rounded-full border border-orange-100 bg-orange-50 px-2.5 py-1 text-[10px] font-black text-orange-600">
+              <span className="ms-auto rounded-full border border-orange-100 bg-transparent px-2.5 py-1 text-[10px] font-black text-orange-600">
                 🔥{" "}
                 {t("dashboard.review.streak", "{{n}}-day streak", {
                   n: streak,
@@ -782,7 +782,7 @@ const StudentDashboardScreen = () => {
           {reviews.isPending ? (
             <Shimmer className="h-16 rounded-lg" />
           ) : reviews.isError ? (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-red-100 bg-transparent px-3 py-2.5 text-xs text-red-700">
               <span>
                 {t(
                   "dashboard.review.error",
@@ -978,7 +978,7 @@ const StudentDashboardScreen = () => {
                       .toUpperCase() || "?"}
                   </div>
                   {f.online && (
-                    <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+                    <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-transparent0" />
                   )}
                 </div>
                 <span className="w-full truncate text-center text-[10px] font-semibold text-gray-700">

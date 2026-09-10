@@ -167,7 +167,7 @@ const AcceptInvitePage = () => {
       ) : error ? (
         <Alert
           variant="destructive"
-          className="rounded-xl border-red-200 bg-red-50 text-red-800"
+          className="rounded-xl border-red-200 bg-transparent text-red-800"
         >
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
@@ -180,7 +180,7 @@ const AcceptInvitePage = () => {
             noValidate
           >
             {/* Invitation details */}
-            <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="space-y-3 rounded-xl border border-blue-200 bg-transparent p-4">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-blue-600" />
                 <div>

@@ -60,7 +60,7 @@ const XPEconomistDashboard = () => {
                       : "N/A"}
                   </p>
                 </div>
-                <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                   <Activity className="h-5 w-5 text-blue-600" />
                 </div>
               </div>
@@ -80,7 +80,7 @@ const XPEconomistDashboard = () => {
                     {ratioData?.statusLabel ?? "No data"}
                   </Badge>
                 </div>
-                <div className="p-2 rounded-lg bg-green-50 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                   {ratioData?.status === "inflationary" ? (
                     <TrendingUp className="h-5 w-5 text-red-600" />
                   ) : (
@@ -100,7 +100,7 @@ const XPEconomistDashboard = () => {
                     {(ratioData?.totalEarned ?? 0).toLocaleString()}
                   </p>
                 </div>
-                <div className="p-2 rounded-lg bg-amber-50 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                   <TrendingUp className="h-5 w-5 text-amber-600" />
                 </div>
               </div>
@@ -116,7 +116,7 @@ const XPEconomistDashboard = () => {
                     {(ratioData?.totalSpent ?? 0).toLocaleString()}
                   </p>
                 </div>
-                <div className="p-2 rounded-lg bg-purple-50 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                   <DollarSign className="h-5 w-5 text-purple-600" />
                 </div>
               </div>

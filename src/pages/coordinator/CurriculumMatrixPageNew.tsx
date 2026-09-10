@@ -209,7 +209,7 @@ const CurriculumMatrixPageNew = () => {
             {/* Gap */}
             <div className="border-b border-slate-100 p-5 md:border-b-0 md:border-e">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-amber-600">
                   <Grid3X3 className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <p className="text-sm font-bold text-gray-900">

@@ -47,7 +47,7 @@ const MicroAssessmentCard = ({
     <PCard className="p-4 space-y-3">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-50">
+          <div className="p-1.5 rounded-lg bg-transparent">
             <Sparkles className="h-4 w-4 text-blue-600" />
           </div>
           <div>

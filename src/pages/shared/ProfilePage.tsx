@@ -117,7 +117,7 @@ const ProfilePageLegacy = () => {
                   className="h-16 w-16 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-transparent">
                   <User className="h-8 w-8 text-blue-600" />
                 </div>
               )}
@@ -363,7 +363,7 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
             {outstanding.map((f) => (
               <div
                 key={f.id}
-                className="flex items-center justify-between p-3 rounded-lg border border-red-100 bg-red-50 dark:bg-red-950/20 mb-1"
+                className="flex items-center justify-between p-3 rounded-lg border border-red-100 bg-transparent dark:bg-red-950/20 mb-1"
               >
                 <span className="text-sm font-medium">${f.amount_paid}</span>
                 <Badge
@@ -388,7 +388,7 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
             {paid.map((f) => (
               <div
                 key={f.id}
-                className="flex items-center justify-between p-3 rounded-lg border border-green-100 bg-green-50 dark:bg-green-950/20 mb-1"
+                className="flex items-center justify-between p-3 rounded-lg border border-green-100 bg-transparent dark:bg-green-950/20 mb-1"
               >
                 <span className="text-sm font-medium">${f.amount_paid}</span>
                 <Badge

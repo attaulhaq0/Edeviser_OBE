@@ -124,7 +124,7 @@ const CategoryBars = ({
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                className="h-full rounded-full bg-transparent0 transition-all duration-500"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -212,7 +212,7 @@ const XPHistoryNew = () => {
                 icon={Coins}
                 label="Total XP"
                 value={runningTotal.toLocaleString()}
-                iconBgClass="bg-amber-50"
+                iconBgClass="bg-transparent"
                 iconColorClass="text-amber-500"
                 valueClassName="text-amber-600"
               />
@@ -259,7 +259,7 @@ const XPHistoryNew = () => {
                   <div className="mt-4">
                     {!transactions || transactions.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <div className="mb-3 rounded-full bg-amber-50 p-3">
+                        <div className="mb-3 rounded-full bg-transparent p-3">
                           <Coins className="h-8 w-8 text-amber-500" />
                         </div>
                         <p className="text-sm text-gray-500">

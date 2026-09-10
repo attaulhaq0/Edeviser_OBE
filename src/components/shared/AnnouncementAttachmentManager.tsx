@@ -125,7 +125,7 @@ export const AnnouncementAttachmentManager = ({
           {(attachments ?? []).map((a) => (
             <li
               key={a.id}
-              className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2"
+              className="flex items-center gap-2 rounded-lg px-3 py-2"
             >
               <Paperclip className="h-3.5 w-3.5 text-gray-400 shrink-0" />
               <span className="text-xs font-medium text-gray-700 truncate flex-1">

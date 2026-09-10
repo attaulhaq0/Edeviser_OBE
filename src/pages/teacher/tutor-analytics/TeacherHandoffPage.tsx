@@ -244,7 +244,7 @@ const TeacherHandoffPage = () => {
       </div>
 
       {/* Information / Consent Banner */}
-      <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 text-xs text-blue-900 shadow-xs flex items-start gap-3">
+      <div className="rounded-xl border border-blue-100 bg-transparent/60 p-4 text-xs text-blue-900 shadow-xs flex items-start gap-3">
         <ShieldAlert
           className="h-5 w-5 text-blue-600 shrink-0 mt-0.5"
           aria-hidden="true"
@@ -340,7 +340,7 @@ const TeacherHandoffPage = () => {
                     </p>
                   )}
                   {handoff.teacher_response && (
-                    <div className="rounded-md bg-green-50 p-2.5 text-xs text-green-900 border border-green-100">
+                    <div className="rounded-md bg-transparent p-2.5 text-xs text-green-900 border border-green-100">
                       <span className="font-bold">Teacher Response: </span>
                       {handoff.teacher_response}
                     </div>
@@ -491,7 +491,7 @@ const TeacherHandoffPage = () => {
                 <p>{selectedHandoff.conversation_summary}</p>
               </div>
               {selectedHandoff.suggested_intervention && (
-                <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
+                <div className="bg-transparent rounded-lg p-3 text-sm text-blue-700">
                   <p className="font-semibold mb-1">Suggested Intervention:</p>
                   <p>{selectedHandoff.suggested_intervention}</p>
                 </div>

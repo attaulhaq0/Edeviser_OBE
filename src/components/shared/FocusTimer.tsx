@@ -240,7 +240,7 @@ const FocusTimer = ({
       {/* Offline Indicator */}
       {!isOnline && (
         <div
-          className="flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-700"
+          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-amber-700"
           role="alert"
         >
           <WifiOff className="h-4 w-4" />
@@ -253,7 +253,7 @@ const FocusTimer = ({
       {/* Visual Notification Fallback */}
       {showVisualNotification && (
         <div
-          className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700"
+          className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-green-700"
           role="alert"
         >
           <Bell className="h-4 w-4" />
@@ -295,7 +295,7 @@ const FocusTimer = ({
 
       {/* Session Intent */}
       {intentConcept && (
-        <div className="flex max-w-sm items-start gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3">
+        <div className="flex max-w-sm items-start gap-3 rounded-lg border border-teal-200 bg-transparent px-4 py-3">
           <Target className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
           <div className="min-w-0 space-y-0.5">
             <p className="text-sm font-medium text-teal-800">{intentConcept}</p>
@@ -393,7 +393,7 @@ const FocusTimer = ({
             <Button
               variant="outline"
               size="lg"
-              className="h-12 gap-2 text-base text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="h-12 gap-2 text-base text-red-600 hover:bg-transparent hover:text-red-700"
               onClick={handleEnd}
             >
               <Square className="h-4 w-4" />
@@ -417,7 +417,7 @@ const FocusTimer = ({
             <Button
               variant="outline"
               size="lg"
-              className="h-12 gap-2 text-base text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="h-12 gap-2 text-base text-red-600 hover:bg-transparent hover:text-red-700"
               onClick={handleEnd}
             >
               <Square className="h-4 w-4" />
@@ -441,7 +441,7 @@ const FocusTimer = ({
             <Button
               variant="outline"
               size="lg"
-              className="h-12 gap-2 text-base text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="h-12 gap-2 text-base text-red-600 hover:bg-transparent hover:text-red-700"
               onClick={handleEnd}
             >
               <Square className="h-4 w-4" />

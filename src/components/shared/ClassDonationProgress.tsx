@@ -47,7 +47,7 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
       data-testid="class-donation-progress"
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-blue-50">
+        <div className="p-2 rounded-lg ">
           <Heart className="h-5 w-5 text-blue-500" />
         </div>
         <div className="flex-1 min-w-0">

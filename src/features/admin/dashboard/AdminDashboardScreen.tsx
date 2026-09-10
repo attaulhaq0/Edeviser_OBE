@@ -266,7 +266,7 @@ const AdminDashboardScreen = () => {
             icon={UserCheck}
             label={t("dashboard.activeUsers", "Active users")}
             value={displayMetric(activeUsers)}
-            iconBgClass="bg-green-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-green-600"
           />
           <KPICard
@@ -388,7 +388,7 @@ const AdminDashboardScreen = () => {
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                     <div
-                      className="h-full rounded-full bg-blue-500"
+                      className="h-full rounded-full bg-transparent0"
                       style={{ width: `${d.avg_plo_attainment}%` }}
                     />
                   </div>

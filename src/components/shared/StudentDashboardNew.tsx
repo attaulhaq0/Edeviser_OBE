@@ -168,7 +168,7 @@ const StudentDashboardNew = () => {
             icon={CheckCircle2}
             label={t("dashboard.completed")}
             value={formatNumber(kpis?.completedAssignments ?? 0)}
-            iconBgClass="bg-green-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-green-600"
           />
           <KPICard
@@ -181,7 +181,7 @@ const StudentDashboardNew = () => {
             icon={Flame}
             label={t("dashboard.streak")}
             value={`${kpis?.currentStreak ?? 0}d`}
-            iconBgClass="bg-orange-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-orange-500"
           />
         </div>

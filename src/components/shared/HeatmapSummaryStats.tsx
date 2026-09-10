@@ -80,7 +80,7 @@ const HeatmapSummaryStats = ({
         label="Current Streak"
         value={currentStreak}
         iconColor="text-orange-500"
-        iconBg="bg-orange-50"
+        iconBg="bg-transparent"
         testId="kpi-current-streak"
       />
       <KPICard
@@ -88,7 +88,7 @@ const HeatmapSummaryStats = ({
         label="Longest Streak"
         value={longestStreak}
         iconColor="text-amber-500"
-        iconBg="bg-amber-50"
+        iconBg="bg-transparent"
         testId="kpi-longest-streak"
       />
       <KPICard
@@ -96,7 +96,7 @@ const HeatmapSummaryStats = ({
         label={activeDaysLabel}
         value={totalActiveDays}
         iconColor="text-blue-600"
-        iconBg="bg-blue-50"
+        iconBg="bg-transparent"
         testId="kpi-total-active-days"
       />
     </div>

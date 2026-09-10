@@ -26,9 +26,9 @@ export interface ChallengeLeaderboardProps {
 
 const MEDAL_STYLES: Record<number, { icon: string; bg: string; text: string }> =
   {
-    1: { icon: "🥇", bg: "bg-yellow-50", text: "text-yellow-700" },
+    1: { icon: "🥇", bg: "bg-transparent", text: "text-yellow-700" },
     2: { icon: "🥈", bg: "bg-gray-50", text: "text-gray-600" },
-    3: { icon: "🥉", bg: "bg-amber-50", text: "text-amber-700" },
+    3: { icon: "🥉", bg: "bg-transparent", text: "text-amber-700" },
   };
 
 const ChallengeLeaderboard = ({

@@ -257,7 +257,7 @@ const TrueFalseOptions = ({
 };
 
 const CorrectAnswerDisplay = ({ correctAnswer }: { correctAnswer: string }) => (
-  <p className="text-xs font-medium text-green-700 bg-green-50 rounded-md px-3 py-2">
+  <p className="text-xs font-medium text-green-700 bg-transparent rounded-md px-3 py-2">
     Correct answer: {correctAnswer}
   </p>
 );

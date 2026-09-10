@@ -117,7 +117,7 @@ const AssessmentCard = ({ assessment }: { assessment: AssessmentNode }) => (
 
 // ── CLO node with its assessments, rubrics, and student attainment leaves ────
 const CloCard = ({ clo }: { clo: CloNode }) => (
-  <div className="rounded-xl border border-green-100 bg-green-50/40 p-3">
+  <div className="rounded-xl border border-green-100 bg-transparent/40 p-3">
     <div className="flex items-center gap-2">
       <Badge
         variant="outline"
@@ -195,7 +195,7 @@ const CloCard = ({ clo }: { clo: CloNode }) => (
 
 // ── PLO node with its CLOs ───────────────────────────────────────────────────
 const PloCard = ({ plo }: { plo: PloNode }) => (
-  <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+  <div className="rounded-xl border border-blue-100 bg-transparent/40 p-3">
     <div className="flex items-center gap-2">
       <Badge
         variant="outline"
@@ -229,7 +229,7 @@ const PloCard = ({ plo }: { plo: PloNode }) => (
 
 // ── GA node (level between ILO and PLO, Req 16.3) ────────────────────────────
 const GaCard = ({ ga }: { ga: GraduateAttributeNode }) => (
-  <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+  <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-transparent px-3 py-2">
     <Award className="h-4 w-4 text-blue-500 shrink-0" />
     <span className="text-sm font-medium truncate">{resolveName(ga.name)}</span>
     {ga.weight !== null && (
@@ -336,7 +336,7 @@ const OutcomeChainViewLegacy = () => {
                   label="Institution Outcome"
                   count={1}
                 />
-                <div className="rounded-xl border border-red-100 bg-red-50/50 p-3">
+                <div className="rounded-xl border border-red-100 bg-transparent/50 p-3">
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"

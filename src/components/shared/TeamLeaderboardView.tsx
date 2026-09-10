@@ -69,7 +69,7 @@ const TeamLeaderboardView = ({
               variant="outline"
               className="text-[10px] text-green-600 border-green-300 bg-green-50"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse me-1" />
+              <span className="h-1.5 w-1.5 rounded-full bg-transparent0 animate-pulse me-1" />
               Live
             </Badge>
           )}

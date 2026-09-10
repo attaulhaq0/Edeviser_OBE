@@ -47,7 +47,7 @@ const TeamDashboardCard = ({
         data-testid="team-streak-display"
       >
         <div className="flex items-center gap-1.5">
-          <div className="p-1 rounded-md bg-orange-50">
+          <div className="p-1 rounded-md bg-transparent">
             <Flame className="h-4 w-4 text-orange-500 animate-streak-flame" />
           </div>
           <div className="flex items-baseline gap-1">

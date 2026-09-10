@@ -246,7 +246,7 @@ const SessionCompletionForm = ({
               }}
             />
           ) : (
-            <div className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+            <div className="rounded-lg bg-transparent px-3 py-2 text-xs text-green-700">
               <CheckCircle2 className="me-1 inline-block h-3.5 w-3.5" />
               Quick thought captured — added to notes above.
             </div>
@@ -278,7 +278,7 @@ const SessionCompletionForm = ({
 
         {/* Session Reflection */}
         {reflectionSaved ? (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-green-700">
             <CheckCircle2 className="h-4 w-4" />
             <span className="font-medium">Reflection saved!</span>
           </div>

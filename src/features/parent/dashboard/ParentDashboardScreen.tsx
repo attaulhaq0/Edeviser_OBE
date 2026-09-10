@@ -56,7 +56,7 @@ const ParentDashboardScreen = () => {
 
     return courses.slice(0, 3).map((c, idx) => {
       const icons = ["💪", "✍️", "🧮", "🧬", "💻"];
-      const iconBgs = ["bg-emerald-50", "bg-blue-50", "bg-amber-50"];
+      const iconBgs = ["bg-transparent", "bg-transparent", "bg-transparent"];
       const pct = c.attainment_percent;
       let desc = c.has_evidence
         ? "Shared learning evidence is available"
@@ -180,7 +180,7 @@ const ParentDashboardScreen = () => {
             "flex flex-col items-center gap-3 p-10 text-center"
           )}
         >
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-transparent text-2xl">
             👨‍👩‍👧
           </div>
           <p className="max-w-sm text-sm text-slate-600 dark:text-slate-400">
@@ -367,7 +367,7 @@ const ParentDashboardScreen = () => {
 
           {hasActivityEvidence ? (
             <>
-              <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-3 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
+              <div className="rounded-xl border border-blue-100 bg-transparent px-3 py-3 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
                 {selected.current_streak > 0
                   ? `Shared activity streak: ${selected.current_streak} day${
                       selected.current_streak === 1 ? "" : "s"
@@ -430,7 +430,7 @@ const ParentDashboardScreen = () => {
 
       {/* ── 5 · Worth celebrating (milestone action tile) ── */}
       <section className={cn(CARD_CLASS, "flex items-center gap-3.5 p-4")}>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-transparent text-xl">
           🎉
         </div>
         <div className="min-w-0 flex-1">

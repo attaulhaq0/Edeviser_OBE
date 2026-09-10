@@ -88,7 +88,7 @@ const AdminSecurityPage = () => {
           icon={Ban}
           label={t("security.activeBlocks", "Active IP blocks")}
           value={activeBlocks}
-          iconBgClass="bg-red-50"
+          iconBgClass="bg-transparent"
           iconColorClass="text-red-600"
           valueClassName={activeBlocks > 0 ? "text-red-600" : "text-sky-700"}
         />
@@ -96,7 +96,7 @@ const AdminSecurityPage = () => {
           icon={Lock}
           label={t("security.lockedAccounts", "Locked accounts")}
           value={lockedCount}
-          iconBgClass="bg-amber-50"
+          iconBgClass="bg-transparent"
           iconColorClass="text-amber-600"
           valueClassName={lockedCount > 0 ? "text-amber-600" : "text-sky-700"}
         />

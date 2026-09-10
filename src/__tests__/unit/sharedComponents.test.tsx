@@ -286,9 +286,9 @@ describe("HabitGrid", () => {
     expect(checks).toHaveLength(2);
   });
 
-  it("applies green styling to completed habits", () => {
+  it("applies transparent styling to completed habits", () => {
     const { container } = render(<HabitGrid completedHabits={["login"]} />);
-    const loginEl = container.querySelector(".bg-green-50");
+    const loginEl = container.querySelector(".bg-transparent");
     expect(loginEl).not.toBeNull();
   });
 

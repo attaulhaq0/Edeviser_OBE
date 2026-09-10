@@ -26,7 +26,7 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
   if (compact) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-blue-50">
+        <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-transparent">
           <TrendingUp className="h-4 w-4 text-blue-600" />
         </div>
         <div className="flex-1 min-w-0">
@@ -55,7 +55,7 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50">
+          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-transparent">
             <TrendingUp className="h-5 w-5 text-blue-600" />
           </div>
           <div>

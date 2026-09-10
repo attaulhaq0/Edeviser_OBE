@@ -76,7 +76,7 @@ const ImprovementBonusCelebration = ({
           className="fixed bottom-6 end-6 z-50 bg-white shadow-xl rounded-xl p-4 border border-green-200 max-w-sm"
         >
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-green-50">
+            <div className="p-2 rounded-lg ">
               <TrendingUp className="h-5 w-5 text-green-600" />
             </div>
             <div>

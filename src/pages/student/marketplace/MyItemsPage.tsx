@@ -163,7 +163,7 @@ const MyItemsPage = () => {
                       />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 shrink-0 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <div className="w-16 h-16 shrink-0 rounded-xl bg-transparent flex items-center justify-center">
                       {item.item_category === "educational_perk" ? (
                         <GraduationCap className="h-6 w-6 text-blue-600" />
                       ) : (

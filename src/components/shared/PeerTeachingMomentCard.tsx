@@ -65,7 +65,7 @@ const PeerTeachingMomentCard = ({
   >
     {/* Header */}
     <div className="flex items-start gap-3">
-      <div className="p-2 rounded-lg bg-blue-50 shrink-0">
+      <div className="p-2 rounded-lg shrink-0">
         <BookOpen className="h-4 w-4 text-blue-600" />
       </div>
       <div className="flex-1 min-w-0">

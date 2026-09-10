@@ -153,7 +153,7 @@ export const LearningStyleStep = ({
       </div>
 
       {/* Research disclaimer */}
-      <Card className="mb-6 flex flex-row items-start gap-2 border-0 bg-amber-50 p-3 shadow-none">
+      <Card className="mb-6 flex flex-row items-start gap-2 border-0 bg-transparent p-3 shadow-none">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
         <p className="text-xs text-amber-800">
           {t("onboarding.learningStyle.disclaimer")}
@@ -221,7 +221,7 @@ export const LearningStyleStep = ({
                       }`}
                     >
                       {isSelected && (
-                        <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-transparent0" />
                       )}
                     </span>
                     {opt.option_text}

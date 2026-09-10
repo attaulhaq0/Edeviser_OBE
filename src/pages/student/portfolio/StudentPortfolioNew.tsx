@@ -218,7 +218,7 @@ const StudentPortfolioNew = () => {
       {!isPublic && !sharingPermitted && (
         <div
           role="note"
-          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800"
+          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-transparent p-4 text-sm font-medium text-amber-800"
         >
           <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{t("portfolio.permissionRequired")}</span>
@@ -231,7 +231,7 @@ const StudentPortfolioNew = () => {
           icon={TrendingUp}
           label={t("portfolio.kpi.totalXP")}
           value={(data?.totalXP ?? 0).toLocaleString()}
-          iconBgClass="bg-amber-50"
+          iconBgClass="bg-transparent"
           iconColorClass="text-amber-500"
           valueClassName="text-amber-600"
         />
@@ -249,7 +249,7 @@ const StudentPortfolioNew = () => {
           icon={Award}
           label={t("portfolio.kpi.badgesEarned")}
           value={data?.badges.length ?? 0}
-          iconBgClass="bg-green-50"
+          iconBgClass="bg-transparent"
           iconColorClass="text-green-600"
         />
       </div>

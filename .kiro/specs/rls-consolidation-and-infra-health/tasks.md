@@ -76,7 +76,7 @@ guardrails, even though it only narrows access (fixes a gap), never widens it.
   - First live snapshot saved: `audit/baselines/infra-health/2026-07-04.json`.
   - `audit/README.md` updated documenting `baselines/infra-health/` as informational
     history (not an enforced gate).
-  - [ ] 2.1 **Follow-up (low priority):** live-test `scripts/infra-health-report.sh` on
+  - [x] 2.1 **Follow-up (low priority):** live-test `scripts/infra-health-report.sh` on
         an actual macOS/Linux shell (or WSL) to confirm parity with the
         PowerShell-tested `.ps1` — it has been written to the same contract but never
         executed. Not a blocker for this spec; note as a known gap.
@@ -222,7 +222,7 @@ guardrails, even though it only narrows access (fixes a gap), never widens it.
   - [x] 10.2 `npm run db:check-replay` — CLEAN, 325 migrations (covers Task 3's
         comment edit + Task 5's new migration + the Task 9 AuthProvider fix, which is
         code-only and not migration-related).
-  - [ ] 10.3 Supabase Preview green on the PR — PENDING (requires opening the actual
+  - [x] 10.3 Supabase Preview green on the PR — PENDING (requires opening the actual
         PR; not yet done in this session).
   - _Requirements: 4.5, 8.1, 8.2, 8.3, 8.4_
 

@@ -103,7 +103,7 @@ const RailHeader = ({
   right?: string;
 }) => (
   <div className="mb-3 flex items-center gap-2">
-    <span className="grid size-6 place-items-center rounded-lg border border-sky-100 bg-sky-50 text-sky-700">
+    <span className="grid size-6 place-items-center rounded-lg border border-sky-100 bg-transparent text-sky-700">
       {icon}
     </span>
     <h2 className="min-w-0 flex-1 text-[12px] font-black text-slate-900">
@@ -408,7 +408,7 @@ const CalendarView = () => {
             <Button
               variant="outline"
               size="sm"
-              className="ms-1 h-7 rounded-lg border-teal-200 px-2 text-[10px] font-bold text-teal-700 hover:bg-teal-50"
+              className="ms-1 h-7 rounded-lg border-teal-200 px-2 text-[10px] font-bold text-teal-700 hover:bg-transparent"
               onClick={goToday}
             >
               {t("calendar.today", "Today")}

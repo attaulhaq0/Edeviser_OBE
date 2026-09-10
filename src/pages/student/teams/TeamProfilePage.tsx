@@ -142,7 +142,7 @@ const TeamProfilePage = () => {
                 {team.xp_total.toLocaleString()}
               </p>
             </div>
-            <div className="p-2 rounded-lg bg-amber-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Zap className="h-5 w-5 text-amber-500" />
             </div>
           </div>
@@ -158,7 +158,7 @@ const TeamProfilePage = () => {
                 {team.streak_count}
               </p>
             </div>
-            <div className="p-2 rounded-lg bg-orange-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Flame className="h-5 w-5 text-orange-500 animate-streak-flame" />
             </div>
           </div>
@@ -172,7 +172,7 @@ const TeamProfilePage = () => {
               </p>
               <p className="text-2xl font-black mt-1">{memberItems.length}</p>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
           </div>

@@ -8,8 +8,8 @@ interface HabitDifficultyIndicatorProps {
 }
 
 const levelConfig = [
-  { icon: Leaf, label: "Seedling", color: "text-green-400", bg: "bg-green-50" },
-  { icon: Sprout, label: "Sprout", color: "text-green-500", bg: "bg-green-50" },
+  { icon: Leaf, label: "Seedling", color: "text-green-400", bg: "bg-transparent" },
+  { icon: Sprout, label: "Sprout", color: "text-green-500", bg: "bg-transparent" },
   {
     icon: TreePine,
     label: "Tree",
@@ -43,7 +43,7 @@ const HabitDifficultyIndicator = ({
           <div className="mt-1">
             <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
               <div
-                className="h-full rounded-full bg-green-500 transition-all duration-300"
+                className="h-full rounded-full bg-transparent0 transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>

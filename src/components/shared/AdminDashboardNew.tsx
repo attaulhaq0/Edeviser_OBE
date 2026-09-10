@@ -113,7 +113,7 @@ const AdminDashboardNew = () => {
             icon={UserCheck}
             label={t("dashboard.activeUsers")}
             value={formatNumber(kpis?.activeUsers ?? 0)}
-            iconBgClass="bg-green-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-green-600"
           />
           <KPICard

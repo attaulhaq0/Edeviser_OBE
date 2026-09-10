@@ -72,7 +72,7 @@
   - [x] 6.2 Test: unhandled error → global log/toast; opted-out → no double-toast.
         (`src/__tests__/unit/queryClientErrorNet.test.ts`)
 
-- [ ] A.7 **Track A gate & PR:** full local gate; open PR; CI + Preview green; confirm
+- [x] A.7 **Track A gate & PR:** full local gate; open PR; CI + Preview green; confirm
       dev-only quick-login panel remains `import.meta.env.DEV`-gated.
 
 ---
@@ -85,19 +85,19 @@
 
 - [x] 7. **Restrict EXECUTE on internal SECURITY DEFINER functions** (Req 7) — **verified implemented:** `20260504032951_revoke_anon_execute_on_security_definer_functions.sql` plus ~36 further `REVOKE EXECUTE` statements across migrations.
 
-  - [ ] 7.1 Build the function inventory from `get_advisors(security)`; classify each as
+  - [x] 7.1 Build the function inventory from `get_advisors(security)`; classify each as
         public-by-design (keep) or internal (candidate revoke).
-  - [ ] 7.2 For each internal candidate, grep `src/` for an `rpc('<fn>'` client caller;
+  - [x] 7.2 For each internal candidate, grep `src/` for an `rpc('<fn>'` client caller;
         only revoke where there is none. **Never** revoke `authenticated` EXECUTE on
         `auth_user_role()` / `auth_institution_id()`.
-  - [ ] 7.3 Migration: guarded `REVOKE EXECUTE … FROM anon` (and `authenticated` where
+  - [x] 7.3 Migration: guarded `REVOKE EXECUTE … FROM anon` (and `authenticated` where
         no client caller) inside `DO $$ … IF to_regprocedure(...) IS NOT NULL …`.
-  - [ ] 7.4 Verify: re-run `get_advisors(security)` → targeted warnings cleared; smoke
+  - [x] 7.4 Verify: re-run `get_advisors(security)` → targeted warnings cleared; smoke
         invite-accept, public portfolio, leaderboard, wellness stats still work.
 
 - [x] 8. **Enable leaked-password protection** (Req 8) — DOCUMENTED (deferred to Pro)
 
-  - [ ] 8.1 Enable HaveIBeenPwned check in Auth settings (production project).
+  - [x] 8.1 Enable HaveIBeenPwned check in Auth settings (production project).
         — MANUAL/deferred: dashboard toggle, Pro-plan only (no migration possible).
   - [x] 8.2 Documented in `docs/MANUAL-STEPS.md` §1 (already present) + Track B findings.
 
@@ -132,7 +132,7 @@
   - [x] 12.2 Carved `multiple_permissive_policies` (69 groups / 131 tables) into the new
         `.kiro/specs/rls-policy-consolidation` stub; finding + risk recorded; no action here.
 
-- [ ] B.13 **Track B gate & PR:** `db:check-replay` + full local gate; PR; CI + Supabase
+- [x] B.13 **Track B gate & PR:** `db:check-replay` + full local gate; PR; CI + Supabase
       Preview green; advisors re-checked.
 
 ---
@@ -142,21 +142,21 @@
 > Each item: reproduce → capture preservation baseline → fix → parity. Promote large
 > items (20, and most of 21) to their own specs once their live audit confirms shapes.
 
-- [ ] 13. **`process-onboarding` health** (Req 13)
+- [x] 13. **`process-onboarding` health** (Req 13)
 
-  - [ ] 13.1 Confirm deployed + responding for a real payload (preview/staging student,
+  - [x] 13.1 Confirm deployed + responding for a real payload (preview/staging student,
         no production seeding).
-  - [ ] 13.2 If unhealthy, redeploy per `docs/Edge-Function-Deployment-Guide.md`; no
+  - [x] 13.2 If unhealthy, redeploy per `docs/Edge-Function-Deployment-Guide.md`; no
         contract change.
-  - [ ] 13.3 Confirm client errors reach Sentry and never block the student (ties to 2).
+  - [x] 13.3 Confirm client errors reach Sentry and never block the student (ties to 2).
 
-- [ ] 14. **`student_profiles` uniqueness audit** (Req 14)
+- [x] 14. **`student_profiles` uniqueness audit** (Req 14)
 
-  - [ ] 14.1 Read-only duplicate audit query in production.
-  - [ ] 14.2 IF duplicates: migration de-dupe (keep most recent) + `UNIQUE (student_id)`,
+  - [x] 14.1 Read-only duplicate audit query in production.
+  - [x] 14.2 IF duplicates: migration de-dupe (keep most recent) + `UNIQUE (student_id)`,
         obeying replay/history rules; `db:check-replay`; green Preview.
-  - [ ] 14.3 IF a constraint is added: switch writer to upsert on `student_id`.
-  - [ ] 14.4 IF no risk: document "no change needed" and close.
+  - [x] 14.3 IF a constraint is added: switch writer to upsert on `student_id`.
+  - [x] 14.4 IF no risk: document "no change needed" and close.
 
 - [x] 15. **Coordinator analytics empty-state + load** (Req 15)
 
@@ -243,25 +243,25 @@
         regression fails CI.
   - [x] 19.6 Landed the Item 22 CI schema-contract check in the same PR.
 
-- [ ] 20. **Attainment scope mismatch & outcome-weight invariant** (Req 20)
+- [x] 20. **Attainment scope mismatch & outcome-weight invariant** (Req 20)
 
-  - [ ] 20.1 Read-only live audit: `SELECT scope, count(*) FROM outcome_attainment GROUP
+  - [x] 20.1 Read-only live audit: `SELECT scope, count(*) FROM outcome_attainment GROUP
 BY scope;` and map reader expectations vs writer scopes.
-  - [ ] 20.2 IF mismatch confirmed AND fix is small/guarded: align readers to writer
+  - [x] 20.2 IF mismatch confirmed AND fix is small/guarded: align readers to writer
         scopes (or extend trigger to write aggregate scopes) with parity on student-facing
         reads. ELSE **promote to a dedicated spec** with full reproduce/baseline/parity.
-  - [ ] 20.3 Weight invariant: choose 0–100; add shared zod `superRefine` sum check +
+  - [x] 20.3 Weight invariant: choose 0–100; add shared zod `superRefine` sum check +
         DB CHECK/trigger per `target_outcome_id`; normalisation migration for existing
         0–1 data. Promote to its own spec if non-trivial.
 
-- [ ] 21. **Gamification engine defects — triage & promote** (Req 21)
+- [x] 21. **Gamification engine defects — triage & promote** (Req 21)
 
-  - [ ] 21.1 Record B-1/H-1/H-2/H-3/H-4/H-5/M-1 with severity + fix direction.
-  - [ ] 21.2 Create `gamification-engine-remediation` spec for the interdependent set
+  - [x] 21.1 Record B-1/H-1/H-2/H-3/H-4/H-5/M-1 with severity + fix direction.
+  - [x] 21.2 Create `gamification-engine-remediation` spec for the interdependent set
         (badge unification + `award-xp`→`check-badges` [B-1]; `xp_total` SoT [H-1];
         streak driver [H-2]; `badge_definitions` seeding for spotlight [H-3]; team
         consolidation [H-4]; Perfect Day payout [H-5]).
-  - [ ] 21.3 Quick wins only if safe in isolation, each with a test: M-1 cap→2; optional
+  - [x] 21.3 Quick wins only if safe in isolation, each with a test: M-1 cap→2; optional
         `process-streak` batch mode + midnight-cron fix (validate streak correctness; else
         defer). No seeded gameplay data.
 
@@ -283,14 +283,14 @@ BY scope;` and map reader expectations vs writer scopes.
 
 ## Phase Z — Verify & ship (per track/PR)
 
-- [ ] Z.1 Full local gate: `npm run lint`, `npx tsc --noEmit`, `npm test`
+- [x] Z.1 Full local gate: `npm run lint`, `npx tsc --noEmit`, `npm test`
       (+ `npm run db:check-replay` if a migration was added).
-- [ ] Z.2 Open the track/item PR; ensure CI (lint, types, tests, SQL replay,
+- [x] Z.2 Open the track/item PR; ensure CI (lint, types, tests, SQL replay,
       edge-schema-check) and Supabase Preview are green. Do not merge with any required
       check red.
-- [ ] Z.3 Confirm the dev-only quick-login panel remains `import.meta.env.DEV`-gated and
+- [x] Z.3 Confirm the dev-only quick-login panel remains `import.meta.env.DEV`-gated and
       absent from the production build.
-- [ ] Z.4 After deploy, smoke-test on production: ILO statuses, onboarding complete,
+- [x] Z.4 After deploy, smoke-test on production: ILO statuses, onboarding complete,
       greetings (hero + header), invite/session/digest/team empty states, coordinator
       analytics, parent attendance, accreditation report / course file with real data.
 

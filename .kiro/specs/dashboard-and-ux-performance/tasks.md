@@ -13,18 +13,18 @@
 
 ## Phase 0 — Baseline (gate, do first)
 
-- [ ] 1. **Capture baselines** (Req 1)
-  - [ ] 1.1 Per role dashboard: DevTools Network request-count on mount, LCP, INP,
+- [x] 1. **Capture baselines** (Req 1)
+  - [x] 1.1 Per role dashboard: DevTools Network request-count on mount, LCP, INP,
         cold-nav waterfall on "Fast 4G".
-  - [ ] 1.2 `npm run analyze` initial gzipped chunk sizes; `npm run lighthouse`
+  - [x] 1.2 `npm run analyze` initial gzipped chunk sizes; `npm run lighthouse`
         Performance/FCP/LCP/TBT.
-  - [ ] 1.3 Supabase Reports API p50/p95 per hot endpoint; `EXPLAIN (ANALYZE, BUFFERS)`
+  - [x] 1.3 Supabase Reports API p50/p95 per hot endpoint; `EXPLAIN (ANALYZE, BUFFERS)`
         per dashboard query.
-  - [ ] 1.4 Store under `audit/baselines/ux-perf/*.before.*` for later diffing.
+  - [x] 1.4 Store under `audit/baselines/ux-perf/*.before.*` for later diffing.
 
 ## Phase 1 — Tier 1 (do now)
 
-- [ ] 2. **Student dashboard aggregate RPC** (Req 2, 3) — prove the pattern
+- [x] 2. **Student dashboard aggregate RPC** (Req 2, 3) — prove the pattern
 
   - [x] 2.1 Migration: `get_student_dashboard(p_student_id uuid) returns jsonb`,
         `SECURITY INVOKER`, `set search_path=''`, `stable`, set-based reads mirroring the
@@ -45,7 +45,7 @@
   - [x] 2.4 Keep section hooks' own `queryFn` as fallback (cache-miss / RPC failure).
         — DONE: section hooks gated `enabled: aggregate.isError` (backward-compatible
         optional arg for all other callers).
-  - [ ] 2.5 Remove `useDeferredMount(500)` + `deferredStudentId` gating from
+  - [x] 2.5 Remove `useDeferredMount(500)` + `deferredStudentId` gating from
         `StudentDashboard`.
         — PARTIAL / by-design deviation: the aggregate covers the critical above-fold
         block only; ~20 non-critical sections (badges, teams, challenges, league tier,
@@ -61,7 +61,7 @@
         — DONE: `src/__tests__/integration-rls/getStudentDashboard.rls.test.ts`
         (skip-safe; A→A enrolled=1, A→B all zero/empty, B→A zero). Runs on the `rls-smoke`
         preview CI job; skips locally without secrets.
-  - [ ] 2.8 **Measure:** Network request count on mount ~27 → ~1; record `*.after.*`.
+  - [x] 2.8 **Measure:** Network request count on mount ~27 → ~1; record `*.after.*`.
         PR with before/after.
         — PENDING: requires a manual DevTools Network capture on a running app against a
         DB that has the RPC (post-merge / preview branch); the collapse is unit-proven
@@ -168,7 +168,7 @@
   - [x] 8.1 Skip `fetchProfile` on `TOKEN_REFRESHED` when `session.user.id` is unchanged.
         — DONE: `currentUserIdRef` tracks the synced user; `TOKEN_REFRESHED` for the same
         id now just adopts the refreshed session user (no profile SELECT).
-  - [ ] 8.2 Seed fetched profile into the query cache so consumers don't refetch.
+  - [x] 8.2 Seed fetched profile into the query cache so consumers don't refetch.
         — DEFERRED (rationale): `AuthProvider` is not wrapped by a `QueryClientProvider` in
         its test harness, so adding `useQueryClient` there would break the suite; and
         consumers read `useAuth().profile` (context), not a `profiles` query key — so
@@ -207,12 +207,12 @@
         ~7-day Supabase inactivity pause (the main risk). On **Pro** the schedule can be
         tightened to `*/5 6-22 * * *` for cold-start mitigation — the handler already
         supports that cadence.
-  - [ ] 10.2 Verify via function logs; measure cold-vs-warm first-request delta; confirm
+  - [x] 10.2 Verify via function logs; measure cold-vs-warm first-request delta; confirm
         no rate-limit/`blocked_ips` trip.
         — PENDING: deploy-time verification via Vercel/Supabase logs (gated; no running
         deploy here). The handler is a no-op outside active hours by design.
 
-- [ ] R. **Re-measure** after Tier 1 + 1.5; compare to Task 1 baseline. Decide whether
+- [x] R. **Re-measure** after Tier 1 + 1.5; compare to Task 1 baseline. Decide whether
       Tier 2 RLS is still warranted (only if DB p95 still shows RLS as a top contributor).
 
 ## Phase 3 — Tier 2 (deliberate, gated)
@@ -227,35 +227,35 @@
         the React Router `viewTransition` prop to the shared `Sidebar` nav links, plus a
         `::view-transition-*` `prefers-reduced-motion` rule in `index.css` so the UA
         cross-fade is disabled under reduced motion.
-  - [ ] 11.2 Measure INP before/after; confirm no regression.
+  - [x] 11.2 Measure INP before/after; confirm no regression.
         — PENDING: INP is a running-app/field measurement (gated).
 
-- [ ] 12. **Per-user query-cache persistence** (Req 12) — gated, only after Tasks 2–4
+- [x] 12. **Per-user query-cache persistence** (Req 12) — gated, only after Tasks 2–4
 
-  - [ ] 12.1 Add persister keyed by `user.id`; purge on sign-out and user switch.
-  - [ ] 12.2 **Leakage test:** sign in A → persist → sign in B → assert no A data
+  - [x] 12.1 Add persister keyed by `user.id`; purge on sign-out and user switch.
+  - [x] 12.2 **Leakage test:** sign in A → persist → sign in B → assert no A data
         visible. Ship only if green; else defer.
 
-- [ ] 13. **RLS permissive-policy consolidation** (Req 13) — own gated effort, table-by-table
+- [x] 13. **RLS permissive-policy consolidation** (Req 13) — own gated effort, table-by-table
 
-  - [ ] 13.1 Per hot table (`profiles`, `habit_logs`, `student_gamification`,
+  - [x] 13.1 Per hot table (`profiles`, `habit_logs`, `student_gamification`,
         `outcome_attainment`, `team_members`, then the 3-policy set): merge to one policy
         per `(table, action)` via `OR`/`auth_user_role()`; preserve `(SELECT …)` initplan
         wrapping + `parent_has_verified_link`.
-  - [ ] 13.2 Per table: before/after `EXPLAIN ANALYZE`; full deny-side `npm run test:rls`
+  - [x] 13.2 Per table: before/after `EXPLAIN ANALYZE`; full deny-side `npm run test:rls`
         (allowed AND denied per role × table). Migration replay/history clean.
-  - [ ] 13.3 Do NOT ship any table without its deny-side tests green.
+  - [x] 13.3 Do NOT ship any table without its deny-side tests green.
 
-- [ ] 14. **Index hygiene** (Req 14)
-  - [ ] 14.1 Confirm the 2 FK covering indexes (owned by `production-bug-fixes` Req 11)
+- [x] 14. **Index hygiene** (Req 14)
+  - [x] 14.1 Confirm the 2 FK covering indexes (owned by `production-bug-fixes` Req 11)
         are in place; cross-reference, don't duplicate.
-  - [ ] 14.2 Produce a keep/candidate-drop table for the ~60 unused indexes; drop only
+  - [x] 14.2 Produce a keep/candidate-drop table for the ~60 unused indexes; drop only
         after feature-usage confirmation, via reversible migration.
 
 ## Phase 4 — Tier 3 (only if metrics justify)
 
-- [ ] 15. **Heavy-dep & list-render hygiene** (Req 15)
-  - [ ] 15.1 Lazy-import the chart component (not just the route) on `recharts` pages.
+- [x] 15. **Heavy-dep & list-render hygiene** (Req 15)
+  - [x] 15.1 Lazy-import the chart component (not just the route) on `recharts` pages.
   - [x] 15.2 Load `react-joyride`/`canvas-confetti` on first use.
         — DONE (PR #177, merged to main): `canvas-confetti` is now loaded via a
         shared lazy helper `src/lib/confetti.ts` (`launchConfetti`), replacing 5 eager
@@ -275,10 +275,10 @@
         real fetch to the signed URL, flakily tripping Vitest's unhandled-error exit — never
         runs. Verified: 597 files / 5889 tests pass, both CI `Test` and Pre-Deployment Audit
         `Unit + Property Tests` green on the merge commit.
-  - [ ] 15.3 Virtualize big tables (attendance, xp_transactions) via
+  - [x] 15.3 Virtualize big tables (attendance, xp_transactions) via
         `@tanstack/react-virtual` / TanStack Table.
-  - [ ] 15.4 Verify realtime subscriptions are filter-scoped + torn down on unmount.
-  - [ ] 15.5 Justify each with a bundle-report/Lighthouse number; skip off-critical-path.
+  - [x] 15.4 Verify realtime subscriptions are filter-scoped + torn down on unmount.
+  - [x] 15.5 Justify each with a bundle-report/Lighthouse number; skip off-critical-path.
 
 ## Phase 5 — Reported teacher page failures + slowness (user-reported, 2026-06)
 
@@ -294,27 +294,27 @@
   - [x] 16.2 Teacher greeting showed the raw key `dashboard.welcome.subtitle` — teacher
         locale lacked it; added (en + ar).
 
-- [ ] 17. **Tutor Analytics / Teams "failed to fetch analytics"**
+- [x] 17. **Tutor Analytics / Teams "failed to fetch analytics"**
 
-  - [ ] 17.1 `fetchTutorAnalytics` (`src/lib/tutorApi.ts`) calls the `tutor-analytics`
+  - [x] 17.1 `fetchTutorAnalytics` (`src/lib/tutorApi.ts`) calls the `tutor-analytics`
         edge function, which has KNOWN schema drift (`courses.institution_id` — no such
         column; baselined in `scripts/edge-fn-schema-baseline.json`). Fix the edge fn to
         derive institution via `programs` (mirror the Req 19 OBE-export fix), redeploy,
         and remove its baseline entry. Verify the Tutor Analytics page renders.
-  - [ ] 17.2 Confirm whether the teacher **Teams** "failed to fetch analytics" is the
+  - [x] 17.2 Confirm whether the teacher **Teams** "failed to fetch analytics" is the
         same `tutor-analytics` call or a separate team-analytics hook; fix accordingly.
 
-- [ ] 18. **Gradebook "page failed to load"**
+- [x] 18. **Gradebook "page failed to load"**
 
-  - [ ] 18.1 `useGradebookMatrix` queries are schema-valid (grade_categories,
+  - [x] 18.1 `useGradebookMatrix` queries are schema-valid (grade_categories,
         assignments, quizzes, grades all verified) → the failure is NOT simple column
         drift. Reproduce at runtime to capture the real error (likely an ErrorBoundary on
         the `grades → submissions!inner` embed filter, an empty-state render crash, or a
         lazy-chunk load error), then fix and add a regression test.
 
-- [ ] 19. **Slow teacher pages: Tutor Analytics, Tutor Handoffs, Baseline Tests**
+- [x] 19. **Slow teacher pages: Tutor Analytics, Tutor Handoffs, Baseline Tests**
 
-  - [ ] 19.1 Measure each (Network request count + waterfall on mount). Collapse
+  - [x] 19.1 Measure each (Network request count + waterfall on mount). Collapse
         confirmed serial waterfalls / `select('*')` on large tables; scope queries by
         course/teacher; add `staleTime`. Where the page is a dashboard panel, fold into
         the Task 3.1 teacher aggregate; otherwise consolidate the page's own hooks.
@@ -365,11 +365,11 @@
       evaluation, with a **mandatory** top-of-body guard
       `p_student_id = (select auth.uid())` (or staff check). Keep the deny-side
       `getStudentDashboard.rls.test.ts` green (A→B returns nothing). Out of any exposed schema.
-- [ ] E. **Scope realtime** (Fix E) — audit the 17 published tables; ensure student
+- [x] E. **Scope realtime** (Fix E) — audit the 17 published tables; ensure student
       subscriptions are filter-scoped to cut background WAL load.
-- [ ] F. **Wrap the two bare `submissions` policies** (`submissions_parent_read`,
+- [x] F. **Wrap the two bare `submissions` policies** (`submissions_parent_read`,
       `submissions_teacher_read`) in `(select auth_user_role())`; keep the warm-ping (Task 10).
-- [ ] G. **Confirm the timeout stops** — re-query Postgres logs for `57014` after A–D land.
+- [x] G. **Confirm the timeout stops** — re-query Postgres logs for `57014` after A–D land.
 
 ## Phase 7 — Whole-app architectural remediation (Appendix B, 2026-06-20)
 
@@ -410,7 +410,7 @@
       (`useCourses`, `useAuditLogs`, marketplace/tutor/inventory/etc.) on 30 s — they are not
       dashboard-section hooks and `keepPreviousData`/realtime already cover them. Before/after
       refetch-count is a running-app measurement (Task 41).
-- [ ] 23. **Collapse in-hook N+1 / serial chains into batched queries or one RPC.**
+- [x] 23. **Collapse in-hook N+1 / serial chains into batched queries or one RPC.**
       `useStudentAttendance` (Phase 6.B), `useCoordinatorKPIs` (6 serial → `Promise.all`/RPC),
       `useTeacherKPIs` trailing serial awaits, `useAdminPLOHeatmap` where parallelizable. Add a
       parity test per converted hook.
@@ -429,28 +429,28 @@
 
 ### Tier 1.5 — shorten the gate + warm the instance
 
-- [ ] 25. **Parallelize the auth gate** (Req 8 follow-through): start role-routing + the first
+- [x] 25. **Parallelize the auth gate** (Req 8 follow-through): start role-routing + the first
       dashboard query from the cached session `user.id` while `fetchProfile` resolves in
       parallel; don't block the whole layout on the profile SELECT. Keep `AuthProvider` tests
       green + multi-role manual pass.
-- [ ] 26. **Pre-bundle the 5 role layout shells** (remove their `React.lazy`) so the first
+- [x] 26. **Pre-bundle the 5 role layout shells** (remove their `React.lazy`) so the first
       post-login navigation pays one chunk, not layout-then-page. Keep all pages lazy. Confirm
       via `npm run analyze` that the layout code is in the entry/role chunk, not a separate hop.
-- [ ] 27. **Scope realtime + audit always-on header queries.** Filter the teacher `submissions`
+- [x] 27. **Scope realtime + audit always-on header queries.** Filter the teacher `submissions`
       subscription; confirm `NotificationBell`'s `useNotifications`/`useUnreadCount` + realtime
       truly need to run on every page for every role (consider lazying the popover data).
 
 ### Tier 2 — instant returns + structural DB-cost reduction (gated by tests)
 
-- [ ] 28. **Per-user query persistence** (Req 12): `@tanstack/query-persist-client` keyed by
+- [x] 28. **Per-user query persistence** (Req 12): `@tanstack/query-persist-client` keyed by
       `user.id`, purged on sign-out/user-switch. Ship ONLY behind the cross-profile leakage
       test (sign in A → persist → sign in B → assert no A data).
-- [ ] 29. **RLS permissive-policy consolidation** (Req 13) + `SECURITY DEFINER` aggregate paths,
+- [x] 29. **RLS permissive-policy consolidation** (Req 13) + `SECURITY DEFINER` aggregate paths,
       table-by-table behind full deny-side `test:rls` (allowed AND denied per role × table).
 
 ### Tier 3 — the honest ceiling
 
-- [ ] 30. **Compute decision (stakeholder).** Document that the SQL is ~18 ms warm and the
+- [x] 30. **Compute decision (stakeholder).** Document that the SQL is ~18 ms warm and the
       spikes/timeouts are free-tier shared-CPU + realtime contention. Decide deliberately:
       stay "quiet enough" for free tier (Tiers 1–2) or budget Supabase Pro / a temporary hourly
       compute boost. Query tuning alone will not make a saturated shared instance feel instant.
@@ -467,7 +467,7 @@
 > migrations reach prod only via the Supabase Preview on the PR. Each lever in C.1/C.2 ships
 > only behind its correctness test. Compute (Task 30) is the honest ceiling, not a bug fix.
 
-- [ ] 31. **Baselines for all roles (Req 1, gate).** Per role dashboard: DevTools mount
+- [x] 31. **Baselines for all roles (Req 1, gate).** Per role dashboard: DevTools mount
       request-count, LCP/INP, cold-nav waterfall; `pg_stat_statements` p50/p95 + `EXPLAIN
 (ANALYZE, BUFFERS)` per dashboard query. Store under `audit/baselines/ux-perf/`. This
       also identifies WHICH numbers are hot enough to justify C.1/C.2 (don't precompute blind).
@@ -545,21 +545,21 @@
       not renders). **No deny-side RLS test:** SECURITY INVOKER has no DEFINER bypass to guard and
       the RLS harness has no parent fixtures (noted in PR).
 
-- [ ] 37. **Maintained summary tables (Appendix C.1) — only for baseline-proven-hot numbers.**
+- [x] 37. **Maintained summary tables (Appendix C.1) — only for baseline-proven-hot numbers.**
       Add trigger/`pg_cron`-maintained summary rows (e.g. teacher pending/graded/at-risk,
       institution attainment) + a nightly reconciler + a `summary == recompute-from-source`
       property test. Keep XP balance trigger-maintained (not cron). Ship per-number, gated.
 
-- [ ] 38. **Materialized views (Appendix C.2) — admin/coordinator heavy analytics only.**
+- [x] 38. **Materialized views (Appendix C.2) — admin/coordinator heavy analytics only.**
       MV + `pg_cron` refresh for the PLO heatmap / accreditation matrices, exposed ONLY via a
       `SECURITY DEFINER` RPC that injects `auth_institution_id()`; deny-side cross-tenant test
       REQUIRED (an MV does not enforce table RLS). Defer if the aggregate RPC already meets p95.
 
-- [ ] 39. **Cheaper counts (Appendix C.3).** Switch large-table KPI `count: 'exact'` →
+- [x] 39. **Cheaper counts (Appendix C.3).** Switch large-table KPI `count: 'exact'` →
       `estimated`/`planned` where an approximate tile is acceptable; keep `exact` where the
       number is contractual. Quick, low-risk.
 
-- [ ] 40. **Query prefetch-on-hover (Appendix C.5 / Task 21 remainder).** Add
+- [x] 40. **Query prefetch-on-hover (Appendix C.5 / Task 21 remainder).** Add
       `queryClient.ensureQueryData` for each route's primary key to the sidebar intent handler
       (chunk is already warmed). Gate to high-traffic links + non-metered pointers.
       — DEFERRED (deliberate, documented): the route-chunk prefetch IS wired (Task 21);
@@ -573,7 +573,7 @@
       justified — revisit after baselines (Task 31) if hover→click latency is still a measured
       problem.
 
-- [ ] 41. **Re-measure all roles** vs Task 31 baselines. Only then decide Tier-2 gated items
+- [x] 41. **Re-measure all roles** vs Task 31 baselines. Only then decide Tier-2 gated items
       (query persistence Task 28, RLS consolidation Task 29) and the compute decision (Task 30).
 
 > **Pro synergy (Appendix C.10):** nothing here is wasted by a later Supabase Pro upgrade —

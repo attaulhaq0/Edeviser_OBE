@@ -18,7 +18,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
 **Authoring rules applied throughout:**
 
 - Tests are sub-tasks of the implementation they test, never standalone.
-- Test-related sub-tasks historically used `- [ ]*` to mark them optional, but the user has promoted every task in this plan to mandatory; no task below is optional regardless of the checkbox rendering.
+- Test-related sub-tasks historically used `- [x]*` to mark them optional, but the user has promoted every task in this plan to mandatory; no task below is optional regardless of the checkbox rendering.
 - Property-test sub-tasks carry `Feature: pre-deployment-e2e-audit, Property N: <title>` and reference the requirement(s) they validate.
 - Schema/migration changes go through Supabase MCP `apply_migration`, never manual edits to `supabase/migrations/`.
 - `src/types/database.ts` is regenerated via `pwsh scripts/regen-types.ps1`, never by hand or shell redirection.
@@ -1116,7 +1116,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
 
 ## Notes
 
-- Tasks in this plan are all mandatory. The authoring history kept some as optional (`- [ ]*`) while the scope was being stabilised; those have all been promoted. A deploy cannot proceed until the property suite (§7), token-expired probe (§13.6), locale-aware formatter tests (§11.8), historical `audit_runs` tables (§19.3), and documentation + waiver process (§20) are complete.
+- Tasks in this plan are all mandatory. The authoring history kept some as optional (`- [x]*`) while the scope was being stabilised; those have all been promoted. A deploy cannot proceed until the property suite (§7), token-expired probe (§13.6), locale-aware formatter tests (§11.8), historical `audit_runs` tables (§19.3), and documentation + waiver process (§20) are complete.
 - Every task carries a `_Requirements:_` footer and most carry a `_Design:_` footer for direct traceability.
 - Property-test tasks carry `Feature: pre-deployment-e2e-audit, Property N: <title>` in their body and reference both the requirement clause and the correctness-property ordinal.
 - Setup tasks §1, §2, §3 are strict prerequisites for every other section. §4 is a prerequisite for §5, §6, §11.3–§11.7, §14.2, §15.

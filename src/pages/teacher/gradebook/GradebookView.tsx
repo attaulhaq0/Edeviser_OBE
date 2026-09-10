@@ -264,7 +264,7 @@ const GradebookView = () => {
 
           <TabsContent value="matrix" className="mt-4">
             {ungradedCategoryNames.length > 0 && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-blue-200 px-4 py-3 text-sm text-blue-700">
                 <Info className="h-4 w-4 shrink-0" />
                 <span>
                   {t("gradebook.excludedCategories", {
@@ -274,7 +274,7 @@ const GradebookView = () => {
               </div>
             )}
             {!isBalanced && visibleCategories.length > 0 && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 px-4 py-3 text-sm text-amber-700">
                 <Settings className="h-4 w-4" />
                 Category weights don&apos;t sum to 100% ({totalWeight}%).
                 Configure categories first.

@@ -127,7 +127,7 @@ const ChallengeCard = ({
     >
       <PCard className="p-4 transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)]">
         <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-amber-50 p-2">
+          <div className="rounded-lg bg-transparent p-2">
             {isTeam ? (
               <Users className="h-4 w-4 text-amber-600" />
             ) : (

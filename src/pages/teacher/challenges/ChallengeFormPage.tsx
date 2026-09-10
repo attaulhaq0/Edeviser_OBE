@@ -411,7 +411,7 @@ const ChallengeFormPage = () => {
             {challengeType === "xp_race" && (
               <div className="space-y-3">
                 {xpRaceLimitReached && !isEditMode && (
-                  <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                  <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-transparent px-4 py-3">
                     <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
                     <p className="text-xs text-red-700">
                       Maximum of 2 concurrent XP Race challenges per course

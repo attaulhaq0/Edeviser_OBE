@@ -84,7 +84,7 @@ export default function UnitCloseReviewPage() {
       <h1 className="text-2xl font-bold tracking-tight">Unit-Close Review</h1>
 
       {uncoveredCount > 0 && (
-        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <span>
             {uncoveredCount} outcome{uncoveredCount > 1 ? "s" : ""} in this

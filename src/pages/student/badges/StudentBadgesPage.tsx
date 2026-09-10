@@ -53,7 +53,7 @@ const StudentBadgesPage = () => {
             {t("badges.subtitle")}
           </p>
         </div>
-        <span className="inline-flex items-center gap-2 self-start rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 sm:self-auto">
+        <span className="inline-flex items-center gap-2 self-start rounded-full bg-transparent px-3 py-1.5 text-xs font-bold text-amber-800 sm:self-auto">
           <Sparkles className="size-3.5" aria-hidden="true" />
           {t("badges.pinned", { count: pinnedCount })}
         </span>

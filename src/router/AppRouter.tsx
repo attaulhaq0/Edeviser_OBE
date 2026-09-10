@@ -524,7 +524,7 @@ const PageErrorFallback = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-      <div className="rounded-full bg-red-50 p-4 mb-4">
+      <div className="rounded-full bg-transparent p-4 mb-4">
         <svg
           className="h-8 w-8 text-red-500"
           fill="none"
@@ -800,7 +800,10 @@ const AppRouter = () => (
             <Route path="sankey" element={<SankeyDiagramView />} />
             <Route path="gap-analysis" element={<GapAnalysisView />} />
             <Route path="coverage-heatmap" element={<CoverageHeatmapView />} />
-            <Route path="unit-close/:courseId" element={<UnitCloseReviewPage />} />
+            <Route
+              path="unit-close/:courseId"
+              element={<UnitCloseReviewPage />}
+            />
             <Route path="trends" element={<SemesterTrendView />} />
             <Route
               path="cohort-comparison"

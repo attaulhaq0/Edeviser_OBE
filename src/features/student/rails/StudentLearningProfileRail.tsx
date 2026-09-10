@@ -51,7 +51,7 @@ const StudentLearningProfileRail = () => {
               aria-valuenow={Math.round(boundedCompleteness)}
             >
               <div
-                className="h-full rounded-full bg-teal-500 transition-[width]"
+                className="h-full rounded-full bg-transparent0 transition-[width]"
                 style={{ width: `${boundedCompleteness}%` }}
               />
             </div>

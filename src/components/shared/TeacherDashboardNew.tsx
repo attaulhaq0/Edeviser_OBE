@@ -84,7 +84,7 @@ const TeacherDashboardNew = () => {
             icon={CheckSquare}
             label={t("dashboard.gradedThisWeek")}
             value={kpis?.gradedThisWeek ?? 0}
-            iconBgClass="bg-green-50"
+            iconBgClass="bg-transparent"
             iconColorClass="text-green-600"
           />
           <KPICard
@@ -98,7 +98,7 @@ const TeacherDashboardNew = () => {
             label={t("dashboard.atRiskStudents")}
             value={atRisk}
             valueClassName={atRisk > 0 ? "text-red-600" : "text-sky-700"}
-            iconBgClass={atRisk > 0 ? "bg-red-50" : "bg-blue-50"}
+            iconBgClass={atRisk > 0 ? "bg-transparent" : "bg-transparent"}
             iconColorClass={atRisk > 0 ? "text-red-600" : "text-blue-600"}
           />
         </div>

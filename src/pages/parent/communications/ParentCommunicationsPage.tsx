@@ -186,7 +186,7 @@ const ParentCommunicationsPage = () => {
                   <div key={item.id} className="py-4 first:pt-0 space-y-1">
                     <div className="flex items-center gap-2">
                       {item.isPinned && (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-transparent px-2 py-0.5 text-[10px] font-extrabold text-amber-700 border border-amber-200">
                           <Pin className="h-3 w-3" aria-hidden="true" /> Pinned
                         </span>
                       )}

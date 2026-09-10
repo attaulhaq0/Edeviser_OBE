@@ -199,7 +199,7 @@ const ParentPlannerView = () => {
               </p>
               <p className="text-2xl font-black mt-1">{totalStudyHours}h</p>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Clock className="h-5 w-5 text-blue-600" />
             </div>
           </div>
@@ -213,7 +213,7 @@ const ParentPlannerView = () => {
               </p>
               <p className="text-2xl font-black mt-1">{completedSessions}</p>
             </div>
-            <div className="p-2 rounded-lg bg-teal-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <CalendarDays className="h-5 w-5 text-teal-600" />
             </div>
           </div>
@@ -227,7 +227,7 @@ const ParentPlannerView = () => {
               </p>
               <p className="text-2xl font-black mt-1">{completedTasks}</p>
             </div>
-            <div className="p-2 rounded-lg bg-green-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Clock className="h-5 w-5 text-green-600" />
             </div>
           </div>

@@ -76,7 +76,7 @@ const AssessmentTimer = ({
   return (
     <div
       className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold ${
-        isWarning ? "bg-red-50 text-red-600" : "bg-slate-100 text-gray-700"
+        isWarning ? " text-red-600" : "bg-slate-100 text-gray-700"
       }`}
     >
       {isWarning && <AlertTriangle className="h-4 w-4" />}
@@ -276,7 +276,7 @@ const SingleCourseTest = ({
                       }`}
                     >
                       {isSelected && (
-                        <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-transparent0" />
                       )}
                     </span>
                     {opt.option_text}

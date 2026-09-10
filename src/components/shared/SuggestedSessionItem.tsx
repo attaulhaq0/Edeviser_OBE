@@ -31,7 +31,7 @@ const SuggestedSessionItem = ({
   return (
     <div
       className={cn(
-        "rounded-lg border border-dashed border-teal-300 bg-teal-50/40 p-2.5",
+        "rounded-lg border border-dashed border-teal-300 bg-transparent/40 p-2.5",
         compact && "p-2"
       )}
       data-testid="suggested-session"

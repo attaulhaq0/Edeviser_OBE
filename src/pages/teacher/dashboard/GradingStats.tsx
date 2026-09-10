@@ -38,7 +38,7 @@ interface StatCardProps {
 
 const StatCard = ({ icon: Icon, label, value }: StatCardProps) => (
   <div className="flex items-center gap-3">
-    <div className="p-2 rounded-lg bg-blue-50">
+    <div className="p-2 rounded-lg ">
       <Icon className="h-4 w-4 text-blue-600" />
     </div>
     <div>

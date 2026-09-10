@@ -222,7 +222,7 @@ const HabitAnalyticsContent = () => {
                 <Shimmer className="h-24 rounded-xl" />
               ) : correlationResult?.insufficientData ? (
                 <div
-                  className="flex items-center gap-3 rounded-xl bg-blue-50 p-4"
+                  className="flex items-center gap-3 rounded-xl bg-transparent p-4"
                   data-testid="insufficient-data-message"
                 >
                   <Info className="h-5 w-5 text-blue-500 shrink-0" />

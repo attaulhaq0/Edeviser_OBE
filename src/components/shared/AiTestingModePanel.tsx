@@ -50,7 +50,7 @@ const AiTestingModePanel = () => {
         AI (Tutor, Quiz Gen) is always available.
       </p>
       {active ? (
-        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
+        <div className="flex items-center gap-2 rounded-lg border border-green-200 p-3 dark:border-green-800 dark:bg-green-950">
           <Zap className="h-5 w-5 text-green-600" />
           <div className="flex-1">
             <p className="text-sm font-medium text-green-800 dark:text-green-200">
@@ -69,7 +69,7 @@ const AiTestingModePanel = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950">
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 p-3 dark:border-amber-800 dark:bg-amber-950">
             <AlertCircle className="h-5 w-5 text-amber-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">

@@ -53,7 +53,7 @@ const Mascot = ({ moment, className }: MascotProps) => {
       // assistive tech without stealing focus from the host surface.
       aria-label={t("mascot.regionLabel")}
       className={cn(
-        "animate-fade-in-up flex items-start gap-3 rounded-xl border-0 bg-blue-50 p-4 text-start shadow-none",
+        "animate-fade-in-up flex items-start gap-3 rounded-xl border-0 bg-transparent p-4 text-start shadow-none",
         className
       )}
     >
