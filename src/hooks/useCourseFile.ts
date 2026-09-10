@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,16 @@ export const useGenerateCourseFile = () => {
       }
 
       return result;
+    },
+    onSuccess: (
+      result: GenerateCourseFileResult,
+      variables: GenerateCourseFileInput
+    ) => {
+      captureAnalyticsEvent("accreditation_pack_generated", {
+        course_id: variables.course_id,
+        semester_id: variables.semester_id,
+        has_download: !!result.download_url,
+      });
     },
   });
 };

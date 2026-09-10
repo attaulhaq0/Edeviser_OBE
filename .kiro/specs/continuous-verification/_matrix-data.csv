@@ -1,0 +1,13 @@
+id,domain,status,evidence,risk
+AI1,Domain 4 - AI & Agentic,BLOCKED,Page loads; 4 agent msgs live; needs QA execution,
+AI2,Domain 4 - AI & Agentic,BLOCKED,OWASP LLM01 check 37 armed; never live-tested,
+AI3,Domain 4 - AI & Agentic,PROVEN,Tool registry enforces allowedRoles; agentCertification test green,
+AI4,Domain 4 - AI & Agentic,PROVEN,PROTECTED_ACTIONS invariant; approval gating via agent_action_proposals,
+AI5,Domain 4 - AI & Agentic,BLOCKED,institution_autonomy row exists; never tested varying levels,
+AI6,Domain 4 - AI & Agentic,BLOCKED,Pages routed; needs QA execution,
+AI7,Domain 4 - AI & Agentic,BLOCKED,0 handoffs live; needs QA escalation trigger,
+AI8,Domain 4 - AI & Agentic,PROVEN,F8 fix deployed; orchestrator v35; 7.8-QA suite green,
+AI9,Domain 4 - AI & Agentic,PROVEN,5-class taxonomy; ownership routing Q5 live; 8.9-QA suite green,
+AI10,Domain 4 - AI & Agentic,PARTIAL,Functions deployed but cron never fired (cron_secrets UNSET),
+AI11,Domain 4 - AI & Agentic,BLOCKED,Institution-scoped packets; never cross-tenant tested,
+AI12,Domain 4 - AI & Agentic,PROVEN,agent_runs with running->completed states; orchestrator v26 audit,

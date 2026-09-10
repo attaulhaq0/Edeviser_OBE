@@ -126,11 +126,38 @@ export const useCreateGrade = () => {
 
       return grade;
     },
-    onSuccess: (grade) => {
+    onSuccess: async (grade) => {
+      let courseId: string | undefined;
+      let assessmentModel: string | undefined;
+      try {
+        const { data: subData } = await supabase
+          .from("submissions")
+          .select("assignment_id")
+          .eq("id", grade.submission_id)
+          .maybeSingle();
+        if (subData) {
+          if (!subData.assignment_id) return;
+          const { data: assignData } = await supabase
+            .from("assignments")
+            .select("course_id, courses(assessment_model)")
+            .eq("id", subData.assignment_id)
+            .maybeSingle();
+          if (assignData) {
+            courseId = assignData.course_id;
+            assessmentModel = (
+              assignData.courses as unknown as { assessment_model?: string }
+            )?.assessment_model;
+          }
+        }
+      } catch {
+        /* best-effort analytics enrichment */
+      }
       captureAnalyticsEvent("grade_submitted", {
         score_percent: grade.score_percent,
         ai_applied: grade.ai_applied,
         submission_id: grade.submission_id,
+        ...(courseId && { course_id: courseId }),
+        ...(assessmentModel && { assessment_model: assessmentModel }),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.grades.lists() });
       queryClient.invalidateQueries({
