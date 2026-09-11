@@ -411,7 +411,7 @@ export const StageDetail = ({
             {t(stage.subtitleKey)}
           </p>
         </div>
-        <span className="flex size-11 items-center justify-center rounded-2xl bg-teal-50 text-2xl text-teal-700 shadow-xs border border-teal-100">
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-transparent text-2xl text-teal-700 shadow-xs border border-teal-100">
           {stage.emoji}
         </span>
       </div>
@@ -459,7 +459,7 @@ export const StageDetail = ({
                   ) : node.status === "locked" ? (
                     <Lock className="size-2.5" aria-hidden="true" />
                   ) : (
-                    <span className="size-1.5 rounded-full bg-teal-500" />
+                    <span className="size-1.5 rounded-full bg-transparent0" />
                   )}
                 </span>
                 <span className="min-w-0 flex-1 truncate font-semibold text-slate-700">
@@ -609,7 +609,7 @@ const JourneyView = ({
         </PCard>
 
         <PCard className="flex items-center gap-3 p-4">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent text-blue-700">
             <Lock className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
@@ -850,7 +850,7 @@ const LearningPath = ({
     return (
       <LearningPathContext.Provider value={contextValue}>
         <PCard className="flex min-h-72 flex-col items-center justify-center p-8 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+          <span className="flex size-14 items-center justify-center rounded-2xl bg-transparent text-teal-700">
             <GitBranch className="size-7" aria-hidden="true" />
           </span>
           <h2 className="mt-4 text-base font-black text-slate-900">

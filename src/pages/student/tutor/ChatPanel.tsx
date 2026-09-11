@@ -348,7 +348,7 @@ const ChatPanel = ({
       {/* Usage warning banner — shows at 80% of daily limit */}
       {showWarning && usage && (
         <div
-          className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-100"
+          className="flex items-center gap-2 px-4 py-2 bg-transparent border-b border-amber-100"
           role="alert"
         >
           <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0" />
@@ -471,7 +471,7 @@ const ChatPanel = ({
                   />
                   <button
                     onClick={() => removeImage(i)}
-                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-transparent0 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={t("tutor.chat.removeImage", { index: i + 1 })}
                   >
                     <X className="h-3 w-3" />
@@ -491,7 +491,7 @@ const ChatPanel = ({
                   </Badge>
                   <button
                     onClick={removeDocument}
-                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-transparent0 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={t("tutor.chat.removeDocument")}
                   >
                     <X className="h-3 w-3" />
@@ -517,7 +517,7 @@ const ChatPanel = ({
         {/* Token budget exceeded banner */}
         {isTokenBudgetExceeded && (
           <div
-            className="mb-3 p-3 rounded-lg bg-red-50 flex items-center gap-2"
+            className="mb-3 p-3 rounded-lg bg-transparent flex items-center gap-2"
             role="alert"
           >
             <AlertTriangle className="h-4 w-4 text-red-700 shrink-0" />

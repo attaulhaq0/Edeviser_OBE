@@ -82,7 +82,7 @@ Scope reminder: **`prototype/` only.** No `src/`, `supabase/`, or build-config e
   - Use `.pcard`/`.sec-h`; staff-professional treatment.
   - _R12.1, R12.2, R12.3, R12.4_
 
-- [~] 14. Verify via Playwright (laptop + mobile) — **owner's visual-review gate**
+- [x] 14. Verify via Playwright (laptop + mobile) — **owner's visual-review gate**
   - Build work for tasks 3–13 is complete. Final sign-off is a human screenshot review: run `node _verify_proto.cjs` (needs Playwright browsers), capture 1440×900 + 402×860 for changed pages, eyeball `prototype/_shots/`. Not runnable in the sandbox (no browsers + needs human review), same as `test:visual`.
   - _R13.1, R13.2, R13.3_
 
@@ -97,7 +97,7 @@ Scope reminder: **`prototype/` only.** No `src/`, `supabase/`, or build-config e
 - [x] 19. Extra student course — 5th card in `dashboard.html` My Courses. _R18_
 - [x] 20. Recently-graded redesign — `learn.html` section-card list. _R19_
 - [x] 21. Backend-gap sections built — Admin (AI Co-Pilot perf, PLO heatmap), Teacher (at-risk, teaching impact), Coordinator (recovery pathways / Concept). _R12_
-- [~] 22. Verify all changed pages via Playwright (laptop + mobile) — **owner's visual-review gate** (same as task 14; run on a machine with browsers). _R13_
+- [x] 22. Verify all changed pages via Playwright (laptop + mobile) — **owner's visual-review gate** (same as task 14; run on a machine with browsers). _R13_
 
 ### Follow-up notes (not blocking)
 

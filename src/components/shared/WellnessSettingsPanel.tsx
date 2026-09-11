@@ -91,7 +91,7 @@ const WellnessSettingsPanel = ({
               <div
                 className={cn(
                   "p-2 rounded-lg",
-                  enabled ? "bg-blue-100" : "bg-slate-50"
+                  enabled ? "bg-transparent" : "bg-slate-50"
                 )}
               >
                 <Icon
@@ -122,7 +122,7 @@ const WellnessSettingsPanel = ({
         data-testid="wellness-parent-visibility"
         className="flex items-center gap-3 rounded-xl border bg-white p-3 shadow-sm"
       >
-        <div className="p-2 rounded-lg bg-slate-50">
+        <div className="p-2 rounded-lg ">
           <Eye className="h-4 w-4 text-slate-500" />
         </div>
         <div className="flex-1 min-w-0">

@@ -123,7 +123,7 @@ const TeamHealthReportPage = ({
                 </p>
                 <p className="text-2xl font-black mt-1">{counts.total}</p>
               </div>
-              <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+              <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                 <HeartPulse className="h-5 w-5 text-blue-600" />
               </div>
             </div>
@@ -138,7 +138,7 @@ const TeamHealthReportPage = ({
                   {counts.healthy}
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-green-50 group-hover:scale-110 transition-transform">
+              <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               </div>
             </div>
@@ -153,7 +153,7 @@ const TeamHealthReportPage = ({
                   {counts.needs_attention}
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-yellow-50 group-hover:scale-110 transition-transform">
+              <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
               </div>
             </div>
@@ -168,7 +168,7 @@ const TeamHealthReportPage = ({
                   {counts.at_risk}
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-red-50 group-hover:scale-110 transition-transform">
+              <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
               </div>
             </div>

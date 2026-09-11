@@ -127,7 +127,7 @@ const ThreadDetail = () => {
                 {thread.title}
               </h1>
               {thread.is_resolved && (
-                <span className="text-[10px] font-bold tracking-widest uppercase text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-green-600 bg-transparent px-2 py-0.5 rounded">
                   Resolved
                 </span>
               )}

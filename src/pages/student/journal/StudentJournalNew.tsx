@@ -150,7 +150,7 @@ const StudentJournalNew = () => {
       <PCard className="overflow-hidden p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-2.5">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-transparent text-lg">
               📝
             </div>
             <div className="min-w-0">
@@ -166,7 +166,7 @@ const StudentJournalNew = () => {
             </div>
           </div>
           <div className="hidden shrink-0 items-start gap-2 sm:flex">
-            <div className="relative mt-1 max-w-[150px] rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-slate-600 shadow-sm before:absolute before:start-[-7px] before:top-4 before:size-3 before:rotate-45 before:border-b before:border-s-amber-300 before:bg-amber-50">
+            <div className="relative mt-1 max-w-[150px] rounded-xl border border-amber-300 bg-transparent px-3 py-2 text-xs leading-relaxed text-slate-600 shadow-sm before:absolute before:start-[-7px] before:top-4 before:size-3 before:rotate-45 before:border-b before:border-s-amber-300 before:bg-transparent">
               {t(
                 "journal.today.mascotMessage",
                 "Every reflection makes you stronger! ✨"
@@ -262,7 +262,7 @@ const StudentJournalNew = () => {
           })}
         </div>
         {guidedPrompt ? (
-          <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 p-3">
+          <div className="mt-3 rounded-xl border border-teal-200 bg-transparent p-3">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
                 {t("journal.prompts.guided", "Guided reflection")}
@@ -286,7 +286,7 @@ const StudentJournalNew = () => {
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600">
+          <span className="rounded-full border border-amber-200 bg-transparent px-3 py-1.5 text-xs font-bold text-amber-600">
             ⭐ {t("journal.today.xp", "+20 XP for journaling")}
           </span>
           <div className="flex items-center gap-3">
@@ -330,7 +330,7 @@ const StudentJournalNew = () => {
           <PCard className="p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-violet-50 text-lg">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-transparent text-lg">
                   📔
                 </span>
                 <h2 className="text-base font-black tracking-tight text-slate-900">
@@ -396,7 +396,7 @@ const StudentJournalNew = () => {
                     "This week's reflection streak"
                   )}
                 </p>
-                <span className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-[11px] font-bold text-teal-600">
+                <span className="rounded-full border border-teal-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-teal-600">
                   {t("journal.journey.keepAlive", "Keep it alive today!")}
                 </span>
               </div>
@@ -482,7 +482,7 @@ const StudentJournalNew = () => {
           <PCard className="p-5 sm:p-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-amber-50 text-lg">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-transparent text-lg">
                   🗂️
                 </span>
                 <h2 className="text-base font-black tracking-tight text-slate-900">
@@ -519,7 +519,7 @@ const StudentJournalNew = () => {
                       </span>
                       <Link
                         to={`/student/journal/${entry.id}`}
-                        className="min-w-0 flex-1 rounded-xl border border-slate-100 bg-white p-3 transition-colors hover:border-blue-200 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        className="min-w-0 flex-1 rounded-xl border border-slate-100 bg-white p-3 transition-colors hover:border-blue-200 hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <time

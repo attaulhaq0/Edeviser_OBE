@@ -53,7 +53,7 @@ const StreakDisplay = ({
   return (
     <PCard className="p-4" data-focus-hide="true">
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-orange-50">
+        <div className="p-2 rounded-lg ">
           <Flame className="h-5 w-5 text-orange-500 animate-streak-flame" />
         </div>
         <div className="flex-1 min-w-0">
@@ -120,7 +120,7 @@ const StreakDisplay = ({
       {/* Motivational message on streak reset */}
       {streakJustReset && totalActiveDays > 0 && (
         <div
-          className="mt-3 flex items-center gap-2 bg-blue-50 rounded-lg p-2.5"
+          className="mt-3 flex items-center gap-2 bg-transparent rounded-lg p-2.5"
           data-testid="streak-reset-message"
         >
           <RefreshCw className="h-4 w-4 text-blue-500 shrink-0" />

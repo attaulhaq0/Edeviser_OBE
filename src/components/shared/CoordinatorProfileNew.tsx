@@ -179,7 +179,7 @@ const StatTile = ({
   label: string;
 }) => (
   <div className="flex items-center gap-2.5">
-    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-transparent text-blue-600">
       <Icon className="h-4 w-4" />
     </span>
     <div className="min-w-0">
@@ -526,7 +526,7 @@ const CoordinatorProfileNew = () => {
               }}
             >
               <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-transparent text-teal-600">
                   <Bot className="h-5 w-5" />
                 </span>
                 <div>
@@ -596,7 +596,7 @@ const CoordinatorProfileNew = () => {
                         variant="ghost"
                         className="h-auto w-full justify-start gap-3 rounded-xl border border-slate-100 p-3 text-start hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
-                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-transparent text-blue-600">
                           <GraduationCap
                             className="h-4 w-4"
                             aria-hidden="true"
@@ -637,7 +637,7 @@ const CoordinatorProfileNew = () => {
               }}
             >
               <div className="flex items-center gap-3">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-transparent text-blue-600">
                   <Users className="h-6 w-6" />
                 </span>
                 <div>

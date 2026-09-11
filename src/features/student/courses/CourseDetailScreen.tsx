@@ -46,13 +46,13 @@ const MATERIAL_META: Record<
   }
 > = {
   text: { icon: FileText, badge: "Text", tone: "bg-slate-100 text-slate-700" },
-  video: { icon: Video, badge: "Video", tone: "bg-violet-50 text-violet-700" },
+  video: { icon: Video, badge: "Video", tone: "bg-transparent text-violet-700" },
   link: {
     icon: LinkIcon,
     badge: "Link",
     tone: "bg-emerald-50 text-emerald-700",
   },
-  file: { icon: File, badge: "File", tone: "bg-blue-50 text-blue-700" },
+  file: { icon: File, badge: "File", tone: "bg-transparent text-blue-700" },
 };
 
 const CourseSummaryStat = ({
@@ -165,7 +165,7 @@ const MaterialViewerCard = ({
             href={material.content_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+            className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-transparent px-4 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
           >
             <LinkIcon className="size-4" aria-hidden="true" />
             {t("courses.detail.openLink", "Open resource")}
@@ -178,7 +178,7 @@ const MaterialViewerCard = ({
             href={material.content_url ?? material.file_path ?? "#"}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+            className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-transparent px-4 py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
           >
             <FileText className="size-4" aria-hidden="true" />
             {t("courses.detail.openFile", "Download or view file")}
@@ -791,7 +791,7 @@ const CourseDetailScreen = () => {
               <div className="max-w-sm">
                 <div
                   aria-hidden="true"
-                  className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-teal-50 text-teal-700"
+                  className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-transparent text-teal-700"
                 >
                   <BookOpen className="size-6" />
                 </div>

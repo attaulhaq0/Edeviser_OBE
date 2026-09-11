@@ -223,7 +223,7 @@ const ParentProgressPage = () => {
 
                   {hasConsistencyData ? (
                     <>
-                      <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-3 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                      <div className="rounded-lg border border-emerald-100 bg-transparent px-3 py-3 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
                         🔥 {selectedChild?.current_streak ?? 0}-day shared
                         activity streak · {selectedChild?.xp_total ?? 0} XP
                         recorded.

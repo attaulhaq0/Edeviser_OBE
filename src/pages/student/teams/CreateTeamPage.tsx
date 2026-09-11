@@ -195,7 +195,7 @@ const CreateTeamPage = () => {
                       {roster.map((student) => (
                         <label
                           key={student.student_id}
-                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer"
+                          className="flex items-center gap-2 p-2 rounded-lg hover: cursor-pointer"
                         >
                           <Checkbox
                             checked={selectedMembers.includes(

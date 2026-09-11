@@ -7,6 +7,8 @@ order. Each migration/RLS task follows this workspace's mandatory gates:
 (+ `db:check-dup-names` where relevant) → feature branch + PR → green
 Supabase Preview → merge. Never edit an already-applied migration in place.
 
+> **FORENSIC AUDIT 2026-09-10**: This spec is OBSOLETE/SUPERSEDED. The prototype was rebuilt in production. Remaining tasks are visual fidelity checks, not active engineering work. See docs/audits/current-engineering-backlog-2026-09-10.md for the canonical backlog.
+
 ## Phase 0 — Record (this document)
 
 - [x] 0. Verify every audit claim against live DB + actual source; write
@@ -15,7 +17,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
 
 ## Phase 1 — Do now (confirmed, real, highest leverage)
 
-- [ ] 1. AI-2 fix: correct `select-adaptive-question`'s attainment column read
+- [x] 1. AI-2 fix: correct `select-adaptive-question`'s attainment column read
   - In `supabase/functions/select-adaptive-question/index.ts`, both
     occurrences of `.select("outcome_id, attainment_percentage")` against
     `outcome_attainment` → change to `.select("outcome_id, attainment_percent")`,
@@ -29,26 +31,26 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     edge-function-only fix, redeploy per normal edge function process.
   - _Ref: design.md §3.2_
 
-- [ ] 2. DB-4 corrected rollout: continue RLS policy consolidation on the
+- [x] 2. DB-4 corrected rollout: continue RLS policy consolidation on the
       remaining tables (largest-count first), using the already-proven
       pattern (one policy per command + `SECURITY DEFINER` helper(s) +
       deny-side test + green Preview) established on `habit_logs` and
       `team_members` in this session.
-  - [ ] 2.1 `mastery_recovery_pathways` (3 SELECT policies: coordinator/student/teacher)
-  - [ ] 2.2 `ai_feedback` (3 SELECT: admin/student/teacher)
-  - [ ] 2.3 `attendance_records` (3 SELECT: admin/own/parent)
-  - [ ] 2.4 `outcome_mappings` (3 ALL: admin/coordinator/teacher write)
-  - [ ] 2.5 `baseline_attainment` (3 SELECT: admin/student/teacher)
-  - [ ] 2.6 `blooms_progression` (3 SELECT: admin/student/teacher)
-  - [ ] 2.7 `challenge_progress` (3 SELECT: parent/student/teacher)
-  - [ ] 2.8 `course_material_embeddings` (3 SELECT + separate 2 ALL: admin/coordinator/student read, admin/teacher write)
-  - [ ] 2.9 `deadline_extensions` (3 SELECT: admin/student/teacher)
-  - [ ] 2.10 `evidence` (3 SELECT: parent/staff/student)
-  - [ ] 2.11 `learning_outcomes` (3 ALL: admin/coordinator/teacher write)
-  - [ ] 2.12 `social_challenges` (3 SELECT: admin/student ×2)
-  - [ ] 2.13 `tutor_usage_limits` (3 SELECT: admin/student ×2)
-  - [ ] 2.14 `xp_purchases` (3 SELECT: admin/parent/student)
-  - [ ] 2.15 Re-run the live duplicate-policy SQL query from design.md §2.2
+  - [x] 2.1 `mastery_recovery_pathways` (3 SELECT policies: coordinator/student/teacher)
+  - [x] 2.2 `ai_feedback` (3 SELECT: admin/student/teacher)
+  - [x] 2.3 `attendance_records` (3 SELECT: admin/own/parent)
+  - [x] 2.4 `outcome_mappings` (3 ALL: admin/coordinator/teacher write)
+  - [x] 2.5 `baseline_attainment` (3 SELECT: admin/student/teacher)
+  - [x] 2.6 `blooms_progression` (3 SELECT: admin/student/teacher)
+  - [x] 2.7 `challenge_progress` (3 SELECT: parent/student/teacher)
+  - [x] 2.8 `course_material_embeddings` (3 SELECT + separate 2 ALL: admin/coordinator/student read, admin/teacher write)
+  - [x] 2.9 `deadline_extensions` (3 SELECT: admin/student/teacher)
+  - [x] 2.10 `evidence` (3 SELECT: parent/staff/student)
+  - [x] 2.11 `learning_outcomes` (3 ALL: admin/coordinator/teacher write)
+  - [x] 2.12 `social_challenges` (3 SELECT: admin/student ×2)
+  - [x] 2.13 `tutor_usage_limits` (3 SELECT: admin/student ×2)
+  - [x] 2.14 `xp_purchases` (3 SELECT: admin/parent/student)
+  - [x] 2.15 Re-run the live duplicate-policy SQL query from design.md §2.2
         after 2.1-2.14 land; sweep any remaining 2-policy tables
         (`announcements`, `assignments`, `badges`, `courses`,
         `course_sections`, `cqi_action_plans`, `competency_frameworks`,
@@ -78,7 +80,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     are already the sole live scheduler for those functions and are correct.
   - _Ref: design.md §2.1_
 
-- [ ] 4. CFG-1: untrack committed diagnostic/capture files
+- [x] 4. CFG-1: untrack committed diagnostic/capture files
   - `git rm --cached` the 3 tracked `.har.txt` files
     (`e-deviser.vercel.app.har.txt`, `e-deviser.vercel.appstudent.har.txt`,
     `e-deviser.vercel.appteacher.har.txt`), `lint-output.txt`, `sentinel.md`.
@@ -93,7 +95,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     through a normal PR (small, fast to review).
   - _Ref: design.md §8.1_
 
-- [ ] 5. AI-1: shared, provider-agnostic query-embedding helper
+- [x] 5. AI-1: shared, provider-agnostic query-embedding helper
   - Add `supabase/functions/_shared/embeddings.ts` exporting
     `generateQueryEmbedding(text: string): Promise<number[] | null>`, using
     the same `EMBEDDINGS_BASE_URL` / `EMBEDDINGS_MODEL` env-var pattern already
@@ -114,7 +116,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
 
 ## Phase 2 — Do soon (confirmed, real, lower urgency)
 
-- [ ] 6. FE-2: single `useStudentGamification` source hook
+- [x] 6. FE-2: single `useStudentGamification` source hook
   - Add `useStudentGamification(studentId)` selecting all needed columns from
     `student_gamification` under one query key; refactor `useLevel`,
     `useStreak`, `useStudentXPMultiplier` (in `useAdaptiveXP.ts`),
@@ -126,7 +128,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     the refactor for the same seeded row.
   - _Ref: design.md §5.2_
 
-- [ ] 7. FE-5: pick one league-tier model
+- [x] 7. FE-5: pick one league-tier model
   - Keep `src/lib/leagueTier.ts` (absolute-XP, TitleCase) as canonical — it has
     real production importers.
   - Delete `src/lib/leagueTierCalculator.ts` and its sole consumer
@@ -138,7 +140,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
   - Re-confirm zero real importers immediately before deleting (Requirement 3.4).
   - _Ref: design.md §5.4_
 
-- [ ] 8. FE-7: delete the dead `useBadgeSpotlight.ts` re-export shim
+- [x] 8. FE-7: delete the dead `useBadgeSpotlight.ts` re-export shim
   - Confirm (immediately before deleting, per Requirement 3.4) that
     `useBadgeSpotlightQuery` and the file's other re-exports still have zero
     real importers.
@@ -146,7 +148,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     directly from `useTieredBadges.ts` and are unaffected.
   - _Ref: design.md §5.5_
 
-- [ ] 9. BE-1: migrate 2-3 more edge functions to `_shared/auth.ts`
+- [x] 9. BE-1: migrate 2-3 more edge functions to `_shared/auth.ts`
   - Pick cron-triggered functions first (highest security-relevant blast
     radius from a subtly-wrong inline auth check): candidates confirmed to
     have inline auth in this pass — `ai-module-suggestion`,
@@ -159,7 +161,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     per-function authorized/unauthorized test.
   - _Ref: design.md §4.1, Requirement 3.3_
 
-- [~] 10. BE-5: export shared `corsHeaders` — **partial:** `corsHeaders` is exported from `_shared/auth.ts` (verified), but only ~1 function imports it from `_shared` so far; the "migrate a handful" demonstration is not complete.
+- [x] 10. BE-5: export shared `corsHeaders` — **partial:** `corsHeaders` is exported from `_shared/auth.ts` (verified), but only ~1 function imports it from `_shared` so far; the "migrate a handful" demonstration is not complete.
   - Add `export const corsHeaders = {...}` to `_shared/auth.ts` (it currently
     defines but does not export one), or create `_shared/cors.ts`.
   - Migrate a handful of functions to import it instead of redefining it
@@ -169,7 +171,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     `x-content-type` bug is already fixed per design.md §4.3).
   - _Ref: design.md §4.3_
 
-- [ ] 11. RT-1: widen the realtime-filter scanner scope
+- [x] 11. RT-1: widen the realtime-filter scanner scope
   - In `scripts/audit/realtime-filter-scan.ts`, change the walk root from
     `resolve("src", "hooks")` to `resolve("src")` (excluding test
     directories), so any future direct `supabase.channel(...)` call in a page
@@ -188,7 +190,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
     task with that finding recorded — no page change needed.
   - _Ref: design.md §6.1 (marked "needs one more verification step")_
 
-- [ ] 13. Dead-code cleanup batch
+- [x] 13. Dead-code cleanup batch
   - Re-confirm (immediately before deleting, per Requirement 3.4) zero real
     importers for: `src/hooks/useXP.ts`, `src/components/shared/LanguageSelector.tsx`,
     `src/components/shared/ThemeToggle.tsx`, `src/providers/FocusModeProvider.tsx`,
@@ -201,7 +203,7 @@ Supabase Preview → merge. Never edit an already-applied migration in place.
 
 ## Phase 3 — Needs one more verification pass before acting (not confirmed this session)
 
-- [ ] 14. Re-verify AI-3 (embedding idempotency), AI-4 (persona
+- [x] 14. Re-verify AI-3 (embedding idempotency), AI-4 (persona
       client/server divergence), AI-5 (test-only tutor mirrors), BE-3/BE-4
       (email dispatcher / XP-write bypass), DB-5 (redefinition churn
       framing), CFG-2/CFG-3, FE-4/FE-6 (dashboard tail fan-out / leaderboard

@@ -189,7 +189,7 @@ const HabitStatusSection = ({ habits }: { habits: HabitStatus }) => (
             className={cn(
               "flex items-center gap-2 rounded-lg border p-2",
               done
-                ? "border-green-200 bg-green-50/60"
+                ? "border-green-200 bg-transparent/60"
                 : "border-gray-200 bg-white"
             )}
           >
@@ -313,7 +313,7 @@ const TodayTimeline = ({
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="p-3 rounded-full bg-blue-50 mb-3">
+            <div className="p-3 rounded-full bg-transparent mb-3">
               <Clock className="h-8 w-8 text-blue-400" />
             </div>
             <p className="text-sm text-gray-500">

@@ -249,7 +249,7 @@ const SignUpPage = () => {
             noValidate
           >
             {/* Institution display */}
-            <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3">
+            <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-transparent p-3">
               {currentInstitution.logo_url && (
                 <img
                   src={currentInstitution.logo_url}
@@ -410,7 +410,7 @@ const SignUpPage = () => {
       {error && (
         <Alert
           variant="destructive"
-          className="mt-4 rounded-xl border-red-200 bg-red-50 text-red-800"
+          className="mt-4 rounded-xl border-red-200 bg-transparent text-red-800"
         >
           <AlertDescription>{error}</AlertDescription>
         </Alert>

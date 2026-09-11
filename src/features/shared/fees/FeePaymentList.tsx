@@ -57,14 +57,14 @@ const FeePaymentList = ({
           icon={Receipt}
           label={t("fees.paid", "Paid")}
           value={paidCount}
-          iconBgClass="bg-green-50"
+          iconBgClass="bg-transparent"
           iconColorClass="text-green-600"
         />
         <KPICard
           icon={Wallet}
           label={t("fees.outstanding", "Outstanding")}
           value={outstanding}
-          iconBgClass="bg-amber-50"
+          iconBgClass="bg-transparent"
           iconColorClass="text-amber-600"
           valueClassName={outstanding > 0 ? "text-amber-600" : "text-sky-700"}
         />

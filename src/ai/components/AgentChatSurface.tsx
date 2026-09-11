@@ -70,7 +70,7 @@ const AgentChatSurface = ({ className }: AgentChatSurfaceProps) => {
       {run.isError ? (
         <p
           role="alert"
-          className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"
+          className="rounded-lg bg-transparent px-3 py-2 text-xs text-amber-800"
         >
           {featureDisabled
             ? t("chatSurface.featureDisabled")

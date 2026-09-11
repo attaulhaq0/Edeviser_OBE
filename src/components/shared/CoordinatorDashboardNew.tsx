@@ -165,7 +165,7 @@ const ActionChip = ({
         {title}
       </span>
     </span>
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors group-hover:bg-teal-50 group-hover:text-teal-700">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors group-hover:bg-transparent group-hover:text-teal-700">
       {cta}
       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
     </span>
@@ -614,7 +614,7 @@ const CoordinatorDashboardNew = () => {
                 value={belowTargetCount}
                 {...(belowTargetCount > 0
                   ? {
-                      iconBgClass: "bg-red-50",
+                      iconBgClass: "bg-transparent",
                       iconColorClass: "text-red-600",
                       valueClassName: "text-red-600",
                     }
@@ -632,7 +632,7 @@ const CoordinatorDashboardNew = () => {
                 value={
                   evidenceReadiness != null ? `${evidenceReadiness}%` : "—"
                 }
-                iconBgClass="bg-green-50"
+                iconBgClass="bg-transparent"
                 iconColorClass="text-green-600"
                 valueClassName="text-green-600"
               />
@@ -657,7 +657,7 @@ const CoordinatorDashboardNew = () => {
               }
             />
             {ai.data?.narrative && (
-              <div className="mt-3 flex items-start gap-2 rounded-lg bg-teal-50/60 p-3">
+              <div className="mt-3 flex items-start gap-2 rounded-lg /60 p-3">
                 <Sparkles
                   className="mt-0.5 h-4 w-4 shrink-0 text-teal-600"
                   aria-hidden="true"
@@ -701,7 +701,7 @@ const CoordinatorDashboardNew = () => {
                   );
                 })
               ) : (
-                <div className="flex items-start gap-3 rounded-xl border border-green-100 bg-green-50/60 p-4">
+                <div className="flex items-start gap-3 rounded-xl border border-green-100 bg-transparent/60 p-4">
                   <CheckCircle2
                     className="mt-0.5 h-5 w-5 shrink-0 text-green-600"
                     aria-hidden="true"

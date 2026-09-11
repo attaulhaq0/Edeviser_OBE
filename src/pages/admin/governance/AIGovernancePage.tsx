@@ -149,7 +149,7 @@ const AIGovernancePage = () => {
             </div>
           ))}
         </div>
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-100 bg-amber-50 p-3">
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-100 p-3">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-amber-600" />
           <p className="text-xs leading-5 text-amber-800">
             {t(

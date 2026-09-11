@@ -36,6 +36,23 @@ jobs:
           path: coverage/
           retention-days: 30
 
+  route-matrix-sweep:
+    name: RouteRole Matrix Sweep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Verify route-role parity
+        run: npx vitest run src/__tests__/unit/navRouteParity.test.ts --reporter=verbose
+      - name: Verify route guard enforcement
+        run: npx vitest run src/__tests__/unit/routeGuard.test.tsx --reporter=verbose
+      - name: Critical route segments audit
+        run: node scripts/audit-route-links.mjs
+
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest

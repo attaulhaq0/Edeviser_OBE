@@ -101,7 +101,7 @@ const StudentCoursesNew = () => {
         <div className="tasks-priority-grid grid items-stretch gap-5 grid-cols-1 md:grid-cols-2">
           <section aria-labelledby="due-today-heading">
             <div className="mb-2.5 flex items-center gap-2">
-              <span className="size-2 rounded-full bg-amber-500" />
+              <span className="size-2 rounded-full bg-transparent0" />
               <h2
                 id="due-today-heading"
                 className="text-xs font-black uppercase tracking-widest text-amber-600"
@@ -295,7 +295,7 @@ const StudentCoursesNew = () => {
           <PCard className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span className="flex size-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                <span className="flex size-6 items-center justify-center rounded-lg bg-transparent text-emerald-600">
                   <Check className="size-3.5 stroke-3" />
                 </span>
                 <h2

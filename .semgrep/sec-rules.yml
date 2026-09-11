@@ -41,6 +41,8 @@ rules:
     paths:
       include:
         - src/**
+      exclude:
+        - src/__tests__/**
     pattern-either:
       - pattern: import ... from "...serverSecret..."
       - pattern: import ... from "...timing-safe-equal..."
@@ -67,6 +69,8 @@ rules:
     paths:
       include:
         - src/**
+      exclude:
+        - src/__tests__/**
     pattern-regex: 'dangerouslySetInnerHTML\s*=\s*\{\{'
 
   - id: edge-fn-unbounded-response-array

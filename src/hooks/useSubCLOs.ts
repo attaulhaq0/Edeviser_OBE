@@ -63,7 +63,12 @@ export const useCreateSubCLO = () => {
       return result;
     },
     onSuccess: (_data, variables) => {
-      captureAnalyticsEvent("outcome_created", { outcome_type: "SUB_CLO" });
+      captureAnalyticsEvent("outcome_created", {
+        outcome_type: "SUB_CLO",
+        ...(variables.parent_outcome_id && {
+          parent_outcome_id: variables.parent_outcome_id,
+        }),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.subCLOs.list({
           cloId: variables.parent_outcome_id,

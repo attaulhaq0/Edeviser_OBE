@@ -284,7 +284,7 @@ const GenerateQuestionsPage = () => {
         {/* Results Panel */}
         <div className="space-y-4">
           {result && result.warnings.length > 0 && (
-            <Card className="bg-yellow-50 border border-yellow-200 shadow-md rounded-xl p-4">
+            <Card className="bg-transparent border border-yellow-200 shadow-md rounded-xl p-4">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="space-y-1">

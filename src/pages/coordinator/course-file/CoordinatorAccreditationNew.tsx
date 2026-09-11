@@ -602,12 +602,12 @@ const CoordinatorAccreditationNew = () => {
           )}
 
           {readinessGateBlocked && (
-            <p className="mt-3 rounded-lg border border-red-100 bg-red-50/70 p-3 text-xs font-semibold text-red-700">
+            <p className="mt-3 rounded-lg border border-red-100 bg-transparent/70 p-3 text-xs font-semibold text-red-700">
               {t("accreditation.readinessBlocked")}
             </p>
           )}
           {readinessGateWarn && (
-            <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 p-3 text-xs font-semibold text-amber-700">
+            <p className="mt-3 rounded-lg border border-amber-100 bg-transparent/70 p-3 text-xs font-semibold text-amber-700">
               {t("accreditation.readinessWarning")}
             </p>
           )}
@@ -634,7 +634,7 @@ const CoordinatorAccreditationNew = () => {
           </Button>
 
           {lastResult && (
-            <div className="mt-5 rounded-xl border border-green-100 bg-green-50/60 p-4">
+            <div className="mt-5 rounded-xl border border-green-100 bg-transparent/60 p-4">
               <div className="flex items-center gap-2">
                 <CheckCircle2
                   className="h-5 w-5 text-green-600"

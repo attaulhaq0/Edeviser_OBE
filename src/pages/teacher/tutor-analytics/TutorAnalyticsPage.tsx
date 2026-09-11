@@ -61,7 +61,7 @@ const KPICard = ({ icon: Icon, label, value }: KPICardProps) => (
         </p>
         <p className="text-2xl font-black mt-1">{value}</p>
       </div>
-      <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+      <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
         <Icon className="h-5 w-5 text-blue-600" />
       </div>
     </div>
@@ -390,7 +390,7 @@ const TutorAnalyticsPage = () => {
                     <span className="text-sm font-medium truncate max-w-[70%]">
                       {clo.clo_title}
                     </span>
-                    <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
+                    <span className="text-xs font-bold text-amber-600 bg-transparent px-2 py-1 rounded-md">
                       {clo.conversation_count} queries
                     </span>
                   </div>

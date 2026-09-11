@@ -92,7 +92,7 @@ const XPAwardToast = ({
           aria-live="polite"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-50">
+            <div className="p-2 rounded-lg ">
               <Star className="h-5 w-5 text-amber-500 animate-xp-pulse" />
             </div>
             <div className="flex-1 min-w-0">
@@ -102,7 +102,7 @@ const XPAwardToast = ({
           </div>
 
           {levelUp && newLevel != null && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2">
+            <div className="mt-3 flex items-center gap-2 rounded-lg px-3 py-2">
               <TrendingUp className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-semibold text-blue-600">
                 Level Up! → Level {newLevel}

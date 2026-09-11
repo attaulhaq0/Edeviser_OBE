@@ -227,7 +227,7 @@ const QuizCLOCorrelationPage = () => {
               </p>
               <p className="text-2xl font-black mt-1">{totalStudents}</p>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
           </div>
@@ -243,7 +243,7 @@ const QuizCLOCorrelationPage = () => {
                 {avgQuizScore.toFixed(1)}%
               </p>
             </div>
-            <div className="p-2 rounded-lg bg-teal-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <Target className="h-5 w-5 text-teal-600" />
             </div>
           </div>
@@ -257,7 +257,7 @@ const QuizCLOCorrelationPage = () => {
               </p>
               <p className="text-2xl font-black mt-1">{discrepancyCount}</p>
             </div>
-            <div className="p-2 rounded-lg bg-amber-50 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg group-hover:scale-110 transition-transform">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
             </div>
           </div>

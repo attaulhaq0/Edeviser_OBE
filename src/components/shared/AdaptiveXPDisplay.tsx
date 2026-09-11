@@ -48,7 +48,7 @@ const AdaptiveXPDisplay = ({
 
       {/* Diminishing Returns warning */}
       {diminishingData?.is_diminished && (
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200">
+        <div className="flex items-center gap-2 p-2 rounded-lg border border-amber-200">
           <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
           <p className="text-xs text-amber-700">
             Diminishing Returns — next action earns{" "}

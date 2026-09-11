@@ -178,7 +178,7 @@ const ProfileSummaryCard = ({
 
         {/* VARK — Self-Awareness Section */}
         {learningStyle && varkInfo && (
-          <div className="rounded-lg bg-amber-50 p-4 space-y-2">
+          <div className="rounded-lg bg-transparent p-4 space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-gray-900">
                 Self-Awareness

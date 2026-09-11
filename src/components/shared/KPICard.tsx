@@ -27,7 +27,7 @@ const KPICard = ({
   icon: Icon,
   label,
   value,
-  iconBgClass = "bg-blue-50",
+  iconBgClass = "bg-transparent",
   iconColorClass = "text-blue-600",
   valueClassName = "text-sky-700",
   className,

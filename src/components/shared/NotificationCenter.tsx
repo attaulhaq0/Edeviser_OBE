@@ -215,7 +215,7 @@ const NotificationCenter = ({ onClose }: NotificationCenterProps) => {
                 <div className="shrink-0 flex items-center gap-1">
                   {hasUnreadItems && (
                     <span
-                      className="h-2 w-2 rounded-full bg-blue-500"
+                      className="h-2 w-2 rounded-full bg-transparent0"
                       aria-label="Unread"
                     />
                   )}

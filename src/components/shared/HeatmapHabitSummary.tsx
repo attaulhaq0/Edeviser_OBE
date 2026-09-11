@@ -98,7 +98,7 @@ const HeatmapHabitSummary = ({ summary }: HeatmapHabitSummaryProps) => {
         value={bestHabitLabel}
         caption={bestHabitCaption}
         iconColor="text-amber-500"
-        iconBg="bg-amber-50"
+        iconBg="bg-transparent"
         testId="kpi-best-habit"
       />
       <SummaryCard
@@ -106,7 +106,7 @@ const HeatmapHabitSummary = ({ summary }: HeatmapHabitSummaryProps) => {
         label="Completion Rate"
         value={`${summary.completionRate}%`}
         iconColor="text-green-600"
-        iconBg="bg-green-50"
+        iconBg="bg-transparent"
         testId="kpi-completion-rate"
       />
     </div>

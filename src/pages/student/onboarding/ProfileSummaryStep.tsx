@@ -190,7 +190,7 @@ export const ProfileSummaryStep = ({
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-blue-500"
+                          className="h-full rounded-full bg-transparent0"
                           style={{ width: `${value}%` }}
                         />
                       </div>
@@ -225,7 +225,7 @@ export const ProfileSummaryStep = ({
             <p className="mb-3 text-xs text-gray-500">
               {VARK_DESCRIPTIONS[varkProfile.dominant_style]?.description}
             </p>
-            <Card className="flex flex-row items-start gap-2 border-0 bg-amber-50 p-2.5 shadow-none">
+            <Card className="flex flex-row items-start gap-2 border-0 bg-transparent p-2.5 shadow-none">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
               <p className="text-[11px] text-amber-800">
                 For reflection only — not used for content matching.

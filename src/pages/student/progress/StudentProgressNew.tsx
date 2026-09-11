@@ -84,7 +84,7 @@ const StudentProgressNew = () => {
       {/* 4 KPI Cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <PCard className="p-4 flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 font-black">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-transparent text-blue-600 font-black">
             <BookOpen className="size-5" />
           </div>
           <div>
@@ -98,7 +98,7 @@ const StudentProgressNew = () => {
         </PCard>
 
         <PCard className="p-4 flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 font-black">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-transparent text-emerald-600 font-black">
             <TrendingUp className="size-5" />
           </div>
           <div>
@@ -112,7 +112,7 @@ const StudentProgressNew = () => {
         </PCard>
 
         <PCard className="p-4 flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 font-black">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-transparent text-emerald-600 font-black">
             <Award className="size-5" />
           </div>
           <div>
@@ -126,7 +126,7 @@ const StudentProgressNew = () => {
         </PCard>
 
         <PCard className="p-4 flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 font-black">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-transparent text-rose-600 font-black">
             <Target className="size-5" />
           </div>
           <div>
@@ -172,7 +172,7 @@ const StudentProgressNew = () => {
         {/* Progress by Course */}
         <PCard className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <span className="flex size-6 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <span className="flex size-6 items-center justify-center rounded-lg bg-transparent text-blue-600">
               <BookOpen className="size-3.5" />
             </span>
             <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -223,7 +223,7 @@ const StudentProgressNew = () => {
         {/* CLOs Needing Attention */}
         <PCard className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <span className="flex size-6 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+            <span className="flex size-6 items-center justify-center rounded-lg bg-transparent text-rose-600">
               <Target className="size-3.5" />
             </span>
             <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -239,7 +239,7 @@ const StudentProgressNew = () => {
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className="h-full rounded-full bg-rose-500"
+                    className="h-full rounded-full bg-transparent0"
                     style={{ width: `${clo.pct}%` }}
                   />
                 </div>

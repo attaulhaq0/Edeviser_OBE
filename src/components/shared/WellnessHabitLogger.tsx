@@ -99,7 +99,7 @@ const WellnessHabitLogger = ({
               <div
                 className={cn(
                   "p-2 rounded-lg",
-                  logged ? "bg-green-100" : "bg-slate-50"
+                  logged ? "bg-transparent" : "bg-slate-50"
                 )}
               >
                 <Icon

@@ -35,7 +35,7 @@ const XPBalanceBadge = ({ className, size = "md" }: XPBalanceBadgeProps) => {
         data?.balance ?? 0
       ).toLocaleString()}`}
       className={cn(
-        "inline-flex items-center rounded-full bg-amber-50 border border-amber-200 font-semibold text-amber-700",
+        "inline-flex items-center rounded-full bg-transparent border border-amber-200 font-semibold text-amber-700",
         sizeClasses[size],
         className
       )}

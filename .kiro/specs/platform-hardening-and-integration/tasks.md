@@ -1,6 +1,6 @@
 ﻿# Platform Hardening & Integration â€” Tasks
 
-Format: `- [ ] T# (req) description â€” status/evidence appended when done.`
+Format: `- [x] T# (req) description â€” status/evidence appended when done.`
 
 ## Phase 1 â€” P0 deploy
 - [x] T1 (E1.1) Deploy fixed agent-orchestrator; verify zero boot errors + OPTIONS 200 + all AI channels live. _(DONE 2026-09-02: CLI deploy 167kB; live OPTIONS â†’ 200 with CORS headers; function_logs zero boot errors post-deploy. check:edge-imports gate green on 99 files pre-deploy.)_

@@ -332,7 +332,7 @@ const ParentFeesPage = () => {
                     key={p.id}
                     className="flex items-center gap-3 py-3 text-sm"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-lg">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-transparent text-lg">
                       🧾
                     </div>
                     <div className="min-w-0 flex-1">

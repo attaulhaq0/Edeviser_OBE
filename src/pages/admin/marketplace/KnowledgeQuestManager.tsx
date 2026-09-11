@@ -273,7 +273,7 @@ const KnowledgeQuestManager = () => {
             return (
               <PCard key={q.id as string} className="p-4">
                 <div className="flex items-center gap-4">
-                  <div className="p-2 rounded-lg bg-purple-50">
+                  <div className="p-2 rounded-lg ">
                     <BookOpen className="h-5 w-5 text-purple-600" />
                   </div>
                   <div className="flex-1 min-w-0">

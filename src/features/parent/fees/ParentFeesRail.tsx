@@ -43,7 +43,7 @@ export const ParentFeesRail = ({ onAddPaymentMethod }: ParentFeesRailProps) => {
               </p>
               <p className="text-slate-500">Expires 08/28</p>
             </div>
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+            <span className="rounded-full bg-transparent px-2 py-0.5 text-[10px] font-bold text-emerald-700">
               Default
             </span>
           </div>

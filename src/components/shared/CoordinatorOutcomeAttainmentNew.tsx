@@ -149,7 +149,7 @@ const CoordinatorOutcomeAttainmentNew = () => {
             <div className="p-5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-teal-600">
                     <Sparkles className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <h2 className="text-sm font-bold text-gray-900">
@@ -458,7 +458,7 @@ const CoordinatorOutcomeAttainmentNew = () => {
                           </div>
 
                           {/* Computed insight (real) + recommended action */}
-                          <div className="rounded-xl bg-teal-50/70 p-3 ring-1 ring-teal-100">
+                          <div className="rounded-xl bg-transparent/70 p-3 ring-1 ring-teal-100">
                             <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-teal-700">
                               <Lightbulb
                                 className="h-3.5 w-3.5"

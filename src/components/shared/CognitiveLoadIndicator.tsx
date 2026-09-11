@@ -65,7 +65,7 @@ export const CognitiveLoadIndicator = ({
   return (
     <div
       role="status"
-      className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800"
+      className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-transparent px-4 py-3 text-sm text-blue-800"
     >
       <p>
         {t("accessibility.cognitiveLoadMessage", {

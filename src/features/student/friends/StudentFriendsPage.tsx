@@ -61,7 +61,7 @@ const FriendAvatar = ({
       {initials(name)}
     </div>
     {online && (
-      <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+      <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-transparent0" />
     )}
   </div>
 );
@@ -157,7 +157,7 @@ const StudentFriendsPage = () => {
           <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-slate-900">
             <UserPlus className="h-4 w-4 text-sky-600" aria-hidden="true" />
             {t("friends.requests", "Friend requests")}
-            <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">
+            <span className="rounded-full bg-transparent px-2 py-0.5 text-[10px] font-bold text-sky-700">
               {requestList.length}
             </span>
           </h2>
@@ -207,7 +207,7 @@ const StudentFriendsPage = () => {
         <section className={cn(CARD, "p-4")}>
           <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-slate-900">
             <span
-              className="h-2 w-2 rounded-full bg-green-500"
+              className="h-2 w-2 rounded-full bg-transparent0"
               aria-hidden="true"
             />
             {t("friends.onlineNow", "Online now")}
@@ -265,7 +265,7 @@ const StudentFriendsPage = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-transparent">
               <Users className="h-6 w-6 text-blue-500" aria-hidden="true" />
             </div>
             <p className="max-w-xs text-sm text-gray-500">

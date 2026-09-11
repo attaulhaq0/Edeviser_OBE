@@ -58,7 +58,7 @@ const AdminAnalyticsPage = () => {
 
   if (error || departmentAttainmentQuery.error || !analytics) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
+      <div className="rounded-2xl border border-red-200 bg-transparent p-6 text-center text-red-700">
         <p className="font-bold">
           {t("common.errorLoading", "Failed to load analytics")}
         </p>
@@ -292,7 +292,7 @@ const AdminAnalyticsPage = () => {
           )}
 
           {hasLearners && (
-            <div className="mt-3 rounded-xl border border-amber-200/60 bg-amber-50/80 p-3 dark:border-amber-800/40 dark:bg-amber-950/30">
+            <div className="mt-3 rounded-xl border border-amber-200/60 bg-transparent/80 p-3 dark:border-amber-800/40 dark:bg-amber-950/30">
               <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
                 {retentionRisk.atRisk} of {retentionRisk.total} learners flagged
                 at risk across course activities.{" "}
@@ -444,7 +444,7 @@ const AdminAnalyticsPage = () => {
               </div>
               <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 mt-2 overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 rounded-full"
+                  className="h-full bg-transparent0 rounded-full"
                   style={{
                     width: `${aiCopilotPerformance.draftAcceptanceRate}%`,
                   }}
@@ -552,19 +552,19 @@ const AdminAnalyticsPage = () => {
         {/* Legend */}
         <div className="flex flex-wrap gap-3 mt-3.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
           <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block" />
+            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
             Excellent ≥85
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-blue-500 inline-block" />
+            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
             Satisfactory 70–84
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-amber-500 inline-block" />
+            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
             Developing 50–69
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-red-500 inline-block" />
+            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
             Not yet &lt;50
           </span>
           <span className="inline-flex items-center gap-1.5">

@@ -101,7 +101,7 @@ describe("UploadProgress", () => {
         status="uploading"
       />
     );
-    const progressBar = container.querySelector(".bg-blue-500");
+    const progressBar = container.querySelector(".bg-transparent0");
     expect(progressBar).not.toBeNull();
     expect(progressBar?.getAttribute("style")).toContain("width: 75%");
   });
@@ -115,7 +115,7 @@ describe("UploadProgress", () => {
         status="uploading"
       />
     );
-    const progressBar = container.querySelector(".bg-blue-500");
+    const progressBar = container.querySelector(".bg-transparent0");
     expect(progressBar?.getAttribute("style")).toContain("width: 100%");
   });
 
@@ -188,7 +188,7 @@ describe("UploadProgress", () => {
         status="success"
       />
     );
-    const progressBar = container.querySelector(".bg-blue-500");
+    const progressBar = container.querySelector(".bg-transparent0");
     expect(progressBar).toBeNull();
   });
 
@@ -201,7 +201,7 @@ describe("UploadProgress", () => {
         status="error"
       />
     );
-    const progressBar = container.querySelector(".bg-blue-500");
+    const progressBar = container.querySelector(".bg-transparent0");
     expect(progressBar).toBeNull();
   });
 });

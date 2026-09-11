@@ -195,7 +195,7 @@ const AgentAutonomyControl = ({ className }: AgentAutonomyControlProps) => {
                 </SelectContent>
               </Select>
             ) : (
-              <span className="rounded-md bg-sky-50 px-2 py-1 font-bold text-sky-700">
+              <span className="rounded-md bg-transparent px-2 py-1 font-bold text-sky-700">
                 {effective.ceiling}
               </span>
             )}

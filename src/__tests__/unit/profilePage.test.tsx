@@ -159,7 +159,7 @@ describe("ProfilePage", () => {
 
   it("shows fallback icon when no avatar_url is set", () => {
     renderPage();
-    const fallback = document.querySelector(".bg-blue-50.rounded-full");
+    const fallback = document.querySelector(".bg-transparent.rounded-full");
     expect(fallback).not.toBeNull();
   });
 

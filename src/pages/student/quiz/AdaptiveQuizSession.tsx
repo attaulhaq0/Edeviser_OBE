@@ -344,7 +344,7 @@ const AdaptiveQuizSession = () => {
   if (!recoveryLoading && activeRecovery) {
     return (
       <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
-        <div className="p-3 rounded-full bg-amber-50">
+        <div className="p-3 rounded-full bg-transparent">
           <ShieldAlert className="h-8 w-8 text-amber-500" />
         </div>
         <h2 className="text-lg font-bold tracking-tight">

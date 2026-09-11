@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import GlobalHeader from "@/components/shared/GlobalHeader";
 import Sidebar from "@/components/shared/Sidebar";
+import MobileTabBar from "@/components/shared/MobileTabBar";
 import { SidebarProvider } from "@/components/shared/SidebarContext";
 import GuidedTour from "@/components/shared/GuidedTour";
 import EmailVerificationBanner from "@/components/shared/EmailVerificationBanner";
@@ -78,6 +79,9 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
             <EDeviserIntelligencePanel />
           </Suspense>
         ) : null}
+        {/* Mobile bottom tab bar — surfaces core destinations for thumb-reachable
+            navigation on small screens. Desktop sidebar provides full navigation. */}
+        <MobileTabBar />
       </div>
     </SidebarProvider>
   );

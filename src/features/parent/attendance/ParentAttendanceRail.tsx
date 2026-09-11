@@ -88,7 +88,7 @@ export const ParentAttendanceRail = ({
 
       {/* ── Needs Attention Card (Only rendered when absence concentration exists) ── */}
       {attention && (
-        <div className="rounded-4xl border border-amber-200 bg-amber-50/70 p-5 shadow-xs dark:border-amber-900/50 dark:bg-amber-950/30">
+        <div className="rounded-4xl border border-amber-200 bg-transparent/70 p-5 shadow-xs dark:border-amber-900/50 dark:bg-amber-950/30">
           <div className="mb-2 flex items-center gap-2 text-amber-800 dark:text-amber-300">
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <h2 className="text-xs font-extrabold uppercase tracking-wider">

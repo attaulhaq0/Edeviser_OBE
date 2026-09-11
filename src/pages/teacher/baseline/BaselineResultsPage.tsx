@@ -92,7 +92,7 @@ const BaselineResultsPage = () => {
       {/* Completion KPI */}
       <Card className="bg-white border-0 shadow-md rounded-xl p-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-50">
+          <div className="p-2 rounded-lg ">
             <Users className="h-5 w-5 text-blue-600" />
           </div>
           <div>

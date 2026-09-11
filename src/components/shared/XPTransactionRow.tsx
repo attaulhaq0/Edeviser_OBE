@@ -32,7 +32,7 @@ const XPTransactionRow = ({
       <div
         className={cn(
           "p-2 rounded-lg",
-          isPositive ? "bg-amber-50" : "bg-red-50"
+          isPositive ? "bg-transparent" : "bg-transparent"
         )}
       >
         {isPositive ? (

@@ -219,7 +219,7 @@ const SectionCard = ({ section, onEdit, onDelete }: SectionCardProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600 font-bold text-sm">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-transparent text-blue-600 font-bold text-sm">
           {section.section_code}
         </div>
         <div>

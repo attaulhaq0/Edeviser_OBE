@@ -277,8 +277,11 @@ export const useCreateCLO = () => {
 
       return clo;
     },
-    onSuccess: () => {
-      captureAnalyticsEvent("outcome_created", { outcome_type: "CLO" });
+    onSuccess: (_data, variables) => {
+      captureAnalyticsEvent("outcome_created", {
+        outcome_type: "CLO",
+        ...(variables.course_id && { course_id: variables.course_id }),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.outcomeMappings.lists(),

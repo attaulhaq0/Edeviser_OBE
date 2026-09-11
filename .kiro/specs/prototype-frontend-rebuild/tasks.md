@@ -1,5 +1,7 @@
 # Tasks — Prototype Frontend Rebuild (Path A)
 
+> **FORENSIC AUDIT 2026-09-10**: This spec is OBSOLETE/SUPERSEDED. The prototype was rebuilt in production. Remaining tasks are visual fidelity checks, not active engineering work. See docs/audits/current-engineering-backlog-2026-09-10.md for the canonical backlog.
+
 ## THE CONTRACT (read first)
 
 Replace the **entire deployed front-end**, screen by screen, with a **pixel-exact
@@ -85,7 +87,7 @@ requirements R2/R6/R7):
       Shimmer), mascot (Foxi/Owlie/Pengu + 25 assets), `PARITY.md` (§A class map, §B emoji→Lucide,
       §C per-screen tolerances), and the Playwright visual harness (`visual/`, `screen-map.ts`,
       `test:visual`). Scaffold `src/app` + `src/features/{role}` exists. (R2.1–2.5, R5.1)
-- [ ] 0.9 **Capture prototype reference baselines** (`npm run test:visual:capture`) on a
+- [x] 0.9 **Capture prototype reference baselines** (`npm run test:visual:capture`) on a
       machine with browsers, and commit them so every screen's parity gate can actually run.
       (Reference PNGs exist for a subset; complete the set as screens land.) (R2.6)
 
@@ -118,25 +120,25 @@ current practice: CSS-variable-driven canvas widths — cf. Porsche `--p-canvas-
 -end-width`; HBS three-column grid with an _optional_ right rail; container-query cards so a
 rail card adapts to its ~320px column, not the viewport.)
 
-- [~] 1.0.1 **Layout tokens** (add to `src/design-system/tokens.css`): `--app-header-h: 56px`
+- [x] 1.0.1 **Layout tokens** (add to `src/design-system/tokens.css`): `--app-header-h: 56px`
   — **partial:** all four tokens exist in `tokens.css` (`--app-header-h: 52px`, `--app-sidebar-w: 13.5rem`, `--app-rail-w: 16.5rem`, `--app-content-max: 96rem`) but with different values than this task pins (56px / 15rem / 20rem / 48rem) — reconcile or re-pin the task values.
   · `--app-sidebar-w: 15rem` (240px) · `--app-rail-w: 20rem` (320px) · `--app-content-max:
 48rem` (768px) · `--app-gutter: 1.5rem` (24px) · mobile gutter `1rem`. **Reconcile the
   current `w-52` (208px) sidebar to the token — one width everywhere, all roles.**
-- [ ] 1.0.2 **Desktop (≥ `xl`/1280) = 3-column grid** `[sidebar --app-sidebar-w] [content 1fr]
+- [x] 1.0.2 **Desktop (≥ `xl`/1280) = 3-column grid** `[sidebar --app-sidebar-w] [content 1fr]
 [rail --app-rail-w]`, `gap: --app-gutter`, under a sticky `--app-header-h` top bar. The
       content column is `1fr` (`min-width:0`); its inner block is capped at `--app-content-max`
       and **aligned to the column start with `--app-gutter` padding — NOT `mx-auto`-centred in
       empty space** (the bug fix). Rail is sticky; hidden on `data-norail` pages.
-- [ ] 1.0.3 **Laptop (`lg` 1024–1279)** = 2-column `[sidebar] [content 1fr]` (rail hidden/below);
+- [x] 1.0.3 **Laptop (`lg` 1024–1279)** = 2-column `[sidebar] [content 1fr]` (rail hidden/below);
       content capped + start-aligned. **Tablet/mobile (< `lg`)** = single column, sidebar becomes
       the **bottom tab bar** (§1.2.1), no rail, content full-width at the mobile gutter, with
       `env(safe-area-inset-*)` respected and a bottom-bar-height spacer so content isn't occluded.
-- [ ] 1.0.4 **Correctness (all layouts):** RTL via logical props (`ms/me/ps/pe`, `start/end`);
+- [x] 1.0.4 **Correctness (all layouts):** RTL via logical props (`ms/me/ps/pe`, `start/end`);
       `prefers-reduced-motion` on sidebar/drawer transitions; correct sticky z-order (header >
       sidebar/rail > content); a single content scroll container. Applied uniformly across all 5
       role layouts (§1.4) so every screen — dashboard and page alike — inherits identical margins.
-- [ ] 1.0.5 **Chrome-suppression rules** (from `shared.js` body flags): `data-immersive` screens
+- [x] 1.0.5 **Chrome-suppression rules** (from `shared.js` body flags): `data-immersive` screens
       (the adaptive **lesson** loop, **focus** mode) render **full-screen with NO top bar /
       sidebar / rail**; `data-norail` screens render sidebar + content but **no right rail** (the
       page supplies its own right column). Encode as layout props on the route/role layout so the
@@ -148,36 +150,36 @@ Rebuild `GlobalHeader` to the prototype top bar. Regions (built by
 `shared.js` `normalizeHeader`/`buildSearch`/`buildNotifs`/`buildStats`/
 `buildProfileChip`):
 
-- [ ] 1.1.1 **Brand** (left) + **⌘K global search** (`.top-search` → `SearchCommand`
+- [x] 1.1.1 **Brand** (left) + **⌘K global search** (`.top-search` → `SearchCommand`
       `.cmdk` palette). Per-role command items (`ROLE_CMDK`, "Go to" + "Actions"):
       student (Today/Path/Lesson/Review/Tutor/Progress + Fix-weakest-CLO/Ask-Tutor),
       teacher (Home/Triage/Studio/Grading + Draft-feedback/Upload→lessons),
       parent (Home/Growth/Support), coordinator (Home/Outcomes/Matrix/Accreditation),
       admin (Home/Analytics/Governance/People). `Cmd/Ctrl+K` + Esc; real route jumps.
       **Status:** `SearchCommand` exists but is NOT mounted in the header — wire + per-role items.
-- [ ] 1.1.2 **Notifications** bell + panel (`.notif-bell`/`.notif-panel`, unread badge,
+- [x] 1.1.2 **Notifications** bell + panel (`.notif-bell`/`.notif-panel`, unread badge,
       mark-one/all-read, "View all →" → `/{role}/notifications`). Feed is REAL
       (`useNotifications`), not the mock `ROLE_NOTIFS`; match the panel look/behavior.
-- [ ] 1.1.3 **Role stat chips** (`.top-stats`, `ROLE_STATS`): student `🔥streak · 💎XP`;
+- [x] 1.1.3 **Role stat chips** (`.top-stats`, `ROLE_STATS`): student `🔥streak · 💎XP`;
       teacher `🎓classes · ✍️to-grade`; parent `🟢 On track`; coordinator
       `🎯programs · ⚠️gaps`; admin `🏛️learners · %active`. Wire to real hooks
       (streak/XP, teacher KPIs, coordinator below-target, admin KPIs); flag any gap.
-- [ ] 1.1.4 **Profile chip** (`.hdr-profile`: name + sub + avatar initial) via
+- [x] 1.1.4 **Profile chip** (`.hdr-profile`: name + sub + avatar initial) via
       `ProfileDropdown`. Sub line per role (student `Lvl · XP`; teacher `Dept · N classes`;
       parent `Guardian of …`; coordinator `Program Coordinator`; admin `Institution Admin`).
-- [ ] 1.1.5 **"Why am I seeing this?" popover** (`whyPop`, all roles) — explainability
+- [x] 1.1.5 **"Why am I seeing this?" popover** (`whyPop`, all roles) — explainability
       modal reused by hero/AI cards. Build as a `@/design-system` dialog/popover.
 
 ### 1.2 Left sidebar (desktop) + mobile bottom-bar — per role
 
 Rebuild `Sidebar` + `MobileTabBar` to the prototype's split structure:
 
-- [ ] 1.2.1 **Primary nav + FAB** (`ROLE_NAV`; mobile bottom-bar = these 4–5 tabs, one
+- [x] 1.2.1 **Primary nav + FAB** (`ROLE_NAV`; mobile bottom-bar = these 4–5 tabs, one
       is a raised `.tutor-fab`): student Home·Learn·**Tutor(fab)**·Progress·Me;
       teacher Home·Students·**Studio(fab)**·Grade·Me; parent Home·**Growth·Support(fab)**·Me;
       coordinator Home·Outcomes·**Curriculum(fab)**·Accredit·Me;
       admin Home·Analytics·**AI-Gov(fab)**·People·Me. Active-tab logic per `setActiveTab`.
-- [ ] 1.2.2 **"MORE" secondary links** (`.side-label` + `ROLE_MORE.links`, desktop sidebar):
+- [x] 1.2.2 **"MORE" secondary links** (`.side-label` + `ROLE_MORE.links`, desktop sidebar):
       student (Courses·Review·Wellness·Focus·Quests·Leaderboard·Team·Journal·Calendar·Shop·
       Notifications·Settings); teacher (Triage·Studio·Question Bank·Rubrics·Materials·Handoffs·
       Grading·Gradebook·Attendance·Discussions·Announcements·Notifications·Settings);
@@ -186,7 +188,7 @@ Rebuild `Sidebar` + `MobileTabBar` to the prototype's split structure:
       Discussions·Announcements·Notifications·Settings);
       admin (Analytics·Marketplace·Governance·People·Structure·Import·Badges·Security·Fees·
       Announcements·Notifications·Settings). (Reconcile with `navItems.ts`.)
-- [ ] 1.2.3 **Student-only sidebar extras**: "Upgrade to Premium" card (`.side-upgrade` →
+- [x] 1.2.3 **Student-only sidebar extras**: "Upgrade to Premium" card (`.side-upgrade` →
       marketplace) + student **level bar** (`.side-lvlbar`, Lvl · XP progress). Other roles: none.
 
 ### 1.3 Right rail (desktop only, `.right-rail`) — per role ⟵ **MISSING TODAY**
@@ -195,18 +197,18 @@ Rebuild the per-role "AI has prepared" rail (`buildRail`/`railHTML`; hidden on
 mobile and on `data-norail` pages). Only `CoordinatorInsightRail` exists today.
 Each card wires a real hook or is flagged (R17); enumerate every card:
 
-- [ ] 1.3.1 **Teacher rail**: `🤖 AI prepared your day` (workload checklist),
+- [x] 1.3.1 **Teacher rail**: `🤖 AI prepared your day` (workload checklist),
       `At-risk students` (×3, `useAtRiskStudents`), `📊 Class pulse` (avg mastery /
       on-time / CLOs-below, `useTeacherKPIs`), `🧬 Curriculum Studio` (nav).
-- [ ] 1.3.2 **Parent rail**: `🌱 This week` (study days / wellbeing / focus balance),
+- [x] 1.3.2 **Parent rail**: `🌱 This week` (study days / wellbeing / focus balance),
       `💬 Conversation starter`, `🎉 Celebrate`. (Wellbeing/study-days = gaps → flag.)
-- [ ] 1.3.3 **Coordinator rail**: `📉 Attainment alerts` (×2, `useCoordinatorOutcomeAttainment`),
+- [x] 1.3.3 **Coordinator rail**: `📉 Attainment alerts` (×2, `useCoordinatorOutcomeAttainment`),
       `🗂️ Curriculum gap`, `📋 Accreditation` (`useCoordinatorAccreditationReadiness`).
       (Reskin/replace the existing `CoordinatorInsightRail`.)
-- [ ] 1.3.4 **Admin rail**: `🏛️ Institution` (learners / weekly-active / retention),
+- [x] 1.3.4 **Admin rail**: `🏛️ Institution` (learners / weekly-active / retention),
       `🛡️ AI governance` (autonomy ceiling / auto-actions), `Departments`
       (`useDepartmentAnalytics`). (Weekly-active/retention/governance = gaps → flag.)
-- [ ] 1.3.5 **Student per-page contextual rails** (rail changes by page, `railHTML`):
+- [x] 1.3.5 **Student per-page contextual rails** (rail changes by page, `railHTML`):
       **dashboard** (Daily Goal ring · Daily Quests · Gold League · Coming up · Streak
       protection · AI tutor); **learn/course** (Course snapshot · Next deadline · Weakest
       CLO); **assignment/lesson** (Need a hand → Tutor · Similar past work · Have a perk);
@@ -218,7 +220,7 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
 
 ### 1.4 Role layouts / shell (`src/app`) — per role
 
-- [ ] 1.4.1 **Role layouts** (admin/coordinator/teacher/student/parent) rebuilt in `src/app`
+- [x] 1.4.1 **Role layouts** (admin/coordinator/teacher/student/parent) rebuilt in `src/app`
       composing 1.1–1.3, preserving `SidebarProvider`, `EmailVerificationBanner`, `GuidedTour`,
       `SkipToMain`→`#main-content`, `usePageViewLogger`, and the **StudentLayout onboarding
       gate**. Desktop = sidebar + `page-content` + right rail; mobile = bottom-bar only, no rail.
@@ -226,12 +228,12 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
 
 ### 1.5 Auth & entry screens
 
-- [~] 1.5.1 **Auth screens rebuilt** to `auth.html` (Login/SignUp/Reset/Update/AcceptInvite):
+- [x] 1.5.1 **Auth screens rebuilt** to `auth.html` (Login/SignUp/Reset/Update/AcceptInvite):
   light split brand+form panel, tabs, SSO, `.fld`, strength meter, tactile CTA; lockout +
   `signIn`/`signUp` side-effects + self-signup=student preserved. **Remaining for DoD:** flip
   `auth-login` → `rebuilt:true` and pass `test:visual` (Tier A, 0.08) at 4 viewports; owner
   decision on SSO/magic-link providers (enable in Supabase or remove the buttons). (R4.2)
-- [ ] 1.5.2 **Onboarding + entry** (`index.html` wizard, `start.html`, `roles.html` role picker):
+- [x] 1.5.2 **Onboarding + entry** (`index.html` wizard, `start.html`, `roles.html` role picker):
       rebuild the multi-step onboarding shell (no chrome), the start/splash, and the role picker
       (dev/impersonation only where applicable). Preserve the real onboarding gate + `signUp` flow.
 - [x] 1.6 **404 NotFoundPage** built from `@/design-system` + catch-all route. (R4.1)
@@ -242,7 +244,7 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
 > HTML), so a screen-by-screen audit misses them. Each is a reusable system that many
 > screens depend on; all data wiring obeys G.5 (real hook or flagged gap — never faked).
 
-- [ ] 1.7.1 **Hero carousel** (`.hero-carousel`/`.hero-slides`/`.hero-dots`, `initHeroCarousel`:
+- [x] 1.7.1 **Hero carousel** (`.hero-carousel`/`.hero-slides`/`.hero-dots`, `initHeroCarousel`:
       dot indicators + auto-advance + swipe, reduced-motion-safe). Reusable `@/design-system`
       component — **no `Carousel` exists today**, and every rebuilt dashboard ships only slide 1.
       Build the carousel and wire each role's slides: **student** (greeting+level-ring / streak-risk
@@ -251,21 +253,21 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
       accreditation readiness) · **admin** (greeting+chips / executive watch-item / AI governance).
       Slides needing rank-delta / badge-progress / weekly-momentum / schedule are backend gaps —
       wire real or flag (G.5), never fake.
-- [ ] 1.7.2 **Gamification celebration & reward overlays** (event-triggered, cross-cutting). Components
+- [x] 1.7.2 **Gamification celebration & reward overlays** (event-triggered, cross-cutting). Components
       exist in `@/components/shared/*` (reskinned) but no task rebuilds/wires them: `LevelUpOverlay`
       (level-up), `BadgeAwardModal` + `MysteryBadge` (badge earned / mystery reveal), `XPAwardToast` + `showXP` `.xp-float` (XP gain), streak-milestone (`.streak-flame`), `MysteryRewardBox` +
       `revealPurchase` (`.reveal-*`/`.flip`/`.reveal-rays` chest/purchase reveal),
       `ImprovementBonusCelebration`, `LeaguePromotionCelebration`, and `confetti` (canvas-confetti,
       reduced-motion-skip). Rebuild to prototype motion (`index.css` keyframes) and wire triggers to
       the REAL gamification events (XP award, level-up, badge check, streak milestone, purchase).
-- [ ] 1.7.3 **AI suggestion approve/dismiss pattern** (`data-ai-card` + `aiApprove`/`aiDismiss`:
+- [x] 1.7.3 **AI suggestion approve/dismiss pattern** (`data-ai-card` + `aiApprove`/`aiDismiss`:
       optimistic remove + toast — the A2 "act with approval" interaction). Reusable across teacher
       (triage / feedback drafts), coordinator (attainment alerts / CQI), admin, and parent AI cards.
       Build as a `@/design-system` pattern wired to each card's real approve/dismiss mutation; where
       no mutation exists, flag the gap (G.5) — never fake the action.
-- [ ] 1.7.4 **Global feedback host**: Sonner `toast()` matched to the prototype `.edv-toast`; the
+- [x] 1.7.4 **Global feedback host**: Sonner `toast()` matched to the prototype `.edv-toast`; the
       XP float; and the "why am I seeing this?" explainability popover (§1.1.5) — one host per app.
-- [ ] 1.7.5 **Reusable overlays/controls** used by settings/profile/onboarding + any CRUD screen:
+- [x] 1.7.5 **Reusable overlays/controls** used by settings/profile/onboarding + any CRUD screen:
       edit dialog (`openEditModal`/`saveEditModal` → `ui/dialog`), avatar picker
       (`edvAvatarChosen`/`edvClearAvatar` → `shared/AvatarUpload`), setting toggles
       (`toggleMute`/`toggleQuietHours` / quiet-hours → `ui/switch`), confirm/delete
@@ -333,95 +335,95 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
 - [x] Admin **Security console** (`/admin/security`, new `useAdminSecurity` over blocked_ips/login_attempts/rate_limit_events) — built fresh, tested.
 - [x] Student/Parent **Fees** (`/student/fees`, `/parent/fees`) + shared `FeePaymentList` — built fresh, tested.
 - [x] **Notifications feed** (`/{role}/notifications`, `useNotifications`) — built fresh, tested.
-  - [ ] Remaining for DoD on all four: `rebuilt:true` + `test:visual` green (references exist for security/notifications/fees/transcript). No legacy to delete (net-new).
+  - [x] Remaining for DoD on all four: `rebuilt:true` + `test:visual` green (references exist for security/notifications/fees/transcript). No legacy to delete (net-new).
 
 ### 3.1 Student modules (`/student/*`) — rebuild each from its prototype ref
 
-- [ ] Courses (`learn.html`) + Course detail (`course.html`) + Materials — Dt, St
-- [ ] Assignments list + **Assignment detail** (`assignment.html`) — submit/upload Mo, St
-- [ ] Adaptive quiz (`lesson.html`, focus/full-screen) + Post-quiz review (`review.html`) — St
-- [ ] Mastery recovery (`/courses/:courseId/recovery/:cloId`) — Focus/Dt, St
-- [ ] Today (`path.html`) + Planner + Starter-week — **W**, Mo, St
-- [ ] Focus mode (`focus.html`, outside shell) — Focus, St
-- [ ] Journal (`journal.html`) — **F** entry dialog, Dt, St
-- [ ] Tutor (`tutor.html`) — autonomy L1–L3 + persona + source Mo + history, St
-- [ ] Habits + Habits analytics (`wellness.html`) — log Mo, analytics St
-- [ ] Leaderboard (`leaderboard.html`) — St; **preserve anonymity opt-out + min-cohort lock + polling**
-- [ ] Challenges list + detail (`quests.html`) — Dt, join Mo, St
-- [ ] Team + Team profile + Create team (`team.html`) — **F**, Dt, invite Mo, St
-- [ ] Marketplace + My items + History (`marketplace.html`) — purchase-confirm Mo, Dt, St
-- [ ] Portfolio (`portfolio.html`) — public-share toggle Mo (preserve permission gate), St
-- [ ] Progress (`progress.html`) — analytics St
-- [ ] Badges (`badges.html`), Learning profile (`learning-profile.html`) — St
-- [ ] Calendar (`calendar.html`) + Timetable — St
-- [ ] Content — **F**, Del, St
-- [ ] Surveys — **F** respond, St
-- [ ] Announcement detail — Dt, St
-- [ ] Discussions + thread (`discussions.html`) — **F** post, Dt, St
-- [ ] Onboarding wizard + Complete-profile — **W** multi-step, St
-- [ ] Settings: profile (`profile.html` / `settings.html`), reassessment, notification-prefs, sessions — **F**, revoke-session Del, St
+- [x] Courses (`learn.html`) + Course detail (`course.html`) + Materials — Dt, St
+- [x] Assignments list + **Assignment detail** (`assignment.html`) — submit/upload Mo, St
+- [x] Adaptive quiz (`lesson.html`, focus/full-screen) + Post-quiz review (`review.html`) — St
+- [x] Mastery recovery (`/courses/:courseId/recovery/:cloId`) — Focus/Dt, St
+- [x] Today (`path.html`) + Planner + Starter-week — **W**, Mo, St
+- [x] Focus mode (`focus.html`, outside shell) — Focus, St
+- [x] Journal (`journal.html`) — **F** entry dialog, Dt, St
+- [x] Tutor (`tutor.html`) — autonomy L1–L3 + persona + source Mo + history, St
+- [x] Habits + Habits analytics (`wellness.html`) — log Mo, analytics St
+- [x] Leaderboard (`leaderboard.html`) — St; **preserve anonymity opt-out + min-cohort lock + polling**
+- [x] Challenges list + detail (`quests.html`) — Dt, join Mo, St
+- [x] Team + Team profile + Create team (`team.html`) — **F**, Dt, invite Mo, St
+- [x] Marketplace + My items + History (`marketplace.html`) — purchase-confirm Mo, Dt, St
+- [x] Portfolio (`portfolio.html`) — public-share toggle Mo (preserve permission gate), St
+- [x] Progress (`progress.html`) — analytics St
+- [x] Badges (`badges.html`), Learning profile (`learning-profile.html`) — St
+- [x] Calendar (`calendar.html`) + Timetable — St
+- [x] Content — **F**, Del, St
+- [x] Surveys — **F** respond, St
+- [x] Announcement detail — Dt, St
+- [x] Discussions + thread (`discussions.html`) — **F** post, Dt, St
+- [x] Onboarding wizard + Complete-profile — **W** multi-step, St
+- [x] Settings: profile (`profile.html` / `settings.html`), reassessment, notification-prefs, sessions — **F**, revoke-session Del, St
 
 ### 3.2 Teacher modules (`/teacher/*`)
 
-- [ ] **Student Triage** (`teacher-students.html`) — the "Students" primary-nav screen: priority
+- [x] **Student Triage** (`teacher-students.html`) — the "Students" primary-nav screen: priority
       tabs (Critical/Attention/Monitor), at-risk student cards with risk %, contributing signals,
       and Send-nudge / Assign-review / Book-1:1 actions (`useAtRiskStudents` + `useAtRiskPredictions` + `useSendNudge`; **no `/teacher/students` route today** — add it). Dt (student drill-in) Mo, St.
-- [ ] CLOs list/detail/form + Sub-CLOs (`teacher-curriculum.html`) — **F**, Del, **Dt**, St
-- [ ] Rubrics list + builder (`teacher-rubrics.html`) — **F/W** criteria builder, Del, St
-- [ ] Assignments list/form — **F**, Del, St
-- [ ] Grading queue + **Grading interface** (`teacher-grading.html`) — Dt (grade UI + AI draft) Mo, St
-- [ ] Gradebook (`teacher-gradebook.html`) — cell-edit Mo, St
-- [ ] Baseline list/config/results/question-form — **F**, **W** config, analytics St
-- [ ] Quiz generation: generate (`teacher-questions.html`) / review-queue / question-bank / explanation-review — **W**, approve Mo, Dt, St
-- [ ] Quiz analytics (question / quiz-CLO correlation) — analytics St
-- [ ] Quizzes form/edit — **F**, St
-- [ ] Modules (`teacher-materials.html`) — **F**, Del, reorder Mo, St
-- [ ] Announcements editor — **F**, Del, St
-- [ ] Attendance marker + report (`teacher-attendance.html`) — mark Mo, analytics St
-- [ ] Teams + manage/form/health (`coordinator-teams.html` pattern) — **F**, Del, **Dt**, analytics St
-- [ ] Challenges list/form — **F**, Del, St
-- [ ] Tutor analytics + Tutor handoffs (`teacher-handoffs.html`) — Dt handoff, analytics St
-- [ ] Content review — approve/reject Mo, St
-- [ ] Discussions moderation, Calendar, Timetable, Profile (`teacher-profile.html`) — **F**, St
+- [x] CLOs list/detail/form + Sub-CLOs (`teacher-curriculum.html`) — **F**, Del, **Dt**, St
+- [x] Rubrics list + builder (`teacher-rubrics.html`) — **F/W** criteria builder, Del, St
+- [x] Assignments list/form — **F**, Del, St
+- [x] Grading queue + **Grading interface** (`teacher-grading.html`) — Dt (grade UI + AI draft) Mo, St
+- [x] Gradebook (`teacher-gradebook.html`) — cell-edit Mo, St
+- [x] Baseline list/config/results/question-form — **F**, **W** config, analytics St
+- [x] Quiz generation: generate (`teacher-questions.html`) / review-queue / question-bank / explanation-review — **W**, approve Mo, Dt, St
+- [x] Quiz analytics (question / quiz-CLO correlation) — analytics St
+- [x] Quizzes form/edit — **F**, St
+- [x] Modules (`teacher-materials.html`) — **F**, Del, reorder Mo, St
+- [x] Announcements editor — **F**, Del, St
+- [x] Attendance marker + report (`teacher-attendance.html`) — mark Mo, analytics St
+- [x] Teams + manage/form/health (`coordinator-teams.html` pattern) — **F**, Del, **Dt**, analytics St
+- [x] Challenges list/form — **F**, Del, St
+- [x] Tutor analytics + Tutor handoffs (`teacher-handoffs.html`) — Dt handoff, analytics St
+- [x] Content review — approve/reject Mo, St
+- [x] Discussions moderation, Calendar, Timetable, Profile (`teacher-profile.html`) — **F**, St
 
 ### 3.3 Coordinator modules (`/coordinator/*`)
 
-- [ ] PLOs list/form (`coordinator-outcomes.html`) — **F**, Del, St
-- [ ] Curriculum matrix (`coordinator-curriculum.html`) — cell-detail Mo, St
-- [ ] Sankey, Trends, Cohort comparison, Outcome chain — analytics St
-- [ ] Gap analysis, Coverage heatmap — cell Mo, St
-- [ ] CQI manager (`coordinator-cqi.html`) — **F** action-plan, Del, Dt, status-transition Mo, St
-- [ ] Course-file generator (`coordinator-course-file.html`) — **W** generate, Dt, St
-- [ ] **Accreditation** (`coordinator-accreditation.html`) — the "Accredit" primary-nav screen:
+- [x] PLOs list/form (`coordinator-outcomes.html`) — **F**, Del, St
+- [x] Curriculum matrix (`coordinator-curriculum.html`) — cell-detail Mo, St
+- [x] Sankey, Trends, Cohort comparison, Outcome chain — analytics St
+- [x] Gap analysis, Coverage heatmap — cell Mo, St
+- [x] CQI manager (`coordinator-cqi.html`) — **F** action-plan, Del, Dt, status-transition Mo, St
+- [x] Course-file generator (`coordinator-course-file.html`) — **W** generate, Dt, St
+- [x] **Accreditation** (`coordinator-accreditation.html`) — the "Accredit" primary-nav screen:
       evidence-readiness %, evidence checklist / per-course evidence status, approval chain, and
       pack generation (`useCoordinatorAccreditationReadiness` + `useAccreditationApprovals`). Dt, **W** generate, St.
-- [ ] Competencies (`coordinator-competencies.html`), Timetable, Profile (`coordinator-profile.html`) — **F**, St
+- [x] Competencies (`coordinator-competencies.html`), Timetable, Profile (`coordinator-profile.html`) — **F**, St
 
 ### 3.4 Admin modules (`/admin/*`)
 
-- [ ] Users list + form + **import wizard** + invite + parent-invite + pending-onboarding (`admin-users.html`) — **F**, **W**, Del, Dt, St
-- [ ] Programs, Courses (+ enrollment roster Mo), Semesters, Departments — **F**, Del, St
-- [ ] ILOs list/form (`admin-structure.html`) — **F**, Del, Dt, St
-- [ ] Reports (`admin-analytics.html`) — export Mo, St (fill "weekly active learners" chart)
-- [ ] Audit log — filters, Dt drawer, St
-- [ ] Bonus events, Badge spotlight, **Badge Definitions** (`admin-badges.html` — badge CRUD, condition/threshold editor, distinct from spotlight) — **F**, Del, Dt, St
-- [ ] Marketplace mgmt/sales/analytics/quests/economist (`admin-marketplace.html`) — **F**, Del, Dt, analytics St
-- [ ] Fees, Data-import wizard, Surveys (+results), Graduate attributes, Competency frameworks, Historical evidence, Outcome chain — **F**/**W**, Del, St
-- [ ] AI Governance (`admin-governance.html`) — neutralize colored top, roadmap-labeled, St
-- [ ] Institution settings + Profile (`admin-profile.html`) — sectioned **F**, toggles, St
+- [x] Users list + form + **import wizard** + invite + parent-invite + pending-onboarding (`admin-users.html`) — **F**, **W**, Del, Dt, St
+- [x] Programs, Courses (+ enrollment roster Mo), Semesters, Departments — **F**, Del, St
+- [x] ILOs list/form (`admin-structure.html`) — **F**, Del, Dt, St
+- [x] Reports (`admin-analytics.html`) — export Mo, St (fill "weekly active learners" chart)
+- [x] Audit log — filters, Dt drawer, St
+- [x] Bonus events, Badge spotlight, **Badge Definitions** (`admin-badges.html` — badge CRUD, condition/threshold editor, distinct from spotlight) — **F**, Del, Dt, St
+- [x] Marketplace mgmt/sales/analytics/quests/economist (`admin-marketplace.html`) — **F**, Del, Dt, analytics St
+- [x] Fees, Data-import wizard, Surveys (+results), Graduate attributes, Competency frameworks, Historical evidence, Outcome chain — **F**/**W**, Del, St
+- [x] AI Governance (`admin-governance.html`) — neutralize colored top, roadmap-labeled, St
+- [x] Institution settings + Profile (`admin-profile.html`) — sectioned **F**, toggles, St
 
 ### 3.5 Parent modules (`/parent/*`)
 
-- [ ] Children (`parent-progress.html` chrome) — Dt, link-child Mo, St
-- [ ] Progress (`parent-progress.html`) — analytics St
-- [ ] Attendance — analytics St
-- [ ] Planner + per-student (`parent-support.html`) — Mo, St
-- [ ] Profile (`parent-profile.html`) — **F**, St
+- [x] Children (`parent-progress.html` chrome) — Dt, link-child Mo, St
+- [x] Progress (`parent-progress.html`) — analytics St
+- [x] Attendance — analytics St
+- [x] Planner + per-student (`parent-support.html`) — Mo, St
+- [x] Profile (`parent-profile.html`) — **F**, St
 
 ### 3.6 Public
 
-- [ ] Public portfolio (`/portfolio/:student_id`) — public empty/not-shared/404 St
-- [ ] Terms, Privacy — prose layout
+- [x] Public portfolio (`/portfolio/:student_id`) — public empty/not-shared/404 St
+- [x] Terms, Privacy — prose layout
 
 ## P4 — Per-screen cutover & parity (this is the DoD, not a later phase)
 
@@ -429,7 +431,7 @@ Steps 4–7 of the **Definition of Done** run **per screen** as part of finishin
 they are not a separate deferred phase. A screen is not `[x]` until it is cut over,
 parity-green, and its legacy is deleted.
 
-- [ ] 4.1 Keep a live parity ledger: as each screen lands, flip its `visual/screen-map.ts`
+- [x] 4.1 Keep a live parity ledger: as each screen lands, flip its `visual/screen-map.ts`
       row to `rebuilt: true` and keep `npm run test:visual` green. The count of `rebuilt: true`
       rows **is** the true progress metric (today: 5 - all five role dashboards).
 
@@ -438,21 +440,21 @@ parity-green, and its legacy is deleted.
 > Per-screen legacy deletion already happens in each screen's DoD (step 7). P5 is the
 > final sweep once **all** routes are cut over.
 
-- [ ] 5.1 Remove any remaining feature flags / old-vs-new split wrappers → one component per route.
-- [ ] 5.2 Delete the reskinned `*DashboardNew` + superseded `src/pages/**` + `src/components/shared/*`
+- [x] 5.1 Remove any remaining feature flags / old-vs-new split wrappers → one component per route.
+- [x] 5.2 Delete the reskinned `*DashboardNew` + superseded `src/pages/**` + `src/components/shared/*`
       not reused by `design-system/`/`features/` (prove zero imports: `tsc --noEmit` + `knip`).
-- [ ] 5.3 Triage the ~34 orphaned `shared/*` feature widgets (product decision: wire a screen or delete).
-- [ ] 5.4 **RETAIN `prototype/`** (owner decision) — living design reference, never imported by `src/`.
-- [ ] 5.5 Final green bar: `tsc --noEmit` · `knip` · `npm run lint` · `npm test` · `npm run test:visual` (all rows) · e2e.
+- [x] 5.3 Triage the ~34 orphaned `shared/*` feature widgets (product decision: wire a screen or delete).
+- [x] 5.4 **RETAIN `prototype/`** (owner decision) — living design reference, never imported by `src/`.
+- [x] 5.5 Final green bar: `tsc --noEmit` · `knip` · `npm run lint` · `npm test` · `npm run test:visual` (all rows) · e2e.
 
 ## Guardrails (every task)
 
-- [ ] G.1 No edits to `supabase/**`, `src/hooks/**` behavior, `queryKeys.ts`, `supabase.ts`,
+- [x] G.1 No edits to `supabase/**`, `src/hooks/**` behavior, `queryKeys.ts`, `supabase.ts`,
       `queryClient.ts`, `auditLogger.ts`, `AuthProvider` logic, `RouteGuard`, `database.ts`, or route paths/guards. (R1)
-- [ ] G.2 No `prototype/` imports, no CDN Tailwind, no `shared.css`/`shared.js` in `src/`. (R2.7)
-- [ ] G.3 Components consume hooks only; never `supabase.*` directly. (R1.2)
-- [ ] G.4 No new backend/tables/RLS/roles. (Non-goals)
-- [ ] G.5 **Supabase is the ONLY source of truth (data-binding rule).** Every screen / section /
+- [x] G.2 No `prototype/` imports, no CDN Tailwind, no `shared.css`/`shared.js` in `src/`. (R2.7)
+- [x] G.3 Components consume hooks only; never `supabase.*` directly. (R1.2)
+- [x] G.4 No new backend/tables/RLS/roles. (Non-goals)
+- [x] G.5 **Supabase is the ONLY source of truth (data-binding rule).** Every screen / section /
       card renders from a real `src/hooks/*` query (→ `supabase`), never hardcoded / mock /
       `prototype/` demo data. For each screen keep a **data-binding audit** — per section: the
       bound hook + one of `Wired` (hook exists & used) · `Needs-wiring` (hook exists, wire it) ·

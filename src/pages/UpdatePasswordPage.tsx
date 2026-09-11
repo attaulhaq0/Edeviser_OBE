@@ -89,7 +89,7 @@ const UpdatePasswordPage = () => {
 
       {isUpdated ? (
         <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-transparent">
             <CheckCircle2 className="h-6 w-6 text-green-600" />
           </div>
           <p className="text-sm text-slate-600">

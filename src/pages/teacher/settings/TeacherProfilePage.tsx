@@ -220,7 +220,7 @@ const TeacherProfilePage = () => {
                 to={`/teacher/courses/${course.id}`}
                 className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50"
               >
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xs font-black text-blue-700">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-transparent text-xs font-black text-blue-700">
                   {course.code.slice(0, 3).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">

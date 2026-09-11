@@ -237,7 +237,7 @@ const SemesterRow = ({
   <PCard className="p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4 min-w-0">
-        <div className="p-2 rounded-lg bg-blue-50">
+        <div className="p-2 rounded-lg ">
           <Calendar className="h-5 w-5 text-blue-600" />
         </div>
         <div className="min-w-0">

@@ -59,7 +59,7 @@ const HeatmapPlainSummary = ({
       data-testid="heatmap-plain-summary"
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-teal-50 shrink-0">
+        <div className="p-2 rounded-lg shrink-0">
           <Sparkles className="h-5 w-5 text-teal-600" aria-hidden="true" />
         </div>
         <div>

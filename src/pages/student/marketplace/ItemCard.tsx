@@ -102,7 +102,7 @@ const ItemCard = ({
             className="w-full"
           />
         ) : (
-          <div className="p-3 rounded-xl bg-blue-50">
+          <div className="p-3 rounded-xl bg-transparent">
             <IconComponent className="h-8 w-8 text-blue-600" />
           </div>
         )}

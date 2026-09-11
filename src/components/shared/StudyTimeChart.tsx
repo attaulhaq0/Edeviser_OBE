@@ -208,7 +208,7 @@ const StudyTimeChart = ({
             {/* Average summary */}
             <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
               <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-sm bg-blue-500" />
+                <div className="h-3 w-3 rounded-sm bg-transparent0" />
                 <span>Weekly Hours</span>
               </div>
               {averageHours > 0 && (

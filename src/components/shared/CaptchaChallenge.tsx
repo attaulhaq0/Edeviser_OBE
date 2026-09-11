@@ -131,7 +131,7 @@ const CaptchaChallenge = ({
   // Development bypass — renders a button that simulates captcha verification
   if (isDev) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50">
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-amber-200 bg-transparent">
         <Shield className="h-4 w-4 text-amber-600 shrink-0" />
         <div className="flex-1">
           <p className="text-xs font-medium text-amber-800">

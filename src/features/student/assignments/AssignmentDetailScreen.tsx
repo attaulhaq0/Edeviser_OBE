@@ -486,7 +486,7 @@ const AssignmentDetailScreen = () => {
               <button
                 type="button"
                 onClick={openFilePicker}
-                className="flex w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center transition-colors hover:border-blue-300 hover:bg-blue-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center transition-colors hover:border-blue-300 hover:bg-transparent/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Upload className="size-8 text-slate-400" />
                 <span className="mt-3 text-sm font-semibold text-foreground">
@@ -501,7 +501,7 @@ const AssignmentDetailScreen = () => {
               </button>
 
               {fileError ? (
-                <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p className="rounded-2xl border border-red-200 bg-transparent px-4 py-3 text-sm text-red-700">
                   {fileError}
                 </p>
               ) : null}
@@ -558,7 +558,7 @@ const AssignmentDetailScreen = () => {
               ) : null}
 
               {deadlineStatus?.window === "closed" ? (
-                <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-transparent px-4 py-3 text-sm text-amber-800">
                   <AlertTriangle className="size-4" />
                   {t(
                     "assignments.deadlinePassed",

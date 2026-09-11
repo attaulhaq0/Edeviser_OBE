@@ -65,7 +65,7 @@ const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => {
               }`}
             >
               {isSelected && (
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                <span className="h-2.5 w-2.5 rounded-full bg-transparent0" />
               )}
             </span>
             {label}

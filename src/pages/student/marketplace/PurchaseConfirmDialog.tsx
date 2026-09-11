@@ -96,7 +96,7 @@ const PurchaseConfirmDialog = ({
 
           {/* Insufficient balance warning */}
           {!canAfford && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+            <div className="flex items-center gap-2 rounded-xl bg-transparent border border-red-200 px-4 py-3">
               <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
               <p className="text-xs text-red-700">
                 You don't have enough XP for this purchase. You need{" "}

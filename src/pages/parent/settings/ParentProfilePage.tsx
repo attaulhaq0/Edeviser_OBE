@@ -244,7 +244,7 @@ const ParentProfilePage = () => {
               {t("profile.linkedLearners", "Linked learners")}
             </h2>
           </div>
-          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-100">
+          <span className="rounded-full bg-transparent px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-100">
             {children.length} linked
           </span>
         </div>
@@ -280,7 +280,7 @@ const ParentProfilePage = () => {
                     link verified ✓
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                <span className="rounded-full bg-transparent border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
                   Active
                 </span>
               </div>

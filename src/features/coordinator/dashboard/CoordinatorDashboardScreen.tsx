@@ -573,7 +573,7 @@ const CoordinatorDashboardScreen = () => {
           className="mb-3"
         />
         {ai.data?.narrative && (
-          <div className="mb-3 flex items-start gap-2 rounded-[20px] border border-teal-100 bg-teal-50/70 p-3">
+          <div className="mb-3 flex items-start gap-2 rounded-[20px] border border-teal-100 bg-transparent/70 p-3">
             <Sparkles
               className="mt-0.5 h-4 w-4 shrink-0 text-teal-600"
               aria-hidden="true"
@@ -587,7 +587,7 @@ const CoordinatorDashboardScreen = () => {
             <Shimmer className="h-28 rounded-[20px]" />
           </div>
         ) : attainment.isError ? (
-          <div className="rounded-[20px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-[20px] border border-red-100 bg-transparent p-4 text-sm text-red-700">
             {t("dashboard.alerts.error", "Couldn't load outcome attainment.")}
           </div>
         ) : belowTargetCount != null && belowTargetCount > 0 ? (
@@ -680,7 +680,7 @@ const CoordinatorDashboardScreen = () => {
             })}
           </div>
         ) : (
-          <div className="flex items-start gap-3 rounded-[20px] border border-green-100 bg-green-50/70 p-4">
+          <div className="flex items-start gap-3 rounded-[20px] border border-green-100 bg-transparent/70 p-4">
             <CheckCircle2
               className="mt-0.5 h-5 w-5 shrink-0 text-green-600"
               aria-hidden="true"
@@ -750,7 +750,7 @@ const CoordinatorDashboardScreen = () => {
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-blue-500"
+              className="h-full rounded-full bg-transparent0"
               style={{ width: `${cloCoverage ?? 0}%` }}
             />
           </div>
@@ -791,7 +791,7 @@ const CoordinatorDashboardScreen = () => {
               aria-valuemax={100}
             >
               <div
-                className="h-full rounded-full bg-blue-500"
+                className="h-full rounded-full bg-transparent0"
                 style={{ width: `${readiness ?? 0}%` }}
               />
             </div>

@@ -253,7 +253,7 @@ const InviteUsersPage = () => {
                   />
                   <label
                     htmlFor="csv-upload"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
                   >
                     <Upload className="h-4 w-4" />
                     <span className="text-sm font-medium">

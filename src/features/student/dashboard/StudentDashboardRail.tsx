@@ -227,7 +227,7 @@ const StudentDashboardRail = () => {
               </RailRow>
             )}
             {me ? (
-              <RailRow className="-mx-1.5 rounded-lg bg-blue-50 px-1.5 dark:bg-blue-950/40">
+              <RailRow className="-mx-1.5 rounded-lg bg-transparent px-1.5 dark:bg-blue-950/40">
                 <span className="w-4 text-xs font-extrabold text-slate-500">
                   {me.rank}
                 </span>
@@ -239,7 +239,7 @@ const StudentDashboardRail = () => {
                 </b>
               </RailRow>
             ) : percentile.data ? (
-              <RailRow className="-mx-1.5 rounded-lg bg-blue-50 px-1.5 dark:bg-blue-950/40">
+              <RailRow className="-mx-1.5 rounded-lg bg-transparent px-1.5 dark:bg-blue-950/40">
                 <span className="min-w-0 flex-1 truncate font-extrabold text-blue-700 dark:text-blue-300">
                   {t("dashboard.rail.you", "You")}
                 </span>

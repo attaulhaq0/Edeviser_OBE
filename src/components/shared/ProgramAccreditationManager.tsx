@@ -142,7 +142,7 @@ const ProgramAccreditationManager = () => {
     <div className="space-y-6">
       {/* Upcoming Review Alerts */}
       {upcomingReviews.length > 0 && (
-        <div className="rounded-xl bg-amber-50 p-4 space-y-2">
+        <div className="rounded-xl bg-transparent p-4 space-y-2">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <p className="text-sm font-semibold text-amber-800">
