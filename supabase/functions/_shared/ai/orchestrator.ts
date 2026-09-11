@@ -34,6 +34,7 @@ import {
   type ToolDataSource,
 } from "./tools/registry.ts";
 import { SPECIALIST_PROTOCOLS } from "./specialists/protocols.ts";
+import { getFrameworkSpecialistHints } from "./specialists/framework-protocols.ts";
 import {
   parseHabitAnalysis,
   parseInterventionPlan,
@@ -171,6 +172,8 @@ const systemPrompt = (context: AgentExecutionContext): string =>
     "Protected actions can only become proposals for human approval. Never claim that a protected action was executed.",
     // Tasks 4.3-4.6 / 5.1 / 5.2 / 6.1 — per-specialist protocol blocks.
     ...(SPECIALIST_PROTOCOLS[context.specialist] ?? []),
+    // v2: framework-aware specialist hints (IB MYP ≠ IGCSE ≠ QNSA)
+    ...getFrameworkSpecialistHints(context.specialist, context.framework),
     ...(context.specialist === "evaluator"
       ? [
           "Evaluator protocol: use only authorized BEFORE, ACTION, and AFTER evidence supplied by deterministic tools.",

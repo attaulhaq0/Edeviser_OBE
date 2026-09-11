@@ -7,7 +7,7 @@
  *
  * Pure + deterministic: only reads authorized data, never mutates.
  */
-import type { AssessmentModel, FrameworkContext } from "../../contracts.ts";
+import type { AssessmentModel, FrameworkContext } from "../contracts.ts";
 
 export interface FrameworkContextSource {
   /** Raw course row (from RLS-scoped courses query). */
