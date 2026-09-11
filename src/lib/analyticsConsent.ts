@@ -68,26 +68,40 @@ export const initAnalyticsIfConsented = (): void => {
     return;
   }
 
+  // Device class detection — desktop / tablet / mobile
+  const deviceClass = ((): string => {
+    const w = window.innerWidth;
+    if (w < 640) return "mobile";
+    if (w < 1024) return "tablet";
+    return "desktop";
+  })();
+
+  // Release version from env, fallback to commit build hash pattern
+  const releaseVersion =
+    import.meta.env.VITE_APP_VERSION ??
+    (import.meta.env.VITE_COMMIT_REF?.slice(0, 7) ?? "unknown");
+
   posthog.init(projectToken, {
     api_host: host,
-    // Official PostHog defaults preset (matches the install snippet).
     defaults: "2026-05-30",
-    // Only create person profiles for identified users (via identify()).
     person_profiles: "identified_only",
     autocapture: true,
-    // SPA-safe pageviews: react on History API navigations instead of full loads.
     capture_pageview: "history_change",
     capture_exceptions: {
       capture_unhandled_errors: true,
       capture_unhandled_rejections: true,
       capture_console_errors: false,
     },
-    // Privacy-first replay for an education product: mask every input and all
-    // element text before capture. See docs/specs/continuous-verification/design.md.
-    // NOTE: the key is `session_recording` in posthog-js 1.4xx (not `session_replay`).
     session_recording: {
       maskAllInputs: true,
       maskTextSelector: "*",
+    },
+    // Super properties — attached to every event automatically
+    loaded: (ph) => {
+      ph.register_for_session({
+        device_class: deviceClass,
+        release_version: releaseVersion,
+      });
     },
   });
   analyticsInitialized = true;
@@ -121,6 +135,13 @@ export const identifyAnalyticsUser = (
     account_type: accountType,
     environment: resolveEnvironment(),
   });
+
+  // Group analytics by institution for tenant-level metrics
+  if (person.institutionId) {
+    posthog.group("institution", person.institutionId, {
+      name: person.institutionId,
+    });
+  }
 };
 
 export const resetAnalyticsUser = (): void => {
