@@ -1,9 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import type { AccreditationBody } from "@/types/app";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type ReportTemplate = "ABET" | "HEC" | "Generic";
+export type ReportTemplate = AccreditationBody;
 
 export interface GenerateReportInput {
   program_id: string;
