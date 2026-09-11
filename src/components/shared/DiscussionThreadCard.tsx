@@ -48,7 +48,7 @@ const DiscussionThreadCard = ({
           {isPinned && <Pin className="h-3 w-3 text-blue-500 shrink-0" />}
           <h4 className="text-sm font-bold truncate">{title}</h4>
           {isResolved && (
-            <span className="text-[10px] font-bold tracking-widest uppercase text-green-600 bg-transparent px-1.5 py-0.5 rounded shrink-0">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-green-600 bg-green-50 px-1.5 py-0.5 rounded shrink-0">
               Resolved
             </span>
           )}

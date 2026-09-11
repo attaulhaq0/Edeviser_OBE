@@ -649,7 +649,7 @@ const StudentDashboardScreen = () => {
               <p className="text-xs font-black tracking-tight text-slate-900">
                 {t("dashboard.habits.title", "Today's Habits")}
               </p>
-              <span className="ms-auto rounded-full bg-transparent px-2 py-0.5 text-[9px] font-bold text-green-600">
+              <span className="ms-auto rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-600">
                 {habitsDone}/4
               </span>
             </div>

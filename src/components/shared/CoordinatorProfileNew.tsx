@@ -792,7 +792,7 @@ const CoordinatorProfileNew = () => {
                 icon={ShieldCheck}
                 label={t("me.twoFactor")}
                 trailing={
-                  <span className="rounded-full bg-transparent px-2 py-0.5 text-[11px] font-bold text-green-600">
+                  <span className="rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-bold text-green-600">
                     {t("me.on")}
                   </span>
                 }
@@ -1018,7 +1018,7 @@ const IntegrationRow = ({
       {label}
     </span>
     {connected ? (
-      <span className="rounded-full bg-transparent px-2 py-0.5 text-[11px] font-bold text-green-600">
+      <span className="rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-bold text-green-600">
         {connectedLabel}
       </span>
     ) : (

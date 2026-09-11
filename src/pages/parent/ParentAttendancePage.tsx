@@ -485,17 +485,17 @@ const ParentAttendancePage = () => {
                         {/* Status pill with Icon + Label */}
                         <div className="shrink-0">
                           {item.status === "absent" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-red-700">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-700">
                               <X className="h-3 w-3" aria-hidden="true" />{" "}
                               Absent
                             </span>
                           ) : item.status === "late" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700">
                               <Clock className="h-3 w-3" aria-hidden="true" />{" "}
                               Late
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-transparent px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
                               <Check className="h-3 w-3" aria-hidden="true" />{" "}
                               Present
                             </span>

@@ -398,7 +398,7 @@ const FeeManager = () => {
         <div className="mt-3 divide-y divide-slate-100">
           {overdue.slice(0, 10).map((payment) => (
             <div key={payment.id} className="flex items-center gap-3 py-3">
-              <span className="inline-flex size-9 items-center justify-center rounded-full bg-transparent text-sm font-bold text-red-700">
+              <span className="inline-flex size-9 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-700">
                 !
               </span>
               <div className="min-w-0 flex-1">
