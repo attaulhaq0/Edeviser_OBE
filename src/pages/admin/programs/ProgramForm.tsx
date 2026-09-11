@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PCard } from "@/design-system";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { Profile, Program } from "@/types/app";
@@ -370,6 +370,47 @@ const ProgramForm = () => {
   const navigate = useNavigate();
   const { institutionId } = useAuth();
   const isEditMode = !!id;
+
+  // Guard: institution_id is required for program creation. If the profile
+  // hasn't loaded yet or the admin's institution_id is missing, show a
+  // loading / error state instead of a form that will silently fail zod
+  // validation (zod.uuid() rejects empty strings).
+  if (!isEditMode && !institutionId) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/admin/programs")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold tracking-tight">Create Program</h1>
+        </div>
+        <PCard>
+          <div className="py-12 text-center space-y-3">
+            <Building2 className="mx-auto h-12 w-12 text-muted-foreground/40" />
+            <p className="text-lg font-semibold text-muted-foreground">
+              Institution not loaded
+            </p>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Your institution profile is still loading or your account is not
+              linked to an institution. Please wait a moment or contact your
+              administrator.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/dashboard")}
+            >
+              Return to Dashboard
+            </Button>
+          </div>
+        </PCard>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
