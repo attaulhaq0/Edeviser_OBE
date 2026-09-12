@@ -17,7 +17,18 @@ export type InterventionStatus =
   | "approved"
   | "active"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "RECOMMENDED"
+  | "APPROVED"
+  | "ASSIGNED"
+  | "STARTED"
+  | "COMPLETED"
+  | "MEASURED"
+  | "EFFECTIVE"
+  | "PARTIALLY_EFFECTIVE"
+  | "INEFFECTIVE"
+  | "INCONCLUSIVE"
+  | "CANCELLED";
 
 export interface LearningInterventionRow {
   id: string;
@@ -30,6 +41,8 @@ export interface LearningInterventionRow {
   proposal_id: string | null;
   created_by: string | null;
   approved_by: string | null;
+  started_at: string | null;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
   /** Joined student display name (profiles via the student_id FK). */
@@ -43,6 +56,17 @@ const STATUSES: readonly InterventionStatus[] = [
   "active",
   "completed",
   "cancelled",
+  "RECOMMENDED",
+  "APPROVED",
+  "ASSIGNED",
+  "STARTED",
+  "COMPLETED",
+  "MEASURED",
+  "EFFECTIVE",
+  "PARTIALLY_EFFECTIVE",
+  "INEFFECTIVE",
+  "INCONCLUSIVE",
+  "CANCELLED",
 ];
 
 const isKnownStatus = (value: unknown): value is InterventionStatus =>
@@ -81,6 +105,8 @@ const mapRow = (
     proposal_id: typeof row.proposal_id === "string" ? row.proposal_id : null,
     created_by: typeof row.created_by === "string" ? row.created_by : null,
     approved_by: typeof row.approved_by === "string" ? row.approved_by : null,
+    started_at: typeof row.started_at === "string" ? row.started_at : null,
+    completed_at: typeof row.completed_at === "string" ? row.completed_at : null,
     created_at: typeof row.created_at === "string" ? row.created_at : "",
     updated_at: typeof row.updated_at === "string" ? row.updated_at : "",
     student_name: studentName,
