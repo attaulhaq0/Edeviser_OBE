@@ -377,13 +377,24 @@ export interface GradeScale {
   gpa_points: number;
 }
 
+/**
+ * Supported accreditation bodies. v8.1 migration removed the higher-ed-only CHECK
+ * on institution_settings.accreditation_body (now free text), added the authoritative
+ * accreditation_bodies TEXT[] column, and added K-12 accreditors (IB, CIS, BSO, QNSA).
+ * This union documents the known bodies for UI dropdowns; the Zod schema accepts
+ * free-form strings so the DB and schema stay in sync.
+ */
 export type AccreditationBody =
-  | "HEC"
-  | "QQA"
   | "ABET"
-  | "NCAAA"
   | "AACSB"
-  | "Generic";
+  | "BSO"
+  | "CIS"
+  | "Generic"
+  | "HEC"
+  | "IB"
+  | "NCAAA"
+  | "QQA"
+  | "QNSA";
 
 export interface LeagueThresholdsConfig {
   bronze: number;
@@ -397,7 +408,9 @@ export interface InstitutionSettings {
   institution_id: string;
   attainment_thresholds: AttainmentThresholdsConfig;
   success_threshold: number;
-  accreditation_body: AccreditationBody;
+  accreditation_body: string;
+  /** v8.1: authoritative multi-accreditor list (e.g. ["IB", "CIS", "QNSA"]) */
+  accreditation_bodies: string[];
   grade_scales: GradeScale[];
   streak_sabbatical_enabled: boolean;
   league_thresholds?: LeagueThresholdsConfig;

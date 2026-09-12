@@ -808,6 +808,36 @@ serve(async (req) => {
       programId: uuid(page.programId),
     },
   };
+
+  // ─── v2: enrich context with framework-aware data ─────────────────────────
+  // Fetch course + institution_settings when courseId is present so the agent
+  // receives scoped framework semantics (IB ≠ IGCSE ≠ QNSA).
+  if (context.page.courseId) {
+    try {
+      const { data: courseRow } = await reader
+        .from("courses")
+        .select(
+          "assessment_model,framework_id,curriculum_code,key_stage,grade_scale_id"
+        )
+        .eq("id", context.page.courseId)
+        .maybeSingle();
+      const { data: settingsRow } = await reader
+        .from("institution_settings")
+        .select("accreditation_body,accreditation_bodies,default_language")
+        .eq("institution_id", identity.institutionId)
+        .maybeSingle();
+      const { buildFrameworkContext } = await import(
+        "../_shared/ai/context/framework-context-builder.ts"
+      );
+      const fw = buildFrameworkContext({
+        course: courseRow as Record<string, unknown> | null,
+        institutionSettings: settingsRow as Record<string, unknown> | null,
+      });
+      if (fw) context.framework = fw;
+    } catch {
+      // Framework enrichment is best-effort — never block an agent run.
+    }
+  }
   const started = Date.now();
   const inputHash = await hashEvidence({ message, page: context.page });
   const { error: runInsertError } = await admin.from("agent_runs").insert({

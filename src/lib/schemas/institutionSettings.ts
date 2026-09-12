@@ -77,14 +77,11 @@ export const institutionSettingsSchema = z.object({
     developing: z.number().min(0).max(100),
   }),
   success_threshold: z.number().min(0).max(100),
-  accreditation_body: z.enum([
-    "HEC",
-    "QQA",
-    "ABET",
-    "NCAAA",
-    "AACSB",
-    "Generic",
-  ]),
+  // v8.1: DB CHECK dropped — free text. The UI offers a curated dropdown but the
+  // schema must not reject values the DB already holds (IB, BSO, CIS, QNSA, …).
+  accreditation_body: z.string().min(1, "Accreditation body is required"),
+  // v8.1: authoritative multi-accreditor list (free text, frame-independent).
+  accreditation_bodies: z.array(z.string().min(1)),
   grade_scales: gradeScalesPartitionSchema,
   streak_sabbatical_enabled: z.boolean(),
   league_thresholds: leagueThresholdsSchema.optional(),

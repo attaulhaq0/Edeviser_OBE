@@ -35,6 +35,12 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
 
+// 8.9 remediation: intervention proposal creation hook mock
+const mockCreateProposal = vi.fn();
+vi.mock("@/hooks/useCreateInterventionProposal", () => ({
+  useCreateInterventionProposal: () => mockCreateProposal(),
+}));
+
 // ---------------------------------------------------------------------------
 // Mocks (must precede the component import)
 // ---------------------------------------------------------------------------
@@ -110,6 +116,13 @@ describe("DecisionIntelligenceSection (task 8.9 UI)", () => {
       isPending: false,
       isError: false,
       data: null,
+    });
+    mockCreateProposal.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
     });
     await i18n.changeLanguage("en");
   });

@@ -29,6 +29,7 @@ import { getAttainmentColor } from "@/lib/attainmentClassifier";
 import { buildInterventionDraftPlan } from "@/lib/problemCaseActions";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 import { useProblemCaseExplanation } from "@/ai/hooks/useProblemCaseExplanation";
+import { useCreateInterventionProposal } from "@/hooks/useCreateInterventionProposal";
 
 // The five canonical problem classes from the classification engine. Unknown
 // causes (future engine versions) fall back to the raw string.
@@ -80,6 +81,11 @@ function ProblemCaseCard({
   // only sends identifiers. Gated by the platform AI feature flag.
   const aiEnabled = isAiSurfaceEnabled();
   const explanation = useProblemCaseExplanation();
+  // 8.9 remediation: submit draft as agent_action_proposal for coordinator approval
+  const createProposal = useCreateInterventionProposal();
+  const studentIds = (problemCase.struggling_students ?? []).map((s) => s.student_id);
+  const canSubmit = studentIds.length > 0 && !createProposal.isPending;
+  const hasSubmitted = createProposal.isSuccess;
 
   return (
     <div className="rounded-lg border border-slate-200 p-4">
@@ -246,6 +252,40 @@ function ProblemCaseCard({
               <p className="text-xs text-slate-400">
                 {t("unitClose.draft.approvalRequired")}
               </p>
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs"
+                  disabled={!canSubmit || hasSubmitted}
+                  onClick={() =>
+                    createProposal.mutate({
+                      courseId,
+                      cloId: problemCase.clo_id,
+                      studentIds,
+                      interventionType: problemCase.dominant_cause,
+                      plan: [
+                        `CLO: ${problemCase.clo_title}`,
+                        `Course Avg: ${Math.round(problemCase.course_avg)}%`,
+                        `Owner: ${draft.recommended_owner}`,
+                        `Actions: ${draft.action_keys.join(", ")}`,
+                      ].join(" | "),
+                      recommendedOwner: draft.recommended_owner,
+                    })
+                  }
+                >
+                  {createProposal.isPending
+                    ? t("unitClose.draft.submitting") ?? "Submitting..."
+                    : hasSubmitted
+                    ? t("unitClose.draft.submitted") ?? "Submitted for Approval"
+                    : t("unitClose.draft.submit") ?? "Submit for Approval"}
+                </Button>
+                {createProposal.isError && (
+                  <p className="text-xs text-red-600">
+                    {createProposal.error?.message ?? t("unitClose.draft.submitError")}
+                  </p>
+                )}
+              </div>
               {aiEnabled && (
                 <div className="rounded-lg border border-slate-200 p-3">
                   <Button

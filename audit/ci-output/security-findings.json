@@ -1,0 +1,37 @@
+{
+  "stage": "security",
+  "generatedAt": "2026-09-11T02:28:19.558Z",
+  "requirementIds": [
+    "13.1",
+    "13.2",
+    "13.3",
+    "13.4",
+    "13.5"
+  ],
+  "findings": [
+    {
+      "severity": "Blocker",
+      "requirementId": "13.2",
+      "message": "Client code references VITE_ env var \"VITE_APP_VERSION\" which is not in the allowlist. Add it to audit/baselines/vite-env.allowlist.json deliberately, or remove the reference.",
+      "location": {
+        "file": "src/lib/analyticsConsent.ts",
+        "line": 81
+      },
+      "detail": {
+        "viteVarName": "VITE_APP_VERSION"
+      }
+    },
+    {
+      "severity": "Blocker",
+      "requirementId": "13.2",
+      "message": "Client code references VITE_ env var \"VITE_COMMIT_REF\" which is not in the allowlist. Add it to audit/baselines/vite-env.allowlist.json deliberately, or remove the reference.",
+      "location": {
+        "file": "src/lib/analyticsConsent.ts",
+        "line": 82
+      },
+      "detail": {
+        "viteVarName": "VITE_COMMIT_REF"
+      }
+    }
+  ]
+}
