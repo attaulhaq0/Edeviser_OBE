@@ -26,3 +26,16 @@
 - No service-role keys in browser
 - Migration changes via MCP only
 - Types regenerated from live schema
+## AGENTIC ARCHITECTURE
+
+Edeviser currently uses:
+
+**SINGLE ORCHESTRATOR + SPECIALIST INTELLIGENCE + SHARED TOOLS + CANONICAL CONTEXT + HUMAN APPROVAL**
+
+- One primary orchestrator (`agent-orchestrator` Edge Function) routes requests to specialist intelligence protocols
+- 10 specialists (tutor, mastery, habit, risk, intervention, teacher, parent, coordinator, admin, evaluator) are protocol/prompt variants, not independent autonomous agents
+- 21 read tools (deterministic, role-gated) + 10 write tools (ALL require human approval)
+- Shared tool registry — no specialist-specific shadow tools
+- Canonical AgentExecutionContext shared by all specialists
+- Future multi-agent architecture is ROADMAP ONLY — requires demonstrated need + ADR + cost analysis
+- No agent-to-agent messaging, independent agent memory, or autonomous writes without architecture review
