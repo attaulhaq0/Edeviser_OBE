@@ -1098,7 +1098,7 @@ serve(async (req) => {
       admin,
       conversationId,
       context.runId,
-      result.content
+      result.response
     );
     await touchConversation(admin, conversationId);
     return json(200, {
