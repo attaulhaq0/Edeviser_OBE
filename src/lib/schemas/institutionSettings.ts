@@ -79,9 +79,9 @@ export const institutionSettingsSchema = z.object({
   success_threshold: z.number().min(0).max(100),
   // v8.1: DB CHECK dropped — free text. The UI offers a curated dropdown but the
   // schema must not reject values the DB already holds (IB, BSO, CIS, QNSA, …).
-  accreditation_body: z.string().min(1, "Accreditation body is required"),
+  accreditation_body: z.string().refine((s) => s.trim().length > 0, "Accreditation body is required"),
   // v8.1: authoritative multi-accreditor list (free text, frame-independent).
-  accreditation_bodies: z.array(z.string().min(1)),
+  accreditation_bodies: z.array(z.string().refine((s) => s.trim().length > 0, "Accreditation body cannot be empty")),
   grade_scales: gradeScalesPartitionSchema,
   streak_sabbatical_enabled: z.boolean(),
   league_thresholds: leagueThresholdsSchema.optional(),

@@ -58,10 +58,25 @@ export const detectBehavioralPattern = (
   const delayHabits = recentHabits.filter(
     (h) => h.habitType.includes("submission") || h.habitType.includes("delay")
   );
+
+  // Sort snapshots chronologically by observedAt; compare only
+  // same-outcome snapshots to detect genuine declining attainment.
+  const sortedAttainment = [...recentAttainment].sort(
+    (a, b) =>
+      new Date(a.observedAt).getTime() - new Date(b.observedAt).getTime()
+  );
   const decliningAttainment =
-    recentAttainment.length >= 2 &&
-    recentAttainment[0]!.percent >
-      recentAttainment[recentAttainment.length - 1]!.percent;
+    sortedAttainment.length >= 2 &&
+    sortedAttainment.some((earlier, i) => {
+      for (let j = i + 1; j < sortedAttainment.length; j++) {
+        if (
+          sortedAttainment[j]!.outcomeId === earlier.outcomeId &&
+          earlier.percent > sortedAttainment[j]!.percent
+        )
+          return true;
+      }
+      return false;
+    });
 
   const delayRatio = delayHabits.length / recentHabits.length;
   const hasSubmissionPattern =

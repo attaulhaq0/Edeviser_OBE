@@ -32,6 +32,7 @@ import { Shimmer } from "@/design-system";
 import { AdminCardHeader } from "@/design-system";
 import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from "react-i18next";
 import {
   Loader2,
@@ -298,14 +299,11 @@ const InstitutionSettings = () => {
           <PCard className="overflow-hidden p-0">
             <AdminCardHeader
               icon={Shield}
-              title="Accreditation Bodies (Multi)"
+              title={t("settings.accreditationBodies")}
             />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
-                Select all accreditation bodies your institution holds. Schools
-                often hold multiple (e.g., QNSA + BSO + IB). The primary body
-                above is used for default templates; this list drives
-                multi-framework evidence packs and reporting.
+                {t("settings.accreditationBodiesDesc")}
               </p>
               <FormField
                 control={form.control}
@@ -324,40 +322,15 @@ const InstitutionSettings = () => {
                                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                             }`}
                           >
-                            <input
-                              type="checkbox"
-                              className="sr-only"
+                            <Checkbox
                               checked={checked}
-                              onChange={() => {
+                              onCheckedChange={() => {
                                 const next = checked
                                   ? field.value.filter((v) => v !== body.value)
                                   : [...field.value, body.value];
                                 field.onChange(next);
                               }}
                             />
-                            <div
-                              className={`flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                checked
-                                  ? "border-blue-500 bg-blue-500"
-                                  : "border-slate-300"
-                              }`}
-                            >
-                              {checked && (
-                                <svg
-                                  className="w-3 h-3 text-white"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth={3}
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              )}
-                            </div>
                             <span className="truncate">{body.label}</span>
                           </label>
                         );
@@ -365,10 +338,10 @@ const InstitutionSettings = () => {
                     </div>
                     <FormDescription>
                       {field.value.length === 0
-                        ? "No additional accreditation bodies selected."
-                        : `${field.value.length} accreditation bod${
-                            field.value.length === 1 ? "y" : "ies"
-                          } selected.`}
+                        ? t("settings.noAccreditationBodies")
+                        : t("settings.accreditationBodiesCount", {
+                            count: field.value.length,
+                          })}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

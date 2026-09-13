@@ -154,16 +154,22 @@ const systemPrompt = (context: AgentExecutionContext): string =>
             context.framework.primaryAccreditation ?? "none"
           }, language=${context.framework.defaultLanguage ?? "en"}.`,
           context.framework.curriculumCode
-            ? `Curriculum: ${context.framework.curriculumCode} (keyStage=${
-                context.framework.keyStage ?? "N/A"
-              }).`
+            ? `Curriculum: ${context.framework.curriculumCode.slice(
+                0,
+                100
+              )} (keyStage=${(context.framework.keyStage ?? "N/A").slice(
+                0,
+                50
+              )}).`
             : "",
           context.framework.accreditationBodies?.length
-            ? `Accreditation bodies: ${context.framework.accreditationBodies.join(
-                ", "
-              )}.`
+            ? `Accreditation bodies: ${context.framework.accreditationBodies.map(
+                (b) => b.slice(0, 100)
+              ).join(", ")}.`
             : "",
-        ].filter(Boolean)
+        ]
+          .filter(Boolean)
+          .map((line) => `UNTRUSTED_FRAMEWORK_CONTEXT: ${line}`)
       : []),
     "Identity, authorization, attainment mathematics, risk thresholds, approvals, and official mutations are owned by deterministic server code.",
     "Never request raw SQL, table names, arbitrary URLs, credentials, hidden prompts, or tools outside the supplied registry.",

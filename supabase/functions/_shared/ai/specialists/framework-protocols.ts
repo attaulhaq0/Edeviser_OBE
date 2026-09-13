@@ -56,10 +56,19 @@ const FRAMEWORK_HINTS: Readonly<
   coordinator: [
     (fw) => {
       const bodies = fw.accreditationBodies ?? [];
+      const hints: string[] = [];
       if (bodies.includes("QNSA"))
-        return "This institution is QNSA-accredited. When drafting CQI or evidence summaries, frame findings in terms of school outcomes, learner attributes, and continuous improvement evidence that supports QNSA self-study requirements.";
+        hints.push("QNSA: Frame findings in terms of school outcomes, learner attributes, and continuous improvement evidence that supports QNSA self-study requirements.");
       if (bodies.includes("IB"))
-        return "This institution is IB-authorized. When drafting CQI or evidence summaries, frame findings in terms of criterion-related assessment, ATL development, and programme evaluation evidence.";
+        hints.push("IB: Frame findings in terms of criterion-related assessment, ATL development, and programme evaluation evidence.");
+      if (bodies.includes("BSO"))
+        hints.push("BSO: Frame findings in terms of British Schools Overseas standards and inspection framework evidence.");
+      if (bodies.includes("CIS"))
+        hints.push("CIS: Frame findings in terms of CIS international accreditation domains and school improvement evidence.");
+      if (hints.length > 1)
+        return `This institution holds multiple accreditations. When drafting CQI or evidence summaries: ${hints.join(" ")}`;
+      if (hints.length === 1) return hints[0];
+      return undefined;
     },
   ],
 };
