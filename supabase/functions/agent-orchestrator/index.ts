@@ -151,7 +151,7 @@ async function ensureConversation(
 
   if (error || !created) {
     throw new Error(
-      `Conversation persistence failed: ${error?.message ?? "unknown"}`
+      `Conversation persistence failed: ${(error as Record<string,unknown>)?.message ?? "unknown" ?? "unknown"}`
     );
   }
   return (created as Record<string, unknown>).id as string;
@@ -175,7 +175,7 @@ async function persistUserMessage(
     citations: "[]" as unknown as Record<string, unknown>,
   });
   if (error) {
-    throw new Error(`User message persistence failed: ${error.message}`);
+    throw new Error(`User message persistence failed: ${(error as Record<string,unknown>)?.message ?? "unknown"}`);
   }
 }
 
@@ -198,7 +198,7 @@ async function persistAssistantMessage(
     citations: "[]" as unknown as Record<string, unknown>,
   });
   if (error) {
-    throw new Error(`Assistant message persistence failed: ${error.message}`);
+    throw new Error(`Assistant message persistence failed: ${(error as Record<string,unknown>)?.message ?? "unknown"}`);
   }
 }
 
