@@ -1,0 +1,24 @@
+# Gitleaks configuration for Edeviser
+# Supabase anon/publishable keys are PUBLIC by design — allowlisted
+[allowlist]
+  description = "Supabase publishable keys (public by design)"
+
+  [[allowlist.rules]]
+    id = "generic-api-key"
+    description = "Supabase anon key in test scripts — public, not secret"
+
+  [[allowlist.rules]]
+    id = "jwt"
+    description = "Supabase publishable JWT tokens in test fixtures — public"
+
+  [[allowlist.paths]]
+    description = "Test scripts use env vars; historical commits contain publishable keys"
+    paths = [
+      "scripts/live-cert-test.mjs",
+      "scripts/comprehensive-live-cert.mjs",
+      "scripts/inst-cert.mjs",
+      "scripts/browser-certification.mjs",
+      "certification/**",
+      "tests/e2e/_fixtures/**",
+      "test-results/**",
+    ]

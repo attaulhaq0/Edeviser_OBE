@@ -1,8 +1,12 @@
 // Live QA script: authenticate as demo teacher, call orchestrator, verify persistence
-const SUPABASE_URL = "https://cdlgtbvxlxjpcddjazzx.supabase.co";
-const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGd0YnZ4bHhqcGNkZGphenp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDIyMzAsImV4cCI6MjA4NzMxODIzMH0.WfTfhQssG748CNHlRCeBpPgs9defpgL-2WKEBIdht1s";
-
-const PASSWORD = "CertTest2026!";
+// Uses env vars for secrets — never hardcode credentials
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://cdlgtbvxlxjpcddjazzx.supabase.co";
+const ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
+const PASSWORD = process.env.CERT_DEMO_PASSWORD || "";
+if (!ANON_KEY || !PASSWORD) {
+  console.error("Set SUPABASE_ANON_KEY and CERT_DEMO_PASSWORD env vars");
+  process.exit(1);
+}
 const NONCE = `CERT_LIVE_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 
 async function main() {

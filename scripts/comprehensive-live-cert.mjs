@@ -1,7 +1,8 @@
 // Comprehensive Live Certification — API-level end-to-end
-const SUPABASE_URL = "https://cdlgtbvxlxjpcddjazzx.supabase.co";
-const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGd0YnZ4bHhqcGNkZGphenp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NDIyMzAsImV4cCI6MjA4NzMxODIzMH0.WfTfhQssG748CNHlRCeBpPgs9defpgL-2WKEBIdht1s";
-const PW = "cuevo1234";
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://cdlgtbvxlxjpcddjazzx.supabase.co";
+const ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
+const PW = process.env.CERT_DEMO_PASSWORD || "";
+if (!ANON_KEY || !PW) { console.error("Set SUPABASE_ANON_KEY and CERT_DEMO_PASSWORD"); process.exit(1); }
 const RUN = `COMP_CERT_${Date.now()}`;
 const R = [];
 
