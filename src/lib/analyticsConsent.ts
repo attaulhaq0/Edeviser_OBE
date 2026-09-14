@@ -159,3 +159,31 @@ export const captureAnalyticsEvent = (
 
   posthog.capture(event, { ...properties, environment: resolveEnvironment() });
 };
+
+// ─── AI Observability (PostHog LLM Analytics) ───────────────────────
+// Tracks every LLM generation for cost/latency/quality monitoring.
+// Uses PostHog's built-in $ai_generation event for automatic cost tracking.
+export const captureAIGeneration = (params: {
+  provider: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  latencyMs: number;
+  specialist?: string;
+  institutionId?: string;
+}): void => {
+  if (!hasAnalyticsConsent()) return;
+  initAnalyticsIfConsented();
+  if (!analyticsInitialized) return;
+
+  posthog.capture("$ai_generation", {
+    $ai_provider: params.provider,
+    $ai_model: params.model,
+    $ai_input_tokens: params.inputTokens,
+    $ai_output_tokens: params.outputTokens,
+    $ai_latency: params.latencyMs / 1000, // seconds
+    specialist: params.specialist,
+    institution_id: params.institutionId,
+    environment: resolveEnvironment(),
+  });
+};
