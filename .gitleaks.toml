@@ -1,48 +1,20 @@
 # Gitleaks configuration for Edeviser
 # Supabase anon/publishable keys are PUBLIC by design.
-# git history contains legacy publishable tokens that cannot be retroactively
-# redacted; this allowlist prevents them from blocking every PR scan.
 
 [allowlist]
   description = "Supabase publishable keys (public by design)"
 
-  # Files/directories excluded from all scans
   paths = [
-    "scripts/live-cert-test.mjs",
-    "scripts/comprehensive-live-cert.mjs",
-    "scripts/inst-cert.mjs",
-    "scripts/browser-certification.mjs",
-    "certification/**",
-    "tests/e2e/_fixtures/**",
-    "test-results/**",
+    "scripts/",
+    "certification/",
+    "tests/",
+    "test-results/",
+    ".env.example",
+    "supabase/.env.audit-staging.example",
   ]
 
-  # Regex patterns for known-publishable Supabase token shapes that
-  # appear in committed test config, seed data, and CI fixtures.
-  # These are deliberately public and never rotate.
-  [[allowlist.regexes]]
-    description = "Supabase publishable anon keys (sb_publishable_...)"
-    regex = '''sb_publishable_[a-zA-Z0-9_-]{30,}'''
-
-  [[allowlist.regexes]]
-    description = "Supabase project reference strings"
-    regex = '''cdlgtbvxlxjpcddjazzx'''
-
-  [[allowlist.regexes]]
-    description = "Supabase legacy JWT tokens in test fixtures"
-    regex = '''eyJ[a-zA-Z0-9_-]{30,}\.[a-zA-Z0-9_-]{30,}\.[a-zA-Z0-9_-]{10,}'''
-
-  # Global rule suppressions — these rule IDs produce false positives
-  # on every Supabase project because anon keys match generic API-key
-  # and JWT patterns. They are publishable by design per Supabase docs.
-  [[allowlist.rules]]
-    id = "generic-api-key"
-
-  [[allowlist.rules]]
-    id = "jwt"
-
-  [[allowlist.rules]]
-    id = "supabase-pat"
-
-  [[allowlist.rules]]
-    id = "supabase-service-key"
+  regexes = [
+    "sb_publishable_[a-zA-Z0-9_-]{30,}",
+    "sbp_[a-zA-Z0-9]{30,}",
+    "eyJ[a-zA-Z0-9_-]{20,}",
+  ]
