@@ -386,6 +386,7 @@ jobs:
               '[.[] | select(.git_branch == $branch and ((.pr_number // "") | tostring) == $pr and .project_ref != null) | {project_ref, status}][0] // {}' \
               <<< "$branches")
             preview_ref=$(jq -r '.project_ref // empty' <<< "$preview")
+            preview_ref="${preview_ref//[$'\t\r\n ']/}"
             preview_status=$(jq -r '.status // empty' <<< "$preview")
             if [[ -n "$preview_ref" && "$preview_status" == "FUNCTIONS_DEPLOYED" ]]; then
               echo "Supabase Preview deployment is complete"
