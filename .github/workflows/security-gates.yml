@@ -45,7 +45,7 @@ jobs:
         run: |
           gitleaks detect \
             --source . \
-            --config-path .gitleaks.toml \
+            --config .gitleaks.toml \
             --log-opts="--no-merges origin/main..HEAD" \
             --verbose
 
