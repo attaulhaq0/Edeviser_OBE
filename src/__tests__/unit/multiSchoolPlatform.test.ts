@@ -173,12 +173,12 @@ describe("Deployment Repeatability", () => {
 });
 
 describe("Framework Pack Governance", () => {
-  it("4 curriculum packs and 3 accreditation packs registered", () => {
+  it("4 curriculum packs and 4 accreditation packs registered", () => {
     expect(CURRICULUM_REGISTRY.size).toBe(4);
-    expect(ACCREDITATION_REGISTRY.size).toBe(3);
+    expect(ACCREDITATION_REGISTRY.size).toBe(4);
     for (const code of ["MOEHE", "IB_MYP", "IGCSE", "GENERIC"])
       expect(CURRICULUM_REGISTRY.has(code)).toBe(true);
-    for (const code of ["QNSA", "IB", "BSO"])
+    for (const code of ["QNSA", "IB", "BSO", "CIS"])
       expect(ACCREDITATION_REGISTRY.has(code)).toBe(true);
   });
 

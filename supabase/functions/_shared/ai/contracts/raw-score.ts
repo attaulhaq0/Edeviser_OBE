@@ -91,19 +91,72 @@ export type RawScore =
   | BandGradeRawScore
   | ComponentRawScore;
 
-/** Discriminated union guard: returns true for valid raw score shapes. */
+/** Discriminated union guard: returns true for valid raw score shapes.
+ *  Rejects NaN, non-finite, and out-of-range values to prevent normalizers
+ *  from producing NaN or percentages above 100. */
 export const isValidRawScore = (value: unknown): value is RawScore => {
   if (!value || typeof value !== "object") return false;
   const m = (value as Record<string, unknown>).model;
   switch (m) {
-    case "percent":
-      return typeof (value as PercentRawScore).percentage === "number";
-    case "criterion":
-      return Array.isArray((value as CriterionRawScore).criteria);
-    case "band_grade":
-      return Array.isArray((value as BandGradeRawScore).objectives);
-    case "component":
-      return Array.isArray((value as ComponentRawScore).components);
+    case "percent": {
+      const p = (value as PercentRawScore).percentage;
+      return typeof p === "number" && Number.isFinite(p) && p >= 0 && p <= 100;
+    }
+    case "criterion": {
+      const criteria = (value as CriterionRawScore).criteria;
+      if (!Array.isArray(criteria) || criteria.length === 0) return false;
+      const t = (value as CriterionRawScore).totalRaw;
+      const tm = (value as CriterionRawScore).totalMax;
+      if (typeof t !== "number" || !Number.isFinite(t) || t < 0) return false;
+      if (typeof tm !== "number" || !Number.isFinite(tm) || tm <= 0)
+        return false;
+      return criteria.every(
+        (c) =>
+          typeof c.criterion === "string" &&
+          typeof c.level === "number" &&
+          Number.isFinite(c.level) &&
+          c.level >= 0 &&
+          typeof c.maxLevel === "number" &&
+          Number.isFinite(c.maxLevel) &&
+          c.maxLevel > 0 &&
+          c.level <= c.maxLevel
+      );
+    }
+    case "band_grade": {
+      const objectives = (value as BandGradeRawScore).objectives;
+      if (!Array.isArray(objectives) || objectives.length === 0) return false;
+      return objectives.every(
+        (o) =>
+          typeof o.objective === "string" &&
+          typeof o.marks === "number" &&
+          Number.isFinite(o.marks) &&
+          o.marks >= 0 &&
+          typeof o.maxMarks === "number" &&
+          Number.isFinite(o.maxMarks) &&
+          o.maxMarks > 0 &&
+          o.marks <= o.maxMarks &&
+          typeof o.weight === "number" &&
+          Number.isFinite(o.weight) &&
+          o.weight >= 0 &&
+          o.weight <= 1
+      );
+    }
+    case "component": {
+      const components = (value as ComponentRawScore).components;
+      if (!Array.isArray(components) || components.length === 0) return false;
+      return components.every(
+        (c) =>
+          typeof c.componentId === "string" &&
+          typeof c.score === "number" &&
+          Number.isFinite(c.score) &&
+          c.score >= 0 &&
+          c.score <= 100 &&
+          typeof c.weight === "number" &&
+          Number.isFinite(c.weight) &&
+          c.weight >= 0 &&
+          c.weight <= 1
+      );
+    }
     default:
       return false;
   }

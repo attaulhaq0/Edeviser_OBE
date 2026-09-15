@@ -111,11 +111,56 @@ export const BSO_ACCREDITATION: AccreditationProfile = {
   ],
 };
 
+export const CIS_ACCREDITATION: AccreditationProfile = {
+  id: "accred-cis",
+  code: "CIS",
+  name: "Council of International Schools Accreditation",
+  jurisdiction: "international",
+  schoolLevel: "k12",
+  evidenceRequirements: [
+    {
+      id: "cis-standards",
+      indicator: "CIS core standards evidence",
+      evidenceTypes: ["attainment", "learner_dimension", "cqi"],
+      acceptableSources: [
+        "outcome_attainment",
+        "evidence",
+        "cqi_action_plans",
+        "learner_signals",
+      ],
+    },
+    {
+      id: "cis-wellbeing",
+      indicator: "Student well-being and safeguarding evidence",
+      evidenceTypes: ["learner_dimension", "habit"],
+      acceptableSources: [
+        "learner_signals",
+        "habit_tracking",
+        "intervention_measurements",
+      ],
+    },
+  ],
+  reportingPolicies: [
+    {
+      reportType: "self_study",
+      sections: [
+        "attainment",
+        "wellbeing",
+        "governance",
+        "improvement_evidence",
+      ],
+      requiredEvidenceTypes: ["attainment", "learner_dimension", "cqi"],
+      language: "en",
+    },
+  ],
+};
+
 export const ACCREDITATION_REGISTRY: ReadonlyMap<string, AccreditationProfile> =
   new Map([
     ["QNSA", QNSA_ACCREDITATION],
     ["IB", IB_ACCREDITATION],
     ["BSO", BSO_ACCREDITATION],
+    ["CIS", CIS_ACCREDITATION],
   ]);
 
 export const getAccreditation = (
