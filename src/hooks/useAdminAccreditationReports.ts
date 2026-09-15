@@ -4,8 +4,9 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import type { AccreditationBody } from "@/types/app";
 
-export type ReportTemplate = "ABET" | "HEC" | "Generic";
+export type ReportTemplate = AccreditationBody;
 export type JobStatus = "queued" | "processing" | "completed" | "failed";
 
 export interface ProgramOption {

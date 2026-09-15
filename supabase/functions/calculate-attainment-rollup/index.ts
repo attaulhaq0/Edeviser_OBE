@@ -41,10 +41,14 @@ type AttainmentLevel = "Excellent" | "Satisfactory" | "Developing" | "Not_Yet";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function classifyAttainment(percent: number): AttainmentLevel {
-  if (percent >= 85) return "Excellent";
-  if (percent >= 70) return "Satisfactory";
-  if (percent >= 50) return "Developing";
+function classifyAttainment(
+  percent: number,
+  thresholds?: { excellent: number; satisfactory: number; developing: number }
+): AttainmentLevel {
+  const t = thresholds ?? { excellent: 85, satisfactory: 70, developing: 50 };
+  if (percent >= t.excellent) return "Excellent";
+  if (percent >= t.satisfactory) return "Satisfactory";
+  if (percent >= t.developing) return "Developing";
   return "Not_Yet";
 }
 

@@ -10,6 +10,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -123,9 +126,11 @@ import CoordinatorDashboard from "@/pages/coordinator/CoordinatorDashboard";
 
 const renderDash = () =>
   render(
-    <MemoryRouter>
-      <CoordinatorDashboard />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <CoordinatorDashboard />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 
 describe("CoordinatorDashboard (prototype rebuild)", () => {

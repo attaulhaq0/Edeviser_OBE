@@ -1,5 +1,15 @@
 {
-  "phantom": [],
+  "phantom": [
+    {
+      "file": "src/pages/NotFoundPage.tsx",
+      "reasons": [
+        "no-backend-connectivity"
+      ],
+      "hookImports": [],
+      "hasSupabase": false,
+      "hasDataHooks": false
+    }
+  ],
   "todoFlagged": [],
   "mockFlagged": [],
   "formFlagged": [],

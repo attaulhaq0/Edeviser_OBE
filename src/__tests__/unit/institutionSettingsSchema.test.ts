@@ -56,6 +56,7 @@ describe("institutionSettingsSchema", () => {
     attainment_thresholds: { excellent: 85, satisfactory: 70, developing: 50 },
     success_threshold: 70,
     accreditation_body: "HEC" as const,
+    accreditation_bodies: [] as string[],
     grade_scales: [
       { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
       { letter: "B", min_percent: 70, max_percent: 85, gpa_points: 3.0 },
@@ -152,7 +153,18 @@ describe("institutionSettingsSchema", () => {
   });
 
   it("accepts all valid accreditation bodies", () => {
-    const bodies = ["HEC", "QQA", "ABET", "NCAAA", "AACSB", "Generic"] as const;
+    const bodies = [
+      "ABET",
+      "AACSB",
+      "BSO",
+      "CIS",
+      "Generic",
+      "HEC",
+      "IB",
+      "NCAAA",
+      "QQA",
+      "QNSA",
+    ] as const;
     for (const body of bodies) {
       const result = institutionSettingsSchema.safeParse({
         ...validSettings,
@@ -162,12 +174,51 @@ describe("institutionSettingsSchema", () => {
     }
   });
 
-  it("rejects invalid accreditation body", () => {
+  it("rejects empty accreditation body", () => {
     const result = institutionSettingsSchema.safeParse({
       ...validSettings,
-      accreditation_body: "INVALID",
+      accreditation_body: "",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts custom accreditation body (free text per v8.1)", () => {
+    const result = institutionSettingsSchema.safeParse({
+      ...validSettings,
+      accreditation_body: "NEASC",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing accreditation_bodies", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { accreditation_bodies, ...rest } = validSettings;
+    const result = institutionSettingsSchema.safeParse({
+      ...rest,
+      accreditation_body: "IB",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts empty accreditation_bodies array", () => {
+    const result = institutionSettingsSchema.safeParse({
+      ...validSettings,
+      accreditation_body: "IB",
+      accreditation_bodies: [],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts multiple accreditation bodies", () => {
+    const result = institutionSettingsSchema.safeParse({
+      ...validSettings,
+      accreditation_body: "BSO",
+      accreditation_bodies: ["BSO", "IB", "QNSA"],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.accreditation_bodies).toEqual(["BSO", "IB", "QNSA"]);
+    }
   });
 
   it("rejects thresholds above 100", () => {

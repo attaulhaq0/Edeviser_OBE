@@ -97,6 +97,18 @@ files and the local branch are NOT proof of live state — the local checkout ca
 main and the live database (migrations applied via MCP). Record the verification surface
 (live query / deployed source) alongside the finding.
 
+## Agentic Architecture Governance
+
+- **Single Orchestrator + Specialist Intelligence** is the canonical architecture (ADR-0001)
+- Specialists are protocol/prompt variants, NOT independent autonomous agents
+- Do NOT introduce an independent autonomous agent architecture without an ADR approving the change
+- Do NOT create specialist-specific shadow tools without architectural justification
+- Agentic intelligence provides interpretation, synthesis, recommendation, explanation, drafting
+- The deterministic platform (grades, attainment, authorization, evidence) remains authoritative
+- All protected writes require human approval — no specialist may bypass this
+- Architecture fitness rules: new orchestrator, independent execution loop, specialist-specific memory, agent-to-agent messaging, or autonomous writes trigger review
+- Future multi-agent architecture is ROADMAP ONLY — requires demonstrated need + ADR + cost analysis
+
 ## Do Not Modify
 
 - `supabase/migrations/` — managed via Supabase MCP, not manually

@@ -24,7 +24,7 @@ const ParentTwinSummary = ({ className }: ParentTwinSummaryProps) => {
   const { data, isLoading, isError } = useParentChildrenLearningStates();
 
   return (
-    <Card className={cn("border-slate-200/60 bg-white/80", className)}>
+    <Card className={cn("border-slate-200/60 bg-white", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold text-slate-900">
           {t("parentTwin.title")}
