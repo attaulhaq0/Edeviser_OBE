@@ -4,7 +4,7 @@
  * Tests the complete assessment-to-measurement chain through the browser.
  */
 import { test, expect } from "@playwright/test";
-import { loadStorageState } from "../_helpers/storage-state";
+import { loadStorageState } from "../_helpers/auth.ts";
 import { criticalRoutes } from "@/lib/criticalRoutes";
 
 test.describe("Phase 12 — Closed Loop (cross-role)", () => {

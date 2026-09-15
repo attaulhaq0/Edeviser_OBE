@@ -400,14 +400,14 @@ jobs:
             sleep 10
           done
 
-          if [[ -n \"$preview_ref\" ]]; then
+          if [[ -n "$preview_ref" ]]; then
             npx supabase functions deploy \
               agent-worker compute-at-risk-signals exam-period-notify \
               leaderboard-refresh notification-digest perfect-day-prompt \
               process-streak streak-risk-cron health weekly-summary-cron \
-              --project-ref \"$preview_ref\" --use-api --yes
+              --project-ref "$preview_ref" --use-api --yes
           else
-            echo \"::notice::Skipping cron function deploy — no Preview branch resolved\"
+            echo "::notice::Skipping cron function deploy — no Preview branch resolved"
           fi
       - name: Resolve current Vercel Preview for pull request
         if: github.event_name == 'pull_request'
