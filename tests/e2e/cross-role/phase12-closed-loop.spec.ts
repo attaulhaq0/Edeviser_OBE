@@ -5,6 +5,7 @@
  */
 import { test, expect } from "@playwright/test";
 import { loadStorageState } from "../_helpers/storage-state";
+import { criticalRoutes } from "@/lib/criticalRoutes";
 
 test.describe("Phase 12 — Closed Loop (cross-role)", () => {
   test("MASTER JOURNEY: Teacher assessment → evidence → intervention → measurement", async ({
@@ -21,7 +22,7 @@ test.describe("Phase 12 — Closed Loop (cross-role)", () => {
     await teacherPage.locator("text=Mathematics 6").click();
 
     // Navigate to grading interface
-    await teacherPage.goto("/teacher/grading");
+    await teacherPage.goto(criticalRoutes.teacher.gradingQueue);
     await expect(teacherPage).toHaveURL(/\/teacher\/grading/);
 
     // ── COORDINATOR: View problem cases, submit proposal ──────────────────────
@@ -46,7 +47,7 @@ test.describe("Phase 12 — Closed Loop (cross-role)", () => {
     });
     const studentPage = await studentCtx.newPage();
 
-    await studentPage.goto("/student/dashboard");
+    await studentPage.goto(criticalRoutes.student.dashboard);
     await expect(studentPage).toHaveURL(/\/student/);
 
     // Cleanup
@@ -125,7 +126,7 @@ test.describe("Phase 12 — Closed Loop (cross-role)", () => {
     });
     const page = await studentCtx.newPage();
 
-    await page.goto("/student/dashboard");
+    await page.goto(criticalRoutes.student.dashboard);
     // Should not show error state
     await expect(page.locator("text=Error")).not.toBeVisible();
 
