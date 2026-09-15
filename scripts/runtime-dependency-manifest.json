@@ -23,6 +23,10 @@
           "verifyJwt": false
         },
         {
+          "slug": "ai-cost-track",
+          "verifyJwt": true
+        },
+        {
           "slug": "agent-orchestrator",
           "verifyJwt": true
         },
@@ -32,11 +36,19 @@
         },
         { "slug": "intervention-jobs", "verifyJwt": false },
         {
+          "slug": "compute-habit-signals",
+          "verifyJwt": true
+        },
+        {
           "slug": "generate-quiz-questions",
           "verifyJwt": true
         },
         {
           "slug": "curriculum-ingest",
+          "verifyJwt": true
+        },
+        {
+          "slug": "strategy-aware-evidence",
           "verifyJwt": true
         }
       ],
