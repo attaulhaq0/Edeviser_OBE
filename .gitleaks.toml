@@ -1,9 +1,6 @@
 # Gitleaks configuration for Edeviser
 # Supabase anon/publishable keys are PUBLIC by design.
-
 [allowlist]
-  description = "Supabase publishable keys (public by design)"
-
   paths = [
     "scripts/",
     "certification/",

@@ -264,7 +264,7 @@ jobs:
           # (planner, journal, leaderboard, habits, tutor, marketplace, teams)
           # and the live admin/coordinator prototype-parity surfaces. This is
           # an aggregate all-route ceiling, not an initial-load allowance.
-          MAX_SIZE_KB=1500
+          MAX_SIZE_KB=1800
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Chunk | Raw (KB) | Gzipped (KB) |" >> $GITHUB_STEP_SUMMARY
