@@ -27,16 +27,24 @@ concurrency:
 
 jobs:
   secrets:
-    name: Secrets scan (gitleaks, incl. git history)
+    name: Secrets scan (gitleaks, PR commits only)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install gitleaks
+        uses: gacts/install-gitleaks@v1
+
+      - name: Scan PR commits for secrets
+        run: |
+          gitleaks detect \
+            --source . \
+            --config-path .gitleaks.toml \
+            --log-opts="--no-merges origin/main..HEAD" \
+            --verbose
 
   sast:
     name: "SAST (semgrep: injection / XSS / SSRF / key leakage)"
@@ -123,7 +131,7 @@ jobs:
 
   gate:
     name: security-gate (required check)
-    needs: [sast, dependencies, invariants, supabase-posture]
+    needs: [secrets, sast, dependencies, invariants, supabase-posture]
     if: always()
     runs-on: ubuntu-latest
     steps:
