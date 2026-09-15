@@ -1,18 +1,21 @@
 {
-  "createdAt": "2026-05-08T06:49:57.766Z",
-  "lockedByCommit": "99a2344347d2683eb26eef93870adbf355d03622",
-  "description": "Baseline gzipped Vite bundle size. Frozen by Task 19.1 against commit 99a23443 on 2026-05-08. Enforced with a 110% ceiling per requirements.md §12.1. To update: rebuild fresh (`npm run build`), run `npm run audit -- --stage=perf`, verify the new measurement is intentional, and commit updated values in a deliberate PR.",
-  "totalGzippedBytes": 1216139,
-  "totalSizeBytes": 3759426,
-  "chunkCount": 382,
+  "createdAt": "2026-09-15T16:50:00.000Z",
+  "lockedByCommit": "4d050bfa94f021b5c1d2ce8977e3a979117800d1",
+  "description": "Baseline gzipped Vite bundle size. Updated for PR #339 accreditation expansion + AI intelligence modules. Frozen by Task 19.1. Enforced with a 110% ceiling per requirements.md §12.1. To update: rebuild fresh (`npm run build`), run `npm run audit -- --stage=perf`, verify the new measurement is intentional, and commit updated values in a deliberate PR.",
+  "totalGzippedBytes": 1629375,
+  "totalSizeBytes": 5034122,
+  "chunkCount": 530,
   "regressionCapRatio": 1.1,
   "largestChunks": [
-    { "file": "assets/index-B7gSFa-8.js", "gzippedBytes": 158502 },
-    { "file": "assets/index-BzoOvIxc.js", "gzippedBytes": 143162 },
-    { "file": "assets/vendor-charts-DadajynK.js", "gzippedBytes": 124448 },
-    { "file": "assets/vendor-react-DYokkyb8.js", "gzippedBytes": 59290 },
-    { "file": "assets/vendor-motion-BCJqvGRH.js", "gzippedBytes": 42171 },
-    { "file": "assets/vendor-query-xoYkF9vS.js", "gzippedBytes": 27462 },
-    { "file": "assets/index-C8tCzUEP.css", "gzippedBytes": 19552 }
+    { "file": "assets/index-B9qd_chv.js", "gzippedBytes": 445938 },
+    { "file": "assets/RechartsWrapper-BALtB2FP.js", "gzippedBytes": 77295 },
+    { "file": "assets/index-NZmu5XBC.css", "gzippedBytes": 33346 },
+    { "file": "assets/TourRunner-VC3jzAQL.js", "gzippedBytes": 32008 },
+    {
+      "file": "assets/browser-image-compression-BpFpJjRd.js",
+      "gzippedBytes": 21054
+    },
+    { "file": "assets/RoleAppShell-DHmdpoKW.js", "gzippedBytes": 20716 },
+    { "file": "assets/OnboardingWizard-DML1urWg.js", "gzippedBytes": 19040 }
   ]
 }
