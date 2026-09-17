@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { verifyCronSecret } from "../_utils/auth.js";
-import { getManagedServerKey } from "../_utils/serverSecret.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!verifyCronSecret(req, res)) return;
@@ -17,7 +16,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: "Missing SUPABASE_URL" });
     }
 
-    const serviceRoleKey = getManagedServerKey();
+    // This handler calls a DB RPC directly (no Edge Function wrapper).
+    // Preview deploys use the legacy service-role key which is the only
+    // credential that has RPC execute privileges on the Preview branch.
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+      return res
+        .status(500)
+        .json({ error: "Missing SUPABASE_SERVICE_ROLE_KEY" });
+    }
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { data, error } = await supabase.rpc(
