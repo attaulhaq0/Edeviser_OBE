@@ -104,7 +104,8 @@
         { "slug": "compute-at-risk-signals", "verifyJwt": false },
         { "slug": "generate-starter-week", "verifyJwt": false },
         { "slug": "generate-reflection-digest", "verifyJwt": true },
-        { "slug": "improvement-bonus-check", "verifyJwt": true }
+        { "slug": "improvement-bonus-check", "verifyJwt": true },
+        { "slug": "leaderboard-refresh", "verifyJwt": false }
       ],
       "runtimeDependencyPaths": [
         "supabase/functions/_shared/invitation.ts",
