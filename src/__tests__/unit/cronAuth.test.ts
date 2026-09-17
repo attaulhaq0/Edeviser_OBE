@@ -74,12 +74,14 @@ describe("Cron Auth Helper Logic", () => {
         "perfect-day-prompt": "perfect-day-prompt",
         "streak-reset": "process-streak",
         "leaderboard-refresh": "leaderboard-refresh",
-        "ai-at-risk-prediction": "ai-at-risk-prediction",
+        "ai-at-risk-prediction": "agent-worker",
         "notification-digest": "notification-digest",
-        "fee-overdue-check": "fee-overdue-check",
+        "exam-period-notify": "exam-period-notify",
+        "warm-ping": "health",
+        "reflection-digest": "generate-reflection-digest",
       };
 
-      expect(Object.keys(routeToFunction)).toHaveLength(9);
+      expect(Object.keys(routeToFunction)).toHaveLength(11);
       // Each route maps to a valid function name
       for (const fn of Object.values(routeToFunction)) {
         expect(fn).toBeTruthy();

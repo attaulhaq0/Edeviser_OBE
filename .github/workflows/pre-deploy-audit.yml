@@ -406,6 +406,7 @@ jobs:
               agent-worker compute-at-risk-signals exam-period-notify \
               leaderboard-refresh notification-digest perfect-day-prompt \
               process-streak streak-risk-cron health weekly-summary-cron \
+              generate-reflection-digest \
               --project-ref "$preview_ref" --use-api --yes
           else
             echo "::notice::Skipping cron function deploy — no Preview branch resolved"

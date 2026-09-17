@@ -10,7 +10,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { status, data } = await invokeEdgeFunction("agent-worker", {
       action: "scheduled_scan",
     });
-    res.status(status).json(data);
+    const isOk = status >= 200 && status < 300;
+    const payload =
+      typeof data === "object" && data !== null
+        ? { ok: isOk, ...(data as Record<string, unknown>) }
+        : { ok: isOk };
+    res.status(status).json(payload);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
