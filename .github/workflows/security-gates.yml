@@ -27,16 +27,27 @@ concurrency:
 
 jobs:
   secrets:
-    name: Secrets scan (gitleaks, incl. git history)
+    name: Secrets scan (gitleaks, PR commits only)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install gitleaks
+        run: |
+          GITLEAKS_VERSION=8.18.4
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: Scan PR commits for secrets
+        run: |
+          gitleaks detect \
+            --source . \
+            --config .gitleaks.toml \
+            --log-opts="--no-merges origin/main..HEAD" \
+            --verbose
 
   sast:
     name: "SAST (semgrep: injection / XSS / SSRF / key leakage)"

@@ -25,7 +25,7 @@ const InsightCardsSurface = ({ className }: InsightCardsSurfaceProps) => {
   const { data, isLoading, isError } = useProactiveSuggestions();
 
   return (
-    <Card className={cn("border-slate-200/60 bg-white/80", className)}>
+    <Card className={cn("border-slate-200/60 bg-white", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-semibold text-slate-900">
           <Sparkles

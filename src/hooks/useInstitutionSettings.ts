@@ -62,6 +62,7 @@ export const useUpsertInstitutionSettings = () => {
         attainment_thresholds: input.attainment_thresholds,
         success_threshold: input.success_threshold,
         accreditation_body: input.accreditation_body,
+        accreditation_bodies: input.accreditation_bodies ?? [],
         grade_scales: input.grade_scales,
         streak_sabbatical_enabled: input.streak_sabbatical_enabled ?? false,
         league_thresholds: input.league_thresholds ?? undefined,

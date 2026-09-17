@@ -48,12 +48,16 @@ import {
 import { format, differenceInDays } from "date-fns";
 
 const ACCREDITATION_BODIES = [
-  "HEC",
-  "QQA",
   "ABET",
-  "NCAAA",
   "AACSB",
+  "BSO",
+  "CIS",
   "Generic",
+  "HEC",
+  "IB",
+  "NCAAA",
+  "QQA",
+  "QNSA",
 ] as const;
 
 const STATUS_STYLES: Record<string, string> = {
