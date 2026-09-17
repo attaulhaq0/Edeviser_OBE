@@ -13,17 +13,27 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   useLearningInterventions,
-  type InterventionStatus,
   type LearningInterventionRow,
 } from "@/hooks/useLearningInterventions";
 
-const STATUS_BADGE_CLASS: Record<InterventionStatus, string> = {
+const STATUS_BADGE_CLASS: Record<string, string> = {
   draft: "border-slate-300 text-slate-500",
   proposed: "border-sky-300 text-sky-700",
   approved: "border-indigo-300 text-indigo-700",
   active: "border-emerald-300 text-emerald-700",
   completed: "border-emerald-500 text-emerald-700",
   cancelled: "border-rose-300 text-rose-700",
+  RECOMMENDED: "border-amber-300 text-amber-700",
+  APPROVED: "border-indigo-300 text-indigo-700",
+  ASSIGNED: "border-blue-300 text-blue-700",
+  STARTED: "border-teal-300 text-teal-700",
+  COMPLETED: "border-emerald-500 text-emerald-700",
+  MEASURED: "border-purple-300 text-purple-700",
+  EFFECTIVE: "border-green-400 text-green-700",
+  PARTIALLY_EFFECTIVE: "border-lime-300 text-lime-700",
+  INEFFECTIVE: "border-red-300 text-red-700",
+  INCONCLUSIVE: "border-gray-300 text-gray-700",
+  CANCELLED: "border-rose-300 text-rose-700",
 };
 
 function InterventionRow({

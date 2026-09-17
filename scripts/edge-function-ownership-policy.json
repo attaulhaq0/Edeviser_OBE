@@ -9,6 +9,8 @@
     "fee-overdue-check": "Deployed without repository source; the current repository retains only the database-scheduled overdue-fee path. Do not redeploy from an unknown source."
   },
   "exceptionalSourceFunctions": {
-    "coordinator-ai-insights": "Source-only legacy exception: intentionally outside runtime deployment governance while its frontend consumers remain fail-soft."
+    "coordinator-ai-insights": "Source-only legacy exception: intentionally outside runtime deployment governance while its frontend consumers remain fail-soft.",
+    "generate-accreditation-report": "Accreditation PDF report generator — governed independently from core intelligence runtime; redeployed per accreditation regime changes.",
+    "calculate-attainment-rollup": "Attainment evidence→CLO→PLO→ILO cascade — invoked by DB trigger via pg_net; governed independently from core intelligence runtime."
   }
 }

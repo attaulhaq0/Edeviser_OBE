@@ -32,6 +32,7 @@ import { Shimmer } from "@/design-system";
 import { AdminCardHeader } from "@/design-system";
 import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from "react-i18next";
 import {
   Loader2,
@@ -42,27 +43,32 @@ import {
   Flame,
   Trophy,
   Globe,
+  Shield,
 } from "lucide-react";
 import { DEFAULT_GRADE_SCALES, type AccreditationBody } from "@/types/app";
 import { DEFAULT_LEAGUE_THRESHOLDS } from "@/lib/leagueTier";
 
 const ACCREDITATION_BODIES: Array<{ value: AccreditationBody; label: string }> =
   [
-    { value: "HEC", label: "HEC — Higher Education Commission" },
-    { value: "QQA", label: "QQA — Quality Assurance Authority" },
     {
       value: "ABET",
       label: "ABET — Accreditation Board for Engineering & Technology",
     },
     {
-      value: "NCAAA",
-      label: "NCAAA — National Commission for Academic Accreditation",
-    },
-    {
       value: "AACSB",
       label: "AACSB — Association to Advance Collegiate Schools of Business",
     },
+    { value: "BSO", label: "BSO — British Schools Overseas" },
+    { value: "CIS", label: "CIS — Council of International Schools" },
     { value: "Generic", label: "Generic — General Format" },
+    { value: "HEC", label: "HEC — Higher Education Commission" },
+    { value: "IB", label: "IB — International Baccalaureate" },
+    {
+      value: "NCAAA",
+      label: "NCAAA — National Commission for Academic Accreditation",
+    },
+    { value: "QQA", label: "QQA — Quality Assurance Authority" },
+    { value: "QNSA", label: "QNSA — Qatar National School Accreditation" },
   ];
 
 const InstitutionSettings = () => {
@@ -80,6 +86,7 @@ const InstitutionSettings = () => {
       },
       success_threshold: 70,
       accreditation_body: "Generic",
+      accreditation_bodies: [],
       grade_scales: DEFAULT_GRADE_SCALES,
       streak_sabbatical_enabled: false,
       league_thresholds: DEFAULT_LEAGUE_THRESHOLDS,
@@ -98,6 +105,7 @@ const InstitutionSettings = () => {
         attainment_thresholds: settings.attainment_thresholds,
         success_threshold: settings.success_threshold,
         accreditation_body: settings.accreditation_body,
+        accreditation_bodies: settings.accreditation_bodies ?? [],
         grade_scales: settings.grade_scales,
         streak_sabbatical_enabled: settings.streak_sabbatical_enabled ?? false,
         league_thresholds:
@@ -279,6 +287,61 @@ const InstitutionSettings = () => {
                     <FormDescription>
                       Determines the default report template and PLO naming
                       conventions.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </PCard>
+
+          {/* Multi-Accreditation Bodies Card (v8.1) */}
+          <PCard className="overflow-hidden p-0">
+            <AdminCardHeader
+              icon={Shield}
+              title={t("settings.accreditationBodies")}
+            />
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-500">
+                {t("settings.accreditationBodiesDesc")}
+              </p>
+              <FormField
+                control={form.control}
+                name="accreditation_bodies"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {ACCREDITATION_BODIES.map((body) => {
+                        const checked = field.value.includes(body.value);
+                        return (
+                          <label
+                            key={body.value}
+                            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors ${
+                              checked
+                                ? "border-blue-400 bg-blue-50 text-blue-800"
+                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                            }`}
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => {
+                                const next = checked
+                                  ? field.value.filter((v) => v !== body.value)
+                                  : [...field.value, body.value];
+                                field.onChange(next);
+                              }}
+                            />
+                            <span className="truncate">{body.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <FormDescription>
+                      {field.value.length === 0
+                        ? t("settings.noAccreditationBodies")
+                        : t("settings.accreditationBodiesCount", {
+                            count: field.value.length,
+                          })}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

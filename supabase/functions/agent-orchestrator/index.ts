@@ -105,6 +105,116 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// ─── Conversation Persistence (CURRENT-RUN CERTIFICATION FIX) ──────────
+// The orchestrator previously wrote agent_runs but NEVER created
+// agent_conversations or agent_messages rows. This helper ensures every
+// AI touchpoint is persisted with full conversation history.
+
+interface ConversationIdentity {
+  userId: string;
+  role: string;
+  institutionId: string;
+}
+
+async function ensureConversation(
+  admin: ReturnType<typeof createClient>,
+  identity: ConversationIdentity,
+  specialist: string
+): Promise<string> {
+  // Find the most recent conversation for this actor in this institution
+  const { data: existing } = await admin
+    .from("agent_conversations")
+    .select("id")
+    .eq("actor_user_id", identity.userId)
+    .eq("institution_id", identity.institutionId)
+    .order("last_message_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return (existing as Record<string, unknown>).id as string;
+
+  // Create a new conversation
+  const now = new Date().toISOString();
+  const { data: created, error } = await admin
+    .from("agent_conversations")
+    .insert({
+      institution_id: identity.institutionId,
+      actor_user_id: identity.userId,
+      actor_role: identity.role,
+      specialist,
+      title: null,
+      created_at: now,
+      updated_at: now,
+    })
+    .select("id")
+    .single();
+
+  if (error || !created) {
+    throw new Error(
+      `Conversation persistence failed: ${(error as Record<string,unknown>)?.message ?? "unknown" ?? "unknown"}`
+    );
+  }
+  return (created as Record<string, unknown>).id as string;
+}
+
+async function persistUserMessage(
+  admin: ReturnType<typeof createClient>,
+  conversationId: string,
+  runId: string,
+  content: string
+): Promise<void> {
+  const { error } = await admin.from("agent_messages").insert({
+    conversation_id: conversationId,
+    run_id: runId,
+    role: "user",
+    content:
+      typeof content === "string" && content.length > 0
+        ? content.slice(0, 10000)
+        : "(empty message)",
+    evidence: "[]" as unknown as Record<string, unknown>,
+    citations: "[]" as unknown as Record<string, unknown>,
+  });
+  if (error) {
+    throw new Error(`User message persistence failed: ${(error as Record<string,unknown>)?.message ?? "unknown"}`);
+  }
+}
+
+async function persistAssistantMessage(
+  admin: ReturnType<typeof createClient>,
+  conversationId: string,
+  runId: string,
+  content: string
+): Promise<void> {
+  const safeContent =
+    typeof content === "string" && content.length > 0
+      ? content.slice(0, 10000)
+      : "(empty response)";
+  const { error } = await admin.from("agent_messages").insert({
+    conversation_id: conversationId,
+    run_id: runId,
+    role: "assistant",
+    content: safeContent,
+    evidence: "[]" as unknown as Record<string, unknown>,
+    citations: "[]" as unknown as Record<string, unknown>,
+  });
+  if (error) {
+    throw new Error(`Assistant message persistence failed: ${(error as Record<string,unknown>)?.message ?? "unknown"}`);
+  }
+}
+
+async function touchConversation(
+  admin: ReturnType<typeof createClient>,
+  conversationId: string
+): Promise<void> {
+  await admin
+    .from("agent_conversations")
+    .update({
+      last_message_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId);
+}
+
 const json = (status: number, body: Record<string, unknown>): Response =>
   new Response(JSON.stringify(body), {
     status,
@@ -719,6 +829,18 @@ serve(async (req) => {
     if (runInsertError) {
       return json(409, { error: { code: "duplicate_or_invalid_request" } });
     }
+    // ─── Conversation persistence: ensure conversation + user message ──────
+    const explainConversationId = await ensureConversation(
+      admin,
+      identity,
+      specialist
+    );
+    await persistUserMessage(
+      admin,
+      explainConversationId,
+      runId,
+      `Problem case explanation requested for ${identity.role}`
+    );
     try {
       const provider = createAIProvider(orchestratorConfig, { env: Deno.env });
       const completion = await provider.complete({
@@ -748,6 +870,13 @@ serve(async (req) => {
           latency_ms: Date.now() - explainStarted,
         })
         .eq("id", runId);
+      await persistAssistantMessage(
+        admin,
+        explainConversationId,
+        runId,
+        completion.content
+      );
+      await touchConversation(admin, explainConversationId);
       return json(200, {
         runId,
         requestId,
@@ -808,6 +937,36 @@ serve(async (req) => {
       programId: uuid(page.programId),
     },
   };
+
+  // ─── v2: enrich context with framework-aware data ─────────────────────────
+  // Fetch course + institution_settings when courseId is present so the agent
+  // receives scoped framework semantics (IB ≠ IGCSE ≠ QNSA).
+  if (context.page.courseId) {
+    try {
+      const { data: courseRow } = await reader
+        .from("courses")
+        .select(
+          "assessment_model,framework_id,curriculum_code,key_stage,grade_scale_id"
+        )
+        .eq("id", context.page.courseId)
+        .maybeSingle();
+      const { data: settingsRow } = await reader
+        .from("institution_settings")
+        .select("accreditation_body,accreditation_bodies,default_language")
+        .eq("institution_id", identity.institutionId)
+        .maybeSingle();
+      const { buildFrameworkContext } = await import(
+        "../_shared/ai/context/framework-context-builder.ts"
+      );
+      const fw = buildFrameworkContext({
+        course: courseRow as Record<string, unknown> | null,
+        institutionSettings: settingsRow as Record<string, unknown> | null,
+      });
+      if (fw) context.framework = fw;
+    } catch {
+      // Framework enrichment is best-effort — never block an agent run.
+    }
+  }
   const started = Date.now();
   const inputHash = await hashEvidence({ message, page: context.page });
   const { error: runInsertError } = await admin.from("agent_runs").insert({
@@ -825,6 +984,9 @@ serve(async (req) => {
   if (runInsertError) {
     return json(409, { error: { code: "duplicate_or_invalid_request" } });
   }
+  // ─── Conversation persistence: ensure conversation + user message ──────
+  const conversationId = await ensureConversation(admin, identity, specialist);
+  await persistUserMessage(admin, conversationId, context.runId, message);
 
   const audit: AgentAuditSink = {
     async toolAttempt(event) {
@@ -932,6 +1094,13 @@ serve(async (req) => {
         latency_ms: Date.now() - started,
       })
       .eq("id", context.runId);
+    await persistAssistantMessage(
+      admin,
+      conversationId,
+      context.runId,
+      result.response
+    );
+    await touchConversation(admin, conversationId);
     return json(200, {
       requestId: context.requestId,
       runId: context.runId,

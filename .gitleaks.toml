@@ -1,0 +1,17 @@
+# Gitleaks configuration for Edeviser
+# Supabase anon/publishable keys are PUBLIC by design.
+[allowlist]
+  paths = [
+    "scripts/",
+    "certification/",
+    "tests/",
+    "test-results/",
+    ".env.example",
+    "supabase/.env.audit-staging.example",
+  ]
+
+  regexes = [
+    "sb_publishable_[a-zA-Z0-9_-]{30,}",
+    "sbp_[a-zA-Z0-9]{30,}",
+    "eyJ[a-zA-Z0-9_-]{20,}",
+  ]

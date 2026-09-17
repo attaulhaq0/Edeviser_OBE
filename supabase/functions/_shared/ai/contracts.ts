@@ -28,6 +28,45 @@ export type ApprovalState =
   | "expired"
   | "executed";
 
+// ─── v2: Assessment Model & Framework Context ────────────────────────────────
+// Accreditation-native foundation: every agent receives scoped framework
+// semantics so that IB ≠ IGCSE ≠ QNSA in actual agent reasoning.
+
+export const ASSESSMENT_MODELS = [
+  "percent",
+  "criterion",
+  "band_grade",
+  "component",
+] as const;
+export type AssessmentModel = (typeof ASSESSMENT_MODELS)[number];
+
+export interface FrameworkContext {
+  /** Accreditation bodies active for this institution (e.g. ["IB","CIS"]). */
+  readonly accreditationBodies?: readonly string[];
+  /** Primary accreditation body (e.g. "IB"). */
+  readonly primaryAccreditation?: string;
+  /** competency_frameworks.id — the curriculum framework. */
+  readonly frameworkId?: string;
+  /** Framework code (e.g. "MYP","IGCSE","MOEHE"). */
+  readonly frameworkCode?: string;
+  /** curriculum_code from course (e.g. "0580","MYP-SCI-7"). */
+  readonly curriculumCode?: string;
+  /** Key stage (e.g. "KS3","KS4","MYP"). */
+  readonly keyStage?: string;
+  /** How this course assesses students. */
+  readonly assessmentModel?: AssessmentModel;
+  /** grade_scales.id — the active grade scale for this course/institution. */
+  readonly gradeScaleId?: string;
+  /** Versioned assessment policy — increments when grade boundaries change. */
+  readonly assessmentPolicyVersion?: string;
+  /** Versioned attainment policy — increments when thresholds change. */
+  readonly attainmentPolicyVersion?: string;
+  /** Default language for the institution (en/ar). */
+  readonly defaultLanguage?: string;
+}
+
+// ─── Agent identity & context (v2: +framework) ───────────────────────────────
+
 export interface AgentIdentity {
   userId: string;
   role: AuthenticatedRole;
@@ -48,6 +87,8 @@ export interface AgentExecutionContext {
   identity: AgentIdentity;
   page: AgentPageContext;
   specialist: AgentSpecialist;
+  /** v2: framework-aware context. Populated when course/institution data is available. */
+  framework?: FrameworkContext;
 }
 
 export interface EvidenceReference {

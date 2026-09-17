@@ -12,7 +12,17 @@ const corsHeaders = {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type ReportTemplate = "ABET" | "HEC" | "QQA" | "NCAAA" | "AACSB" | "Generic";
+type ReportTemplate =
+  | "ABET"
+  | "AACSB"
+  | "BSO"
+  | "CIS"
+  | "Generic"
+  | "HEC"
+  | "IB"
+  | "NCAAA"
+  | "QQA"
+  | "QNSA";
 
 interface ReportRequest {
   program_id: string;
@@ -64,11 +74,15 @@ function validatePayload(
 
   const validTemplates: ReportTemplate[] = [
     "ABET",
-    "HEC",
-    "QQA",
-    "NCAAA",
     "AACSB",
+    "BSO",
+    "CIS",
     "Generic",
+    "HEC",
+    "IB",
+    "NCAAA",
+    "QQA",
+    "QNSA",
   ];
   if (
     !p.template ||
@@ -96,11 +110,23 @@ function validatePayload(
 }
 
 // ─── Attainment Level Classification ────────────────────────────────────────
+// v8.1: thresholds are configurable per institution. Defaults match
+// institution_settings column DEFAULT (excellent:85, satisfactory:70, developing:50).
 
-function classifyAttainment(score: number): string {
-  if (score >= 85) return "Excellent";
-  if (score >= 70) return "Satisfactory";
-  if (score >= 50) return "Developing";
+interface AttainmentThresholds {
+  excellent: number;
+  satisfactory: number;
+  developing: number;
+}
+
+function classifyAttainment(
+  score: number,
+  thresholds?: AttainmentThresholds
+): string {
+  const t = thresholds ?? { excellent: 85, satisfactory: 70, developing: 50 };
+  if (score >= t.excellent) return "Excellent";
+  if (score >= t.satisfactory) return "Satisfactory";
+  if (score >= t.developing) return "Developing";
   return "Not Yet";
 }
 
