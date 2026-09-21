@@ -62,6 +62,7 @@ import {
   type EvidenceStatus,
 } from "@/hooks/useCoordinatorAccreditation";
 import { cn } from "@/lib/utils";
+import { calculatePackCompletion } from "@/lib/accreditationReadiness";
 
 type IconType = ComponentType<{ className?: string }>;
 type EvStatus = "signed" | "draft" | "blocked" | "notStarted";
@@ -244,7 +245,8 @@ const CoordinatorAccreditationNew = () => {
 
   // ── REAL accreditation readiness + approval chain ────────────────────────
   const readinessQuery = useCoordinatorAccreditationReadiness(institutionId);
-  const readiness = readinessQuery.data;
+  const readiness = readinessQuery.isError ? null : readinessQuery.data;
+  const packCompletion = calculatePackCompletion(readiness?.pack ?? []);
   const approvalsQuery = useAccreditationApprovals(institutionId);
 
   // ── REAL course-file generation (preserves legacy function) ──────────────
@@ -403,15 +405,28 @@ const CoordinatorAccreditationNew = () => {
             icon={ShieldCheck}
             title={t("accreditation.readiness")}
           />
-          {readinessQuery.isPending ? (
+          {institutionId && readinessQuery.isPending ? (
             <div className="mt-4">
               <Shimmer className="h-24 rounded-xl" />
             </div>
-          ) : readiness ? (
+          ) : readinessQuery.isError ? (
+            <div role="alert" className="mt-4 space-y-2">
+              <p className="text-sm text-muted-foreground">
+                {t("accreditation.readinessUnavailable")}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void readinessQuery.refetch()}
+              >
+                {t("accreditation.readinessRetry")}
+              </Button>
+            </div>
+          ) : packCompletion ? (
             <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="flex items-center gap-4">
                 <MasteryRing
-                  value={readiness.readinessPercent}
+                  value={packCompletion.percent}
                   size={88}
                   tone="brand"
                 />
@@ -420,38 +435,44 @@ const CoordinatorAccreditationNew = () => {
                     {t("accreditation.overallReadiness")}
                   </p>
                   <p className="text-2xl font-black text-sky-700">
-                    {readiness.readinessPercent}%
+                    {packCompletion.percent}%
                   </p>
                 </div>
               </div>
-              <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
                 <RdTile
-                  value={readiness.documented}
+                  value={packCompletion.complete}
                   label={t("accreditation.complete")}
                   tone="text-green-600"
                 />
                 <RdTile
-                  value={readiness.partial}
+                  value={packCompletion.inProgress}
                   label={t("accreditation.inProgress")}
                   tone="text-amber-600"
                 />
                 <RdTile
-                  value={readiness.blocked}
-                  label={t("accreditation.blocked")}
-                  tone="text-red-600"
-                />
-                <RdTile
-                  value={readiness.notStarted}
-                  label={t("accreditation.notStarted")}
+                  value={packCompletion.outstanding}
+                  label={t("accreditation.packOutstanding")}
                   tone="text-slate-500"
                 />
               </div>
             </div>
           ) : (
             <p className="mt-4 text-sm text-slate-500">
-              {t("accreditation.readinessPending")}
+              {t("accreditation.packCompletionUnknown")}
             </p>
           )}
+          {packCompletion && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              {t("accreditation.packCompletionBasis", {
+                complete: packCompletion.complete,
+                total: packCompletion.total,
+              })}
+            </p>
+          )}
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t("accreditation.packCompletionDisclaimer")}
+          </p>
         </div>
       </PCard>
 
@@ -462,7 +483,7 @@ const CoordinatorAccreditationNew = () => {
             icon={FileText}
             title={t("accreditation.courseEvidence")}
           />
-          {readinessQuery.isPending ? (
+          {institutionId && readinessQuery.isPending ? (
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Shimmer key={i} className="h-24 rounded-xl" />
@@ -482,7 +503,11 @@ const CoordinatorAccreditationNew = () => {
             </div>
           ) : (
             <p className="mt-4 text-sm text-slate-500">
-              {t("accreditation.evidenceEmpty")}
+              {t(
+                readinessQuery.isError || !readiness
+                  ? "accreditation.readinessUnavailable"
+                  : "accreditation.evidenceEmpty"
+              )}
             </p>
           )}
         </div>
@@ -496,7 +521,9 @@ const CoordinatorAccreditationNew = () => {
               icon={CheckCircle2}
               title={t("accreditation.pack")}
             />
-            {packItems.length > 0 ? (
+            {institutionId && readinessQuery.isPending ? (
+              <Shimmer className="mt-3 h-24 rounded-xl" />
+            ) : packItems.length > 0 ? (
               <ul className="mt-3 divide-y divide-slate-100">
                 {packItems.map((item) => (
                   <CheckRow
@@ -509,7 +536,11 @@ const CoordinatorAccreditationNew = () => {
               </ul>
             ) : (
               <p className="mt-3 text-sm text-slate-500">
-                {t("accreditation.packEmpty")}
+                {t(
+                  readinessQuery.isError
+                    ? "accreditation.readinessUnavailable"
+                    : "accreditation.packCompletionUnknown"
+                )}
               </p>
             )}
           </div>

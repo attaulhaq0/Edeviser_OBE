@@ -1,83 +1,59 @@
-// ─── v2 Framework-aware specialist hints ───────────────────────────────────────
-// These are injected AFTER the base protocol blocks when framework context is
-// available. They are intentionally scoped hints, not full protocol rewrites.
+// Scoped explanation hints used by the single orchestrator. Assessment models,
+// curriculum identity and configured quality frameworks are separate concepts.
+// Hints do not supply grading rules, subject rubrics or accreditation decisions.
 
 import type { FrameworkContext } from "../contracts.ts";
 
 type SpecialistHint = (fw: FrameworkContext) => string | undefined;
 
+const CRITERION_HINT =
+  "This course uses criterion assessment. Use only criterion identifiers, labels, levels and descriptors present in authorized assessment evidence for the selected curriculum, subject and year/phase. Do not infer a programme from the criterion model or institution accreditation. If the applicable rubric is absent, say it is unavailable; do not invent A-D labels, maxima, grade boundaries or a reporting judgment. Task observations and normalized analytics are not automatically final criterion judgments or official grades.";
+
+const BAND_HINT =
+  "This course uses band/grade assessment. Use only the selected syllabus, qualification, component, tier, exam series and versioned scale supported by authorized evidence. A band model does not identify Cambridge/IGCSE, a fixed set of Assessment Objectives, an A*-G or 9-1 scale, or universal percentage boundaries. Distinguish component marks and weighted contributions from the combined result and any externally awarded grade. If the applicable scale or objective evidence is absent, state that limitation rather than calculating or inventing a grade.";
+
 const FRAMEWORK_HINTS: Readonly<
   Partial<Record<string, readonly SpecialistHint[]>>
 > = {
   mastery: [
-    (fw) => {
-      if (fw.assessmentModel === "criterion")
-        return "This is an IB MYP criterion course. Attainment is expressed as criterion levels (0-8 per criterion A-D, total /32→1-7). Frame mastery analysis in criterion-specific language — e.g., 'Criterion B (Investigating) shows developing mastery at level 4/8.'";
-    },
-    (fw) => {
-      if (fw.assessmentModel === "band_grade")
-        return "This is an IGCSE band-grade course. Attainment uses Assessment Objectives (AO1-AO3) with weighted bands. Frame mastery in AO-specific language — e.g., 'AO2 (Application) shows satisfactory band B.'";
-    },
+    (fw) => (fw.assessmentModel === "criterion" ? CRITERION_HINT : undefined),
+    (fw) => (fw.assessmentModel === "band_grade" ? BAND_HINT : undefined),
   ],
   teacher: [
-    (fw) => {
-      if (
-        fw.assessmentModel === "criterion" &&
-        fw.primaryAccreditation === "IB"
-      )
-        return "You are advising an IB MYP teacher. When drafting feedback or interventions, use criterion-specific language (A: Knowing & Understanding, B: Investigating, C: Communicating, D: Thinking Critically). Reference ATL skills where relevant.";
-    },
-    (fw) => {
-      if (fw.assessmentModel === "band_grade")
-        return "You are advising an IGCSE teacher. When drafting feedback or interventions, use Assessment Objective language (AO1: Knowledge, AO2: Application, AO3: Analysis). Reference syllabus codes and band boundaries where relevant.";
-    },
-    (fw) => {
-      if (fw.defaultLanguage === "ar")
-        return "The institution's default language is Arabic. When drafting materials for teacher review, include bilingual considerations where appropriate.";
-    },
+    (fw) => (fw.assessmentModel === "criterion" ? CRITERION_HINT : undefined),
+    (fw) => (fw.assessmentModel === "band_grade" ? BAND_HINT : undefined),
+    (fw) =>
+      fw.defaultLanguage === "ar"
+        ? "The institution's configured default language is Arabic. When drafting materials for teacher review, include bilingual considerations where appropriate."
+        : undefined,
   ],
   intervention: [
-    (fw) => {
-      if (fw.assessmentModel === "criterion")
-        return "For IB MYP criterion-based interventions: target the specific weak criterion (A/B/C/D) rather than the overall subject. Criterion-specific reteaching and reassessment is the standard intervention pattern.";
-    },
-    (fw) => {
-      if (fw.assessmentModel === "band_grade")
-        return "For IGCSE band-grade interventions: target the weak Assessment Objective (AO1/AO2/AO3). AO-weighted practice with targeted feedback is the standard pattern.";
-    },
-    (fw) => {
-      if (
-        fw.assessmentModel === "percent" &&
-        fw.primaryAccreditation === "QNSA"
-      )
-        return "For QNSA outcome-based interventions: focus on the specific learning outcome below institutional target. Improvement actions should link to school-level evidence requirements.";
-    },
+    (fw) =>
+      fw.assessmentModel === "criterion"
+        ? `${CRITERION_HINT} Propose support for the evidenced criterion/outcome gap and a new authorized reassessment, subject to human approval; do not infer the cause of a gap from its score alone.`
+        : undefined,
+    (fw) =>
+      fw.assessmentModel === "band_grade"
+        ? `${BAND_HINT} Target only an evidenced objective/outcome gap. Proposed practice and reassessment require the applicable course context and human approval.`
+        : undefined,
+    (fw) =>
+      fw.assessmentModel === "percent"
+        ? "For percent-based support, use the evidenced learning outcome and configured institutional target. A quality-framework label does not define grading rules, prove a cause, or demonstrate compliance."
+        : undefined,
   ],
   coordinator: [
     (fw) => {
-      const bodies = fw.accreditationBodies ?? [];
-      const hints: string[] = [];
-      if (bodies.includes("QNSA"))
-        hints.push("QNSA: Frame findings in terms of school outcomes, learner attributes, and continuous improvement evidence that supports QNSA self-study requirements.");
-      if (bodies.includes("IB"))
-        hints.push("IB: Frame findings in terms of criterion-related assessment, ATL development, and programme evaluation evidence.");
-      if (bodies.includes("BSO"))
-        hints.push("BSO: Frame findings in terms of British Schools Overseas standards and inspection framework evidence.");
-      if (bodies.includes("CIS"))
-        hints.push("CIS: Frame findings in terms of CIS international accreditation domains and school improvement evidence.");
-      if (hints.length > 1)
-        return `This institution holds multiple accreditations. When drafting CQI or evidence summaries: ${hints.join(" ")}`;
-      if (hints.length === 1) return hints[0];
-      return undefined;
+      const configured =
+        (fw.accreditationBodies?.length ?? 0) > 0 ||
+        Boolean(fw.primaryAccreditation);
+      return configured
+        ? "The context lists configured quality/accreditation frameworks, not verified authorization, accreditation or evaluation decisions. Resolve the applicable programme, process, edition and evidence requirements before drafting a framework-specific summary. Do not infer MYP or criterion assessment from an IB label, or turn learner attainment into programme approval. Distinguish documentation coverage, implementation, impact and ongoing development; state missing evidence and external decision authority."
+        : undefined;
     },
   ],
 };
 
-/**
- * Returns framework-aware specialist protocol hints. Called by the orchestrator
- * to inject scoped framework semantics into the system prompt when context is
- * available. Returns empty array when framework is absent (backward-compatible).
- */
+/** Missing framework context preserves the existing no-hints behavior. */
 export const getFrameworkSpecialistHints = (
   specialist: string,
   framework?: FrameworkContext
@@ -86,7 +62,7 @@ export const getFrameworkSpecialistHints = (
   const hints = FRAMEWORK_HINTS[specialist];
   if (!hints) return [];
   return hints
-    .map((h) => h(framework))
+    .map((hint) => hint(framework))
     .filter(
       (line): line is string => typeof line === "string" && line.length > 0
     );

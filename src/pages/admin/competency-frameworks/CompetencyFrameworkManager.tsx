@@ -1,6 +1,7 @@
 // Task 115.1: Competency Framework Manager page
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,22 +47,27 @@ const schema = z.object({
 });
 
 const CompetencyFrameworkManager = () => {
+  const { t } = useTranslation("admin");
   const { profile } = useAuth();
   const institutionId = profile?.institution_id;
   const queryClient = useQueryClient();
-  const { data: frameworks = [], isLoading } =
-    useCompetencyFrameworks(institutionId);
+  const {
+    data: frameworks = [],
+    isLoading,
+    isError: frameworksError,
+    refetch: refetchFrameworks,
+  } = useCompetencyFrameworks(institutionId);
   const createMutation = useCreateCompetencyFramework();
   const importMutation = useImportCompetencyCSV();
   const [selectedFramework, setSelectedFramework] = useState<string | null>(
     null
   );
-  const { data: items = [] } = useCompetencyItems(
+  const itemsQuery = useCompetencyItems(selectedFramework ?? undefined);
+  const items = itemsQuery.data ?? [];
+  const mappingsQuery = useCompetencyOutcomeMappings(
     selectedFramework ?? undefined
   );
-  const { data: mappings = [] } = useCompetencyOutcomeMappings(
-    selectedFramework ?? undefined
-  );
+  const mappings = mappingsQuery.data ?? [];
   const { data: ilosResult } = useILOs();
   const { data: plosResult } = usePLOs();
   const ilos = ilosResult?.data ?? [];
@@ -149,8 +155,23 @@ const CompetencyFrameworkManager = () => {
           </h2>
         </div>
         <div className="p-6">
-          {isLoading ? (
+          {!institutionId ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("competency.institutionMissing")}
+            </p>
+          ) : isLoading ? (
             <Shimmer className="h-32 rounded-lg" />
+          ) : frameworksError ? (
+            <div role="alert">
+              <p>{t("competency.frameworksError")}</p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void refetchFrameworks()}
+              >
+                {t("competency.retry")}
+              </Button>
+            </div>
           ) : frameworks.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-6">
               No frameworks defined yet.
@@ -177,13 +198,15 @@ const CompetencyFrameworkManager = () => {
                 >
                   <div>
                     <span className="text-sm font-medium">{fw.name}</span>
-                    <span className="text-xs text-slate-400 ms-2">
-                      v{fw.version}
-                    </span>
-                    {fw.source && (
+                    {fw.version && (
                       <span className="text-xs text-slate-400 ms-2">
-                        ({fw.source})
+                        v{fw.version}
                       </span>
+                    )}
+                    {fw.description && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {fw.description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -217,7 +240,7 @@ const CompetencyFrameworkManager = () => {
       )}
 
       {/* Competency Tree View (Task 115.2) */}
-      {selectedFramework && items.length > 0 && (
+      {selectedFramework && (
         <PCard className="overflow-hidden p-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
@@ -227,11 +250,41 @@ const CompetencyFrameworkManager = () => {
           >
             <Layers className="h-5 w-5 text-white" />
             <h2 className="text-lg font-bold tracking-tight text-white">
-              Competency Hierarchy
+              {t("competency.hierarchy")}
             </h2>
           </div>
           <div className="p-6">
-            <CompetencyTree items={items} mappedItemIds={mappedItemIds} />
+            {itemsQuery.isLoading ? (
+              <p role="status" className="text-sm text-muted-foreground">
+                {t("competency.loading")}
+              </p>
+            ) : itemsQuery.isError ? (
+              <div role="alert">
+                <p>{t("competency.itemsError")}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void itemsQuery.refetch()}
+                >
+                  {t("competency.retry")}
+                </Button>
+              </div>
+            ) : (
+              <>
+                {mappingsQuery.isError && (
+                  <p role="status" className="text-sm text-muted-foreground">
+                    {t("competency.mappingsError")}
+                  </p>
+                )}
+                <CompetencyTree
+                  key={selectedFramework}
+                  items={items}
+                  mappedItemIds={
+                    mappingsQuery.isSuccess ? mappedItemIds : undefined
+                  }
+                />
+              </>
+            )}
           </div>
         </PCard>
       )}

@@ -1,4 +1,17 @@
 {
+  "courseFileErrors": {
+    "unauthorized": "Please sign in with an active account to generate a course file.",
+    "forbidden": "Only an authorized administrator or program coordinator can generate this file.",
+    "courseUnavailable": "This course is unavailable or outside your assigned program.",
+    "semesterMismatch": "Select the semester assigned to this course. A course without a semester cannot be exported.",
+    "invalidRequest": "Select a valid course and semester, then try again.",
+    "tooLarge": "This course exceeds the bounded report size. Ask an administrator for a scoped export.",
+    "invalidSource": "The source records contain inconsistent scores or duplicates. Review the academic data before exporting.",
+    "dataUnavailable": "The course data could not be loaded completely. Please try again or contact support.",
+    "failed": "Course file generation failed. Please try again or contact support.",
+    "invalidResponse": "The server did not return a valid course PDF. A matched frontend and reporting-function release may be required.",
+    "network": "The reporting service could not be reached. Check your connection and try again."
+  },
   "dashboard": {
     "title": "Coordinator Dashboard",
     "welcome": {
@@ -324,8 +337,13 @@
   "accreditation": {
     "title": "Accreditation Evidence",
     "viewCqi": "View CQI action plans",
-    "readiness": "Accreditation Readiness",
-    "overallReadiness": "Overall readiness",
+    "readiness": "Evidence pack checklist",
+    "overallReadiness": "Checklist completion",
+    "packCompletionBasis": "{{complete}} of {{total}} declared checklist items complete. Each item counts equally; in-progress items earn no completion credit. Percentage rounded down.",
+    "packCompletionDisclaimer": "This tracks the returned evidence workflow checklist only, not evidence quality, framework coverage, accreditation compliance or IB authorization.",
+    "readinessUnavailable": "Evidence status could not be loaded. Completion is unknown.",
+    "packCompletionUnknown": "No declared checklist is available. Completion is unknown.",
+    "readinessRetry": "Retry evidence status",
     "complete": "Complete",
     "inProgress": "In progress",
     "blocked": "Blocked",
@@ -460,40 +478,40 @@
       }
     },
     "draft": {
-    "open": "Draft intervention",
-    "title": "Deterministic intervention draft",
-    "subtitle": "Built from the cited evidence only — no AI on this surface.",
-    "owner": "Recommended owner",
-    "actions": "Suggested actions",
-    "citations": "Citations",
-    "curriculumChange": "Curriculum change recommended — route through CQI.",
-    "approvalRequired": "Approval is required before any official intervention record is created.",
-    "explain": "Explain with AI",
-    "explainLoading": "Explaining…",
-    "explainError": "AI explanation unavailable right now.",
-    "aiSection": "AI explanation",
-    "close": "Close",
-    "headline": {
-      "student-signal": "Individual students are below target on \"{{title}}\" ({{avg}}%).",
-      "teacher-signal": "Section performance varies widely on \"{{title}}\" — teaching-practice review indicated.",
-      "assessment-signal": "\"{{title}}\" lacks adequate assessment coverage.",
-      "prerequisite-signal": "Sub-outcome gaps feed weak performance on \"{{title}}\".",
-      "curriculum-design-signal": "The whole cohort struggles on \"{{title}}\" — curriculum-design review indicated.",
-      "generic": "\"{{title}}\" shows a performance signal that needs review."
-    },
-    "actionLabels": {
-      "review_struggling_students": "Review the listed struggling students' evidence",
-      "schedule_targeted_support": "Schedule targeted support for affected students",
-      "notify_owner": "Notify the recommended owner",
-      "compare_section_practice": "Compare teaching practice across sections",
-      "observe_high_variance_sections": "Observe the high-variance sections",
-      "align_teaching_plan": "Align the teaching plan across sections",
-      "author_coverage_guarded_assessment": "Author a coverage-guarded assessment for this outcome",
-      "link_clo_to_assessment": "Link this outcome to an existing assessment",
-      "remediate_sub_clos": "Remediate the weak sub-outcomes first",
-      "sequence_prerequisite_review": "Sequence a prerequisite review before re-teaching",
-      "open_cqi_pattern": "Open a CQI systemic pattern for this outcome",
-      "review_curriculum_design": "Review the curriculum design for this unit"
+      "open": "Draft intervention",
+      "title": "Deterministic intervention draft",
+      "subtitle": "Built from the cited evidence only — no AI on this surface.",
+      "owner": "Recommended owner",
+      "actions": "Suggested actions",
+      "citations": "Citations",
+      "curriculumChange": "Curriculum change recommended — route through CQI.",
+      "approvalRequired": "Approval is required before any official intervention record is created.",
+      "explain": "Explain with AI",
+      "explainLoading": "Explaining…",
+      "explainError": "AI explanation unavailable right now.",
+      "aiSection": "AI explanation",
+      "close": "Close",
+      "headline": {
+        "student-signal": "Individual students are below target on \"{{title}}\" ({{avg}}%).",
+        "teacher-signal": "Section performance varies widely on \"{{title}}\" — teaching-practice review indicated.",
+        "assessment-signal": "\"{{title}}\" lacks adequate assessment coverage.",
+        "prerequisite-signal": "Sub-outcome gaps feed weak performance on \"{{title}}\".",
+        "curriculum-design-signal": "The whole cohort struggles on \"{{title}}\" — curriculum-design review indicated.",
+        "generic": "\"{{title}}\" shows a performance signal that needs review."
+      },
+      "actionLabels": {
+        "review_struggling_students": "Review the listed struggling students' evidence",
+        "schedule_targeted_support": "Schedule targeted support for affected students",
+        "notify_owner": "Notify the recommended owner",
+        "compare_section_practice": "Compare teaching practice across sections",
+        "observe_high_variance_sections": "Observe the high-variance sections",
+        "align_teaching_plan": "Align the teaching plan across sections",
+        "author_coverage_guarded_assessment": "Author a coverage-guarded assessment for this outcome",
+        "link_clo_to_assessment": "Link this outcome to an existing assessment",
+        "remediate_sub_clos": "Remediate the weak sub-outcomes first",
+        "sequence_prerequisite_review": "Sequence a prerequisite review before re-teaching",
+        "open_cqi_pattern": "Open a CQI systemic pattern for this outcome",
+        "review_curriculum_design": "Review the curriculum design for this unit"
       }
     }
   }

@@ -17,6 +17,13 @@
  *   profiles              20260821000028  ->  profiles_read
  *   reflection_digests    20260822000002  ->  reflection_digests_read
  *
+ * Those names describe historical H1 merges, not the current full policy set.
+ * Phase A (20260921001942) replaces grades/submissions policies with scoped
+ * history reads and actor-bound INSERTs. Preserve every read assertion below;
+ * seed receipts as the enrolled student and grades as the taught-course teacher.
+ * Immutable accepted receipts/grades/submit habits require retaining this owned
+ * graph until the parent disposes the Git-linked PR Preview after closure.
+ *
  * A SELECT RLS policy does not raise on denial — it silently filters rows — so
  * this suite asserts on the ROWS a signed-in role can read (like
  * getStudentDashboard.rls.test.ts), not on `{ error }`. For each table it proves
@@ -46,6 +53,7 @@
  * so with no preview secrets nothing connects and `npm run test:rls` exits 0.
  * It executes for real only on the dedicated `rls-smoke` preview CI job.
  */
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { shouldRunRls } from "./guard";
 import {
@@ -61,8 +69,15 @@ interface ConsolidationFixtures {
   readonly outcomeId: string;
   readonly assignmentId: string;
   readonly submissionId: string;
+  readonly gradeId: string;
   readonly reflectionDigestId: string;
 }
+
+// Registered inside the guarded seed before writes, including partial failures.
+let ownedFixtures: ConsolidationFixtures | null = null;
+// Set before the first receipt attempt: a lost response may hide an accepted
+// receipt plus immutable submit habit, so cleanup must conservatively retain.
+let retainAcademicGraph = false;
 
 /** Minimal structural shape every `select("id")` query resolves to. */
 type IdRowsResult = PromiseLike<{
@@ -78,20 +93,30 @@ const countRows = async (query: IdRowsResult): Promise<number> => {
 };
 
 /**
- * Seeds the extra rows the SELECT-consolidation assertions read. Uses the
- * service-role admin client (bypasses RLS). Only invoked inside the guarded
- * block, so it never runs without preview secrets.
+ * Seeds the rows read by the unchanged SELECT assertions. The guarded admin
+ * client creates independent scope/attainment/digest fixtures only; ordinary
+ * student/teacher JWTs produce academic receipts and grades under Phase A.
+ * Only invoked inside the guarded block, never without Preview credentials.
  */
 const seedConsolidationFixtures = async (
   ctx: SeededCtx
 ): Promise<ConsolidationFixtures> => {
   const admin = createAdminClient();
+  const ids: ConsolidationFixtures = {
+    outcomeId: randomUUID(),
+    assignmentId: randomUUID(),
+    submissionId: randomUUID(),
+    gradeId: randomUUID(),
+    reflectionDigestId: randomUUID(),
+  };
+  ownedFixtures = ids;
 
   // Course Learning Outcome on the seeded course (validate_sub_clo trigger
   // no-ops for a plain CLO).
   const clo = await admin
     .from("learning_outcomes")
     .insert({
+      id: ids.outcomeId,
       institution_id: ctx.institutionId,
       course_id: ctx.courseId,
       title: `RLS-Consolidation CLO ${ctx.runId.slice(0, 8)}`,
@@ -114,45 +139,80 @@ const seedConsolidationFixtures = async (
   if (att.error)
     throw new Error(`seed attainment failed: ${att.error.message}`);
 
-  // Assignment on the seeded course (fires trg_new_assignment_notify ->
-  // emit_notification for the enrolled student; cleaned up in teardown).
-  const asg = await admin
-    .from("assignments")
-    .insert({
+  // Use real per-actor sign-in helpers, not service-role academic writes or
+  // forged auth.uid(). The owned teacher creates a currently open assignment.
+  const teacher = await signInAs(ctx.emails.teacher, ctx.password);
+  try {
+    const asg = await teacher.from("assignments").insert({
+      id: ids.assignmentId,
       course_id: ctx.courseId,
+      created_by: ctx.teacherId,
       title: `RLS-Consolidation Assignment ${ctx.runId.slice(0, 8)}`,
-      due_date: "2025-03-01T00:00:00.000Z",
+      due_date: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+      is_late_allowed: true,
+      late_window_hours: 24,
       total_marks: 100,
-    })
-    .select("id")
-    .single();
-  if (asg.error || !asg.data)
-    throw new Error(`seed assignment failed: ${asg.error?.message}`);
+      clo_weights: [],
+    });
+    if (asg.error)
+      throw new Error("Consolidation teacher assignment fixture failed");
 
-  // The seeded student's submission for that assignment.
-  const sub = await admin
-    .from("submissions")
-    .insert({
-      assignment_id: asg.data.id,
-      student_id: ctx.studentId,
-      status: "graded",
-    })
-    .select("id")
-    .single();
-  if (sub.error || !sub.data)
-    throw new Error(`seed submission failed: ${sub.error?.message}`);
+    const student = await signInAs(ctx.emails.student, ctx.password);
+    try {
+      // Set BEFORE attempting the write: transport uncertainty must never lead
+      // teardown to cascade-delete an accepted receipt or canonical submit habit.
+      retainAcademicGraph = true;
+      const sub = await student
+        .from("submissions")
+        .insert({
+          id: ids.submissionId,
+          assignment_id: ids.assignmentId,
+          student_id: ctx.studentId,
+          text_content: `RLS-Consolidation synthetic receipt ${ctx.runId}`,
+          // Receipt timestamp/status/late flag are supplied by the server.
+        })
+        .select("id, assignment_id, student_id, submitted_at, is_late, status")
+        .single();
+      if (sub.error || !sub.data)
+        throw new Error("Consolidation student receipt fixture failed");
+      expect(
+        sub.data.id === ids.submissionId &&
+          sub.data.assignment_id === ids.assignmentId &&
+          sub.data.student_id === ctx.studentId
+      ).toBe(true);
+      expect(sub.data.status).toBe("submitted");
+      expect(sub.data.is_late).toBe(false);
+      expect(
+        Math.abs(Date.now() - Date.parse(sub.data.submitted_at))
+      ).toBeLessThan(5 * 60_000);
+    } finally {
+      await student.auth.signOut();
+    }
 
-  // Teacher-recorded grade. is_released=false so trg_grade_released_notify
-  // returns early (no notification), and the attainment-rollup trigger no-ops
-  // on the assignment's empty clo_weights.
-  const grade = await admin.from("grades").insert({
-    submission_id: sub.data.id,
-    graded_by: ctx.teacherId,
-    score_percent: 82,
-    total_score: 82,
-    is_released: false,
-  });
-  if (grade.error) throw new Error(`seed grade failed: ${grade.error.message}`);
+    // Real taught-course teacher attribution; retain the original unreleased
+    // grade and empty CLO weights so all existing read assertions stay intact.
+    const grade = await teacher
+      .from("grades")
+      .insert({
+        id: ids.gradeId,
+        submission_id: ids.submissionId,
+        graded_by: ctx.teacherId,
+        score_percent: 82,
+        total_score: 82,
+        is_released: false,
+      })
+      .select("submission_id, graded_by, score_percent")
+      .single();
+    if (grade.error || !grade.data)
+      throw new Error("Consolidation teacher grade fixture failed");
+    expect(
+      grade.data.submission_id === ids.submissionId &&
+        grade.data.graded_by === ctx.teacherId &&
+        grade.data.score_percent === 82
+    ).toBe(true);
+  } finally {
+    await teacher.auth.signOut();
+  }
 
   // Guarantee both students have a gamification row (normally created by the
   // handle_new_user trigger; upsert is a no-op if it already exists).
@@ -175,6 +235,7 @@ const seedConsolidationFixtures = async (
   const digest = await admin
     .from("reflection_digests")
     .insert({
+      id: ids.reflectionDigestId,
       student_id: ctx.studentId,
       month: "2025-01",
       shared_with: [{ role: "parent" }, { role: "teacher" }],
@@ -184,65 +245,152 @@ const seedConsolidationFixtures = async (
   if (digest.error || !digest.data)
     throw new Error(`seed reflection_digest failed: ${digest.error?.message}`);
 
-  return {
-    outcomeId: clo.data.id,
-    assignmentId: asg.data.id,
-    submissionId: sub.data.id,
-    reflectionDigestId: digest.data.id,
-  };
+  return ids;
 };
 
 /**
- * Deletes the extra fixture rows (child -> parent order) before delegating to
- * the base teardown. Best-effort: a delete failure only warns so the rest of
- * teardown still runs. Notifications created by the assignment insert are
- * cleared because notifications.user_id -> profiles is ON DELETE NO ACTION.
+ * Phase A accepted receipts, grades and submit habits cannot be deleted.
+ * Retain their whole owned graph for parent-managed PR Preview disposal after
+ * closure, including uncertain receipt outcomes. Only independent digest rows
+ * are removed after that boundary; pre-receipt failures may use base teardown.
  */
 const teardownConsolidationFixtures = async (ctx: SeededCtx): Promise<void> => {
   const admin = createAdminClient();
-  const swallow = async (
+  const failures: string[] = [];
+  const attempt = async (
     label: string,
-    op: PromiseLike<unknown>
+    op: PromiseLike<{ error: unknown }>
   ): Promise<void> => {
     try {
-      await op;
-    } catch (error) {
-      console.warn(
-        `[rls-consolidation teardown] ${label} skipped: ${String(error)}`
-      );
+      const { error } = await op;
+      if (error) failures.push(label);
+    } catch {
+      failures.push(label);
     }
   };
-
-  await swallow(
-    "reflection_digests",
-    admin.from("reflection_digests").delete().eq("student_id", ctx.studentId)
-  );
-  await swallow(
-    "grades",
-    admin.from("grades").delete().eq("graded_by", ctx.teacherId)
-  );
-  await swallow(
-    "submissions",
-    admin.from("submissions").delete().eq("student_id", ctx.studentId)
-  );
-  await swallow(
-    "outcome_attainment",
-    admin.from("outcome_attainment").delete().eq("student_id", ctx.studentId)
-  );
-  await swallow(
-    "notifications",
-    admin.from("notifications").delete().eq("user_id", ctx.studentId)
-  );
-  await swallow(
-    "assignments",
-    admin.from("assignments").delete().eq("course_id", ctx.courseId)
-  );
-  await swallow(
-    "learning_outcomes",
-    admin.from("learning_outcomes").delete().eq("course_id", ctx.courseId)
-  );
-
-  await teardownRlsFixtures(ctx);
+  const ids = ownedFixtures;
+  if (ids) {
+    // Independent and mutable; exact id is known even if seed only partially ran.
+    await attempt(
+      "independent digest cleanup",
+      admin.from("reflection_digests").delete().eq("id", ids.reflectionDigestId)
+    );
+  }
+  if (retainAcademicGraph) {
+    if (!ids) throw new Error("Consolidation retention identity unavailable");
+    const ownUsers = [
+      ctx.adminId,
+      ctx.coordinatorId,
+      ctx.teacherId,
+      ctx.studentId,
+      ctx.otherStudentId,
+      ctx.parentId,
+    ];
+    const retainedCounts = [
+      [
+        "institutions",
+        admin
+          .from("institutions")
+          .select("id", { count: "exact", head: true })
+          .eq("id", ctx.institutionId),
+      ],
+      [
+        "profiles",
+        admin
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .in("id", ownUsers),
+      ],
+      [
+        "assignments",
+        admin
+          .from("assignments")
+          .select("id", { count: "exact", head: true })
+          .eq("id", ids.assignmentId),
+      ],
+      [
+        "submissions",
+        admin
+          .from("submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("id", ids.submissionId),
+      ],
+      [
+        "grades",
+        admin
+          .from("grades")
+          .select("id", { count: "exact", head: true })
+          .eq("id", ids.gradeId),
+      ],
+      [
+        "submit_habits",
+        admin
+          .from("habit_logs")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", ctx.studentId)
+          .eq("habit_type", "submit"),
+      ],
+    ] as const;
+    const diagnostics: string[] = [];
+    for (const [label, query] of retainedCounts) {
+      try {
+        const { count, error } = await query;
+        if (error || count === null)
+          throw new Error("Retention count unavailable");
+        diagnostics.push(`${label}=${count}`);
+      } catch {
+        diagnostics.push(`${label}=unknown`);
+        failures.push("owned retention count unavailable");
+      }
+    }
+    // Static lifecycle information and counts only; no identifiers or secrets.
+    console.info(
+      `[rls-consolidation Preview retention] ${diagnostics.join(
+        ", "
+      )}; owned academic graph retained until parent deletes the PR Preview after closure; row-level cleanup intentionally incomplete.`
+    );
+    // Do NOT call base teardown: its parent deletes could cascade into immutable
+    // receipt/grade/habit history. Keep outcomes/attainment and related graph too.
+  } else {
+    if (ids) {
+      await attempt(
+        "pre-receipt attainment cleanup",
+        admin
+          .from("outcome_attainment")
+          .delete()
+          .eq("outcome_id", ids.outcomeId)
+      );
+      await attempt(
+        "pre-receipt assignment cleanup",
+        admin.from("assignments").delete().eq("id", ids.assignmentId)
+      );
+      await attempt(
+        "pre-receipt outcome cleanup",
+        admin.from("learning_outcomes").delete().eq("id", ids.outcomeId)
+      );
+    }
+    await attempt(
+      "owned notifications cleanup",
+      admin.from("notifications").delete().eq("user_id", ctx.studentId)
+    );
+    try {
+      await teardownRlsFixtures(ctx);
+    } catch {
+      failures.push("base fixture cleanup");
+    }
+    const remaining = await admin
+      .from("institutions")
+      .select("id")
+      .eq("id", ctx.institutionId);
+    if (remaining.error || remaining.data?.length !== 0)
+      failures.push("residual pre-receipt tenant");
+  }
+  if (failures.length)
+    throw new Error(
+      `Consolidation cleanup/retention diagnostics failed: ${failures.join(
+        ", "
+      )}`
+    );
 };
 
 describe.skipIf(!shouldRunRls())(
@@ -487,7 +635,7 @@ describe.skipIf(!shouldRunRls())(
       }
     });
 
-    // ---- submissions (submissions_read: admin / parent / teacher; student via ALL) ----
+    // ---- submissions (Phase A scoped history: active owner / authorized staff / parent) ----
 
     it("[submissions] student reads their own submission, not another's", async () => {
       const c = getCtx();
@@ -500,7 +648,7 @@ describe.skipIf(!shouldRunRls())(
               .select("id")
               .eq("student_id", c.studentId)
           )
-        ).toBe(1); // via the untouched submissions_student_own (ALL) policy
+        ).toBe(1); // active owner branch of submissions_history_scoped_v1
         expect(
           await countRows(
             client
@@ -564,7 +712,7 @@ describe.skipIf(!shouldRunRls())(
       }
     });
 
-    // ---- grades (grades_read: student-by-submission / teacher / parent) ----
+    // ---- grades (Phase A history: owner / taught-source teacher / linked parent; oversight also scoped) ----
 
     it("[grades] student reads the grade on their own submission", async () => {
       const c = getCtx();

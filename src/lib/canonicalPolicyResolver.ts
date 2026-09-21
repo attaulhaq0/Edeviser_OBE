@@ -1,14 +1,21 @@
-// =============================================================================
-// canonicalPolicyResolver.ts — Phase 16: Canonical Assessment/Attainment Policy
-// Resolves the effective assessment strategy, grade scale, and attainment
-// thresholds from: institution → track → curriculum → course → config
-// Single source of truth — no more hardcoding 85/70/50 in multiple places.
-// =============================================================================
+// Pure assessment-policy helper; not an authoritative grading/write boundary.
+// Explicit selections fail closed unless the caller supplies matching metadata.
+// Curriculum/quality brands never select an assessment algorithm or boundaries.
 
-import type { AssessmentModel, GradeScaleBand } from "./assessmentStrategyEngine";
-import { DEFAULT_ATTAINMENT_THRESHOLDS, DEFAULT_GRADE_SCALES, type AttainmentThresholdsConfig } from "@/types/app";
+import type {
+  AssessmentModel,
+  GradeScaleBand,
+} from "./assessmentStrategyEngine";
+import {
+  DEFAULT_ATTAINMENT_THRESHOLDS,
+  DEFAULT_GRADE_SCALES,
+  type AttainmentThresholdsConfig,
+} from "@/types/app";
 
-// ─── Framework-Aligned Grade Scales ──────────────────────────────────────────
+// Historical illustrative scales retained for source compatibility only.
+// These are NOT official IB/Cambridge boundaries and are never selected by
+// resolvePolicy. Callers must supply an applicable versioned percent scale.
+// Native-domain grading/reporting judgments need a separate reviewed contract.
 
 export const IB_MYP_GRADE_SCALE: GradeScaleBand[] = [
   { letter: "7", min_percent: 88, max_percent: 100, gpa_points: 4.0 },
@@ -37,6 +44,10 @@ export const IGCSE_9_1_GRADE_SCALE: GradeScaleBand[] = [
 export interface ResolvedPolicy {
   assessmentModel: AssessmentModel;
   gradeScale: GradeScaleBand[];
+  gradeScaleId?: string;
+  gradeScaleVersion?: string;
+  /** Legacy scales lack identity/version and are not certified native policies. */
+  gradeScaleSource: "selected" | "legacy_institution" | "legacy_default";
   attainmentThresholds: AttainmentThresholdsConfig;
   frameworkCode?: string;
   defaultLanguage?: string;
@@ -45,6 +56,7 @@ export interface ResolvedPolicy {
 interface CourseConfig {
   assessmentModel?: string;
   gradeScaleId?: string;
+  gradeScaleVersion?: string;
   frameworkCode?: string;
 }
 
@@ -55,54 +67,150 @@ interface InstitutionConfig {
 }
 
 /**
- * Resolve effective assessment policy from institution + course configuration.
- * Canonical resolution chain: institution → course → framework → policy.
+ * Already authorized scale data; this helper performs no retrieval.
+ * Supported here: positive-width continuous bands covering exactly 0-100,
+ * with the higher-minimum band winning a shared endpoint. Partial/discrete
+ * scales need a separately reviewed policy; no gaps are rounded or filled.
+ */
+export interface SelectedPercentGradeScale {
+  id: string;
+  version: string;
+  domain: "percent";
+  bands: readonly GradeScaleBand[];
+}
+
+const MODELS: readonly string[] = [
+  "percent",
+  "criterion",
+  "band_grade",
+  "component",
+];
+
+function validateBands(bands: readonly GradeScaleBand[]): void {
+  if (bands.length === 0) throw new Error("Selected grade scale has no bands");
+  const labels = new Set<string>();
+  for (const band of bands) {
+    if (
+      !band.letter.trim() ||
+      labels.has(band.letter) ||
+      !Number.isFinite(band.min_percent) ||
+      !Number.isFinite(band.max_percent) ||
+      !Number.isFinite(band.gpa_points) ||
+      band.min_percent < 0 ||
+      band.max_percent > 100 ||
+      band.min_percent >= band.max_percent
+    ) {
+      throw new Error("Invalid selected percent grade-scale band");
+    }
+    labels.add(band.letter);
+  }
+  const sorted = [...bands].sort((a, b) => a.min_percent - b.min_percent);
+  let previous: GradeScaleBand | undefined;
+  for (const band of sorted) {
+    // This selected-scale helper supports a complete continuous percent domain
+    // only. It does not infer rounding, step sizes, gap filling or extrapolation.
+    // Positive widths make minima unique in a valid partition. At a shared
+    // endpoint, the existing mapper selects the band with the higher minimum.
+    if (!previous && band.min_percent !== 0) {
+      throw new Error(
+        "Selected grade scale must cover the complete 0-100 percent domain"
+      );
+    }
+    if (previous && band.min_percent < previous.max_percent) {
+      throw new Error("Selected grade-scale bands overlap");
+    }
+    if (previous && band.min_percent !== previous.max_percent) {
+      throw new Error("Selected grade scale has an unsupported gap");
+    }
+    previous = band;
+  }
+  if (previous?.max_percent !== 100) {
+    throw new Error(
+      "Selected grade scale must cover the complete 0-100 percent domain"
+    );
+  }
+}
+
+/**
+ * Resolve a percent-domain analytical/reporting scale, never an official native
+ * award. With an explicit scale ID, matching versioned data is mandatory.
+ * Existing unconfigured percent callers retain labelled legacy defaults only.
  */
 export function resolvePolicy(
   courseConfig: CourseConfig,
-  institutionConfig: InstitutionConfig
+  institutionConfig: InstitutionConfig,
+  selectedScale?: SelectedPercentGradeScale
 ): ResolvedPolicy {
-  const model = (courseConfig.assessmentModel as AssessmentModel) ?? "percent";
+  const configuredModel = courseConfig.assessmentModel;
+  if (configuredModel !== undefined && !MODELS.includes(configuredModel)) {
+    throw new Error(`Unsupported assessment model: ${configuredModel}`);
+  }
+  if (
+    configuredModel === undefined &&
+    (courseConfig.frameworkCode || courseConfig.gradeScaleId)
+  ) {
+    throw new Error(
+      "Assessment model is required for explicit educational configuration"
+    );
+  }
+  const model = (configuredModel ?? "percent") as AssessmentModel;
+  let gradeScale: GradeScaleBand[];
+  let gradeScaleSource: ResolvedPolicy["gradeScaleSource"];
 
-  // Grade scale: institution-specific > framework-default > hardcoded
-  const gradeScale = institutionConfig.grade_scales && institutionConfig.grade_scales.length > 0
-    ? institutionConfig.grade_scales
-    : resolveDefaultGradeScale(courseConfig.frameworkCode);
-
-  // Attainment thresholds: institution-configured > framework-default > hardcoded
-  const attainmentThresholds = institutionConfig.attainment_thresholds
-    ? institutionConfig.attainment_thresholds
-    : DEFAULT_ATTAINMENT_THRESHOLDS;
+  if (courseConfig.gradeScaleId !== undefined) {
+    if (
+      !courseConfig.gradeScaleId.trim() ||
+      !selectedScale ||
+      selectedScale.id !== courseConfig.gradeScaleId
+    ) {
+      throw new Error(
+        "Explicit grade scale is unavailable or does not match its selected ID"
+      );
+    }
+    if (
+      !selectedScale.version.trim() ||
+      selectedScale.domain !== "percent" ||
+      (courseConfig.gradeScaleVersion !== undefined &&
+        courseConfig.gradeScaleVersion !== selectedScale.version)
+    ) {
+      throw new Error(
+        "Selected grade scale has an unsupported domain or mismatched version"
+      );
+    }
+    validateBands(selectedScale.bands);
+    gradeScale = selectedScale.bands.map((band) => ({ ...band }));
+    gradeScaleSource = "selected";
+  } else {
+    if (selectedScale || courseConfig.gradeScaleVersion !== undefined) {
+      throw new Error(
+        "Grade-scale data/version requires an explicit selected ID"
+      );
+    }
+    if (model !== "percent" || courseConfig.frameworkCode) {
+      throw new Error(
+        "An explicit versioned grade scale is required; no curriculum-brand default is supported"
+      );
+    }
+    const institutionBands = institutionConfig.grade_scales;
+    gradeScale = (
+      institutionBands?.length ? institutionBands : DEFAULT_SCALE
+    ).map((band) => ({ ...band }));
+    gradeScaleSource = institutionBands?.length
+      ? "legacy_institution"
+      : "legacy_default";
+  }
 
   return {
     assessmentModel: model,
     gradeScale,
-    attainmentThresholds,
+    gradeScaleId: selectedScale?.id,
+    gradeScaleVersion: selectedScale?.version,
+    gradeScaleSource,
+    attainmentThresholds:
+      institutionConfig.attainment_thresholds ?? DEFAULT_ATTAINMENT_THRESHOLDS,
     frameworkCode: courseConfig.frameworkCode,
     defaultLanguage: institutionConfig.default_language,
   };
-}
-
-/**
- * Resolve the default grade scale based on framework code.
- * NOT hardcoded if(IB)/if(IGCSE) — uses a registry map.
- */
-const FRAMEWORK_DEFAULT_SCALES: Record<string, GradeScaleBand[]> = {
-  MYP: IB_MYP_GRADE_SCALE,
-  IB: IB_MYP_GRADE_SCALE,
-  IGCSE: IGCSE_9_1_GRADE_SCALE,
-  "9-1": IGCSE_9_1_GRADE_SCALE,
-  MOEHE: DEFAULT_GRADE_SCALES.map((s) => ({
-    letter: s.letter,
-    min_percent: s.min_percent,
-    max_percent: s.max_percent,
-    gpa_points: s.gpa_points ?? 0,
-  })),
-};
-
-function resolveDefaultGradeScale(frameworkCode?: string): GradeScaleBand[] {
-  if (!frameworkCode) return DEFAULT_SCALE;
-  return FRAMEWORK_DEFAULT_SCALES[frameworkCode] ?? DEFAULT_SCALE;
 }
 
 const DEFAULT_SCALE: GradeScaleBand[] = DEFAULT_GRADE_SCALES.map((s) => ({

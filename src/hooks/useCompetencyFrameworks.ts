@@ -8,20 +8,13 @@ export interface CompetencyFramework {
   id: string;
   institution_id: string;
   name: string;
-  version: string;
-  source: string | null;
+  version: string | null;
+  description: string | null;
 }
 
-export interface CompetencyItem {
-  id: string;
-  framework_id: string;
-  parent_id: string | null;
-  level: "domain" | "competency" | "indicator";
-  code: string;
-  title: string;
-  sort_order: number;
-  children?: CompetencyItem[];
-}
+import { toCompetencyItem } from "@/lib/competencyTree";
+import type { CompetencyItem } from "@/lib/competencyTree";
+export type { CompetencyItem } from "@/lib/competencyTree";
 
 export interface CompetencyOutcomeMapping {
   id: string;
@@ -29,20 +22,17 @@ export interface CompetencyOutcomeMapping {
   outcome_id: string;
 }
 
-// NOTE: These hooks reference tables that require database migrations (tasks 114.1).
-// Until migrations are applied, queries will return empty results.
-
 export const useCompetencyFrameworks = (institutionId?: string) => {
   return useQuery({
     queryKey: queryKeys.competencyFrameworks.list({ institutionId }),
     queryFn: async (): Promise<CompetencyFramework[]> => {
       const { data, error } = await supabase
-        .from("competency_frameworks" as never)
-        .select("*")
+        .from("competency_frameworks")
+        .select("id, institution_id, name, version, description")
         .eq("institution_id", institutionId!)
         .order("name");
       if (error) throw error;
-      return (data ?? []) as CompetencyFramework[];
+      return data ?? [];
     },
     enabled: !!institutionId,
   });
@@ -53,12 +43,15 @@ export const useCompetencyItems = (frameworkId?: string) => {
     queryKey: queryKeys.competencyItems.list({ frameworkId }),
     queryFn: async (): Promise<CompetencyItem[]> => {
       const { data, error } = await supabase
-        .from("competency_items" as never)
-        .select("*")
+        .from("competency_items")
+        .select(
+          "id, framework_id, parent_id, level, name, description, sort_order"
+        )
         .eq("framework_id", frameworkId!)
-        .order("sort_order");
+        .order("sort_order")
+        .order("name");
       if (error) throw error;
-      return (data ?? []) as CompetencyItem[];
+      return (data ?? []).map(toCompetencyItem);
     },
     enabled: !!frameworkId,
   });
@@ -111,11 +104,12 @@ export const useCompetencyOutcomeMappings = (frameworkId?: string) => {
   return useQuery({
     queryKey: queryKeys.competencyOutcomeMappings.list({ frameworkId }),
     queryFn: async (): Promise<CompetencyOutcomeMapping[]> => {
-      const { data: items } = await supabase
-        .from("competency_items" as never)
+      const { data: items, error: itemsError } = await supabase
+        .from("competency_items")
         .select("id")
         .eq("framework_id", frameworkId!);
-      const itemIds = ((items ?? []) as Array<{ id: string }>).map((i) => i.id);
+      if (itemsError) throw itemsError;
+      const itemIds = (items ?? []).map((i) => i.id);
       if (itemIds.length === 0) return [];
       const { data, error } = await supabase
         .from("competency_outcome_mappings" as never)

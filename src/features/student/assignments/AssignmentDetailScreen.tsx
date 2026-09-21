@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ZodError } from "zod";
 
 import ErrorState from "@/components/shared/ErrorState";
 import UploadProgress from "@/components/shared/UploadProgress";
@@ -37,8 +38,23 @@ import {
   useSubmissions,
   useUploadSubmissionFile,
 } from "@/hooks/useSubmissions";
-import { validateFile, FileValidationError } from "@/lib/fileUpload";
+import {
+  validateFile,
+  FileValidationError,
+  SUBMISSION_ALLOWED_EXTENSIONS,
+  SUBMISSION_FILE_ACCEPT,
+  SUBMISSION_MAX_FILE_SIZE_MB,
+} from "@/lib/fileUpload";
 import { draftManager } from "@/lib/draftManager";
+import {
+  assertSubmissionIntent,
+  createSubmissionIntent,
+  SubmissionCancelledError,
+  SubmissionRecordError,
+  waitForSubmissionRetry,
+  type SubmissionIntent,
+} from "@/lib/submissionIntent";
+
 import { getDeadlineStatus } from "@/lib/submissionDeadline";
 import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
 import { XP_SCHEDULE, LATE_SUBMISSION_XP } from "@/lib/xpSchedule";
@@ -47,7 +63,12 @@ import { useOptimisticXP } from "@/hooks/useOptimisticXP";
 import { getSignedUrl } from "@/lib/storageUrl";
 import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
-const FILE_LIMIT_LABEL = "PDF, DOCX, PPTX, TXT up to 10MB";
+type SubmissionSelection = {
+  file: File;
+  assignmentId: string;
+  intent: SubmissionIntent;
+  uploadedPath?: string;
+};
 
 const ASSIGNMENT_FACTS: Array<{
   icon: LucideIcon;
@@ -63,8 +84,22 @@ const AssignmentDetailScreen = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation("student");
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectionRef = useRef<SubmissionSelection | null>(null);
+  const operationRef = useRef<symbol | null>(null);
+  // Same-component actor/assignment lock survives file clearing/reselection.
+  // It is not server idempotency or a cross-reload commit-reconciliation store.
+  const recordLocksRef = useRef(new Map<string, "pending" | "uncertain">());
+
+  useEffect(
+    () => () => {
+      selectionRef.current?.intent.cancel();
+      selectionRef.current = null;
+      operationRef.current = null;
+    },
+    []
+  );
 
   const assignment = useAssignment(id);
   const courses = useStudentCourses(profile?.id);
@@ -74,6 +109,20 @@ const AssignmentDetailScreen = () => {
   const { awardXPOptimistic } = useOptimisticXP();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [recordLocked, setRecordLocked] = useState(false);
+  useEffect(() => {
+    setRecordLocked(recordLocksRef.current.has(`${user?.id}/${id}`));
+    const selection = selectionRef.current;
+    if (
+      selection &&
+      (selection.intent.actorId !== user?.id || selection.assignmentId !== id)
+    ) {
+      selection.intent.cancel();
+      selectionRef.current = null;
+      operationRef.current = null;
+      setSelectedFile(null);
+    }
+  }, [user?.id, id]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<
@@ -137,6 +186,13 @@ const AssignmentDetailScreen = () => {
   const isUploading = uploadFile.isPending || createSubmission.isPending;
 
   const handleFileChange = (file: File | null | undefined) => {
+    if (recordLocksRef.current.has(`${user?.id}/${id}`)) return;
+    selectionRef.current?.intent.cancel();
+    selectionRef.current = null;
+    operationRef.current = null;
+    setSelectedFile(null);
+    setRecordLocked(false);
+    setUploadError(null);
     setFileError(null);
     if (!file) {
       setSelectedFile(null);
@@ -146,6 +202,15 @@ const AssignmentDetailScreen = () => {
 
     try {
       validateFile(file);
+      if (!user?.id || !id) {
+        setFileError(t("assignments.detail.invalidSubmissionFile"));
+        return;
+      }
+      selectionRef.current = {
+        file,
+        assignmentId: id,
+        intent: createSubmissionIntent(user.id),
+      };
       setSelectedFile(file);
       draftManager.saveDraft(`submission-draft-${id ?? "unknown"}`, {
         fileName: file.name,
@@ -170,27 +235,41 @@ const AssignmentDetailScreen = () => {
     fileInputRef.current?.click();
   };
 
-  const attemptUpload = async (retries: number): Promise<string> => {
-    if (!selectedFile || !assignmentData) {
-      throw new Error("Missing assignment or file");
+  const assertActiveOperation = (
+    selection: SubmissionSelection,
+    operation: symbol
+  ) => {
+    assertSubmissionIntent(selection.intent);
+    if (
+      selectionRef.current !== selection ||
+      operationRef.current !== operation
+    ) {
+      throw new SubmissionCancelledError();
     }
+  };
 
+  const attemptUpload = async (
+    selection: SubmissionSelection,
+    operation: symbol,
+    retries: number
+  ): Promise<string> => {
+    assertActiveOperation(selection, operation);
     try {
       setUploadProgress(15 + retries * 5);
       const result = await uploadFile.mutateAsync({
-        file: selectedFile,
-        assignmentId: assignmentData.id,
-        institutionId: profile?.institution_id ?? "",
+        file: selection.file,
+        intent: selection.intent,
       });
+      assertActiveOperation(selection, operation);
+      selection.uploadedPath = result;
       setUploadProgress(100);
-      setUploadStatus("success");
       return result;
     } catch (error) {
+      assertActiveOperation(selection, operation);
       const isNetworkError =
         !navigator.onLine ||
         (error instanceof Error &&
           /network|fetch|timeout|offline/i.test(error.message));
-
       if (isNetworkError && retries < 3) {
         toast.info(
           t("assignments.detail.retryingUpload", {
@@ -198,20 +277,32 @@ const AssignmentDetailScreen = () => {
             count: retries + 1,
           })
         );
-        await new Promise((resolve) =>
-          window.setTimeout(resolve, 1_500 * (retries + 1))
-        );
-        return attemptUpload(retries + 1);
+        await waitForSubmissionRetry(selection.intent, 1_500 * (retries + 1));
+        assertActiveOperation(selection, operation);
+        return attemptUpload(selection, operation, retries + 1);
       }
-
-      setUploadStatus("error");
-      setUploadError(error instanceof Error ? error.message : "Upload failed");
       throw error;
     }
   };
 
   const handleSubmit = async () => {
-    if (!assignmentData || !selectedFile || !deadlineStatus) return;
+    const selection = selectionRef.current;
+    if (
+      !assignmentData ||
+      !selectedFile ||
+      !deadlineStatus ||
+      !selection ||
+      operationRef.current
+    )
+      return;
+    const recordScope = `${selection.intent.actorId}/${selection.assignmentId}`;
+    if (
+      selection.intent.signal.aborted ||
+      selection.intent.actorId !== user?.id ||
+      selection.file !== selectedFile ||
+      recordLocksRef.current.has(recordScope)
+    )
+      return;
 
     if (!deadlineStatus.canSubmit) {
       toast.error(
@@ -220,60 +311,93 @@ const AssignmentDetailScreen = () => {
       return;
     }
 
+    const operation = Symbol("submission");
+    operationRef.current = operation;
     setUploadProgress(0);
     setUploadStatus("uploading");
     setUploadError(null);
 
     try {
-      const fileUrl = await attemptUpload(0);
+      const fileUrl =
+        selection.uploadedPath ??
+        (await attemptUpload(selection, operation, 0));
+      assertActiveOperation(selection, operation);
       const payload = {
+        intent: selection.intent,
         assignment_id: assignmentData.id,
         file_url: fileUrl,
         is_late: deadlineStatus.isLate,
         institution_id: profile?.institution_id ?? "",
       };
 
-      createSubmission.mutate(payload, {
-        onSuccess: () => {
-          captureAnalyticsEvent("assignment_submitted", {
-            is_late: deadlineStatus.isLate,
-            course_id: assignmentData.course_id,
-          });
-          setSelectedFile(null);
-          draftManager.clearDraft(`submission-draft-${id ?? "unknown"}`);
-          void submissions.refetch();
-          toast.success(
-            t("assignments.submissionConfirmed", "Submission confirmed!")
-          );
-          logActivity({
-            student_id: profile?.id ?? "",
-            event_type: "submission",
-            metadata: {
-              assignment_id: assignmentData.id,
-              is_late: deadlineStatus.isLate,
-            },
-          });
-          awardXPOptimistic({
-            studentId: profile?.id ?? "",
-            xpAmount: deadlineStatus.isLate
-              ? LATE_SUBMISSION_XP
-              : XP_SCHEDULE.submission,
-            source: "submission",
-            referenceId: assignmentData.id,
-            note: deadlineStatus.isLate
-              ? "Late submission"
-              : "On-time submission",
-          });
-        },
-        onError: (error) => {
-          toast.error(error.message);
+      recordLocksRef.current.set(recordScope, "pending");
+      setRecordLocked(true);
+      const receipt = await createSubmission.mutateAsync(payload);
+      assertActiveOperation(selection, operation);
+      recordLocksRef.current.delete(recordScope);
+      setRecordLocked(false);
+      setUploadStatus("success");
+      captureAnalyticsEvent("assignment_submitted", {
+        is_late: receipt.is_late,
+        course_id: assignmentData.course_id,
+      });
+      setSelectedFile(null);
+      draftManager.clearDraft(`submission-draft-${id ?? "unknown"}`);
+      void submissions.refetch();
+      toast.success(
+        t("assignments.submissionConfirmed", "Submission confirmed!")
+      );
+      logActivity({
+        student_id: selection.intent.actorId,
+        event_type: "submission",
+        metadata: {
+          assignment_id: receipt.assignment_id,
+          submitted_at: receipt.submitted_at,
+          status: receipt.status,
+          is_late: receipt.is_late,
         },
       });
+      // This is only the existing post-receipt XP request/optimistic estimate;
+      // award-xp remains authoritative and its receipt/extension mismatch is deferred.
+      awardXPOptimistic({
+        studentId: selection.intent.actorId,
+        xpAmount: receipt.is_late ? LATE_SUBMISSION_XP : XP_SCHEDULE.submission,
+        source: "submission",
+        referenceId: receipt.assignment_id,
+        note: receipt.is_late ? "Late submission" : "On-time submission",
+      });
+      selection.intent.cancel();
+      selectionRef.current = null;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Upload failed";
+      // Preserve pending/unknown scope even if the old selection was cancelled.
+      if (recordLocksRef.current.has(recordScope)) {
+        if (error instanceof SubmissionRecordError && error.canRetry)
+          recordLocksRef.current.delete(recordScope);
+        else recordLocksRef.current.set(recordScope, "uncertain");
+      }
+      if (
+        error instanceof SubmissionCancelledError ||
+        selection.intent.signal.aborted ||
+        operationRef.current !== operation
+      )
+        return;
+      const uncertain = recordLocksRef.current.has(recordScope);
+      setRecordLocked(uncertain);
+      const message =
+        error instanceof ZodError
+          ? t("assignments.detail.invalidSubmissionFile")
+          : selection.uploadedPath
+          ? t(
+              uncertain
+                ? "assignments.detail.submissionUnconfirmed"
+                : "assignments.detail.submissionRecordFailed"
+            )
+          : t("assignments.detail.uploadFailed");
       setUploadStatus("error");
       setUploadError(message);
       toast.error(message);
+    } finally {
+      if (operationRef.current === operation) operationRef.current = null;
     }
   };
 
@@ -477,7 +601,8 @@ const AssignmentDetailScreen = () => {
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,image/*"
+                accept={SUBMISSION_FILE_ACCEPT}
+                disabled={recordLocked}
                 onChange={(event) =>
                   handleFileChange(event.target.files?.[0] ?? null)
                 }
@@ -486,6 +611,7 @@ const AssignmentDetailScreen = () => {
               <button
                 type="button"
                 onClick={openFilePicker}
+                disabled={recordLocked}
                 className="flex w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center transition-colors hover:border-blue-300 hover:bg-transparent/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Upload className="size-8 text-slate-400" />
@@ -496,7 +622,11 @@ const AssignmentDetailScreen = () => {
                   )}
                 </span>
                 <span className="mt-1 text-xs text-muted-foreground">
-                  {FILE_LIMIT_LABEL}
+                  {t("assignments.detail.fileRequirements", {
+                    formats:
+                      SUBMISSION_ALLOWED_EXTENSIONS.join(", ").toUpperCase(),
+                    size: SUBMISSION_MAX_FILE_SIZE_MB,
+                  })}
                 </span>
               </button>
 
@@ -521,7 +651,11 @@ const AssignmentDetailScreen = () => {
                   fileName={selectedFile.name}
                   fileSize={selectedFile.size}
                   status={uploadStatus}
-                  onRetry={uploadStatus === "error" ? retryUpload : undefined}
+                  onRetry={
+                    uploadStatus === "error" && !recordLocked
+                      ? retryUpload
+                      : undefined
+                  }
                 />
               ) : null}
 
@@ -530,7 +664,10 @@ const AssignmentDetailScreen = () => {
                   variant="tactile"
                   onClick={() => void handleSubmit()}
                   disabled={
-                    !selectedFile || isUploading || !deadlineStatus?.canSubmit
+                    !selectedFile ||
+                    isUploading ||
+                    !deadlineStatus?.canSubmit ||
+                    recordLocked
                   }
                 >
                   {isUploading
@@ -540,7 +677,10 @@ const AssignmentDetailScreen = () => {
                 {selectedFile ? (
                   <Button
                     variant="outline"
+                    disabled={recordLocked}
                     onClick={() => {
+                      if (recordLocksRef.current.has(`${user?.id}/${id}`))
+                        return;
                       handleFileChange(null);
                       if (fileInputRef.current) {
                         fileInputRef.current.value = "";

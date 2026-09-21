@@ -8,16 +8,16 @@ let mockHabitRows: Array<{ habit_type: string }> = [];
 let mockHabitError: { message: string } | null = null;
 
 const mockInvoke = vi.fn().mockResolvedValue({ data: {}, error: null });
+const mockRead = vi.fn();
 
 const makeSelectChain = () => {
-  const result = { data: mockHabitRows, error: mockHabitError };
   const chain = {
     select: vi.fn(() => chain),
     // Each .eq returns the chain; the chain is awaitable (thenable) so the final
     // `.eq(...)` resolves to the result.
     eq: vi.fn(() => chain),
     then: (resolve: (value: { data: unknown; error: unknown }) => unknown) =>
-      resolve(result),
+      mockRead().then(resolve),
   };
   return chain;
 };
@@ -45,6 +45,54 @@ describe("awardPerfectDayIfComplete", () => {
     vi.clearAllMocks();
     mockHabitRows = [];
     mockHabitError = null;
+    mockRead.mockImplementation(async () => ({
+      data: mockHabitRows,
+      error: mockHabitError,
+    }));
+    mockInvoke.mockResolvedValue({ data: {}, error: null });
+  });
+
+  it("does not start a lookup when the optional signal is already cancelled", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    expect(
+      (await awardPerfectDayIfComplete("student-1", controller.signal)).awarded
+    ).toBe(false);
+    expect(mockRead).not.toHaveBeenCalled();
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+
+  it("does not invoke rewards if cancelled while the habit lookup is awaiting", async () => {
+    let resolve!: (value: { data: typeof ALL_FOUR; error: null }) => void;
+    mockRead.mockReturnValue(
+      new Promise((done) => {
+        resolve = done;
+      })
+    );
+    const controller = new AbortController();
+    const result = awardPerfectDayIfComplete("student-1", controller.signal);
+    await vi.waitFor(() => expect(mockRead).toHaveBeenCalledTimes(1));
+    controller.abort();
+    resolve({ data: ALL_FOUR, error: null });
+    expect((await result).awarded).toBe(false);
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+
+  it("does not invoke check-badges if cancelled during an already-started award-xp", async () => {
+    mockHabitRows = ALL_FOUR;
+    let resolve!: (value: { data: object; error: null }) => void;
+    mockInvoke.mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done;
+      })
+    );
+    const controller = new AbortController();
+    const result = awardPerfectDayIfComplete("student-1", controller.signal);
+    await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
+    controller.abort();
+    resolve({ data: {}, error: null });
+    expect((await result).awarded).toBe(false);
+    expect(mockInvoke.mock.calls.map((call) => call[0])).toEqual(["award-xp"]);
   });
 
   it("awards perfect_day 50 XP and fires check-badges when all 4 habits present", async () => {
