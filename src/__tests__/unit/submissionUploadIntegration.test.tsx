@@ -49,6 +49,7 @@ import {
 import { FileValidationError, uploadSubmissionFile } from "@/lib/fileUpload";
 import { getSignedUrl } from "@/lib/storageUrl";
 import { submissionSchema } from "@/lib/schemas/submission";
+import { queryKeys } from "@/lib/queryKeys";
 import {
   createSubmissionIntent,
   SubmissionCancelledError,
@@ -75,10 +76,25 @@ const metadata = (path: string) => ({
   file_url: path,
   is_late: false,
 });
-const wrapper = () => {
-  const client = new QueryClient({
-    defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
-  });
+const serverReceipt = (overrides: Record<string, unknown> = {}) => ({
+  id: "55555555-5555-4555-8555-555555555555",
+  assignment_id: ASSIGNMENT,
+  student_id: STUDENT,
+  file_url: mocks.insert.mock.lastCall?.[0].file_url ?? `${STUDENT}/answer.txt`,
+  submitted_at: "2026-09-20T23:59:59.900+00:00",
+  is_late: true,
+  status: "submitted",
+  ...overrides,
+});
+const wrapper = (providedClient?: QueryClient) => {
+  const client =
+    providedClient ??
+    new QueryClient({
+      defaultOptions: {
+        mutations: { retry: false },
+        queries: { retry: false },
+      },
+    });
   return ({ children }: PropsWithChildren) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
@@ -98,10 +114,10 @@ beforeEach(() => {
     data: { signedUrl: "https://example.invalid/signed-object" },
     error: null,
   });
-  mocks.single.mockResolvedValue({
-    data: { id: "submission-receipt" },
+  mocks.single.mockImplementation(async () => ({
+    data: serverReceipt(),
     error: null,
-  });
+  }));
   mocks.insert.mockReturnValue({ select: () => ({ single: mocks.single }) });
   mocks.habit.mockResolvedValue({ error: null });
   mocks.from.mockImplementation((table: string) => {
@@ -112,6 +128,61 @@ beforeEach(() => {
 });
 
 describe("submission upload production integration", () => {
+  it("returns the confirmed server receipt without a client-date habit write or Perfect Day request", async () => {
+    const client = new QueryClient();
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    const { result } = renderHook(() => useCreateSubmission(), {
+      wrapper: wrapper(client),
+    });
+    await act(async () => {
+      const receipt = await result.current.mutateAsync(
+        metadata(`${STUDENT}/answer.txt`)
+      );
+      expect(receipt).toEqual(serverReceipt());
+      expect(receipt.is_late).toBe(true); // Outbound browser estimate was false.
+    });
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: queryKeys.habitLogs.lists(),
+    });
+    expect(mocks.insert.mock.lastCall?.[0]).not.toHaveProperty("submitted_at");
+    expect(mocks.insert.mock.lastCall?.[0]).not.toHaveProperty("is_late");
+    expect(mocks.insert.mock.lastCall?.[0]).not.toHaveProperty("status");
+    expect(mocks.habit).not.toHaveBeenCalled();
+    expect(mocks.perfectDay).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { submitted_at: "invalid-date" },
+    { submitted_at: undefined },
+    { is_late: undefined },
+    { status: "graded" },
+    { assignment_id: INSTITUTION },
+    { student_id: FOREIGN_STUDENT },
+    { file_url: `${FOREIGN_STUDENT}/answer.txt` },
+    { file_url: `${STUDENT}/different-object.txt` },
+  ])(
+    "fails closed on malformed or mismatched post-INSERT receipt %j",
+    async (override) => {
+      mocks.single.mockImplementation(async () => ({
+        data: serverReceipt(override),
+        error: null,
+      }));
+      const { result } = renderHook(() => useCreateSubmission(), {
+        wrapper: wrapper(),
+      });
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync(metadata(`${STUDENT}/answer.txt`))
+        ).rejects.toMatchObject({
+          name: "SubmissionRecordError",
+          canRetry: false,
+        });
+      });
+      expect(mocks.audit).not.toHaveBeenCalled();
+      expect(mocks.habit).not.toHaveBeenCalled();
+      expect(mocks.perfectDay).not.toHaveBeenCalled();
+    }
+  );
   it("uses actual authenticated UID first, generated safe filename second, then persists exactly that key", async () => {
     const selected = file();
     const { result } = renderHook(
@@ -150,11 +221,20 @@ describe("submission upload production integration", () => {
       assignment_id: ASSIGNMENT,
       student_id: STUDENT,
       file_url: path,
-      is_late: false,
     });
     expect(mocks.audit).toHaveBeenCalledWith(
-      expect.objectContaining({ performed_by: STUDENT })
+      expect.objectContaining({
+        performed_by: STUDENT,
+        changes: expect.objectContaining({
+          is_late: true,
+          submitted_at: "2026-09-20T23:59:59.900+00:00",
+          status: "submitted",
+        }),
+      })
     );
+    expect(mocks.habit).not.toHaveBeenCalled();
+    expect(mocks.perfectDay).not.toHaveBeenCalled();
+    expect(mocks.from).not.toHaveBeenCalledWith("habit_logs");
     expect(mocks.sign).not.toHaveBeenCalled();
     expect(await getSignedUrl("submissions", path)).toBe(
       "https://example.invalid/signed-object"

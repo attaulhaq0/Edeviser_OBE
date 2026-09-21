@@ -332,13 +332,13 @@ const AssignmentDetailScreen = () => {
 
       recordLocksRef.current.set(recordScope, "pending");
       setRecordLocked(true);
-      await createSubmission.mutateAsync(payload);
+      const receipt = await createSubmission.mutateAsync(payload);
       assertActiveOperation(selection, operation);
       recordLocksRef.current.delete(recordScope);
       setRecordLocked(false);
       setUploadStatus("success");
       captureAnalyticsEvent("assignment_submitted", {
-        is_late: deadlineStatus.isLate,
+        is_late: receipt.is_late,
         course_id: assignmentData.course_id,
       });
       setSelectedFile(null);
@@ -351,18 +351,20 @@ const AssignmentDetailScreen = () => {
         student_id: selection.intent.actorId,
         event_type: "submission",
         metadata: {
-          assignment_id: assignmentData.id,
-          is_late: deadlineStatus.isLate,
+          assignment_id: receipt.assignment_id,
+          submitted_at: receipt.submitted_at,
+          status: receipt.status,
+          is_late: receipt.is_late,
         },
       });
+      // This is only the existing post-receipt XP request/optimistic estimate;
+      // award-xp remains authoritative and its receipt/extension mismatch is deferred.
       awardXPOptimistic({
         studentId: selection.intent.actorId,
-        xpAmount: deadlineStatus.isLate
-          ? LATE_SUBMISSION_XP
-          : XP_SCHEDULE.submission,
+        xpAmount: receipt.is_late ? LATE_SUBMISSION_XP : XP_SCHEDULE.submission,
         source: "submission",
-        referenceId: assignmentData.id,
-        note: deadlineStatus.isLate ? "Late submission" : "On-time submission",
+        referenceId: receipt.assignment_id,
+        note: receipt.is_late ? "Late submission" : "On-time submission",
       });
       selection.intent.cancel();
       selectionRef.current = null;

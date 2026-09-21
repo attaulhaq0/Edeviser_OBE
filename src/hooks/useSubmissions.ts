@@ -5,18 +5,19 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { submissionSchema } from "@/lib/schemas/submission";
+import {
+  submissionSchema,
+  submissionReceiptSchema,
+} from "@/lib/schemas/submission";
 import { uploadSubmissionFile } from "@/lib/fileUpload";
 import {
   assertSubmissionIntent,
   verifySubmissionIntent,
-  SubmissionCancelledError,
   SubmissionRecordError,
   type SubmissionIntent,
 } from "@/lib/submissionIntent";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
-import { awardPerfectDayIfComplete } from "@/lib/perfectDay";
 import { useAuth } from "@/hooks/useAuth";
 import type { PaginatedResult } from "@/types/pagination";
 import { getPaginationRange } from "@/types/pagination";
@@ -301,46 +302,44 @@ export const useCreateSubmission = () => {
       // submissions table has no institution_id column; inherits from assignment FK
       const { data, error } = await supabase
         .from("submissions")
-        .insert(submissionInput)
-        .select()
+        .insert({
+          assignment_id: submissionInput.assignment_id,
+          student_id: submissionInput.student_id,
+          file_url: submissionInput.file_url,
+        })
+        .select(
+          "id, assignment_id, student_id, file_url, submitted_at, is_late, status"
+        )
         .single();
 
       assertSubmissionIntent(intent);
       if (error) throw new SubmissionRecordError(error);
 
-      const submission = data as unknown as Submission;
+      const receipt = submissionReceiptSchema.safeParse(data);
+      if (
+        !receipt.success ||
+        receipt.data.student_id !== intent.actorId ||
+        receipt.data.assignment_id !== submissionInput.assignment_id ||
+        receipt.data.file_url !== submissionInput.file_url
+      ) {
+        // The INSERT may have committed: a missing/mismatched receipt is not a
+        // safe retry and must not produce success or fabricated late/timing data.
+        throw new SubmissionRecordError(null);
+      }
+      const submission = receipt.data;
 
       await logAuditEvent({
         action: "create",
         entity_type: "submission",
         entity_id: submission.id,
-        changes: { ...submissionInput, institution_id: input.institution_id },
+        changes: { ...submission, institution_id: input.institution_id },
         performed_by: intent.actorId,
       });
 
-      assertSubmissionIntent(intent);
-      // Record the canonical 'submit' academic habit for today (UTC) and, if
-      // this completes all 4 daily habits, award the idempotent Perfect Day.
-      // Fire-and-forget: a habit-write failure must never break the submission.
-      try {
-        const today = new Date().toISOString().split("T")[0] as string;
-        await supabase.from("habit_logs").upsert(
-          {
-            student_id: intent.actorId,
-            habit_type: "submit",
-            date: today,
-            completed_at: new Date().toISOString(),
-          },
-          { onConflict: "student_id,habit_type,date" }
-        );
-        assertSubmissionIntent(intent);
-        await awardPerfectDayIfComplete(intent.actorId, intent.signal);
-      } catch (error) {
-        if (error instanceof SubmissionCancelledError || intent.signal.aborted)
-          throw error;
-        console.error("[useCreateSubmission] submit habit write failed");
-      }
-
+      // The paired authority trigger atomically records the submit habit using
+      // the receipt's UTC date and preserves that day's first completion time.
+      // Do not upsert it from a client clock or request Perfect Day here: the
+      // current award-xp contract grants no student-owned perfect_day authority.
       assertSubmissionIntent(intent);
       return submission;
     },
@@ -352,6 +351,8 @@ export const useCreateSubmission = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.assignments.lists(),
       });
+      // The server transaction—not a client habit mutation—changed today's log.
+      queryClient.invalidateQueries({ queryKey: queryKeys.habitLogs.lists() });
     },
   });
 };

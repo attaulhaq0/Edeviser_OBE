@@ -27,4 +27,16 @@ export const submissionSchema = z
     }
   );
 
+// File-submission INSERT receipt from the server authority trigger. Never infer
+// these fields from the browser clock or substitute the outbound form payload.
+export const submissionReceiptSchema = z.object({
+  id: z.uuid(),
+  assignment_id: z.uuid(),
+  student_id: z.uuid(),
+  file_url: submissionStoragePathSchema,
+  submitted_at: z.iso.datetime({ offset: true }),
+  is_late: z.boolean(),
+  status: z.literal("submitted"),
+});
+
 export type SubmissionFormData = z.infer<typeof submissionSchema>;

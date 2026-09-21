@@ -128,6 +128,15 @@ const renderPage = () =>
 beforeEach(() => {
   vi.clearAllMocks();
   submissionMocks.upload.mockResolvedValue("student-1/generated-answer.txt");
+  submissionMocks.create.mockResolvedValue({
+    id: "receipt-1",
+    assignment_id: "assignment-1",
+    student_id: "student-1",
+    file_url: "student-1/generated-answer.txt",
+    is_late: false,
+    submitted_at: "2026-09-20T23:59:59.900+00:00",
+    status: "submitted",
+  });
   state.assignment = {
     id: "assignment-1",
     title: "Data Interpretation Challenge",

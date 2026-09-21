@@ -136,6 +136,16 @@ const authResult = (actor: string | null = A) => ({
   data: { user: actor ? { id: actor } : null },
   error: null,
 });
+const serverReceipt = (overrides: Record<string, unknown> = {}) => ({
+  id: "55555555-5555-4555-8555-555555555555",
+  assignment_id: ASSIGNMENT,
+  student_id: A,
+  file_url: mocks.insert.mock.lastCall?.[0].file_url ?? `${A}/answer.txt`,
+  submitted_at: "2099-05-01T23:59:59.900+00:00",
+  is_late: false,
+  status: "submitted",
+  ...overrides,
+});
 const deferred = <T,>() => {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((done) => {
@@ -215,7 +225,10 @@ beforeEach(() => {
   mocks.getUser.mockImplementation(async () => authResult(mocks.actor));
   mocks.upload.mockResolvedValue({ error: null });
   mocks.insert.mockReturnValue({ select: () => ({ single: mocks.single }) });
-  mocks.single.mockResolvedValue({ data: { id: "receipt" }, error: null });
+  mocks.single.mockImplementation(async () => ({
+    data: serverReceipt(),
+    error: null,
+  }));
   mocks.habit.mockResolvedValue({ error: null });
   mocks.audit.mockResolvedValue(undefined);
   mocks.perfect.mockResolvedValue(undefined);
@@ -399,7 +412,7 @@ describe("submission intent lifetime", () => {
         if (change === "switch") emit(B);
         else view.unmount();
       });
-      pending.resolve({ data: { id: "receipt" }, error: null });
+      pending.resolve({ data: serverReceipt(), error: null });
       await flush();
       expect(mocks.audit).not.toHaveBeenCalled();
       expect(mocks.habit).not.toHaveBeenCalled();
@@ -423,68 +436,90 @@ describe("submission intent lifetime", () => {
     expect(mocks.perfect).not.toHaveBeenCalled();
     noCompletion();
   });
-
-  it("suppresses reward work if account changes during habit await", async () => {
-    const pending = deferred<{ error: null }>();
-    mocks.habit.mockReturnValue(pending.promise);
-    const view = open();
-    view.select();
-    view.submit();
-    await flush();
-    expect(mocks.habit).toHaveBeenCalledTimes(1);
-    act(() => emit(B));
-    pending.resolve({ error: null });
-    await flush();
-    expect(mocks.perfect).not.toHaveBeenCalled();
-    noCompletion();
-  });
 });
 
-describe("real Perfect Day cancellation propagation", () => {
-  it("passes the actor intent through the real helper and stops after a deferred habit lookup", async () => {
-    const actual = await vi.importActual<typeof import("@/lib/perfectDay")>(
-      "@/lib/perfectDay"
-    );
-    mocks.perfect.mockImplementation(actual.awardPerfectDayIfComplete);
-    const pending = deferred<{ data: { habit_type: string }[]; error: null }>();
-    mocks.habitRead.mockReturnValue(pending.promise);
+describe("server receipt postcommit behavior", () => {
+  it.each([true, false])(
+    "uses confirmed server late=%s and timestamp across UTC midnight without client habit or Perfect Day authority",
+    async (isLate) => {
+      vi.setSystemTime(new Date("2099-05-02T00:00:00.100Z"));
+      mocks.single.mockImplementation(async () => ({
+        data: serverReceipt({ is_late: isLate }),
+        error: null,
+      }));
+      const view = open();
+      view.select();
+      view.submit();
+      await flush();
+      expect(mocks.habit).not.toHaveBeenCalled();
+      expect(mocks.habitRead).not.toHaveBeenCalled();
+      expect(mocks.perfect).not.toHaveBeenCalled();
+      expect(mocks.invoke).not.toHaveBeenCalled();
+      expect(mocks.analytics).toHaveBeenCalledWith(
+        "assignment_submitted",
+        expect.objectContaining({ is_late: isLate })
+      );
+      expect(mocks.activity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          student_id: A,
+          metadata: expect.objectContaining({
+            is_late: isLate,
+            submitted_at: "2099-05-01T23:59:59.900+00:00",
+            status: "submitted",
+          }),
+        })
+      );
+      expect(mocks.reward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          studentId: A,
+          xpAmount: isLate ? 15 : 25,
+          note: isLate ? "Late submission" : "On-time submission",
+        })
+      );
+    }
+  );
+
+  it("does not claim completion or request rewards while the receipt is pending", async () => {
+    const pending = deferred<{
+      data: ReturnType<typeof serverReceipt>;
+      error: null;
+    }>();
+    mocks.single.mockReturnValueOnce(pending.promise);
     const view = open();
     view.select();
     view.submit();
     await flush();
-    expect(mocks.habitRead).toHaveBeenCalledTimes(1);
-    act(() => emit(B));
-    pending.resolve({
-      data: ["login", "submit", "journal", "read"].map((habit_type) => ({
-        habit_type,
-      })),
-      error: null,
-    });
-    await flush();
-    expect(mocks.invoke).not.toHaveBeenCalled();
     noCompletion();
+    expect(mocks.audit).not.toHaveBeenCalled();
+    expect(mocks.habit).not.toHaveBeenCalled();
+    expect(mocks.perfect).not.toHaveBeenCalled();
+    pending.resolve({ data: serverReceipt(), error: null });
+    await flush();
+    expect(mocks.reward).toHaveBeenCalledTimes(1);
   });
 
-  it("does not start check-badges after switching during the real award-xp await", async () => {
-    const actual = await vi.importActual<typeof import("@/lib/perfectDay")>(
-      "@/lib/perfectDay"
-    );
-    mocks.perfect.mockImplementation(actual.awardPerfectDayIfComplete);
-    const pending = deferred<{ data: object; error: null }>();
-    mocks.invoke.mockReturnValueOnce(pending.promise);
+  it("keeps malformed receipt uncertainty locked against clear/reselection", async () => {
+    mocks.single.mockResolvedValueOnce({
+      data: { id: "missing-authoritative-fields" },
+      error: null,
+    });
     const view = open();
     view.select();
     view.submit();
     await flush();
-    expect(mocks.invoke).toHaveBeenCalledTimes(1);
-    expect(mocks.invoke.mock.calls[0]![1].body.student_id).toBe(A);
-    act(() => emit(B));
-    pending.resolve({ data: {}, error: null });
+    expect(
+      screen.getByText(
+        i18n.t("assignments.detail.submissionUnconfirmed", { ns: "student" })
+      )
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /clear file/i }));
+    view.select("receipt-bypass.txt");
+    view.submit();
     await flush();
-    expect(mocks.invoke.mock.calls.map((call) => call[0])).toEqual([
-      "award-xp",
-    ]);
+    expect(mocks.upload).toHaveBeenCalledTimes(1);
+    expect(mocks.insert).toHaveBeenCalledTimes(1);
     noCompletion();
+    expect(mocks.audit).not.toHaveBeenCalled();
   });
 });
 
@@ -590,7 +625,7 @@ describe("bounded upload/record recovery feedback", () => {
       expect(mocks.insert).toHaveBeenCalledTimes(1);
       pending.resolve(
         outcome === "confirm"
-          ? { data: { id: "receipt" }, error: null }
+          ? { data: serverReceipt(), error: null }
           : {
               data: null,
               error: {

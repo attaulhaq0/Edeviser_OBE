@@ -3,10 +3,11 @@
  *
  * Data-level CLO→PLO→ILO attainment-cascade regression suite. Executes only
  * against an explicitly configured Supabase PREVIEW branch (never production —
- * see guard.ts). All fixture writes use the service-role admin client; the
- * `trigger_attainment_rollup` trigger on `grades` is SECURITY DEFINER and fires
- * regardless of the writing client, so these tests exercise the REAL rollup
- * path end-to-end:
+ * see guard.ts). Structural fixtures and verification reads use the admin client;
+ * assignments/grades use the Teacher JWT and legal text receipts use the Student
+ * JWT. The latest replayed rollup and the 2026-09-20 live capture are INVOKER,
+ * not SECURITY DEFINER. Teacher-path failures must surface, never fall back to
+ * service-role grading. These tests exercise the REAL rollup path end-to-end:
  *
  *   grade insert → evidence rows (canonical PLO/ILO resolution)
  *     → outcome_attainment @ student_course (CLO)
@@ -19,10 +20,10 @@
  *   3.  Many-to-one (many CLOs → one PLO, weighted average).
  *   4.  Weight validation: any write leaving a child's incoming weights ≠ 1.0
  *       is rejected (deferred trg_outcome_mapping_weight_sum).
- *   5.  Grade update / reversal: evidence is idempotent per
- *       (student, submission, CLO); attainment recomputes from evidence.
- *   6.  Empty evidence: no grades ⇒ no attainment; unmapped CLOs are skipped
- *       without blocking sibling CLOs in the same assignment.
+ *   5.  Legacy grade update / reversal: evidence non-duplication and unchanged
+ *       attainment are regression expectations, NOT versioned-correction proof.
+ *   6.  Empty evidence: no grades ⇒ no attainment; the unmapped-CLO case pins
+ *       historical suppression and must expose source/live disagreement.
  *   7.  Duplicate mappings rejected (unique source/target pair).
  *   8.  Institution isolation: cross-institution mapping endpoints rejected.
  *
@@ -34,14 +35,22 @@
  *   - trigger_attainment_rollup: resolves canonical parent chain
  *     (source=parent WHERE target=child), evidence ON CONFLICT DO NOTHING,
  *     attainment upsert keyed by (outcome, student, course, scope).
+ *
+ * Current inspection caveat: replay source 20260907190000 skips unmapped CLOs
+ * and uses evidence ON CONFLICT DO NOTHING. The stored 2026-09-20 live function
+ * capture instead has a plain evidence INSERT. Both are INVOKER and catch/warn
+ * on rollup errors, so a successful grade response alone is not cascade proof.
+ * Keep the real evidence/attainment assertions below: do not weaken them, skip
+ * failures, synthesize evidence, or fix D3 status/reward SQL from this suite.
  */
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { signInAs, type RoleClient } from "./signIn";
 
 import { shouldRunRls } from "./guard";
 import {
   createAdminClient,
   seedRlsFixtures,
-  teardownRlsFixtures,
   type AdminClient,
   type SeededCtx,
 } from "./seed";
@@ -104,13 +113,49 @@ async function insertMapping(
   return data.id;
 }
 
-/**
- * Creates an assignment (with the given CLO weights), a submission for the
- * enrolled student, and a released grade — firing the real attainment-rollup
- * trigger. Returns the grade id.
- */
+/** Preallocated owned ids, retained even when request completion is unknown. */
+interface AcademicAttempt {
+  assignmentId: string;
+  submissionId: string;
+  gradeId: string;
+}
+
+const SAFE_WRITE_ERROR_CODES = new Set([
+  "22023",
+  "23502",
+  "23503",
+  "23505",
+  "23514",
+  "40001",
+  "40P01",
+  "42501",
+  "55000",
+  "P0001",
+  "PGRST116",
+  "PGRST204",
+  "PGRST205",
+  "PGRST301",
+  "PGRST302",
+]);
+
+function actorWriteFailure(
+  step: "Teacher JWT assignment" | "Student JWT receipt" | "Teacher JWT grade",
+  code?: string
+): Error {
+  const safeCode =
+    code === undefined
+      ? "NO_ROW"
+      : SAFE_WRITE_ERROR_CODES.has(code)
+      ? code
+      : "UNCLASSIFIED";
+  return new Error(`${step} failed (${safeCode})`);
+}
+
+/** Real Teacher assignment/grade and Student receipt; no privileged fallback. */
 async function gradeSubmission(
-  admin: AdminClient,
+  teacher: RoleClient,
+  student: RoleClient,
+  retainAttempt: (attempt: AcademicAttempt) => void,
   params: {
     ctx: SeededCtx;
     title: string;
@@ -119,9 +164,18 @@ async function gradeSubmission(
   }
 ): Promise<{ assignmentId: string; submissionId: string; gradeId: string }> {
   const { ctx } = params;
-  const assignment = await admin
+  const attempt: AcademicAttempt = {
+    assignmentId: randomUUID(),
+    submissionId: randomUUID(),
+    gradeId: randomUUID(),
+  };
+  // Retain the entire owning graph BEFORE dispatch, including unknown commits.
+  // Preallocated ids remain discoverable even if a response never arrives.
+  retainAttempt(attempt);
+  const assignment = await teacher
     .from("assignments")
     .insert({
+      id: attempt.assignmentId,
       course_id: ctx.courseId,
       created_by: ctx.teacherId,
       title: params.title,
@@ -135,28 +189,36 @@ async function gradeSubmission(
     .select("id")
     .single();
   if (assignment.error || !assignment.data) {
-    throw new Error(`assignment insert failed: ${assignment.error?.message}`);
+    throw actorWriteFailure("Teacher JWT assignment", assignment.error?.code);
   }
+  expect(assignment.data.id).toBe(attempt.assignmentId);
 
-  const submission = await admin
+  const submission = await student
     .from("submissions")
     .insert({
+      id: attempt.submissionId,
       assignment_id: assignment.data.id,
       student_id: ctx.studentId,
       text_content: `cascade-test submission ${params.title}`,
-      is_late: false,
-      submitted_at: new Date().toISOString(),
-      status: "submitted",
     })
-    .select("id")
+    .select("id, assignment_id, student_id, submitted_at, is_late, status")
     .single();
   if (submission.error || !submission.data) {
-    throw new Error(`submission insert failed: ${submission.error?.message}`);
+    throw actorWriteFailure("Student JWT receipt", submission.error?.code);
   }
+  expect(submission.data.id).toBe(attempt.submissionId);
+  expect(submission.data.assignment_id).toBe(attempt.assignmentId);
+  expect(submission.data.student_id).toBe(ctx.studentId);
+  expect(submission.data.status).toBe("submitted");
+  expect(submission.data.is_late).toBe(false);
+  expect(
+    Math.abs(Date.now() - Date.parse(submission.data.submitted_at))
+  ).toBeLessThan(5 * 60_000);
 
-  const grade = await admin
+  const grade = await teacher
     .from("grades")
     .insert({
+      id: attempt.gradeId,
       submission_id: submission.data.id,
       graded_by: ctx.teacherId,
       rubric_selections: [],
@@ -168,8 +230,9 @@ async function gradeSubmission(
     .select("id")
     .single();
   if (grade.error || !grade.data) {
-    throw new Error(`grade insert failed: ${grade.error?.message}`);
+    throw actorWriteFailure("Teacher JWT grade", grade.error?.code);
   }
+  expect(grade.data.id).toBe(attempt.gradeId);
 
   return {
     assignmentId: assignment.data.id,
@@ -181,11 +244,21 @@ async function gradeSubmission(
 run("OBE attainment cascade (task 1.6)", () => {
   let ctx: SeededCtx;
   let admin: AdminClient;
-  /** Every grade/submission/assignment created during the run (teardown). */
+  let student: RoleClient;
+  let teacher: RoleClient;
+  const academicAttempts: AcademicAttempt[] = [];
+  /** Record before any request; never treat a lost response as no committed row. */
+  function retainAttempt(attempt: AcademicAttempt): void {
+    academicAttempts.push(attempt);
+    console.info("[outcomeCascade retained attempt]", {
+      attemptedAcademicGraphs: academicAttempts.length,
+    });
+  }
+  /** Confirmed ids for retained-fixture diagnostics, NOT deletion. */
   const gradeIds: string[] = [];
   const submissionIds: string[] = [];
   const assignmentIds: string[] = [];
-  /** Outcome/mapping ids created during the run (teardown). */
+  /** Outcome/mapping ids in the retained owning academic graph. */
   const outcomeIds: string[] = [];
   const mappingIds: string[] = [];
   /** Foreign-institution fixtures (institution isolation case). */
@@ -196,47 +269,36 @@ run("OBE attainment cascade (task 1.6)", () => {
   beforeAll(async () => {
     ctx = await seedRlsFixtures();
     admin = createAdminClient();
+    // All fixtures remain owned/retained even if sign-in or the first write fails.
+    student = await signInAs(ctx.emails.student, ctx.password);
+    teacher = await signInAs(ctx.emails.teacher, ctx.password);
   });
 
   afterAll(async () => {
+    // Session release only. Never cascade-delete receipts, grades, evidence,
+    // habits, or their owning graph, including after an unknown commit outcome.
+    await Promise.allSettled([
+      student?.auth.signOut({ scope: "local" }),
+      teacher?.auth.signOut({ scope: "local" }),
+    ]);
     if (!ctx) return;
-    const a = createAdminClient();
-
-    // Dependency order: attainment/evidence/xp → grades → submissions →
-    // assignments → mappings → outcomes → foreign fixtures → base fixtures.
-    if (outcomeIds.length > 0) {
-      await a.from("outcome_attainment").delete().in("outcome_id", outcomeIds);
-    }
-    if (gradeIds.length > 0) {
-      await a.from("evidence").delete().in("grade_id", gradeIds);
-      await a.from("xp_transactions").delete().in("reference_id", gradeIds);
-      await a.from("grades").delete().in("id", gradeIds);
-    }
-    if (submissionIds.length > 0) {
-      await a.from("submissions").delete().in("id", submissionIds);
-    }
-    if (assignmentIds.length > 0) {
-      await a.from("assignments").delete().in("id", assignmentIds);
-    }
-    if (mappingIds.length > 0) {
-      await a.from("outcome_mappings").delete().in("id", mappingIds);
-    }
-    if (outcomeIds.length > 0) {
-      await a.from("learning_outcomes").delete().in("id", outcomeIds);
-    }
-    if (foreignPloId) {
-      await a.from("learning_outcomes").delete().eq("id", foreignPloId);
-    }
-    if (foreignProgramId) {
-      await a.from("programs").delete().eq("id", foreignProgramId);
-    }
-    if (foreignInstitutionId) {
-      await a.from("institutions").delete().eq("id", foreignInstitutionId);
-    }
-    await teardownRlsFixtures(ctx);
+    console.info(
+      "[outcomeCascade row cleanup incomplete; parent must dispose Git-linked PR Preview after closure]",
+      {
+        attemptedAcademicGraphs: academicAttempts.length,
+        confirmedGrades: gradeIds.length,
+        confirmedSubmissions: submissionIds.length,
+        confirmedAssignments: assignmentIds.length,
+        trackedOutcomes: outcomeIds.length,
+        trackedMappings: mappingIds.length,
+        foreignInstitutions: Number(foreignInstitutionId !== null),
+        foreignPrograms: Number(foreignProgramId !== null),
+        foreignOutcomes: Number(foreignPloId !== null),
+      }
+    );
   });
 
-  /** Registers ids for teardown and returns them unchanged. */
+  /** Registers retained graph ids and returns them unchanged. */
   function track(chain: ChainFixture): ChainFixture {
     outcomeIds.push(chain.iloId, ...chain.ploIds, ...chain.cloIds);
     assignmentIds.push(...chain.assignmentIds);
@@ -273,7 +335,7 @@ run("OBE attainment cascade (task 1.6)", () => {
       assignmentIds: [],
     });
 
-    const g = await gradeSubmission(admin, {
+    const g = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A 1:1 ${ctx.runId}`,
       cloWeights: [{ clo_id: clo, weight: 1 }],
@@ -383,13 +445,13 @@ run("OBE attainment cascade (task 1.6)", () => {
     });
 
     // Two separate assignments with different scores: CLOa=60, CLOb=100.
-    const gA = await gradeSubmission(admin, {
+    const gA = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A 1:N-a ${ctx.runId}`,
       cloWeights: [{ clo_id: cloA, weight: 1 }],
       scorePercent: 60,
     });
-    const gB = await gradeSubmission(admin, {
+    const gB = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A 1:N-b ${ctx.runId}`,
       cloWeights: [{ clo_id: cloB, weight: 1 }],
@@ -465,13 +527,13 @@ run("OBE attainment cascade (task 1.6)", () => {
       assignmentIds: [],
     });
 
-    const gA = await gradeSubmission(admin, {
+    const gA = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A N:1-a ${ctx.runId}`,
       cloWeights: [{ clo_id: cloA, weight: 1 }],
       scorePercent: 50,
     });
-    const gB = await gradeSubmission(admin, {
+    const gB = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A N:1-b ${ctx.runId}`,
       cloWeights: [{ clo_id: cloB, weight: 1 }],
@@ -549,6 +611,8 @@ run("OBE attainment cascade (task 1.6)", () => {
     // ONLY edge escapes the deferred sum-check because SUM(weight) over zero
     // remaining rows is NULL — the child silently becomes unmapped. This test
     // pins CURRENT behavior until the DB trigger is hardened.
+    // Approved exception: this exact case-specific edge has no assignment,
+    // receipt, grade or evidence references. It is not history/fixture cleanup.
     const deleteOnlyEdge = await admin
       .from("outcome_mappings")
       .delete()
@@ -586,7 +650,7 @@ run("OBE attainment cascade (task 1.6)", () => {
       assignmentIds: [],
     });
 
-    const g = await gradeSubmission(admin, {
+    const g = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A rev ${ctx.runId}`,
       cloWeights: [{ clo_id: clo, weight: 1 }],
@@ -598,11 +662,18 @@ run("OBE attainment cascade (task 1.6)", () => {
 
     // UPDATE the grade (re-grade lower): evidence must NOT duplicate
     // (unique student+submission+CLO, ON CONFLICT DO NOTHING).
-    const regrade = await admin
+    const regrade = await teacher
       .from("grades")
       .update({ score_percent: 60, total_score: 60 })
-      .eq("id", g.gradeId);
+      .eq("id", g.gradeId)
+      .select("id, score_percent, total_score")
+      .single();
     expect(regrade.error).toBeNull();
+    expect(regrade.data).toMatchObject({
+      id: g.gradeId,
+      score_percent: 60,
+      total_score: 60,
+    });
 
     const evidenceAfter = await admin
       .from("evidence")
@@ -621,11 +692,18 @@ run("OBE attainment cascade (task 1.6)", () => {
     expect(att.data?.attainment_percent).toBe(90);
 
     // REVERSAL: restore the original score — still exactly one evidence row.
-    const revert = await admin
+    const revert = await teacher
       .from("grades")
       .update({ score_percent: 90, total_score: 90 })
-      .eq("id", g.gradeId);
+      .eq("id", g.gradeId)
+      .select("id, score_percent, total_score")
+      .single();
     expect(revert.error).toBeNull();
+    expect(revert.data).toMatchObject({
+      id: g.gradeId,
+      score_percent: 90,
+      total_score: 90,
+    });
     const evidenceFinal = await admin
       .from("evidence")
       .select("id")
@@ -660,7 +738,7 @@ run("OBE attainment cascade (task 1.6)", () => {
     mappingIds.push(await insertMapping(admin, plo, cloMapped, 1));
     outcomeIds.push(plo, cloMapped, cloOrphan);
 
-    const g = await gradeSubmission(admin, {
+    const g = await gradeSubmission(teacher, student, retainAttempt, {
       ctx,
       title: `Cascade A empty ${ctx.runId}`,
       cloWeights: [
