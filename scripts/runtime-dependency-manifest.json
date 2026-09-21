@@ -61,6 +61,15 @@
       ]
     },
     {
+      "name": "course-reporting",
+      "deploymentOwner": "platform-runtime",
+      "functions": [{ "slug": "generate-course-file", "verifyJwt": true }],
+      "runtimeDependencyPaths": [
+        "supabase/functions/_shared/auth.ts",
+        "supabase/functions/_shared/serverSecret.ts"
+      ]
+    },
+    {
       "name": "identity-runtime",
       "deploymentOwner": "platform-runtime",
       "functions": [

@@ -23,7 +23,7 @@ const REQUIRED_HABITS = ["login", "submit", "journal", "read"] as const;
 export const PERFECT_DAY_XP = 50;
 
 export interface PerfectDayResult {
-  /** True when all 4 habits were present and the award was attempted. */
+  /** True when the uncancelled award flow completed; false does not undo an in-flight award. */
   awarded: boolean;
   /** The habit types recorded for the student today (deduplicated). */
   completedHabits: string[];
@@ -44,11 +44,12 @@ const todayUtc = (): string => new Date().toISOString().split("T")[0] as string;
  * a result so callers can react (e.g. celebrate) if useful.
  */
 export const awardPerfectDayIfComplete = async (
-  studentId: string
+  studentId: string,
+  signal?: AbortSignal
 ): Promise<PerfectDayResult> => {
   const date = todayUtc();
 
-  if (!studentId) {
+  if (!studentId || signal?.aborted) {
     return { awarded: false, completedHabits: [], date };
   }
 
@@ -59,6 +60,7 @@ export const awardPerfectDayIfComplete = async (
       .eq("student_id", studentId)
       .eq("date", date);
 
+    if (signal?.aborted) return { awarded: false, completedHabits: [], date };
     if (error) throw error;
 
     const completedHabits = [
@@ -69,7 +71,7 @@ export const awardPerfectDayIfComplete = async (
       completedHabits.includes(habit)
     );
 
-    if (!allComplete) {
+    if (!allComplete || signal?.aborted) {
       return { awarded: false, completedHabits, date };
     }
 
@@ -85,8 +87,12 @@ export const awardPerfectDayIfComplete = async (
         },
       });
     } catch {
-      console.error("[awardPerfectDayIfComplete] award-xp invocation failed");
+      if (!signal?.aborted)
+        console.error("[awardPerfectDayIfComplete] award-xp invocation failed");
     }
+
+    // An already-started award cannot be undone; cancellation stops the next call.
+    if (signal?.aborted) return { awarded: false, completedHabits, date };
 
     // Fire the perfect_day badge check.
     try {
@@ -97,14 +103,17 @@ export const awardPerfectDayIfComplete = async (
         },
       });
     } catch {
-      console.error(
-        "[awardPerfectDayIfComplete] check-badges invocation failed"
-      );
+      if (!signal?.aborted)
+        console.error(
+          "[awardPerfectDayIfComplete] check-badges invocation failed"
+        );
     }
 
+    if (signal?.aborted) return { awarded: false, completedHabits, date };
     return { awarded: true, completedHabits, date };
   } catch {
-    console.error("[awardPerfectDayIfComplete] habit_logs read failed");
+    if (!signal?.aborted)
+      console.error("[awardPerfectDayIfComplete] habit_logs read failed");
     return { awarded: false, completedHabits: [], date };
   }
 };

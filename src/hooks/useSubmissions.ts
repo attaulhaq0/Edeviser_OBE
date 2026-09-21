@@ -5,6 +5,15 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { submissionSchema } from "@/lib/schemas/submission";
+import { uploadSubmissionFile } from "@/lib/fileUpload";
+import {
+  assertSubmissionIntent,
+  verifySubmissionIntent,
+  SubmissionCancelledError,
+  SubmissionRecordError,
+  type SubmissionIntent,
+} from "@/lib/submissionIntent";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { awardPerfectDayIfComplete } from "@/lib/perfectDay";
@@ -209,6 +218,7 @@ export const usePendingSubmissions = (
 // ─── Mutation types ─────────────────────────────────────────────────────────
 
 export interface CreateSubmissionInput {
+  intent: SubmissionIntent;
   assignment_id: string;
   file_url: string;
   is_late: boolean;
@@ -273,28 +283,30 @@ const normalizeStudentAssignmentRows = (
 
 export const useCreateSubmission = () => {
   const queryClient = useQueryClient();
-  const { user: authUser } = useAuth();
-
   return useMutation({
     mutationFn: async (input: CreateSubmissionInput): Promise<Submission> => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { intent } = input;
+      await verifySubmissionIntent(intent);
+      assertSubmissionIntent(intent);
+
+      // Pin both file ownership and follow-up work to the selecting actor.
+      // Cancellation cannot undo a write already authorized and in flight.
+      const submissionInput = submissionSchema.parse({
+        assignment_id: input.assignment_id,
+        student_id: intent.actorId,
+        file_url: input.file_url,
+        is_late: input.is_late,
+      });
 
       // submissions table has no institution_id column; inherits from assignment FK
       const { data, error } = await supabase
         .from("submissions")
-        .insert({
-          assignment_id: input.assignment_id,
-          student_id: user.id,
-          file_url: input.file_url,
-          is_late: input.is_late,
-        })
+        .insert(submissionInput)
         .select()
         .single();
 
-      if (error) throw error;
+      assertSubmissionIntent(intent);
+      if (error) throw new SubmissionRecordError(error);
 
       const submission = data as unknown as Submission;
 
@@ -302,10 +314,11 @@ export const useCreateSubmission = () => {
         action: "create",
         entity_type: "submission",
         entity_id: submission.id,
-        changes: { ...input },
-        performed_by: authUser?.id ?? user.id,
+        changes: { ...submissionInput, institution_id: input.institution_id },
+        performed_by: intent.actorId,
       });
 
+      assertSubmissionIntent(intent);
       // Record the canonical 'submit' academic habit for today (UTC) and, if
       // this completes all 4 daily habits, award the idempotent Perfect Day.
       // Fire-and-forget: a habit-write failure must never break the submission.
@@ -313,21 +326,26 @@ export const useCreateSubmission = () => {
         const today = new Date().toISOString().split("T")[0] as string;
         await supabase.from("habit_logs").upsert(
           {
-            student_id: user.id,
+            student_id: intent.actorId,
             habit_type: "submit",
             date: today,
             completed_at: new Date().toISOString(),
           },
           { onConflict: "student_id,habit_type,date" }
         );
-        await awardPerfectDayIfComplete(user.id);
-      } catch {
+        assertSubmissionIntent(intent);
+        await awardPerfectDayIfComplete(intent.actorId, intent.signal);
+      } catch (error) {
+        if (error instanceof SubmissionCancelledError || intent.signal.aborted)
+          throw error;
         console.error("[useCreateSubmission] submit habit write failed");
       }
 
+      assertSubmissionIntent(intent);
       return submission;
     },
-    onSuccess: () => {
+    onSuccess: (_submission, input) => {
+      if (input.intent.signal.aborted) return;
       queryClient.invalidateQueries({
         queryKey: queryKeys.submissions.lists(),
       });
@@ -342,25 +360,20 @@ export const useCreateSubmission = () => {
 
 export interface UploadSubmissionFileParams {
   file: File;
-  assignmentId: string;
-  institutionId: string;
+  intent: SubmissionIntent;
 }
 
 export const useUploadSubmissionFile = () => {
   return useMutation({
     mutationFn: async (params: UploadSubmissionFileParams): Promise<string> => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { uploadSubmissionFile } = await import("@/lib/fileUpload");
-      return uploadSubmissionFile({
+      await verifySubmissionIntent(params.intent);
+      assertSubmissionIntent(params.intent);
+      const path = await uploadSubmissionFile({
         file: params.file,
-        assignmentId: params.assignmentId,
-        studentId: user.id,
-        institutionId: params.institutionId,
+        studentId: params.intent.actorId,
       });
+      assertSubmissionIntent(params.intent);
+      return path;
     },
   });
 };

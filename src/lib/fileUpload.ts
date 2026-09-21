@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { supabase } from "@/lib/supabase";
+import { submissionStoragePathSchema } from "@/lib/schemas/submission";
 import {
   ANNOUNCEMENT_ATTACHMENT_ALLOWED_TYPES,
   ANNOUNCEMENT_ATTACHMENT_MAX_SIZE_BYTES,
@@ -7,8 +9,9 @@ import {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
-const ALLOWED_EXTENSIONS = [
+export const SUBMISSION_MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = SUBMISSION_MAX_FILE_SIZE_MB * 1024 * 1024;
+export const SUBMISSION_ALLOWED_EXTENSIONS = [
   "pdf",
   "doc",
   "docx",
@@ -17,7 +20,10 @@ const ALLOWED_EXTENSIONS = [
   "jpg",
   "jpeg",
   "zip",
-];
+] as const;
+export const SUBMISSION_FILE_ACCEPT = SUBMISSION_ALLOWED_EXTENSIONS.map(
+  (extension) => `.${extension}`
+).join(",");
 const BUCKET_NAME = "submissions";
 
 const AVATAR_MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
@@ -81,11 +87,16 @@ export function validateFile(file: File): void {
   }
 
   const ext = getFileExtension(file.name);
-  if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+  if (
+    !ext ||
+    !SUBMISSION_ALLOWED_EXTENSIONS.some((extension) => extension === ext)
+  ) {
     throw new FileValidationError(
       `File type ".${
         ext || "(none)"
-      }" is not allowed. Accepted types: ${ALLOWED_EXTENSIONS.join(", ")}.`
+      }" is not allowed. Accepted types: ${SUBMISSION_ALLOWED_EXTENSIONS.join(
+        ", "
+      )}.`
     );
   }
 
@@ -97,26 +108,29 @@ export function validateFile(file: File): void {
 
 export interface UploadFileParams {
   file: File;
-  assignmentId: string;
+  /** Authenticated user.id supplied by useUploadSubmissionFile, never a profile/tenant id. */
   studentId: string;
-  institutionId: string;
 }
 
 export async function uploadSubmissionFile(
   params: UploadFileParams
 ): Promise<string> {
-  const { file, assignmentId, studentId, institutionId } = params;
+  const { file, studentId } = params;
 
   validateFile(file);
+  z.uuid().parse(studentId);
 
-  const timestamp = Date.now();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `${institutionId}/${assignmentId}/${studentId}/${timestamp}_${safeName}`;
+  // Storage RLS checks the FIRST folder against auth.uid(). Tenant and
+  // assignment scope belong to the submission row, not ahead of this prefix.
+  // Use the same collision-resistant naming as tutor/announcement attachments.
+  const path = submissionStoragePathSchema.parse(
+    `${studentId}/${crypto.randomUUID()}-${safeName}`
+  );
 
-  // Guard against path traversal in the constructed storage path
-  assertNoPathTraversal(path);
-
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(path, file);
+  const { error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(path, file, { upsert: false });
 
   if (error) {
     throw new Error(`Upload failed: ${error.message}`);

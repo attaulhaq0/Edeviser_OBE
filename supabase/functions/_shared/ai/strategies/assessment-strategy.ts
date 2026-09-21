@@ -63,7 +63,7 @@ const percentStrategy: AssessmentStrategy = {
 };
 
 const criterionStrategy: AssessmentStrategy = {
-  name: "IB MYP Criterion (A-D × 0-8)",
+  name: "Criterion (configured levels; analytical normalization)",
   model: "criterion",
   validateRawScore(raw: unknown) {
     if (!raw || typeof raw !== "object")
@@ -102,7 +102,7 @@ const criterionStrategy: AssessmentStrategy = {
 };
 
 const bandGradeStrategy: AssessmentStrategy = {
-  name: "IGCSE Band Grade (AO-weighted)",
+  name: "Band/grade (configured objective-weighted analytics)",
   model: "band_grade",
   validateRawScore(raw: unknown) {
     if (!raw || typeof raw !== "object")
@@ -186,8 +186,12 @@ const STRATEGIES: ReadonlyMap<AssessmentModel, AssessmentStrategy> = new Map([
   ["component", componentStrategy],
 ]);
 
-export const getAssessmentStrategy = (model: string): AssessmentStrategy =>
-  STRATEGIES.get(model as AssessmentModel) ?? percentStrategy;
+/** An explicit unsupported model must never silently become percent. */
+export const getAssessmentStrategy = (model: string): AssessmentStrategy => {
+  const strategy = STRATEGIES.get(model as AssessmentModel);
+  if (!strategy) throw new Error(`Unsupported assessment model: ${model}`);
+  return strategy;
+};
 
 export const hasDedicatedStrategy = (model: string): boolean =>
   STRATEGIES.has(model as AssessmentModel) && model !== "percent";

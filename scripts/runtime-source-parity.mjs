@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, extname, join, relative, resolve } from "node:path";
+import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { matchesRuntimeDependencyPath } from "./runtime-dependency-paths.mjs";
 
@@ -23,10 +23,51 @@ const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 export const normalizeRuntimeSource = (source) =>
   source.replaceAll("\r\n", "\n");
 
-const stripComments = (source) =>
-  source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, (comment) =>
-    comment.replace(/[^\r\n]/g, " ")
-  );
+// Preserve quoted URL/string contents: treating the // inside an HTTPS import
+// as a comment removes its closing quote and can swallow the next local import.
+const stripComments = (source) => {
+  const result = [...source];
+  // Interpolations are code again, including nested templates and object braces.
+  // This remains a bounded scanner, not a complete JavaScript/TypeScript parser.
+  const frames = [{ kind: "code", interpolation: false, depth: 0 }];
+  let comment = null;
+  for (let index = 0; index < result.length; index++) {
+    const char = result[index];
+    const next = result[index + 1];
+    if (comment) {
+      if (comment === "line" && (char === "\n" || char === "\r")) {
+        comment = null;
+      } else if (comment === "block" && char === "*" && next === "/") {
+        result[index] = result[++index] = " ";
+        comment = null;
+      } else if (char !== "\n" && char !== "\r") result[index] = " ";
+      continue;
+    }
+    const frame = frames.at(-1);
+    if (frame.kind === "string" || frame.kind === "template") {
+      if (frame.escaped) frame.escaped = false;
+      else if (char === "\\") frame.escaped = true;
+      else if (char === frame.quote) frames.pop();
+      else if (frame.kind === "template" && char === "$" && next === "{") {
+        frames.push({ kind: "code", interpolation: true, depth: 0 });
+        index++;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") {
+      frames.push({ kind: char === "`" ? "template" : "string", quote: char, escaped: false });
+    } else if (char === "/" && (next === "/" || next === "*")) {
+      comment = next === "/" ? "line" : "block";
+      result[index] = result[++index] = " ";
+    } else if (frame.interpolation && char === "{") {
+      frame.depth++;
+    } else if (frame.interpolation && char === "}") {
+      if (frame.depth === 0) frames.pop();
+      else frame.depth--;
+    }
+  }
+  return result.join("");
+};
 
 export const relativeImportSpecifiers = (source) =>
   [
@@ -74,7 +115,7 @@ export const declaredLocalSourceClosure = (slug, runtimeDependencyPaths) => {
           )} imports missing local dependency ${specifier}`
         );
       if (
-        !dependency.startsWith(resolve(FUNCTION_ROOT, slug)) &&
+        !dependency.startsWith(resolve(FUNCTION_ROOT, slug) + sep) &&
         !runtimeDependencyPaths.some((path) =>
           matchesRuntimeDependencyPath(
             `supabase/${localLogicalPath(dependency)}`,

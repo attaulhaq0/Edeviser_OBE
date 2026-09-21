@@ -16,13 +16,16 @@ import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import * as fs from "fs";
 import * as path from "path";
+import { readEdgeSourceClosure } from "@/__tests__/helpers/edgeSourceClosure";
 
 // Resolve the project root for fs-based source reading (mirrors supabaseAuditFaults.property.test.ts).
 const projectRoot = path.resolve(__dirname, "../../..");
 
 const readFileSafe = (relPath: string): string => {
   const fullPath = path.join(projectRoot, relPath);
-  return fs.readFileSync(fullPath, "utf-8");
+  return relPath === "supabase/functions/generate-course-file/index.ts"
+    ? readEdgeSourceClosure(fullPath)
+    : fs.readFileSync(fullPath, "utf-8");
 };
 
 // ─── Role-gated targets under test (the `isRoleGateBug` surface) ─────────────

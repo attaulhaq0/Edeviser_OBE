@@ -7,8 +7,8 @@
 // Generate Course File section.
 // =============================================================================
 
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 vi.mock("react-i18next", () => ({
@@ -22,24 +22,39 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ institutionId: "inst-1" }),
 }));
 
+const readinessState = vi.hoisted(() => ({
+  isError: false,
+  empty: false,
+  refetch: vi.fn(),
+}));
+beforeEach(() => {
+  readinessState.isError = false;
+  readinessState.empty = false;
+});
 vi.mock("@/hooks/useCoordinatorAccreditation", () => ({
   useCoordinatorAccreditationReadiness: () => ({
     data: {
-      readinessPercent: 86,
-      documented: 3,
-      partial: 1,
-      blocked: 1,
+      readinessPercent: 100,
+      documented: 4,
+      partial: 0,
+      blocked: 0,
       notStarted: 0,
       courses: [
         { code: "SCI7", name: "Science 7", status: "documented" },
         { code: "MATH6", name: "Mathematics 6", status: "blocked" },
       ],
-      pack: [
-        { key: "cloMapping", state: "done" },
-        { key: "cqi", state: "prog" },
-      ],
+      pack: readinessState.empty
+        ? []
+        : [
+            { key: "cloMapping", state: "done" },
+            { key: "samples", state: "done" },
+            { key: "analysis", state: "done" },
+            { key: "cqi", state: "prog" },
+          ],
     },
     isPending: false,
+    isError: readinessState.isError,
+    refetch: readinessState.refetch,
   }),
   useAccreditationApprovals: () => ({ data: [] }),
 }));
@@ -74,10 +89,45 @@ describe("CoordinatorAccreditationNew", () => {
     expect(screen.getByText("accreditation.workflow")).toBeInTheDocument();
   });
 
-  it("wires the real readiness percent from the RPC", () => {
+  it("shows the same checklist denominator as the CQI status, not 100% course coverage", () => {
     renderPage();
-    // 86% renders in both the MasteryRing label and the hero text.
-    expect(screen.getAllByText("86%").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("75%").length).toBeGreaterThan(0);
+    expect(screen.queryByText("100%")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("accreditation.complete").parentElement
+    ).toHaveTextContent("3");
+    expect(
+      screen.getByText("accreditation.inProgress").parentElement
+    ).toHaveTextContent("1");
+    expect(
+      screen.getByText("accreditation.packCqi").closest("li")
+    ).toHaveTextContent("accreditation.packInProgress");
+    expect(
+      screen.getByText("accreditation.packCompletionDisclaimer")
+    ).toBeInTheDocument();
+  });
+
+  it("does not show a percentage for an empty checklist", () => {
+    readinessState.empty = true;
+    renderPage();
+    expect(screen.queryByText("75%")).not.toBeInTheDocument();
+    expect(
+      screen.getAllByText("accreditation.packCompletionUnknown").length
+    ).toBeGreaterThan(0);
+  });
+
+  it("renders query errors explicitly and suppresses stale completion data", () => {
+    readinessState.isError = true;
+    renderPage();
+    expect(
+      within(screen.getByRole("alert")).getByText(
+        "accreditation.readinessUnavailable"
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByText("75%")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "accreditation.readinessRetry" })
+    ).toBeInTheDocument();
   });
 
   it("renders real course evidence status cards from the RPC", () => {

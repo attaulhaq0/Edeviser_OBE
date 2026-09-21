@@ -149,7 +149,7 @@ const systemPrompt = (context: AgentExecutionContext): string =>
     ...(context.framework
       ? [
           `Framework context: assessmentModel=${
-            context.framework.assessmentModel ?? "percent"
+            context.framework.assessmentModel ?? "unconfigured"
           }, accreditation=${
             context.framework.primaryAccreditation ?? "none"
           }, language=${context.framework.defaultLanguage ?? "en"}.`,
@@ -163,9 +163,9 @@ const systemPrompt = (context: AgentExecutionContext): string =>
               )}).`
             : "",
           context.framework.accreditationBodies?.length
-            ? `Accreditation bodies: ${context.framework.accreditationBodies.map(
-                (b) => b.slice(0, 100)
-              ).join(", ")}.`
+            ? `Accreditation bodies: ${context.framework.accreditationBodies
+                .map((b) => b.slice(0, 100))
+                .join(", ")}.`
             : "",
         ]
           .filter(Boolean)

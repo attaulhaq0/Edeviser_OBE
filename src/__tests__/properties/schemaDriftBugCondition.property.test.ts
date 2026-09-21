@@ -20,13 +20,16 @@ import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import * as fs from "fs";
 import * as path from "path";
+import { readEdgeSourceClosure } from "@/__tests__/helpers/edgeSourceClosure";
 
 // Resolve the project root for fs-based source reading (mirrors roleGateBugCondition.property.test.ts).
 const projectRoot = path.resolve(__dirname, "../../..");
 
 const readFileSafe = (relPath: string): string => {
   const fullPath = path.join(projectRoot, relPath);
-  return fs.readFileSync(fullPath, "utf-8");
+  return relPath === "supabase/functions/generate-course-file/index.ts"
+    ? readEdgeSourceClosure(fullPath)
+    : fs.readFileSync(fullPath, "utf-8");
 };
 
 const ACCRED_FILE = "supabase/functions/generate-accreditation-report/index.ts";
@@ -84,9 +87,10 @@ const DRIFT_SURFACES: readonly DriftSurface[] = [
     file: COURSE_FILE,
     // Pre-migration: reads score_percent off the submissions select.
     deadPattern:
-      /submissions[\s\S]{0,120}?\.select\(\s*["'][^"']*score_percent[^"']*["']/,
-    // Post-fix: scores are read from the grades table.
-    livePattern: /\.from\(\s*["']grades["']\s*\)/,
+      /\.from\(\s*["']submissions["']\s*\)\s*\.select\(\s*["'][^"']*score_percent[^"']*["']/,
+    // Bind to the actual query chain, not a nearby variable named submissions.
+    livePattern:
+      /\.from\(\s*["']grades["']\s*\)\s*\.select\(\s*["'][^"']*score_percent[^"']*["']/,
   },
   {
     label:
@@ -172,8 +176,36 @@ describe("Property 2: Bug Condition — affected selects are guarded with if (er
     ["generate-course-file", COURSE_FILE] as const,
   ])("%s guards its data selects so a future drift throws", (_label, file) => {
     const source = readFileSafe(file);
-    const guardCount = countErrorThrowGuards(source);
-    expect(guardCount).toBeGreaterThanOrEqual(MIN_ERROR_GUARDS);
+    if (file === COURSE_FILE) {
+      // Extracted production readers guard every select centrally; do not count
+      // duplicated throw statements as if they were the only safe implementation.
+      const handler = fs.readFileSync(
+        path.join(
+          projectRoot,
+          "supabase/functions/generate-course-file/handler.ts"
+        ),
+        "utf8"
+      );
+      // Query chains may be wrapped by the required formatter. Keep the
+      // same guard-count assertion without depending on line layout.
+      const reads = handler.match(/db\s*\.\s*from\s*\(/g) ?? [];
+      const guardedReads =
+        handler.match(
+          /await\s+(?:rows|single)<\w+>\s*\(\s*db\s*\.\s*from\s*\(/g
+        ) ?? [];
+      expect(reads.length).toBeGreaterThanOrEqual(MIN_ERROR_GUARDS);
+      expect(guardedReads.length).toBe(reads.length);
+      expect(
+        handler.match(
+          /if \(result\.error\) throw new CourseFileError\("DATA_UNAVAILABLE", 503\)/g
+        )
+      ).toHaveLength(2);
+      expect(handler).toContain("result.data.length !== result.count");
+      // Runtime failure injection for each query is in courseFileHandler.test.ts.
+    } else {
+      const guardCount = countErrorThrowGuards(source);
+      expect(guardCount).toBeGreaterThanOrEqual(MIN_ERROR_GUARDS);
+    }
   });
 });
 
