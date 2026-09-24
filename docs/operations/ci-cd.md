@@ -2,7 +2,7 @@
 
 ## Branch Protection Rules
 
-Configure these on GitHub under Settings → Branches → Branch protection rules for `main`:
+Recommended configuration for `main` under GitHub Settings → Branches. This document is not evidence that each check is currently required; verify the live ruleset before a release:
 
 - Require pull request reviews before merging (1 reviewer minimum)
 - Require status checks to pass: `lint`, `typecheck`, `test`, `build`, `lighthouse`, `bundle-size`
@@ -17,10 +17,12 @@ Configure these on GitHub under Settings → Branches → Branch protection rule
 | typecheck      | push/PR                   | `tsc --noEmit`                  |
 | test           | push/PR                   | Vitest unit + property tests    |
 | build          | after lint+typecheck+test | Vite production build           |
-| lighthouse     | after build               | Performance budget assertions   |
-| bundle-size    | after build               | Gzipped JS < 500KB check        |
+| lighthouse     | after build               | Three local built-surface runs: error-level accessibility, best-practices, SEO and network byte-weight; performance scores/timings are warn-only. Not authenticated role performance. |
+| bundle-size    | after build               | All emitted route JS chunks combined: 1800KB gzipped ceiling, **not** initial transfer. |
 | e2e            | after build               | Playwright E2E tests (chromium) |
 | sentry-release | main push only            | Source map upload to Sentry     |
+
+LHCI collection failure is a failed check, not a passing performance result. `lighthouserc.cjs` uploads reports to temporary public storage in hosted autorun; use synthetic/approved data and review contents before calling them publishable. Local `lhci collect`/`lhci assert` can be run separately without upload. A green warn-only performance score is not a customer-ready or full-route speed attestation.
 
 ## Required Secrets
 

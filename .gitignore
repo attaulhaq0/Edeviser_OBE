@@ -62,6 +62,9 @@ tsconfig.tsbuildinfo
 # Coverage reports
 coverage/
 
+# Local Lighthouse captures can contain URLs and page state; keep them out of Git.
+.lighthouseci/
+
 # Local diagnostic output (lint/tsc/test runs)
 tsc_*.txt
 lint_*.txt

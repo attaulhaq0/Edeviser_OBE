@@ -205,7 +205,9 @@ jobs:
           path: dist/
 
       - name: Run Lighthouse CI
-        run: npx @lhci/cli autorun || true
+        # Perf score and timing remain warn-only in lighthouserc.cjs; error-level
+        # accessibility, best-practices, SEO and byte-weight assertions fail this job.
+        run: npm run lighthouse
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
@@ -262,11 +264,10 @@ jobs:
         run: |
           # Total gzipped JS budget across ALL chunks (including lazy-loaded
           # route chunks, not just initial load). Initial dashboard load is
-          # enforced separately by Lighthouse CI. Raised to 1500KB after the
-          # student-experience remediation added many new code-split routes
-          # (planner, journal, leaderboard, habits, tutor, marketplace, teams)
-          # and the live admin/coordinator prototype-parity surfaces. This is
-          # an aggregate all-route ceiling, not an initial-load allowance.
+          # NOT an initial/role-route transfer limit. Lighthouse tests a local
+          # built public surface; its performance metrics are warn-only, and
+          # its error-level total-byte-weight measures a different network
+          # quantity. This is an all-route gzipped-JS ceiling.
           MAX_SIZE_KB=1800
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
