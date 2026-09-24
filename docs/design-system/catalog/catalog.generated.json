@@ -167,7 +167,7 @@
     },
     {
       "path": "src/design-system/patterns/HeroCarousel.tsx",
-      "sha256": "27665e18f3aadd90d55948eb8745a6a0525df955b6fd9074411f8a5d753fb1e1"
+      "sha256": "9a5e3b60ffb099abdd0af4032034799b773015d00bd7e7d6005f8dd46641c534"
     },
     {
       "path": "src/design-system/patterns/KPICard.tsx",
@@ -234,8 +234,20 @@
       "sha256": "174273b33db049d2d1d1feba7ec45dbdf2b009a0e586f7357b4ea68d84185538"
     },
     {
+      "path": "src/lib/accessibilityPreferenceOwner.ts",
+      "sha256": "575deb2c7e1e4c072d6666a6f8f80b17f968b4099e964e3d8cb59b663a75e848"
+    },
+    {
+      "path": "src/lib/accessibilityPreferences.ts",
+      "sha256": "d1c00f7b86919a54167976a3c0a666e7f350928071fa43c562cfff7420d3b067"
+    },
+    {
       "path": "src/lib/displayName.ts",
       "sha256": "5c8a8e5c21dcaaa9af35325aa8179165828bcc22fd1eaab9b33ccfced079f236"
+    },
+    {
+      "path": "src/lib/fontPreferences.ts",
+      "sha256": "b1e1351feb3a5ebbc53ec4b95da0668ba98d14ee8d2c767cb6f833194590008c"
     },
     {
       "path": "src/lib/mascotGuidance.ts",
@@ -246,12 +258,20 @@
       "sha256": "d1f1e0d62cb8d8d1e04c26e14de842d8a151f75812d81b046c65b5d1fe8e4b27"
     },
     {
+      "path": "src/providers/AccessibilityPreferencesContext.ts",
+      "sha256": "eb7f458ba2efc2dde29fe3e82631b5ac60e6643f49b074816b1d4a839e1d3925"
+    },
+    {
       "path": "src/runtime-dependency-governance.d.ts",
       "sha256": "a2e7cffcffb51978b2024c7b0752cc7aad9dd206ef6cac1b8963eca8382f8514"
     },
     {
       "path": "src/types/app.ts",
       "sha256": "5079c96819e16d20c562a9c21af992b17b283ec0ce36fe53466847e6731be776"
+    },
+    {
+      "path": "src/types/database.ts",
+      "sha256": "297470af691b00bf2de9ce38c1c409d0e93decc0cb796d59a45cb17487f70834"
     },
     {
       "path": "src/types/deno-remote.d.ts",
@@ -951,7 +971,7 @@
             },
             {
               "name": "variant",
-              "type": "\"loading\" | \"empty\" | \"error\" | \"partial\" | \"permission\"",
+              "type": "\"loading\" | \"error\" | \"empty\" | \"partial\" | \"permission\"",
               "optional": false,
               "documentation": null,
               "declarations": [

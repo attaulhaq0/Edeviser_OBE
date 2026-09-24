@@ -17,7 +17,7 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    i18n: { language: "en", changeLanguage: () => Promise.resolve() },
+    i18n: { language: "en", dir: () => "ltr", changeLanguage: () => Promise.resolve() },
   }),
 }));
 

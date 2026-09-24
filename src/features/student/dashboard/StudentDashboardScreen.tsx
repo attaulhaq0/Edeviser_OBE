@@ -443,6 +443,7 @@ const StudentDashboardScreen = () => {
       {/* ── Hero carousel (living greeting · streak · league standing) ── */}
       <HeroCarousel
         slides={heroSlides}
+        theme="light"
         className="rounded-2xl border border-slate-200/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs"
         ariaLabel={t("dashboard.hero.label", "Highlights")}
       />

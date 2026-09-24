@@ -227,7 +227,7 @@ Native properties omitted: 0. Native React/DOM properties are not expanded here.
 | action | yes | `ReactNode` |
 | className | yes | `string \| undefined` |
 | message | yes | `string \| undefined` |
-| variant | no | `"loading" \| "empty" \| "error" \| "partial" \| "permission"` |
+| variant | no | `"loading" \| "error" \| "empty" \| "partial" \| "permission"` |
 
 Evidence references (not execution attestation):
 - [test-source](../../../src/__tests__/unit/designSystemPatterns.test.tsx): Localized variants and action/announcement contracts; not live data or whole-app accessibility.

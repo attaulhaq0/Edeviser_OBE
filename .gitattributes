@@ -2,3 +2,8 @@
 # Several existing docs/pdf files are committed as regular blobs, so applying
 # an LFS filter here makes Vercel's checkout fail before the build starts.
 docs/pdf/**/*.pdf -filter -diff -merge -text
+
+# Vitest/Node ESM imports of these tooling entrypoints require physical LF on Windows.
+scripts/design-catalog/generate.mjs text eol=lf
+scripts/design-lint/check.mjs text eol=lf
+scripts/design-policy/repository.mjs text eol=lf

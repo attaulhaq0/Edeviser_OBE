@@ -27,7 +27,12 @@
     "previous": "Previous slide",
     "next": "Next slide",
     "slideOf": "{{current}} of {{total}}",
-    "goTo": "Go to slide {{number}}"
+    "goTo": "Go to slide {{number}}",
+    "label": "Highlights",
+    "controls": "Carousel controls",
+    "position": "Choose a slide",
+    "pause": "Pause automatic slides",
+    "play": "Resume automatic slides"
   },
   "nav": {
     "dashboard": "Dashboard",
