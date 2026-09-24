@@ -31,6 +31,9 @@ export interface HeroCarouselProps {
   autoAdvanceMs?: number;
   /** Accessible name for the carousel region. */
   ariaLabel?: string;
+  /** Arrow/dot colour theme. "dark" = white chrome (legacy, for dark hero BGs).
+   *  "light" = slate chrome (for white/glass hero BGs — Toddle-aligned). */
+  theme?: "dark" | "light";
 }
 
 /**
@@ -43,7 +46,9 @@ const HeroCarousel = ({
   style,
   autoAdvanceMs = 7000,
   ariaLabel = "Highlights",
+  theme = "dark",
 }: HeroCarouselProps) => {
+  const isLight = theme === "light";
   const { t } = useTranslation("common");
   const count = slides.length;
   const [index, setIndex] = useState(0);
@@ -104,7 +109,12 @@ const HeroCarousel = ({
             size="icon-xs"
             onClick={() => go(current - 1)}
             aria-label={t("carousel.previous")}
-            className="absolute start-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white hover:bg-white/25 hover:text-white"
+            className={cn(
+              "absolute start-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full text-xs leading-none",
+              isLight
+                ? "border border-border bg-card/80 text-slate-700 hover:bg-card hover:text-slate-900"
+                : "border border-white/20 bg-white/[.14] text-white hover:bg-white/25 hover:text-white"
+            )}
           >
             <span aria-hidden="true">&lsaquo;</span>
           </Button>
@@ -114,7 +124,12 @@ const HeroCarousel = ({
             size="icon-xs"
             onClick={() => go(current + 1)}
             aria-label={t("carousel.next")}
-            className="absolute end-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white hover:bg-white/25 hover:text-white"
+            className={cn(
+              "absolute end-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full text-xs leading-none",
+              isLight
+                ? "border border-border bg-card/80 text-slate-700 hover:bg-card hover:text-slate-900"
+                : "border border-white/20 bg-white/[.14] text-white hover:bg-white/25 hover:text-white"
+            )}
           >
             <span aria-hidden="true">&rsaquo;</span>
           </Button>
@@ -155,8 +170,14 @@ const HeroCarousel = ({
               aria-label={t("carousel.goTo", { number: i + 1 })}
               aria-current={i === current}
               className={cn(
-                "!h-1 min-h-0 rounded-sm p-0 transition-all duration-150 hover:bg-white/50",
-                i === current ? "!w-[22px] bg-white" : "!w-4 bg-white/25"
+                "!h-1 min-h-0 rounded-sm p-0 transition-all duration-150",
+                isLight
+                  ? i === current
+                    ? "!w-[22px] bg-slate-700 hover:bg-slate-900"
+                    : "!w-4 bg-slate-300 hover:bg-slate-400"
+                  : i === current
+                    ? "!w-[22px] bg-white"
+                    : "!w-4 bg-white/25 hover:bg-white/50"
               )}
             />
           ))}

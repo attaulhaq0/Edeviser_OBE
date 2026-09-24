@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import * as fc from "fast-check";
 import { getDirection, applyDirection } from "@/lib/directionManager";
 
-const supportedLangArb = fc.constantFrom("en", "ar");
+const supportedLangArb = fc.constantFrom("en", "ar", "ar-QA", "en-GB");
 const anyLangArb = fc.constantFrom(
   "en",
   "ar",
@@ -40,7 +40,8 @@ describe("Property 4 — Direction Manager idempotence", () => {
 
         expect(dir1).toBe(dir2);
         expect(lang1).toBe(lang2);
-        expect(font1).toBe(font2);
+        expect(font1).toBe("");
+        expect(font2).toBe("");
       }),
       { numRuns: 100 }
     );

@@ -1,10 +1,11 @@
 import { BrowserRouter } from "react-router-dom";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MotionConfig } from "framer-motion";
+import { AccessibilityPreferencesProvider } from "@/providers/AccessibilityPreferencesProvider";
+import { AccessibilityMotion } from "@/providers/AccessibilityMotion";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
-import { Toaster } from "@/components/ui/sonner";
+import AppToaster from "@/components/shared/AppToaster";
 import GamificationFeedbackHost from "@/components/shared/GamificationFeedbackHost";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -34,19 +35,21 @@ const App = () => (
     <BrowserRouter>
       <NuqsAdapter>
         <QueryClientProvider client={queryClient}>
-          <MotionConfig reducedMotion="user">
-            <AuthProvider>
-              <LanguageProvider>
-                <ThemeProvider>
-                  <SkipToMain />
-                  <AppRouter />
-                  <GamificationFeedbackHost />
-                  <CookieConsentBanner />
-                  <Toaster richColors position="bottom-center" />
-                </ThemeProvider>
-              </LanguageProvider>
-            </AuthProvider>
-          </MotionConfig>
+          <AuthProvider>
+            <LanguageProvider>
+              <ThemeProvider>
+                <AccessibilityPreferencesProvider>
+                  <AccessibilityMotion>
+                    <SkipToMain />
+                    <AppRouter />
+                    <GamificationFeedbackHost />
+                    <CookieConsentBanner />
+                    <AppToaster />
+                  </AccessibilityMotion>
+                </AccessibilityPreferencesProvider>
+              </ThemeProvider>
+            </LanguageProvider>
+          </AuthProvider>
           {import.meta.env.DEV && (
             <Suspense>
               <ReactQueryDevtoolsLazy initialIsOpen={false} />

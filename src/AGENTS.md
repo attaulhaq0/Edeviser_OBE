@@ -2,6 +2,8 @@
 
 Scope: React SPA. Root [`AGENTS.md`](../AGENTS.md) applies; this file adds frontend specifics.
 
+For design/component decisions, first read [`design-system/README.md`](design-system/README.md). Use its current owner/import map; distinguish approved implementations, migration references and proposals. Passing ESLint alone does not establish semantic design-system adoption.
+
 ## Layering & boundaries
 
 - `app/` — router, providers, layouts, role guards. Route registry only; no business logic.
@@ -15,7 +17,7 @@ Scope: React SPA. Root [`AGENTS.md`](../AGENTS.md) applies; this file adds front
 - `lib/` = framework-free business logic and clients. No React imports allowed here.
 - `pages/{role}/` are thin route targets that compose features/components.
 
-## Conventions (enforced by review + lint)
+## Conventions (review required; lint covers its configured subset)
 
 - No `any` — use `unknown` + type guards.
 - Logical CSS utilities only: `ms-/me-/ps-/pe-` (never `ml-/mr-/pl-/pr-`).
@@ -32,6 +34,8 @@ Scope: React SPA. Root [`AGENTS.md`](../AGENTS.md) applies; this file adds front
   Hand-written domain types go in `types/domain/`.
 
 ## Testing
+
+The unit/property Vitest configuration fixes fake loopback Supabase values locally and in CI, and its setup blocks accidental traffic to that origin. Do not restore deployment-secret fallbacks or rely on `CI=true` to activate that protection. Other HTTP must still be mocked explicitly; this is not a general network sandbox. Real Preview RLS tests use their separate guarded configuration and do not load unit setup.
 
 - Unit/component tests colocated as `*.test.ts(x)` or under `src/__tests__/unit/`.
 - Property tests: `src/__tests__/properties/*.property.test.ts` (fast-check, ≥100 iterations,

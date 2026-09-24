@@ -8,8 +8,9 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebouncedProfilePreference } from "@/hooks/useDebouncedProfilePreference";
+import { observeThemeColor } from "@/lib/themeColor";
 
 export type ThemePreference = "light" | "dark" | "system";
 
@@ -72,7 +73,9 @@ function subscribeSystemTheme(callback: () => void) {
 // ─── Provider ───────────────────────────────────────────────────────────────
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
+  const userId = user?.id;
+  const commitPreference = useDebouncedProfilePreference(userId);
   const theme = useSyncExternalStore(
     subscribeThemeStore,
     getStoredTheme,
@@ -83,12 +86,16 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     getSystemTheme,
     () => "light" as const
   );
-  const profileSyncedRef = useRef(false);
-  // Debounce timer ref — prevents multiple DB writes on rapid theme changes
-  const dbWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locallyChosenRef = useRef(false);
 
   const resolvedTheme = theme === "system" ? systemTheme : theme;
-  const profilePref = profile?.theme_preference;
+  // Auth can change before its new profile finishes loading. Never hydrate the
+  // previous account's profile into the next account's preference state.
+  const profilePref = profile?.id === userId ? profile?.theme_preference : undefined;
+
+  useEffect(() => {
+    locallyChosenRef.current = false;
+  }, [userId]);
 
   // Apply class to html element
   useEffect(() => {
@@ -97,46 +104,31 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     root.classList.add(resolvedTheme);
   }, [resolvedTheme]);
 
-  // Sync from profile on first load (one-time hydration)
+  // Browser chrome follows the resolved semantic background, including live
+  // high-contrast changes made by the separate accessibility rendering owner.
+  useEffect(() => observeThemeColor(document), []);
+
+  // Hydrate each identity, including cache → fresh-profile updates, unless the
+  // user has already made a newer local choice during this session.
   useEffect(() => {
     if (
-      !profileSyncedRef.current &&
+      userId &&
+      !locallyChosenRef.current &&
       profilePref &&
       ["light", "dark", "system"].includes(profilePref)
     ) {
-      profileSyncedRef.current = true;
       setStoredTheme(profilePref as ThemePreference);
     }
-  }, [profilePref]);
-
-  const profileId = profile?.id;
+  }, [userId, profilePref]);
 
   const setTheme = useCallback(
     (t: ThemePreference) => {
-      setStoredTheme(t);
-
-      if (!profileId) return;
-
-      // Debounce: cancel any pending write and schedule a new one after 800ms
-      // This prevents multiple DB writes when user rapidly toggles theme
-      if (dbWriteTimerRef.current) {
-        clearTimeout(dbWriteTimerRef.current);
-      }
-      dbWriteTimerRef.current = setTimeout(() => {
-        supabase
-          .from("profiles")
-          .update({ theme_preference: t })
-          .eq("id", profileId)
-          .then(({ error }) => {
-            if (error)
-              console.error(
-                "[ThemeProvider] Failed to sync theme:",
-                error.message
-              );
-          });
-      }, 800);
+      commitPreference({ theme_preference: t }, () => {
+        locallyChosenRef.current = true;
+        setStoredTheme(t);
+      });
     },
-    [profileId]
+    [commitPreference]
   );
 
   return (

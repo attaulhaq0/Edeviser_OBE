@@ -1,13 +1,14 @@
 // Feature: platform-audit-fixes, Property 2: Preservation — Existing Behavior Unchanged
 // **Validates: Requirements 3.2, 3.3, 3.7, 3.9, 3.10**
 //
-// IMPORTANT: These tests MUST PASS on unfixed code — they capture baseline behavior to preserve.
-// They verify that existing correct behaviors remain unchanged after bug fixes are applied.
+// Preserve stable platform behavior. Toast presentation now follows the shared
+// redesign contract; its single provider-contained mount remains invariant.
 
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import * as fs from "fs";
 import * as path from "path";
+import ts from "typescript";
 import { queryKeys } from "@/lib/queryKeys";
 import { XP_SCHEDULE } from "@/lib/xpSchedule";
 
@@ -125,11 +126,29 @@ describe("2.4 UI continuity preservation", () => {
     expect(source).toContain("Toaster");
   });
 
-  it("Toaster preserves rich colors and matches the prototype bottom-center host", () => {
+  it("mounts one shared notification owner inside the real application providers", () => {
     const filePath = path.join(srcRoot, "src/App.tsx");
     const source = fs.readFileSync(filePath, "utf-8");
+    const tree = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const imports = tree.statements.filter(ts.isImportDeclaration);
+    const ownedImport = imports.filter((node) => ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === "@/components/shared/AppToaster");
+    expect(ownedImport).toHaveLength(1);
+    expect(ownedImport[0]?.importClause?.name?.text).toBe("AppToaster");
+    expect(imports.some((node) => ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === "@/components/ui/sonner")).toBe(false);
 
-    expect(source).toContain("richColors");
-    expect(source).toContain("bottom-center");
+    const mounts: string[][] = [];
+    const visit = (node: ts.Node, ancestors: string[]) => {
+      const parents = ts.isJsxElement(node) ? [...ancestors, node.openingElement.tagName.getText(tree)] : ancestors;
+      if (ts.isJsxSelfClosingElement(node) && node.tagName.getText(tree) === "AppToaster") {
+        mounts.push(parents);
+        expect(node.attributes.properties).toHaveLength(0);
+      }
+      ts.forEachChild(node, (child) => visit(child, parents));
+    };
+    visit(tree, []);
+    expect(mounts).toHaveLength(1);
+    expect(mounts[0]).toEqual(expect.arrayContaining([
+      "NuqsAdapter", "QueryClientProvider", "AuthProvider", "LanguageProvider", "ThemeProvider",
+    ]));
   });
 });

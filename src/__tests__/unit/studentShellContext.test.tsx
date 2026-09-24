@@ -15,7 +15,8 @@ const mockState = vi.hoisted(() => ({
     xpForNextLevel: 1000,
     progressPercent: 50,
   },
-  completeness: 70,
+  completeness: 70 as number | null,
+  profilePending: false,
 }));
 
 vi.mock("@/hooks/useAuth", () => ({
@@ -32,7 +33,7 @@ vi.mock("@/hooks/useLevel", () => ({
 vi.mock("@/hooks/useStudentProfile", () => ({
   useStudentProfile: () => ({
     data: { profile_completeness: mockState.completeness },
-    isPending: false,
+    isPending: mockState.profilePending,
   }),
 }));
 
@@ -48,6 +49,8 @@ const renderWithAppContext = (children: React.ReactNode) =>
   );
 
 beforeEach(async () => {
+  mockState.completeness = 70;
+  mockState.profilePending = false;
   await i18n.changeLanguage("en");
 });
 
@@ -73,6 +76,28 @@ describe("student prototype shell context", () => {
     expect(
       screen.getByRole("link", { name: "Finish micro-assessments →" })
     ).toHaveAttribute("href", "/student/settings/reassessment");
+  });
+
+  it.each([[0, 0], [70, 70], [150, 100], [-10, 0]])("preserves completeness %i as bounded %i with the teal fill", (completeness, bounded) => {
+    mockState.completeness = completeness;
+    renderWithAppContext(<StudentLearningProfileRail />);
+    const track = screen.getByRole("progressbar", { name: "Profile completeness" });
+    const fill = track.firstElementChild as HTMLElement;
+    expect(track).toHaveAttribute("aria-valuenow", String(bounded));
+    expect(track).toHaveClass("bg-muted");
+    expect(fill).toHaveClass("bg-(--text-teal)");
+    expect(fill.style.width).toBe(`${bounded}%`);
+    if (bounded === 100) {
+      expect(screen.queryByRole("link", { name: "Finish micro-assessments →" })).not.toBeInTheDocument();
+    }
+  });
+
+  it.each([true, false])("does not manufacture progress when pending=%s and completeness is absent", (pending) => {
+    mockState.completeness = null;
+    mockState.profilePending = pending;
+    renderWithAppContext(<StudentLearningProfileRail />);
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Finish micro-assessments →" })).not.toBeInTheDocument();
   });
 
   it("renders the approved student settings privacy rail", () => {

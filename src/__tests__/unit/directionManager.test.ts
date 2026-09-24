@@ -39,19 +39,24 @@ describe("directionManager", () => {
       expect(document.documentElement.getAttribute("lang")).toBe("en");
     });
 
-    it("sets Arabic font family for RTL languages", () => {
-      applyDirection("ar");
-      expect(document.documentElement.style.fontFamily).toContain(
-        "Noto Sans Arabic"
-      );
+    it.each(["ar", "en", "ar-QA", "AR-QA"])("leaves font ownership in CSS for %s", (language) => {
+      applyDirection(language);
+      expect(document.documentElement.style.fontFamily).toBe("");
     });
 
-    it("sets default font family for LTR languages", () => {
-      applyDirection("en");
-      expect(document.documentElement.style.fontFamily).toContain("Noto Sans");
-      expect(document.documentElement.style.fontFamily).not.toContain(
-        "Noto Sans Arabic"
-      );
+    it("does not alter an independently owned inline style or reading state", () => {
+      document.documentElement.style.fontFamily = "serif";
+      document.documentElement.classList.add("dyslexia-font");
+      applyDirection("ar");
+      expect(document.documentElement.style.fontFamily).toBe("serif");
+      expect(document.documentElement.classList.contains("dyslexia-font")).toBe(true);
+      document.documentElement.classList.remove("dyslexia-font");
+    });
+
+    it.each(["ar-QA", "AR-QA", "fa-IR", "ur-PK"])("normalizes the primary language for %s", (language) => {
+      applyDirection(language);
+      expect(document.documentElement.dir).toBe("rtl");
+      expect(document.documentElement.lang).toBe(language);
     });
 
     it("is idempotent — multiple calls produce same result", () => {

@@ -2,27 +2,39 @@ import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
-const files = execFileSync(
-  "git",
-  [
-    "ls-files",
-    "--cached",
-    "--others",
-    "--exclude-standard",
-    "supabase/functions",
-    "api",
-    "src",
-    "scripts",
-    ".env.example",
-  ],
-  { encoding: "utf8" }
+const scanRoots = ["supabase/functions", "api", "src", "scripts", ".env.example"];
+
+// The index retains an unstaged deletion until it is staged. Audit the current
+// working tree, excluding only Git-confirmed deletions; all other read failures
+// still fail closed instead of silently skipping an unreadable runtime file.
+const trackedDeletions = new Set(
+  execFileSync("git", ["ls-files", "--deleted", "--", ...scanRoots], { encoding: "utf8" })
+    .split(/\r?\n/)
+    .filter(Boolean)
+);
+const retainWorkingTreePaths = (paths: readonly string[], deleted: ReadonlySet<string>): string[] =>
+  paths.filter((file) => !deleted.has(file));
+
+const files = retainWorkingTreePaths(
+  execFileSync(
+    "git",
+    ["ls-files", "--cached", "--others", "--exclude-standard", "--", ...scanRoots],
+    { encoding: "utf8" }
+  ).split(/\r?\n/).filter(Boolean),
+  trackedDeletions
 )
-  .split(/\r?\n/)
-  .filter(Boolean)
   .filter((file) => !file.includes("__tests__"))
   .filter((file) => file !== "scripts/audit/security-scan.ts");
 
 describe("strict provider consolidation", () => {
+  it("excludes only Git-confirmed deletions and retains new or unreadable candidates", () => {
+    expect(retainWorkingTreePaths(
+      ["active.ts", "deleted.ts", "untracked.ts", "unreadable.ts"],
+      new Set(["deleted.ts"])
+    )).toEqual(["active.ts", "untracked.ts", "unreadable.ts"]);
+    expect(retainWorkingTreePaths(["missing-not-deleted.ts"], new Set())).toEqual(["missing-not-deleted.ts"]);
+  });
+
   it("has no active legacy generation or embedding runtime consumer", () => {
     const forbidden = [
       /OPENAI_API_KEY/,

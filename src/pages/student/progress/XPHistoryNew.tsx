@@ -64,18 +64,18 @@ const TransactionRow = ({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}
-      className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0"
+      className="flex items-center justify-between border-b border-border py-3 last:border-0"
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-gray-900">
           {tx.source_label}
         </p>
         {tx.reference_description && (
-          <p className="truncate text-xs text-gray-500">
+          <p className="truncate text-xs text-muted-foreground">
             {tx.reference_description}
           </p>
         )}
-        <p className="mt-0.5 text-xs text-gray-400">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {format(new Date(tx.created_at), "MMM d, yyyy · h:mm a")}
         </p>
       </div>
@@ -100,7 +100,7 @@ const CategoryBars = ({
 }) => {
   if (categories.length === 0) {
     return (
-      <p className="py-2 text-center text-sm text-gray-400">
+      <p className="py-2 text-center text-sm text-muted-foreground">
         No transactions in this period.
       </p>
     );
@@ -115,16 +115,16 @@ const CategoryBars = ({
         return (
           <div key={cat.source} className="min-w-0">
             <div className="mb-1 flex items-center justify-between">
-              <span className="truncate text-sm font-medium text-gray-700">
+              <span className="truncate text-sm font-medium text-foreground/80">
                 {cat.source_label}
               </span>
-              <span className="ms-2 shrink-0 text-xs text-gray-500">
+              <span className="ms-2 shrink-0 text-xs text-muted-foreground">
                 {cat.total_xp.toLocaleString()} XP · {cat.count}×
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2 overflow-hidden rounded-full bg-(--tertiary-900)">
               <div
-                className="h-full rounded-full bg-transparent0 transition-all duration-500"
+                className="h-full rounded-full bg-(--xp) transition-all duration-500"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -212,9 +212,6 @@ const XPHistoryNew = () => {
                 icon={Coins}
                 label="Total XP"
                 value={runningTotal.toLocaleString()}
-                iconBgClass="bg-transparent"
-                iconColorClass="text-amber-500"
-                valueClassName="text-amber-600"
               />
             </div>
             <KPICard
@@ -262,7 +259,7 @@ const XPHistoryNew = () => {
                         <div className="mb-3 rounded-full bg-transparent p-3">
                           <Coins className="h-8 w-8 text-amber-500" />
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           No XP transactions for this period. Keep learning to
                           earn XP!
                         </p>

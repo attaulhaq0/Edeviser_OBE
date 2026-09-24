@@ -21,6 +21,14 @@
 // during assertions — see requirements.md §9.5.
 import { defineConfig, devices } from "@playwright/test";
 
+// Verification is read-only. Reject update/ignore CLI switches before any
+// global setup can run; resolved policy is also checked by the RTL spec.
+if (process.argv.slice(2).some((argument) =>
+  /^--(?:update|ignore)-snapshots(?:=|$)/.test(argument) || /^-[^-]*u/.test(argument)
+)) {
+  throw new Error("Snapshot update/ignore CLI overrides are disabled for verification.");
+}
+
 const desktopViewport = { width: 1440, height: 900 } as const;
 const mobileViewport = { width: 390, height: 844 } as const;
 
@@ -35,6 +43,8 @@ export default defineConfig({
   // nested dependencies/configurations participate in product test discovery.
   testIgnore: ["**/node_modules/**", "runtime-governance-scratch/**"],
   fullyParallel: true,
+  updateSnapshots: "none",
+  ignoreSnapshots: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
@@ -47,7 +57,10 @@ export default defineConfig({
 
   // Playwright will create these files via tasks 4.1 and 4.2. At config-load
   // time the files are only referenced by path; they are resolved at run time.
-  globalSetup: "./tests/e2e/_fixtures/seed.ts",
+  globalSetup: [
+    "./tests/e2e/_fixtures/axe-setup.ts",
+    "./tests/e2e/_fixtures/seed.ts",
+  ],
   globalTeardown: "./tests/e2e/_fixtures/teardown.ts",
 
   use: {
@@ -84,7 +97,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         viewport: desktopViewport,
         locale: "en",
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
         storageState: storageStateFor("admin"),
       },
     },
@@ -95,7 +108,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         viewport: desktopViewport,
         locale: "en",
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
         storageState: storageStateFor("coordinator"),
       },
     },
@@ -106,7 +119,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         viewport: desktopViewport,
         locale: "en",
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
         storageState: storageStateFor("teacher"),
       },
     },
@@ -121,9 +134,10 @@ export default defineConfig({
       ],
       use: {
         ...devices["iPhone 13"],
+        defaultBrowserType: "chromium",
         viewport: mobileViewport,
         locale: "en",
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
         storageState: storageStateFor("student"),
       },
     },
@@ -137,7 +151,7 @@ export default defineConfig({
         defaultBrowserType: "webkit",
         viewport: mobileViewport,
         locale: "en",
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
         storageState: storageStateFor("parent"),
       },
     },
@@ -150,7 +164,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         viewport: desktopViewport,
         locale: "en",
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
       },
     },
     {
@@ -166,7 +180,7 @@ export default defineConfig({
         extraHTTPHeaders: {
           "Accept-Language": "ar-QA",
         },
-        reducedMotion: "reduce",
+        contextOptions: { reducedMotion: "reduce" },
       },
     },
   ],

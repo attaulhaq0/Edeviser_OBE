@@ -78,7 +78,7 @@ const AssessmentTimer = ({
           ? "bg-red-100 text-red-700"
           : isWarning
           ? "bg-red-50 text-red-600 animate-pulse"
-          : "bg-slate-50 text-gray-700"
+          : "bg-slate-50 text-foreground/80"
       )}
     >
       <Clock className={cn("h-4 w-4", isWarning && "text-red-500")} />

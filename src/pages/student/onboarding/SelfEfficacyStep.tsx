@@ -58,17 +58,17 @@ const LikertScale = ({
           onClick={() => onChange(optionValue)}
           className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
             isSelected
-              ? "border-blue-500 bg-blue-50 text-blue-700"
-              : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
+              ? "border-primary bg-accent text-accent-foreground"
+              : "border-border bg-card text-foreground/80 hover:border-border hover:bg-muted/50"
           }`}
         >
           <span
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-              isSelected ? "border-blue-500" : "border-slate-300"
+              isSelected ? "border-primary" : "border-muted-foreground"
             }`}
           >
             {isSelected && (
-              <span className="h-2.5 w-2.5 rounded-full bg-transparent0" />
+              <span className="h-2.5 w-2.5 rounded-full bg-primary" />
             )}
           </span>
           {label}
@@ -123,7 +123,7 @@ const FallbackPanel = ({
     <h2 className="mb-2 text-lg font-bold tracking-tight text-gray-900">
       {title}
     </h2>
-    <p className="mb-6 max-w-md text-sm text-gray-500">{body}</p>
+    <p className="mb-6 max-w-md text-sm text-muted-foreground">{body}</p>
     <Button onClick={onContinue} variant="tactile" className="gap-1">
       {continueLabel}
     </Button>
@@ -284,11 +284,11 @@ export const SelfEfficacyStep = ({
         </h2>
       </div>
 
-      <p className="mb-1 max-w-md text-center text-xs text-gray-500">
+      <p className="mb-1 max-w-md text-center text-xs text-muted-foreground">
         {t("onboarding.selfEfficacy.instructions")}
       </p>
 
-      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         {t("onboarding.selfEfficacy.questionProgress", {
           current: currentIndex + 1,
           total: totalQuestions,
@@ -296,7 +296,7 @@ export const SelfEfficacyStep = ({
       </p>
 
       {/* Question progress */}
-      <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
+      <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-muted">
         <motion.div
           className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
@@ -318,7 +318,7 @@ export const SelfEfficacyStep = ({
           transition={motionGate.transition({ duration: 0.2 })}
           className="w-full max-w-md"
         >
-          <Card className="border-0 bg-white p-6 shadow-md rounded-xl">
+          <Card className="border-0 bg-card p-6 shadow-md rounded-xl">
             <p className="mb-6 text-sm font-medium text-gray-900">
               {currentQuestion?.question_text}
             </p>
@@ -337,7 +337,7 @@ export const SelfEfficacyStep = ({
           variant="ghost"
           onClick={handleBack}
           disabled={currentIndex === 0}
-          className="text-gray-500"
+          className="text-muted-foreground"
         >
           {t("onboarding.selfEfficacy.previous")}
         </Button>

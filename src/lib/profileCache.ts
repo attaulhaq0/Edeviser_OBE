@@ -22,6 +22,27 @@ import type { Profile, UserRole } from "@/types/app";
 
 const STORAGE_KEY = "edeviser.auth.profile.v1";
 
+export type ProfilePreferencePatch =
+  | { readonly theme_preference: "light" | "dark" | "system" }
+  | { readonly preferred_language: "en" | "ar" };
+
+export interface ProfilePreferenceLeaves {
+  theme_preference?: "light" | "dark" | "system";
+  preferred_language?: "en" | "ar";
+}
+
+/** Select supported preference leaves, never arbitrary profile metadata. */
+export const profilePreferenceLeaves = (patch: ProfilePreferencePatch): ProfilePreferenceLeaves => {
+  const leaves: ProfilePreferenceLeaves = {};
+  if ("preferred_language" in patch && (patch.preferred_language === "en" || patch.preferred_language === "ar")) {
+    leaves.preferred_language = patch.preferred_language;
+  }
+  if ("theme_preference" in patch && ["light", "dark", "system"].includes(patch.theme_preference)) {
+    leaves.theme_preference = patch.theme_preference;
+  }
+  return leaves;
+};
+
 /**
  * A cached profile is treated as "fresh" within this window. A reload inside it
  * skips the background revalidation entirely, which is what collapses the
@@ -110,6 +131,32 @@ export const writeCachedProfile = (userId: string, profile: Profile): void => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
   } catch {
     // Non-fatal: a full or blocked localStorage must never break auth.
+  }
+};
+
+/**
+ * Patch a confirmed preference without making unrelated cached metadata fresher.
+ * Unlike readCachedProfile, a foreign/malformed cache is a non-destructive miss.
+ * Never create an incomplete profile envelope from a preference-only write.
+ */
+export const patchCachedProfilePreference = (userId: string, patch: ProfilePreferencePatch): boolean => {
+  const leaves = profilePreferenceLeaves(patch);
+  if (Object.keys(leaves).length === 0) return false;
+  try {
+    if (!isBrowser() || !userId) return false;
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isValidEnvelope(parsed, userId)) return false;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...parsed,
+      profile: { ...parsed.profile, ...leaves },
+    }));
+    return true;
+  } catch {
+    // Cache storage remains best-effort, as with writeCachedProfile. A failed
+    // cache write must not turn an already-successful server save into a retry.
+    return false;
   }
 };
 

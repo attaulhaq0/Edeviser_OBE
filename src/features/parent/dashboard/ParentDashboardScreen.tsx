@@ -1,13 +1,13 @@
 // =============================================================================
 // ParentDashboardScreen — prototype-exact rebuild (parent-dashboard.html)
 // =============================================================================
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useId, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { Clock } from "lucide-react";
 
 import { Shimmer } from "@/design-system";
+import { Button } from "@/design-system/primitives";
 import { ParentButton } from "@/components/shared/ParentButton";
 import { ParentSectionIcon } from "@/components/shared/ParentSectionIcon";
 import WhyThisPopover from "@/components/shared/WhyThisPopover";
@@ -15,7 +15,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useParentDashboardAggregate } from "@/hooks/useParentDashboardAggregate";
 import { useParentChildProgress } from "@/hooks/useParentProgress";
 import type { LinkedChild } from "@/hooks/useParentDashboard";
-import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 import {
@@ -24,16 +23,15 @@ import {
   ParentTwinSummary,
 } from "@/ai/components";
 
-const HELP_GRADIENT = "linear-gradient(135deg, #ecfdf5, #eff6ff)";
-
 const CARD_CLASS =
-  "rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-all hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)] dark:border-slate-800 dark:bg-slate-900";
+  "rounded-[20px] border-0 bg-card p-5 shadow-sm hover:shadow-md transition-shadow";
 
 const firstNameOf = (name: string): string => name.split(" ")[0] ?? name;
 
 const ParentDashboardScreen = () => {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
+  const actionId = useId();
   const { user } = useAuth();
 
   const aggregate = useParentDashboardAggregate(user?.id);
@@ -66,7 +64,7 @@ const ParentDashboardScreen = () => {
 
       if (!c.has_evidence) {
         trend = "·";
-        trendColor = "text-slate-400 font-black";
+        trendColor = "text-muted-foreground font-black";
       } else if (pct >= 85) {
         desc = "Strong attainment evidence released";
         trend = "•";
@@ -85,7 +83,7 @@ const ParentDashboardScreen = () => {
         subject: c.course_name,
         desc,
         icon: icons[idx % icons.length] ?? "📚",
-        iconBg: iconBgs[idx % iconBgs.length] ?? "bg-slate-50",
+        iconBg: iconBgs[idx % iconBgs.length] ?? "bg-muted",
         trend,
         trendColor,
       };
@@ -111,50 +109,6 @@ const ParentDashboardScreen = () => {
           ", "
         )}. Review the released activity together for a grounded conversation.`
     : "No released outcome evidence is available yet. This space will update when the student has shared academic activity.";
-
-  // Handle persistence for Remind Me Tonight
-  const handleRemindTonight = async () => {
-    if (user?.id && selected?.student_id) {
-      try {
-        await supabase.from("notifications").insert({
-          user_id: user.id,
-          title: "Study Conversation Reminder 🌙",
-          body: `Remember to ask ${firstNameOf(
-            selected.student_name
-          )} to teach you one thing about databases tonight!`,
-          type: "reminder",
-          is_read: false,
-        } as never);
-      } catch {
-        // Fallback silently if table RLS restricts
-      }
-    }
-    toast.success(
-      t("parentDashboard.help.reminded", "Reminder set for this evening")
-    );
-  };
-
-  // Handle real encouragement message sent to child
-  const handleSendEncouragement = async () => {
-    if (selected?.student_id) {
-      try {
-        await supabase.from("notifications").insert({
-          user_id: selected.student_id,
-          title: "Message from Parent 💚",
-          body: "Keep up the great effort! I am proud of your growth.",
-          type: "encouragement",
-          is_read: false,
-        } as never);
-      } catch {
-        // Fallback
-      }
-    }
-    toast.success(
-      t("parentDashboard.celebrate.sent", "Encouragement sent to {{name}} 💚", {
-        name: firstNameOf(selected?.student_name ?? ""),
-      })
-    );
-  };
 
   // ── Loading ──
   if (aggregate.isPending) {
@@ -183,7 +137,7 @@ const ParentDashboardScreen = () => {
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-transparent text-2xl">
             👨‍👩‍👧
           </div>
-          <p className="max-w-sm text-sm text-slate-600 dark:text-slate-400">
+          <p className="max-w-sm text-sm text-muted-foreground">
             {t(
               "parentDashboard.noChildren",
               "Link a child to see their growth story here."
@@ -220,7 +174,7 @@ const ParentDashboardScreen = () => {
                   "inline-flex items-center gap-2 rounded-xl border px-3.5 py-1.5 text-xs font-extrabold transition-colors",
                   active
                     ? "border-[#0382bd] bg-[#0382bd] text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted dark:text-muted-foreground"
                 )}
               >
                 {firstNameOf(c.student_name)}
@@ -231,7 +185,7 @@ const ParentDashboardScreen = () => {
       )}
 
       {/* ── 1 · AI Story Hero (E1.19: white liquid-glass) ── */}
-      <section className="relative overflow-hidden rounded-[20px] border border-[#eef2f6] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+      <section className="relative overflow-hidden rounded-[20px] border-0 bg-card p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
         <div className="absolute top-3 end-3">
           <WhyThisPopover
             title={t(
@@ -248,7 +202,7 @@ const ParentDashboardScreen = () => {
         </div>
 
         <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-white/80 text-xl">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-white/80 text-xl">
             🌱
           </div>
           <div className="min-w-0 flex-1 pe-16">
@@ -264,7 +218,7 @@ const ParentDashboardScreen = () => {
                     name,
                   })}
             </h1>
-            <p className="text-[12px] leading-snug text-slate-500">
+            <p className="text-[12px] leading-snug text-muted-foreground">
               {storySubtext}
             </p>
           </div>
@@ -272,17 +226,17 @@ const ParentDashboardScreen = () => {
 
         <div className="mt-3 flex flex-wrap gap-2">
           {selected.current_streak > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-slate-50 px-3 py-1 text-[11px] font-bold text-foreground/80">
               🔥 {selected.current_streak}-day shared activity streak
             </span>
           ) : null}
           {hasCourseEvidence ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-slate-50 px-3 py-1 text-[11px] font-bold text-foreground/80">
               📚 Released course evidence
             </span>
           ) : null}
           {!hasActivityEvidence ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-slate-50 px-3 py-1 text-[11px] font-bold text-foreground/80">
               ℹ️ Awaiting shared activity
             </span>
           ) : null}
@@ -293,17 +247,17 @@ const ParentDashboardScreen = () => {
       <section className={CARD_CLASS}>
         <div className="mb-2.5 flex items-center gap-2">
           <ParentSectionIcon emoji="📖" />
-          <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+          <h2 className="text-xs font-extrabold uppercase tracking-wider text-foreground">
             {t("parentDashboard.plainWords.title", "This week, in plain words")}
           </h2>
         </div>
-        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+        <p className="text-sm leading-relaxed text-foreground/80">
           {t("parentDashboard.plainWords.story", {
             defaultValue: plainWordsStory,
             name,
           })}
         </p>
-        <p className="mt-2.5 text-[11px] text-slate-400">
+        <p className="mt-2.5 text-[11px] text-muted-foreground">
           {t(
             "parentDashboard.plainWords.footnote",
             "We describe patterns, not causes — and never share raw scores here."
@@ -318,7 +272,7 @@ const ParentDashboardScreen = () => {
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ParentSectionIcon emoji="🌱" />
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-foreground">
                 {t("parentDashboard.growing.title", "Where she's growing")}
               </h2>
             </div>
@@ -336,10 +290,10 @@ const ParentDashboardScreen = () => {
                   {row.icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  <p className="text-sm font-bold text-foreground">
                     {row.subject}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                     {row.desc}
                   </p>
                 </div>
@@ -349,7 +303,7 @@ const ParentDashboardScreen = () => {
               </div>
             ))}
             {subjectGrowthRows.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-200 p-4 text-xs text-slate-500">
+              <p className="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
                 No released outcome evidence is available yet.
               </p>
             ) : null}
@@ -360,7 +314,7 @@ const ParentDashboardScreen = () => {
         <section className={CARD_CLASS}>
           <div className="mb-3 flex items-center gap-2">
             <ParentSectionIcon emoji="😊" />
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-foreground">
               {t("parentDashboard.wellbeing.title", "Wellbeing & balance")}
             </h2>
           </div>
@@ -376,7 +330,7 @@ const ParentDashboardScreen = () => {
               </div>
             </>
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-xl border border-border bg-slate-50 p-6 text-center text-xs text-muted-foreground">
               🔒{" "}
               {t(
                 "parentDashboard.wellbeing.notShared",
@@ -388,71 +342,57 @@ const ParentDashboardScreen = () => {
       </div>
 
       {/* ── 4 · One way to help this week (retrieval practice callout) ── */}
-      <section
-        className={cn(CARD_CLASS, "overflow-hidden")}
-        style={{ background: HELP_GRADIENT }}
-      >
-        <div className="flex items-center gap-2 mb-2">
+      <section className={cn(CARD_CLASS, "min-w-0 [overflow-wrap:anywhere]")} aria-labelledby={`${actionId}-help-title`}>
+        <div className="mb-2 flex items-center gap-2">
           <ParentSectionIcon emoji="💬" />
-          <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-            {t("parentDashboard.help.title", "One way to help this week")}
+          <h2 id={`${actionId}-help-title`} className="text-xs font-extrabold uppercase tracking-wider text-foreground">
+            {t("parentDashboard.help.title")}
           </h2>
         </div>
 
-        <p className="text-base font-bold leading-snug text-slate-900">
-          {t("parentDashboard.help.prompt", {
-            defaultValue:
-              "\u201C{{name}}, can you teach me one thing about databases you learned this week?\u201D",
-            name,
-          })}
+        <p className="text-base font-bold leading-snug text-foreground">
+          {t("parentDashboard.help.prompt", { name })}
         </p>
-
-        <p className="mt-2 text-xs leading-relaxed text-slate-600">
-          {t(
-            "parentDashboard.help.explanation",
-            "Asking her to explain something is retrieval practice — one of the most effective ways to strengthen memory — and it signals that you care about her learning, not just her marks."
-          )}
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {t("parentDashboard.help.explanation", { name })}
+        </p>
+        <p id={`${actionId}-reminder-unavailable`} className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          {t("parentDashboard.help.unavailable")}
         </p>
 
         <div className="mt-3.5 flex flex-wrap gap-2">
-          <ParentButton variant="primary" onClick={handleRemindTonight}>
-            <Clock className="h-4 w-4" aria-hidden="true" />
-            {t("parentDashboard.help.remindBtn", "🕐 Remind me tonight")}
-          </ParentButton>
-          <ParentButton
-            variant="ghost"
-            onClick={() => navigate("/parent/support")}
-          >
-            {t("parentDashboard.help.moreIdeas", "More ideas")}
-          </ParentButton>
+          <Button type="button" variant="outline" disabled aria-describedby={`${actionId}-reminder-unavailable`} className="h-auto min-h-11 whitespace-normal py-2">
+            <Clock className="size-4" aria-hidden="true" />
+            {t("parentDashboard.help.remindBtn")}
+          </Button>
+          <Button asChild variant="outline" className="h-auto min-h-11 whitespace-normal py-2">
+            <Link to="/parent/notifications">{t("parentDashboard.help.openNotifications")}</Link>
+          </Button>
+          <Button asChild variant="ghost" className="h-auto min-h-11 whitespace-normal py-2">
+            <Link to="/parent/support">{t("parentDashboard.help.moreIdeas")}</Link>
+          </Button>
         </div>
       </section>
 
       {/* ── 5 · Worth celebrating (milestone action tile) ── */}
-      <section className={cn(CARD_CLASS, "flex items-center gap-3.5 p-4")}>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-transparent text-xl">
+      <section className={cn(CARD_CLASS, "min-w-0 flex flex-wrap items-start gap-3.5 [overflow-wrap:anywhere]")} aria-labelledby={`${actionId}-celebrate-title`}>
+        <div aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-transparent text-xl">
           🎉
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {t("parentDashboard.celebrate.title", "Worth celebrating")}
+        <div className="min-w-0 flex-1 basis-48">
+          <h2 id={`${actionId}-celebrate-title`} className="text-sm font-bold text-foreground">
+            {t("parentDashboard.celebrate.title")}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            {t("parentDashboard.celebrate.detail", { name })}
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {t("parentDashboard.celebrate.detail", {
-              defaultValue:
-                "{{name}}'s writing reached Satisfactory. A small note of encouragement goes a long way.",
-              name,
-            })}
+          <p id={`${actionId}-encouragement-unavailable`} className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {t("parentDashboard.celebrate.unavailable", { name })}
           </p>
         </div>
-        <ParentButton
-          variant="primary"
-          size="sm"
-          onClick={handleSendEncouragement}
-          className="shrink-0"
-        >
-          {t("parentDashboard.celebrate.sendBtn", "Send 💚")}
-        </ParentButton>
+        <Button type="button" variant="outline" disabled aria-describedby={`${actionId}-encouragement-unavailable`} className="h-auto min-h-11 whitespace-normal py-2">
+          {t("parentDashboard.celebrate.sendBtn")}
+        </Button>
       </section>
 
       {/* ── Ask-Edeviser assistant (capability-matrix scoped; task 3.3) ──

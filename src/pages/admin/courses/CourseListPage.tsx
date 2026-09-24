@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { OnChangeFn, SortingState } from "@tanstack/react-table";
+import { courseNameSortFromState } from "@/lib/courseListSorting";
+import { StatePanel } from "@/design-system/patterns";
 import { useNavigate } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
@@ -21,6 +25,7 @@ import type { Course } from "@/types/app";
 
 const CourseListPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [programFilter, setProgramFilter] = useQueryState(
     "program",
@@ -29,26 +34,54 @@ const CourseListPage = () => {
   const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(
     null
   );
-  const [page, setPage] = useState(1);
+  const [{ page, sorting }, setListing] = useState<{
+    page: number;
+    sorting: SortingState;
+  }>({ page: 1, sorting: [] });
+  const setPage = (nextPage: number) =>
+    setListing((previous) => ({ ...previous, page: nextPage }));
+  const onSortingChange: OnChangeFn<SortingState> = (update) => {
+    setListing((previous) => {
+      const nextSorting =
+        typeof update === "function" ? update(previous.sorting) : update;
+      courseNameSortFromState(nextSorting); // reject unsupported/multi-column state
+      return { page: 1, sorting: nextSorting };
+    });
+  };
+  const nameSort = courseNameSortFromState(sorting);
 
   const {
     data: paginatedCourses,
     isLoading,
     isFetching,
+    isPlaceholderData,
+    isError,
+    refetch,
   } = useCourses({
     search: search || undefined,
     programId: programFilter || undefined,
     page,
+    ...(nameSort ? { nameSort } : {}),
   });
 
   const { data: paginatedPrograms } = usePrograms();
   const programs = paginatedPrograms?.data ?? [];
   const softDeleteMutation = useSoftDeleteCourse();
 
-  const columns = createColumns(
-    (course) => navigate(`/admin/courses/${course.id}/edit`),
-    (course) => setCourseToDeactivate(course),
-    (course) => navigate(`/admin/courses/${course.id}/enrollment`)
+  // Stable cell component types preserve a course's open action state while
+  // getRowId keeps that state attached to the same course through reordering.
+  const columns = useMemo(
+    () =>
+      createColumns(
+        (course) => navigate(`/admin/courses/${course.id}/edit`),
+        (course) => setCourseToDeactivate(course),
+        (course) => navigate(`/admin/courses/${course.id}/enrollment`),
+        {
+          name: t("courseListSorting.name"),
+          sortName: t("courseListSorting.sortName"),
+        }
+      ),
+    [navigate, t]
   );
 
   return (
@@ -67,7 +100,7 @@ const CourseListPage = () => {
       {/* Filters */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or code..."
             value={search}
@@ -100,16 +133,40 @@ const CourseListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={paginatedCourses?.data ?? []}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        page={page}
-        pageSize={paginatedCourses?.pageSize}
-        totalCount={paginatedCourses?.count}
-        onPageChange={setPage}
-      />
+      {isError ? (
+        <StatePanel
+          variant="error"
+          message={t("courseListSorting.loadError")}
+          action={
+            <Button
+              variant="outline"
+              className="h-auto min-h-11 whitespace-normal"
+              disabled={isFetching}
+              onClick={() => {
+                void refetch();
+              }}
+            >
+              {t("courseListSorting.retry")}
+            </Button>
+          }
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={paginatedCourses?.data ?? []}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          isPlaceholderData={isPlaceholderData}
+          sorting={sorting}
+          onSortingChange={onSortingChange}
+          manualSorting
+          getRowId={(course) => course.id}
+          page={page}
+          pageSize={paginatedCourses?.pageSize}
+          totalCount={paginatedCourses?.count}
+          onPageChange={setPage}
+        />
+      )}
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

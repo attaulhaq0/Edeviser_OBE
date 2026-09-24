@@ -1,43 +1,21 @@
 // Pre-deployment audit — axe-core Playwright helper.
-//
-// Implements Task 4.10 / Req 11.1, 11.2, 11.3: wraps @axe-core/playwright
-// with a scanPage helper that filters violations by severity and appends
-// into a run-scoped buffer. The buffer is flushed by globalTeardown
-// (task 4.2) into audit/output/a11y-findings.json so the report
-// aggregator (§16) consumes it the same way every other scanner's
-// findings are consumed.
-//
-// The helper is intentionally minimal — every role's a11y spec calls
-// scanPage(page, { role, label }) and the run-scoped buffer does the
-// rest. We don't fail the spec on a violation here; the report
-// aggregator decides severity once it sees every role's findings.
-
+// Persist every scan before enforcing the existing Major-or-higher a11y gate.
+// Global teardown merges the current run's files across all worker processes.
 import AxeBuilder from "@axe-core/playwright";
-import type { Page } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { test, type Page } from "@playwright/test";
 
-import type { Finding } from "../../../scripts/audit/findings";
+import type { Finding } from "../../../scripts/audit/findings.ts";
+import { getAxeRunId, persistA11yScan } from "./axe-evidence.ts";
+
+// Keep the existing helper API available to callers; state is now on disk.
+export { setAxeRunId, flushA11yFindings, __resetA11yBuffer } from "./axe-evidence.ts";
 
 interface ScanOptions {
-  /** Role executing the spec — used for provenance in the finding. */
   readonly role: "admin" | "coordinator" | "teacher" | "student" | "parent";
-  /** Short human label for the page being scanned (e.g. "dashboard"). */
   readonly label: string;
   /** Override the axe tags set. Defaults to WCAG 2.1 AA. */
   readonly tags?: readonly string[];
 }
-
-interface RunScopedBuffer {
-  findings: Finding[];
-  runId: string | null;
-}
-
-// Module-level singleton — process-scoped. Playwright runs every spec in
-// its own worker; the buffer exists inside that worker's module cache and
-// globalTeardown drains it. When workers finish, each writes its own
-// sub-buffer, then the teardown merges them (task 4.2 does the merge).
-const BUFFER: RunScopedBuffer = { findings: [], runId: null };
 
 const AXE_SEVERITY_MAP: Record<string, Finding["severity"]> = {
   critical: "Critical",
@@ -46,33 +24,22 @@ const AXE_SEVERITY_MAP: Record<string, Finding["severity"]> = {
   minor: "Trivial",
 };
 
-export const setAxeRunId = (runId: string): void => {
-  BUFFER.runId = runId;
-};
-
-/**
- * Run an axe scan on the current page. Every returned violation is
- * appended to the module-scoped buffer as a Finding with severity derived
- * from axe's impact level.
- */
-export const scanPage = async (
-  page: Page,
-  opts: ScanOptions
-): Promise<void> => {
+export const scanPage = async (page: Page, opts: ScanOptions): Promise<void> => {
+  // Resolve provenance before starting browser work. A missing globalSetup
+  // must fail rather than accidentally join an earlier run's evidence.
+  getAxeRunId();
+  const info = test.info();
   const tags = opts.tags ?? ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
-  const builder = new AxeBuilder({ page }).withTags([...tags]);
-  const results = await builder.analyze();
+  const results = await new AxeBuilder({ page }).withTags([...tags]).analyze();
+  const findings: Finding[] = [];
   for (const violation of results.violations) {
-    const severity =
-      AXE_SEVERITY_MAP[violation.impact ?? "moderate"] ?? "Minor";
+    const severity = AXE_SEVERITY_MAP[violation.impact ?? "moderate"] ?? "Minor";
     for (const node of violation.nodes) {
-      BUFFER.findings.push({
+      findings.push({
         severity,
         requirementId: "11.1",
         message: `${opts.role} ${opts.label} — ${violation.help} (${violation.id})`,
-        location: {
-          file: node.target.join(" > "),
-        },
+        location: { file: node.target.join(" > ") },
         detail: {
           rule: "axe-violation",
           axeId: violation.id,
@@ -84,28 +51,31 @@ export const scanPage = async (
       });
     }
   }
-};
+  // Store outside individual test output folders: Playwright can prune those
+  // according to preserveOutput, but the project-level merge still needs them.
+  const evidence = persistA11yScan({
+    outputDir: info.project.outputDir,
+    projectName: info.project.name,
+    testId: info.testId,
+    workerIndex: info.workerIndex,
+    parallelIndex: info.parallelIndex,
+    retry: info.retry,
+    repeatEachIndex: info.repeatEachIndex,
+  }, findings);
+  await info.attach(`axe-${evidence.artifact.scanId}`, {
+    path: evidence.path,
+    contentType: "application/json",
+  });
 
-/**
- * Drain the in-memory buffer to audit/output/a11y-findings.json. Called
- * from globalTeardown (task 4.2). Safe to call multiple times — each
- * call overwrites the file with the current buffer state.
- */
-export const flushA11yFindings = (): string => {
-  const target = resolve("audit", "output", "a11y-findings.json");
-  mkdirSync(dirname(target), { recursive: true });
-  const artifact = {
-    stage: "a11y",
-    generatedAt: new Date().toISOString(),
-    requirementIds: ["11.1", "11.2", "11.3", "11.4"],
-    findings: [...BUFFER.findings],
-  };
-  writeFileSync(target, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
-  return target;
-};
-
-/** Test-only: reset the buffer between unit tests. */
-export const __resetA11yBuffer = (): void => {
-  BUFFER.findings.length = 0;
-  BUFFER.runId = null;
+  // Match scripts/audit/a11y-stage.ts: Major, Critical, and Blocker fail;
+  // Minor/Trivial remain visible evidence without changing severity policy.
+  const failures = findings.filter((finding) =>
+    ["Major", "Critical", "Blocker"].includes(finding.severity)
+  );
+  if (failures.length > 0) {
+    throw new Error(
+      `Accessibility scan failed for ${opts.role} ${opts.label}: ${failures.length} Major-or-higher finding(s). ` +
+      `Evidence: ${evidence.path}\n${failures.map((finding) => finding.message).join("\n")}`
+    );
+  }
 };

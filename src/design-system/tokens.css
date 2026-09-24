@@ -1,204 +1,506 @@
-/* =============================================================================
-   EDEVISER DESIGN SYSTEM — CANONICAL TOKENS  (Path A: Prototype → Production)
-   -----------------------------------------------------------------------------
-   SOURCE OF TRUTH for the rebuilt UI. Values extracted 1:1 from the approved
-   prototype (`prototype/shared.css` :root + design-system steering).
 
-   STATUS: CANONICAL / WIRED.
-   - This file is imported by the app shell entrypoint and provides the shared
-     prototype-derived tokens for the rebuilt UI.
-   - The legacy brand block in `src/index.css` still exists for backward
-     compatibility, but the shell-specific `--app-*` values now come from here.
-   - DO NOT import prototype/shared.css or CDN Tailwind into src/. This file
-     re-declares the prototype's *values* as real Tailwind v4 tokens.
 
-   FIDELITY DECISION (approved): the brand gradient uses the prototype's exact
-   angle 93.65deg (NOT the legacy 135deg). This is the pixel-match canonical.
-
-   SCOPE NOTE: the prototype is LIGHT-MODE + LTR only. The `.dark` values below
-   are NET-NEW (designed for parity, not copied from the prototype) and must pass
-   a dark-mode design review before cutover. RTL is handled via logical CSS
-   properties in components, not here.
-   ============================================================================= */
-
-/* -----------------------------------------------------------------------------
-   1. Tailwind v4 @theme — exposes tokens as utilities (bg-brand, text-brand…)
-   -------------------------------------------------------------------------- */
-@theme {
-  --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
-
-  /* Brand palette (verbatim from prototype) */
-  --color-brand-teal: #14b8a6; /* --teal  : gradient start / secondary accent */
-  --color-brand-blue: #0382bd; /* --blue  : gradient end */
-  --color-brand-primary: #3b82f6; /* primary CTA / active / links */
-  --color-brand-primary-dark: #2563eb; /* hover */
-
-  /* Semantic */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-destructive: #ef4444;
-  --color-neutral: #64748b;
-  --color-info: #3b82f6;
-
-  /* Radii (prototype: cards 16px, tabs/links 12px, chips 999px, phone 44px) */
-  --radius-chip: 999px;
-  --radius-btn: 12px;
-  --radius-card: 16px;
-  --radius-panel: 16px;
-
-  /* Motion (prototype animation durations) */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast: 0.15s;
-  --dur-base: 0.35s;
-  --dur-celebrate: 0.6s;
-}
-
-/* -----------------------------------------------------------------------------
-   2. Brand / gradient tokens (raw CSS vars, referenced by components + @theme)
-      Gradients can't be `--color-*`; they live here as first-class tokens.
-   -------------------------------------------------------------------------- */
 :root {
-  /* === CORE BRAND (from prototype shared.css :root) === */
-  --brand-teal: #14b8a6;
-  --brand-blue: #0382bd;
-  --brand-primary: #3b82f6;
-  --brand-primary-dark: #2563eb;
-  --brand-secondary: #14b8a6;
+  color-scheme: light;
 
-  /* === GRADIENTS (exact prototype values — 93.65deg adopted as canonical) === */
-  --gradient-start: #14b8a6;
-  --gradient-end: #0382bd;
-  --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%);
-  --hero-gradient: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e3a8a 50%,
-    #312e81 100%
-  );
-  --onboarding-bg: linear-gradient(
-    160deg,
-    #f0fdfa 0%,
-    #eff6ff 50%,
-    #eef2ff 100%
-  );
-  /* Auth background (preserved from production — an explicit invariant) */
-  --auth-bg: linear-gradient(to bottom right, #1e293b, #0f172a, #020617);
+  /* Shared content families; brand and monospace remain intentional exceptions. */
+  --font-body: "Source Sans 3", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Plus Jakarta Sans", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: "Plus Jakarta Sans", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --heading-letter-spacing: -0.02em;
 
-  /* === SEMANTIC === */
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --destructive: #ef4444;
-  --neutral: #64748b;
-  --info: #3b82f6;
+  /* ── Typography Scale ────────────────────── */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
 
-  /* === SURFACES / SLATE SCALE (from prototype) === */
-  --surface-bg: #f8fafc; /* body background */
-  --surface-card: #ffffff;
-  --surface-subtle: #f1f5f9;
-  --surface-muted: #eef2f6;
-  --border-subtle: #e2e8f0;
-  --border-hair: #f1f5f9;
+  /* ── Font Size ───────────────────────────── */
+  --font-size: 16px;
 
-  --slate-900: #0f172a;
-  --slate-800: #1e293b;
-  --slate-700: #334155;
-  --slate-600: #475569;
-  --slate-500: #64748b;
-  --slate-400: #94a3b8;
-  --slate-300: #cbd5e1;
-  --slate-200: #e2e8f0;
-  --slate-100: #f1f5f9;
-  --slate-50: #f8fafc;
+  /* App notification layer: above existing guided tours (10000) and chrome.
+     Other overlay owners still require their separate stacking migration. */
+  --z-toast: 11000;
+  /* Official portal adoption: above shared chrome, below tours and toast. */
+  --z-modal-overlay: 1000;
+  --z-modal: 1010;
+  --z-floating: 1020;
+  --z-floating-submenu: 1030;
 
-  /* === ELEVATION (confirm .pcard against prototype at build time) === */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04),
-    0 4px 12px rgba(15, 23, 42, 0.06);
-  --shadow-card-hover: 0 8px 24px rgba(15, 23, 42, 0.1);
-  --shadow-panel: 0 16px 48px rgba(0, 0, 0, 0.2);
-  --tactile-edge: 0 3px 0 rgba(0, 0, 0, 0.12); /* .btn3d bottom edge */
+  /* Brand Anchors */
+  --brand-primary: #0382BD;
+  --brand-secondary: #5AB9B4;
+  --brand-tertiary: #1D3557;
+  --brand-neutral: #64748B;
+  --brand-gradient: linear-gradient(135deg, #0382BD 0%, #09B99C 100%);
+  --brand-gradient-v: linear-gradient(180deg, #0382BD 0%, #09B99C 100%);
+  --brand-gradient-r: linear-gradient(225deg, #0382BD 0%, #09B99C 100%);
 
-  /* === CHROME DIMENSIONS (prototype laptop layout) === */
-  --sidebar-w: 264px;
-  --rail-w: 328px;
-  --header-h: 56px;
-  --feed-max: 1160px;
-  --feed-max-wide: 1320px;
+  /* ── Primary Scale ────────────────────────── */
+  --primary-50:  #EFF8FF;
+  --primary-100: #DBEFFE;
+  --primary-200: #C0E2FD;
+  --primary-300: #93CEF9;
+  --primary-400: #5EB3F4;
+  --primary-500: #3A97EC;
+  --primary-600: #0382BD;
+  --primary-700: #0272A5;
+  --primary-800: #065D88;
+  --primary-900: #0A4E70;
+  --primary-950: #06324A;
 
-  /* === APP SHELL (P1.0 — shared responsive layout contract) ===
-     These are deliberately separate from the raw prototype measurements above:
-     the application shell uses one consistent grid across every role, while
-     individual prototype cards can still use their captured dimensions. */
-  --app-header-h: 52px;
+  /* ── Secondary Scale (Teal) ──────────────── */
+  --secondary-50:  #EFFEFB;
+  --secondary-100: #CDFCF4;
+  --secondary-200: #9CF8EC;
+  --secondary-300: #63EFE1;
+  --secondary-400: #33DDD0;
+  --secondary-500: #1BC2B8;
+  --secondary-600: #5AB9B4;
+  --secondary-700: #0E8A84;
+  --secondary-800: #116E6A;
+  --secondary-900: #145A57;
+  --secondary-950: #063838;
+
+  /* ── Tertiary Scale (Navy) ───────────────── */
+  --tertiary-50:  #EEF3FA;
+  --tertiary-100: #D9E5F3;
+  --tertiary-200: #BACFE8;
+  --tertiary-300: #90B1D9;
+  --tertiary-400: #648DC7;
+  --tertiary-500: #456DB8;
+  --tertiary-600: #3457A7;
+  --tertiary-700: #2E4791;
+  --tertiary-800: #293A75;
+  --tertiary-900: #1D3557;
+  --tertiary-950: #121F38;
+
+  /* ── Neutral Scale ───────────────────────── */
+  --neutral-0:   #FFFFFF;
+  --neutral-50:  #F8FAFC;
+  --neutral-100: #F1F5F9;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E1;
+  --neutral-400: #94A3B8;
+  --neutral-500: #64748B;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1E293B;
+  --neutral-900: #0F172A;
+  --neutral-950: #020617;
+
+  /* ── Semantic Colors ─────────────────────── */
+  --success:          #10B981;
+  --success-light:    #34D399;
+  --success-subtle:   #ECFDF5;
+  --success-foreground: #065F46;
+
+  --warning:          #F59E0B;
+  --warning-light:    #FBBF24;
+  --warning-subtle:   #FFFBEB;
+  --warning-foreground: #92400E;
+
+  --error:            #E53E3E;
+  --error-light:      #FC8181;
+  --error-subtle:     #FEF2F2;
+  --error-foreground: #991B1B;
+
+  --info:             #3B82F6;
+  --info-light:       #60A5FA;
+  --info-subtle:      #EFF6FF;
+  --info-foreground:  #1E40AF;
+
+  /* Relative learning attention, not a failing/error attainment band.
+     Opaque sRGB pairs support both labels on cards and fills on muted tracks. */
+  --progress-attention: #E11D48;
+
+  /* ══════════════════════════════════════════
+     TAILWIND CONTRACT TOKENS (preserved)
+     ══════════════════════════════════════════ */
+  --background: #F3F7FB;
+  --foreground: #1D3557;
+  --card: #FFFFFF;
+  --card-foreground: #1D3557;
+  --popover: #FFFFFF;
+  --popover-foreground: #1D3557;
+  /* Semantic text/action blue is darker than the unchanged brand anchor.
+     Leave contrast headroom for the standard button's 90% hover fill. */
+  --primary: #026699;
+  --primary-foreground: #FFFFFF;
+  --secondary: #5AB9B4;
+  --secondary-foreground: #1D3557;
+  --muted: #EEF3F8;
+  --muted-foreground: #55657A;
+  --accent: #E8F4FB;
+  --accent-foreground: #026699;
+  --destructive: #B91C1C;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(15, 23, 42, 0.08);
+  --input: transparent;
+  --input-background: #EEF3F8;
+  --switch-background: #CBD5E1;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #0382BD;
+  --radius: 0.5rem;
+
+  /* Shared action contract; consumers must not rely on private fallback colors. */
+  --action-primary: var(--primary);
+  --action-primary-text: var(--primary-foreground);
+  --action-primary-hover: #025C88;
+  --action-primary-active: #034F76;
+
+  /* ── Chart ───────────────────────────────── */
+  --chart-1: #0382BD;
+  --chart-2: #5AB9B4;
+  --chart-3: #1D3557;
+  --chart-4: #10B981;
+  --chart-5: #F59E0B;
+
+  /* ── Sidebar ─────────────────────────────── */
+  --sidebar: rgba(240, 247, 252, 0.88);
+  --sidebar-foreground: #1D3557;
+  --sidebar-primary: #026699;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8F4FB;
+  --sidebar-accent-foreground: #026699;
+  --sidebar-border: rgba(3, 130, 189, 0.10);
+  --sidebar-ring: #0382BD;
+
+  /* ══════════════════════════════════════════
+     SURFACE SYSTEM
+     ══════════════════════════════════════════ */
+  --surface:              #FFFFFF;
+  --surface-elevated:     #FFFFFF;
+  --surface-subtle:       #F3F7FB;
+
+  /* Glass Surfaces */
+  --surface-glass:        rgba(255, 255, 255, 0.72);
+  --surface-glass-blur:   blur(16px);
+  --surface-glass-border: rgba(255, 255, 255, 0.75);
+
+  --surface-glass-strong:     rgba(255, 255, 255, 0.88);
+  --surface-glass-strong-blur: blur(24px);
+  --surface-glass-strong-border: rgba(255, 255, 255, 0.90);
+
+  --surface-interactive:  rgba(255, 255, 255, 0.60);
+  --surface-selected:     rgba(3, 130, 189, 0.08);
+  --surface-highlight:    rgba(3, 130, 189, 0.05);
+
+  /* ── Border System ───────────────────────── */
+  --border-subtle:  rgba(29, 53, 87, 0.05);
+  --border-default: rgba(29, 53, 87, 0.09);
+  --border-strong:  rgba(29, 53, 87, 0.18);
+  --border-primary: rgba(3, 130, 189, 0.30);
+
+  /* ── Text ────────────────────────────────── */
+  --text-primary:   #1D3557;
+  --text-secondary: #64748B;
+  --text-tertiary:  #94A3B8;
+  --text-disabled:  #CBD5E1;
+  --text-inverse:   #FFFFFF;
+  --text-brand:     #026699;
+  --text-teal:      #0D9488;
+
+  /* ══════════════════════════════════════════
+     ELEVATION / DEPTH SYSTEM
+     Level 0 = Background
+     Level 1 = Content
+     Level 2 = Cards
+     Level 3 = Floating surfaces
+     Level 4 = Nav / contextual
+     Level 5 = Modal
+     Level 6 = Critical focus
+     ══════════════════════════════════════════ */
+  --depth-0: none;
+  --depth-1: 0 1px 2px rgba(29, 53, 87, 0.04);
+  --depth-2: 0 1px 4px rgba(29, 53, 87, 0.06), 0 2px 8px rgba(29, 53, 87, 0.04);
+  --depth-3: 0 4px 16px rgba(29, 53, 87, 0.08), 0 2px 6px rgba(29, 53, 87, 0.05);
+  --depth-4: 0 8px 28px rgba(29, 53, 87, 0.10), 0 4px 10px rgba(29, 53, 87, 0.06);
+  --depth-5: 0 20px 48px rgba(29, 53, 87, 0.14), 0 8px 18px rgba(29, 53, 87, 0.08);
+  --depth-6: 0 32px 72px rgba(29, 53, 87, 0.18), 0 16px 32px rgba(29, 53, 87, 0.10);
+
+  /* Legacy aliases */
+  --shadow-none:     var(--depth-0);
+  --shadow-subtle:   var(--depth-1);
+  --shadow-card:     var(--depth-2);
+  --shadow-elevated: var(--depth-3);
+  --shadow-modal:    var(--depth-5);
+  --shadow-sm:       var(--depth-1);
+  --shadow-md:       var(--depth-2);
+  --shadow-lg:       var(--depth-3);
+  --shadow-xl:       var(--depth-4);
+
+  /* ── Motion ──────────────────────────────── */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  /* ── Shell Layout Dimensions ─────────────── */
+  /* 52px at the default root; grows with reading size and 44px/rem controls. */
+  --app-header-h: 3.25rem;
   --app-sidebar-w: 13.5rem;
   --app-rail-w: 16.5rem;
-  /* Compact application chrome gives the working feed the same usable area
-     users previously reached by reducing browser zoom, without shrinking text. */
   --app-content-max: 96rem;
   --app-gutter: 0.875rem;
   --app-gutter-mobile: 1rem;
 
-  /* === DOMAIN: BLOOM'S TAXONOMY (design-system steering) === */
-  --bloom-remember: #a855f7; /* purple-500 */
-  --bloom-understand: #3b82f6; /* blue-500 */
-  --bloom-apply: #22c55e; /* green-500 */
-  --bloom-analyze: #eab308; /* yellow-500 */
-  --bloom-evaluate: #f97316; /* orange-500 */
-  --bloom-create: #ef4444; /* red-500 */
+  /* Theme-dependent domain defaults precede the equal-specificity .dark scope. */
+  --heatmap-empty: #eaeef2;
+  --heatmap-level-1: #bbf7d0;
+  --heatmap-level-2: #4ade80;
+  --heatmap-level-3: #16a34a;
+  --heatmap-level-4: #14532d;
+  --heatmap-cell-ring: rgba(15, 23, 42, 0.28);
+  --heatmap-cell-outline: rgba(15, 23, 42, 0.06);
+  --xp-track: #e2e8f0;
+}
 
-  /* === DOMAIN: OUTCOME TYPES === */
-  --outcome-ilo: #dc2626; /* red family */
-  --outcome-plo: #2563eb; /* blue family */
-  --outcome-clo: #16a34a; /* green family */
+/* ══════════════════════════════════════════
+   DARK MODE
+   ══════════════════════════════════════════ */
+.dark {
+  color-scheme: dark;
+  --background: #0A1628;
+  --foreground: #E2EBF4;
+  --card: #111E30;
+  --card-foreground: #E2EBF4;
+  --popover: #111E30;
+  --popover-foreground: #E2EBF4;
+  --primary: #1A9BD5;
+  --primary-foreground: #0A1628;
+  --secondary: #4AADA8;
+  --secondary-foreground: #0A1628;
+  --muted: #172238;
+  --muted-foreground: #7A9AB8;
+  --accent: #162B44;
+  --accent-foreground: #5AB9B4;
+  --destructive: #F87171;
+  --destructive-foreground: #0A1628;
+  --border: rgba(255, 255, 255, 0.07);
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: #1A9BD5;
+  --chart-1: #1A9BD5;
+  --chart-2: #4AADA8;
+  --chart-3: #5AB9B4;
+  --chart-4: #34D399;
+  --chart-5: #FBBF24;
+  --sidebar: rgba(10, 22, 40, 0.90);
+  --sidebar-foreground: #C0D5E8;
+  --sidebar-primary: #1A9BD5;
+  --sidebar-primary-foreground: #0A1628;
+  --sidebar-accent: #162B44;
+  --sidebar-accent-foreground: #5AB9B4;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-ring: #1A9BD5;
 
-  /* === DOMAIN: ATTAINMENT BANDS === */
-  --attain-excellent: #16a34a; /* >=85% */
-  --attain-satisfactory: #2563eb; /* 70-84% */
-  --attain-developing: #ca8a04; /* 50-69% */
-  --attain-notyet: #dc2626; /* <50% */
+  --action-primary: var(--primary);
+  --action-primary-text: var(--primary-foreground);
+  --action-primary-hover: #38B2E0;
+  --action-primary-active: #128DC1;
 
-  /* === DOMAIN: GAMIFICATION === */
-  --xp: #f59e0b; /* amber-500 */
-  --streak-from: #ef4444; /* red-500 */
-  --streak-to: #f97316; /* orange-500 */
+  --surface: #111E30;
+  --surface-elevated: #172238;
+  --surface-subtle: #0A1628;
+  --surface-glass: rgba(17, 30, 48, 0.75);
+  --surface-glass-border: rgba(255, 255, 255, 0.10);
+  --surface-glass-strong: rgba(17, 30, 48, 0.90);
+
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-strong:  rgba(255, 255, 255, 0.14);
+  --border-primary: rgba(26, 155, 213, 0.35);
+
+  --text-primary:   #E2EBF4;
+  --text-secondary: #7A9AB8;
+  --text-tertiary:  #4E6E8A;
+  --text-disabled:  #253F5A;
+  --text-brand:     #38B2E0;
+  --text-teal:      #4AADA8;
+
+  --success: #34D399;
+  --success-subtle: #064E3B;
+  --success-foreground: #A7F3D0;
+  --warning: #FBBF24;
+  --warning-subtle: #3A1A00;
+  --warning-foreground: #FDE68A;
+  --error: #F87171;
+  --error-subtle: #3A0A0A;
+  --error-foreground: #FECACA;
+  --info: #60A5FA;
+  --info-subtle: #1A3055;
+  --info-foreground: #BFDBFE;
+  --progress-attention: #FB7185;
+
+  /* Heatmap dark ramp */
+  --heatmap-empty: #1f2937;
+  --heatmap-level-1: #0f3d24;
+  --heatmap-level-2: #15803d;
+  --heatmap-level-3: #22c55e;
+  --heatmap-level-4: #86efac;
+  --heatmap-cell-ring: rgba(226, 232, 240, 0.5);
+  --heatmap-cell-outline: rgba(255, 255, 255, 0.06);
+
+  --xp-track: #334155;
+
+  --shadow-sm:       var(--depth-1);
+  --shadow-md:       var(--depth-2);
+  --shadow-lg:       var(--depth-3);
+  --shadow-xl:       var(--depth-4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Direction is layout, not script. Locale selects the preferred script face;
+   both stacks retain real Arabic fallback for mixed-language content. */
+:root:lang(ar) {
+  --font-body: "Noto Sans Arabic", "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Noto Sans Arabic", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --heading-letter-spacing: normal;
+}
+
+/* Effective mode only: the loader adds this class after all four faces load.
+   Unicode eligibility excludes Arabic/private-use; the normal faces fill gaps. */
+:root.dyslexia-font {
+  --font-body: "OpenDyslexic", "Source Sans 3", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "OpenDyslexic", "Plus Jakarta Sans", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --heading-letter-spacing: normal;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: var(--heading-letter-spacing);
+  }
+
+  html { font-size: var(--font-size); }
+
+  h1 { font-size: var(--text-3xl); font-weight: 700; line-height: 1.2; }
+  h2 { font-size: var(--text-2xl); font-weight: 700; line-height: 1.25; }
+  h3 { font-size: var(--text-xl);  font-weight: 600; line-height: 1.35; }
+  h4 { font-size: var(--text-lg);  font-weight: 600; line-height: 1.4; }
+
+  label  { font-size: var(--text-sm); font-weight: 500; line-height: 1.5; }
+  button { font-size: var(--text-sm); font-weight: 500; line-height: 1.5; }
+  input  { font-size: var(--text-sm); font-weight: 400; line-height: 1.5; }
+}
+
+/* ─── DOMAIN: BLOOM'S TAXONOMY ──────────────────────────── */
+:root {
+  --bloom-remember: #a855f7;
+  --bloom-understand: #3b82f6;
+  --bloom-apply: #22c55e;
+  --bloom-analyze: #eab308;
+  --bloom-evaluate: #f97316;
+  --bloom-create: #ef4444;
+  --outcome-ilo: #dc2626;
+  --outcome-plo: #2563eb;
+  --outcome-clo: #16a34a;
+  --attain-excellent: #16a34a;
+  --attain-satisfactory: #2563eb;
+  --attain-developing: #ca8a04;
+  --attain-notyet: #dc2626;
+  --xp: #f59e0b;
+  --streak-from: #ef4444;
+  --streak-to: #f97316;
   --rank-gold: #facc15;
   --rank-silver: #9ca3af;
   --rank-bronze: #d97706;
+
+  /* Shared across themes; the theme-dependent track lives above .dark. */
+  --xp-fill: #14b8a6;
 }
 
-/* -----------------------------------------------------------------------------
-   3. DARK MODE — NET-NEW (not in prototype). Parity-oriented defaults; must pass
-      a dark-mode design review before cutover. Uses the existing `.dark` class.
-   -------------------------------------------------------------------------- */
-.dark {
-  --surface-bg: #0f172a;
-  --surface-card: #1e293b;
-  --surface-subtle: #1e293b;
-  --surface-muted: #334155;
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --border-hair: rgba(255, 255, 255, 0.06);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
-  /* Brand + gradients keep their hues in dark; components choose tint/opacity. */
+/* ─── ANIMATIONS ───────────────────────────────────────── */
+@keyframes agent-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(26,155,213,0.55), var(--depth-3,none); }
+  50%      { box-shadow: 0 0 0 5px rgba(26,155,213,0.12), var(--depth-3,none); }
+}
+@keyframes risk-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.8); opacity: 0.4; }
+}
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; } 50% { opacity: 0; }
+}
+@keyframes shimmer-move {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.agent-ring     { box-shadow: var(--depth-3,none); animation: agent-ring 2.4s ease-in-out infinite; }
+.risk-dot       { animation: risk-pulse 1.6s ease-in-out infinite; }
+.cursor-blink   { animation: cursor-blink 1s step-end infinite; }
+
+/* Remove the effect rather than freeze a hidden cursor or scaled indicator.
+   The ring retains its static surface depth; normal motion remains unchanged. */
+@media (prefers-reduced-motion: reduce) {
+  .agent-ring, .risk-dot, .cursor-blink { animation: none; }
 }
 
-/* -----------------------------------------------------------------------------
-   4. PER-ROLE ACCENT SCOPES (optional identity, layered ON TOP of shared tokens)
-      Change a role's flavor by editing ONLY its scope — never fork the system.
-      Applied via a wrapper attribute, e.g. <div data-role="student">.
-      Defaults below = no divergence (brand primary). Tune per design review.
-   -------------------------------------------------------------------------- */
-[data-role="student"] {
-  --role-accent: var(--brand-teal);
+/* ─── GLASS UTILITY ────────────────────────────────────── */
+.glass {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
-[data-role="teacher"] {
-  --role-accent: var(--brand-primary);
-}
-[data-role="coordinator"] {
-  --role-accent: #7c3aed; /* placeholder identity — confirm in design review */
-}
-[data-role="parent"] {
-  --role-accent: #0d9488;
-}
-[data-role="admin"] {
-  --role-accent: var(--slate-700);
-}
+
+/* ─── PER-ROLE ACCENT SCOPES ───────────────────────────── */
+[data-role="student"]     { --role-accent: var(--brand-secondary); }
+[data-role="teacher"]     { --role-accent: var(--brand-primary); }
+[data-role="coordinator"] { --role-accent: #6D28D9; }
+[data-role="parent"]      { --role-accent: #0D9488; }
+[data-role="admin"]       { --role-accent: var(--brand-neutral); }

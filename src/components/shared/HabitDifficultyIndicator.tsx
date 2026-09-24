@@ -36,18 +36,18 @@ const HabitDifficultyIndicator = ({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-xs font-bold text-gray-700">Level {level}</span>
-          <span className="text-[10px] text-gray-500">{config.label}</span>
+          <span className="text-xs font-bold text-foreground/80">Level {level}</span>
+          <span className="text-[10px] text-muted-foreground">{config.label}</span>
         </div>
         {level < 3 ? (
           <div className="mt-1">
-            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
               <div
-                className="h-full rounded-full bg-transparent0 transition-all duration-300"
+                className="h-full rounded-full bg-(--success-foreground) transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-[10px] text-gray-400 mt-0.5">
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {daysToNext} day{daysToNext !== 1 ? "s" : ""} to Level {level + 1}
             </p>
           </div>

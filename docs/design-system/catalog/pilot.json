@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scope": "pilot",
+  "entries": [
+    {
+      "id": "pcard", "exportName": "PCard", "canonicalImport": "@/design-system/patterns",
+      "purpose": "Static, unpadded reading surface composed from the canonical Card.",
+      "status": "recommended-scoped", "constraints": ["Callers own layout and heading semantics; do not imply interaction with decorative hover treatment."],
+      "requiredStates": ["light/dark", "LTR/RTL", "long content"], "replacement": null,
+      "example": { "path": "docs/design-system/catalog/examples/recommended.tsx", "exportName": "ReadingSurfaceExample" },
+      "evidence": [{ "kind": "test-source", "path": "src/__tests__/unit/designSystemPatterns.test.tsx", "scope": "Shared pattern contracts; not every consumer or route." }]
+    },
+    {
+      "id": "section-header", "exportName": "SectionHeader", "canonicalImport": "@/design-system/patterns",
+      "purpose": "Section heading with optional decorative icon, description and caller-owned actions.",
+      "status": "recommended-scoped", "constraints": ["Select the heading level appropriate to the surrounding document; nested action groups own their layout."],
+      "requiredStates": ["long heading/actions", "LTR/RTL", "enlarged text"], "replacement": null,
+      "example": { "path": "docs/design-system/catalog/examples/recommended.tsx", "exportName": "ReadingSurfaceExample" },
+      "evidence": [{ "kind": "test-source", "path": "src/__tests__/unit/designSystemPatterns.test.tsx", "scope": "Heading composition contracts, not universal heading hierarchy certification." }]
+    },
+    {
+      "id": "state-panel", "exportName": "StatePanel", "canonicalImport": "@/design-system/patterns",
+      "purpose": "Localized loading, empty, error, partial and permission presentation with caller-owned actions.",
+      "status": "recommended-scoped", "constraints": ["Choose a truthful state from domain/query results; the component does not infer authorization or invent missing data."],
+      "requiredStates": ["loading", "empty", "error", "partial", "permission", "EN/AR", "action outside announcement"], "replacement": null,
+      "example": { "path": "docs/design-system/catalog/examples/recommended.tsx", "exportName": "StateExample" },
+      "evidence": [{ "kind": "test-source", "path": "src/__tests__/unit/designSystemPatterns.test.tsx", "scope": "Localized variants and action/announcement contracts; not live data or whole-app accessibility." }]
+    },
+    {
+      "id": "preference-toggle", "exportName": "PreferenceToggle", "canonicalImport": "@/design-system/patterns",
+      "purpose": "Labelled controlled preference switch using the adopted Button.",
+      "status": "recommended-scoped", "constraints": ["Caller owns state and persistence; supply translated label and description. Minimum target treatment is not a whole-app accessibility certificate."],
+      "requiredStates": ["on/off", "disabled", "keyboard", "EN/AR", "long copy"], "replacement": null,
+      "example": { "path": "docs/design-system/catalog/examples/recommended.tsx", "exportName": "PreferenceExample" },
+      "evidence": [{ "kind": "test-source", "path": "src/__tests__/unit/accessibilitySettingsPanel.test.tsx", "scope": "Preference control/panel contracts with isolated ownership inputs." }]
+    },
+    {
+      "id": "button", "exportName": "Button", "canonicalImport": "@/design-system/primitives",
+      "purpose": "Existing generated Shadcn Button exposed through the application facade.",
+      "status": "adopted-primitive", "constraints": ["Do not hand-edit the generated implementation. Supply an accessible translated label; inspect the shared CSS owners. Not all variants, opacity combinations or consumer overrides are certified."],
+      "requiredStates": ["focus", "disabled", "hover", "light/dark", "high contrast"], "replacement": null,
+      "example": { "path": "docs/design-system/catalog/examples/recommended.tsx", "exportName": "ReadingSurfaceExample" },
+      "evidence": [{ "kind": "test-source", "path": "src/__tests__/unit/accessibilityFoundation.test.ts", "scope": "Selected semantic/alpha contrast and adoption contracts, not every native attribute or variant rendering." }]
+    },
+    {
+      "id": "kpi-card", "exportName": "KPICard", "canonicalImport": "@/design-system/patterns",
+      "purpose": "Metric tile migrated to finite semantic presentation; consumer and rendered acceptance remain under review.",
+      "status": "compatibility-review", "constraints": ["The new API removes arbitrary paint/class overrides. Supply domain-owned values and explicit availability; tone must not infer academic classification. Source migration does not certify all consumers or rendered states."],
+      "requiredStates": ["missing versus measured zero", "native formatted values", "all tones", "light/dark/high contrast", "long values", "EN/AR", "no hover lift"],
+      "replacement": null,
+      "example": { "path": "docs/design-system/catalog/examples/compatibility.tsx", "exportName": "LegacyKpiReference" },
+      "evidence": [{ "kind": "review-document", "path": "docs/architecture/frontend-design-system-strategy.md", "scope": "Migration findings, not approval or browser verification." }]
+    },
+    {
+      "id": "hawdex-card", "exportName": "HCard", "canonicalImport": "@/design-system",
+      "purpose": "Existing Hawdex card facade retained for active compatibility consumers.",
+      "status": "compatibility-review", "constraints": ["Do not select as a new default or delete it without consumer evidence. Compatibility status is not a deprecation announcement."],
+      "requiredStates": ["consumer inventory", "surface/layout parity"],
+      "replacement": { "kind": "review-candidate", "targetIds": ["pcard"], "note": "Compare spacing, style and behavior before migrating; no automatic substitution is authorized." },
+      "example": { "path": "docs/design-system/catalog/examples/compatibility.tsx", "exportName": "LegacyHawdexReference" },
+      "evidence": [{ "kind": "review-document", "path": "src/design-system/README.md", "scope": "Current compatibility/import guidance, not approval of every Hawdex implementation." }]
+    }
+  ]
+}

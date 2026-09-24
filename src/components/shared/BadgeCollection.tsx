@@ -72,7 +72,7 @@ const TieredBadgeCard = ({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="absolute top-2 end-2 size-7 rounded-full hover:bg-slate-100"
+          className="absolute top-2 end-2 size-7 rounded-full hover:bg-muted"
           onClick={() => {
             if (badge.is_pinned && onUnpin) onUnpin(badge.id);
             else if (!badge.is_pinned && onPin && pinnedCount < MAX_PINS)
@@ -91,7 +91,7 @@ const TieredBadgeCard = ({
           {badge.is_pinned ? (
             <PinOff className="h-3.5 w-3.5 text-blue-600" />
           ) : (
-            <Pin className="h-3.5 w-3.5 text-gray-400" />
+            <Pin className="h-3.5 w-3.5 text-muted-foreground" />
           )}
         </Button>
       )}
@@ -109,7 +109,7 @@ const TieredBadgeCard = ({
             badge.tier === "bronze" &&
               "bg-amber-100 text-amber-700 border-amber-300",
             badge.tier === "silver" &&
-              "bg-gray-100 text-gray-700 border-gray-300",
+              "bg-muted text-foreground/80 border-gray-300",
             badge.tier === "gold" &&
               "bg-yellow-100 text-yellow-700 border-yellow-300"
           )}
@@ -119,20 +119,20 @@ const TieredBadgeCard = ({
       )}
       {badge.tier !== "gold" && (
         <div className="w-full mt-1" data-testid={`badge-progress-${badge.id}`}>
-          <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full rounded-full bg-transparent0 transition-all duration-300"
+              className="h-full rounded-full bg-primary transition-all duration-300"
               style={{
                 width: `${Math.min(badge.progress_toward_next * 100, 100)}%`,
               }}
             />
           </div>
-          <p className="text-[10px] text-gray-400 mt-0.5">
+          <p className="text-[10px] text-muted-foreground mt-0.5">
             {Math.round(badge.progress_toward_next * 100)}% to next tier
           </p>
         </div>
       )}
-      <span className="text-[10px] text-gray-500">
+      <span className="text-[10px] text-muted-foreground">
         {format(new Date(badge.earned_at), "MMM d, yyyy")}
       </span>
       {badge.is_pinned && (
@@ -180,7 +180,7 @@ const LegacyBadgeCard = ({
         {showMysteryPlaceholder ? "Mystery" : badge.name}
       </span>
       {isEarned && awardedAt && (
-        <span className="text-[10px] text-gray-500">
+        <span className="text-[10px] text-muted-foreground">
           {format(new Date(awardedAt), "MMM d, yyyy")}
         </span>
       )}
@@ -237,13 +237,13 @@ const BadgeCollection = ({
     if (compact) {
       return (
         <div data-testid="badge-collection-compact">
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-muted-foreground mb-2">
             {tieredBadges!.length} badge{tieredBadges!.length !== 1 ? "s" : ""}{" "}
             earned
           </p>
           <div className="flex gap-3 pb-2 overflow-x-auto">
             {tieredBadges!.length === 0 && (
-              <p className="text-xs text-gray-400">No badges earned yet</p>
+              <p className="text-xs text-muted-foreground">No badges earned yet</p>
             )}
             {tieredBadges!.slice(0, 6).map((badge) => (
               <div
@@ -277,7 +277,7 @@ const BadgeCollection = ({
           earned
         </p>
         <div>
-          <h3 className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">
+          <h3 className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-3">
             Active ({activeBadges.length})
           </h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
@@ -298,7 +298,7 @@ const BadgeCollection = ({
               variant="ghost"
               size="sm"
               onClick={() => setShowArchived(!showArchived)}
-              className="text-xs font-semibold text-gray-500 hover:text-gray-700 gap-1"
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground/80 gap-1"
               data-testid="view-all-badges-btn"
             >
               {showArchived ? (
@@ -335,12 +335,12 @@ const BadgeCollection = ({
     const earned = BADGE_DEFINITIONS.filter((b) => earnedSet.has(b.id));
     return (
       <div data-testid="badge-collection-compact">
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-xs text-muted-foreground mb-2">
           {earnedCount} / {totalCount} badges earned
         </p>
         <div className="flex gap-3 pb-2 overflow-x-auto">
           {earned.length === 0 && (
-            <p className="text-xs text-gray-400">No badges earned yet</p>
+            <p className="text-xs text-muted-foreground">No badges earned yet</p>
           )}
           {earned.map((badge) => (
             <div

@@ -1,0 +1,160 @@
+/* Opt-in semantic foundation. Normal Precision/Obsidian values remain owned by
+   tokens.css. This is not a blanket correction for hardcoded colors, translucent
+   legacy consumers, chart palettes, or inaccessible third-party controls. */
+:root.high-contrast {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #002f4c;
+  --primary-foreground: #ffffff;
+  --secondary: #002e2a;
+  --secondary-foreground: #ffffff;
+  --muted: #f0f0f0;
+  --muted-foreground: #1b1b1b;
+  --accent: #e5e7eb;
+  --accent-foreground: #111111;
+  --destructive: #800000;
+  --destructive-foreground: #ffffff;
+  --a11y-destructive-hover: #660000;
+  --border: #444444;
+  --input: #444444;
+  --input-background: #ffffff;
+  --switch-background: #666666;
+  --ring: #111111;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111111;
+  --sidebar-primary: #002f4c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e5e7eb;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: #444444;
+  --sidebar-ring: #111111;
+  --action-primary-hover: #00263e;
+  --action-primary-active: #001d30;
+  --success: #004c30;
+  --success-subtle: #effff4;
+  --success-foreground: #004c30;
+  --warning: #593600;
+  --warning-subtle: #fff8e6;
+  --warning-foreground: #593600;
+  --error: #800000;
+  --error-subtle: #fff0f0;
+  --error-foreground: #800000;
+  --info: #003b5c;
+  --info-subtle: #edf7ff;
+  --info-foreground: #003b5c;
+
+  /* Keep existing semantic aliases bound to their paired consumer surfaces. */
+  --action-primary: var(--primary);
+  --action-primary-text: var(--primary-foreground);
+  --surface: var(--card);
+  --surface-elevated: var(--card);
+  --surface-subtle: var(--background);
+  --surface-glass: var(--card);
+  --surface-glass-strong: var(--card);
+  --surface-glass-border: var(--border);
+  --surface-glass-strong-border: var(--border);
+  --surface-interactive: var(--card);
+  --surface-selected: var(--accent);
+  --surface-highlight: var(--accent);
+  --border-subtle: var(--border);
+  --border-default: var(--border);
+  --border-strong: var(--border);
+  --border-primary: var(--border);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted-foreground);
+  --text-tertiary: var(--muted-foreground);
+  --text-disabled: var(--muted-foreground);
+  --text-inverse: var(--primary-foreground);
+  --text-brand: var(--primary);
+  --text-teal: var(--secondary);
+  --success-light: var(--success);
+  --warning-light: var(--warning);
+  --error-light: var(--error);
+  --info-light: var(--info);
+}
+
+:root.dark.high-contrast {
+  color-scheme: dark;
+  --background: #080808;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --popover: #111111;
+  --popover-foreground: #ffffff;
+  --primary: #b3e5ff;
+  --primary-foreground: #080808;
+  --secondary: #a7f3d0;
+  --secondary-foreground: #080808;
+  --muted: #1b1b1b;
+  --muted-foreground: #e5e7eb;
+  --accent: #252525;
+  --accent-foreground: #ffffff;
+  --destructive: #ffb4b4;
+  --destructive-foreground: #080808;
+  --a11y-destructive-hover: #ffd0d0;
+  --border: #bfc7d1;
+  /* Also consumed at 30–50% opacity by generated outline buttons. */
+  --input: #777777;
+  --input-background: #111111;
+  --switch-background: #888888;
+  --ring: #ffffff;
+  --sidebar: #111111;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #b3e5ff;
+  --sidebar-primary-foreground: #080808;
+  --sidebar-accent: #252525;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #bfc7d1;
+  --sidebar-ring: #ffffff;
+  --action-primary-hover: #d2efff;
+  --action-primary-active: #a1dafa;
+  --success: #b5ffd9;
+  --success-subtle: #101e17;
+  --success-foreground: #b5ffd9;
+  --warning: #ffe29a;
+  --warning-subtle: #211b0b;
+  --warning-foreground: #ffe29a;
+  --error: #ffc4c4;
+  --error-subtle: #241010;
+  --error-foreground: #ffc4c4;
+  --info: #b3e5ff;
+  --info-subtle: #0d1c27;
+  --info-foreground: #b3e5ff;
+}
+
+/* This generated variant hardcodes white text and a translucent dark fill.
+   Adopt only its real slot/variant in this opt-in mode; no primitive edits. */
+:root.high-contrast [data-slot="button"][data-variant="destructive"] {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+:root.high-contrast [data-slot="button"][data-variant="destructive"]:hover {
+  background-color: var(--a11y-destructive-hover);
+}
+
+:root.high-contrast [data-slot="button"][data-variant="destructive"]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* One global effective-preference backstop. The preference owner combines OS
+   and stored reduction; no 100ms "essential" exception restores motion here.
+   Tiny durations retain completion events needed by presence-based widgets. */
+:root.reduce-animations,
+:root.reduce-animations::before,
+:root.reduce-animations::after,
+:root.reduce-animations *,
+:root.reduce-animations *::before,
+:root.reduce-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+}

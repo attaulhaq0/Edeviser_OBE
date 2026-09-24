@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 import path from "path";
+import { UNIT_SUPABASE_URL, UNIT_SUPABASE_ANON_KEY } from "./src/__tests__/helpers/unitNetwork";
 
 const isAnalyze = process.env.ANALYZE === "true";
 const isTest = !!process.env.VITEST;
@@ -69,7 +70,13 @@ export default defineConfig({
     // toISOString) are only detectable with a positive-UTC process TZ; under
     // pure UTC those bugs pass silently. The suite is already UTC+3-compatible
     // (the dev machine runs TZ=Asia/Qatar), so this only tightens CI.
-    env: { TZ: "Asia/Qatar" },
+    // Unit-only overrides apply locally as well as in CI. Production builds and
+    // the separate Preview RLS config retain their own environment contracts.
+    env: {
+      TZ: "Asia/Qatar",
+      VITE_SUPABASE_URL: UNIT_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY: UNIT_SUPABASE_ANON_KEY,
+    },
     setupFiles: ["./src/__tests__/setup.ts"],
     include: [
       "src/**/*.{test,property.test}.ts",

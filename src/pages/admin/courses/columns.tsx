@@ -23,19 +23,22 @@ import type { Course } from "@/types/app";
 export const createColumns = (
   onEdit: (course: Course) => void,
   onDeactivate: (course: Course) => void,
-  onManageEnrollment?: (course: Course) => void
+  onManageEnrollment?: (course: Course) => void,
+  labels?: { name: string; sortName: string }
 ): ColumnDef<CourseWithRelations>[] => [
   {
     accessorKey: "name",
+    enableMultiSort: false,
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
-        className="-ms-3"
+        className="-ms-3 min-h-11"
+        aria-label={labels?.sortName ?? "Sort courses by name"}
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Name
-        <ArrowUpDown className="h-4 w-4" />
+        {labels?.name ?? "Name"}
+        <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
       </Button>
     ),
     cell: ({ row }) => (
@@ -50,7 +53,7 @@ export const createColumns = (
     id: "program",
     header: "Program",
     cell: ({ row }) => (
-      <span className="text-gray-500 truncate max-w-[160px] inline-block">
+      <span className="text-muted-foreground truncate max-w-[160px] inline-block">
         {resolveName(row.original.programs?.name)}
       </span>
     ),
@@ -59,7 +62,7 @@ export const createColumns = (
     id: "teacher",
     header: "Teacher",
     cell: ({ row }) => (
-      <span className="text-gray-500 truncate max-w-[160px] inline-block">
+      <span className="text-muted-foreground truncate max-w-[160px] inline-block">
         {resolveName(row.original.teacher?.full_name)}
       </span>
     ),

@@ -17,6 +17,9 @@ export default tseslint.config(
       "coverage",
       "loginsignup",
       "runtime-governance-scratch",
+      // Standalone Figma reference extraction, not application source.
+      // Migrated from the unsupported ESLint 9 .eslintignore file.
+      "_hawdex_analysis/**",
     ],
   },
   {

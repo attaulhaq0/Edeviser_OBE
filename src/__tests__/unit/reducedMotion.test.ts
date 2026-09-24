@@ -4,6 +4,7 @@ import { resolve } from "path";
 
 const cssContent = readFileSync(resolve(__dirname, "../../index.css"), "utf-8");
 const appContent = readFileSync(resolve(__dirname, "../../App.tsx"), "utf-8");
+const motionContent = readFileSync(resolve(__dirname, "../../providers/AccessibilityMotion.tsx"), "utf-8");
 
 const ALL_ANIMATION_CLASSES = [
   "animate-shimmer",
@@ -45,15 +46,19 @@ describe("Reduced motion support", () => {
   });
 
   describe("Framer Motion global config", () => {
-    it("imports MotionConfig from framer-motion in App.tsx", () => {
-      expect(appContent).toContain("MotionConfig");
-      expect(appContent).toMatch(
+    it("imports the real MotionConfig in the single owned preference adapter", () => {
+      expect(appContent).toContain("<AccessibilityMotion>");
+      expect(motionContent).toMatch(
         /import\s*\{[^}]*MotionConfig[^}]*\}\s*from\s*['"]framer-motion['"]/
       );
     });
 
-    it('wraps the app with MotionConfig reducedMotion="user"', () => {
-      expect(appContent).toMatch(/<MotionConfig\s+reducedMotion="user"/);
+    it("adds stored reduction without ever overriding the OS with never", () => {
+      expect(motionContent).toContain('reducedMotion={effective.reduced_animations ? "always" : "user"}');
+      expect(motionContent).not.toContain('"never"');
+      // Real MotionConfig context + child preservation are exercised by
+      // accessibilityMotion.test.tsx; root ancestry by accessibilityRootWiring.
+      expect(appContent).toContain("<AccessibilityPreferencesProvider>");
     });
   });
 });

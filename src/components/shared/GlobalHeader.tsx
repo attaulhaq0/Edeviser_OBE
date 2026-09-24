@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import NotificationBell from "@/components/shared/NotificationBell";
@@ -9,25 +9,18 @@ import RoleHeaderStats from "@/components/shared/RoleHeaderStats";
 import StudentHeaderStats from "@/components/shared/StudentHeaderStats";
 import { useSidebar } from "@/components/shared/SidebarContext";
 import { Button } from "@/components/ui/button";
+import RoleBrandLink from "@/components/shared/RoleBrandLink";
 import type { UserRole } from "@/types/app";
-
-const dashboardRouteByRole: Record<UserRole, string> = {
-  admin: "/admin",
-  coordinator: "/coordinator",
-  teacher: "/teacher",
-  student: "/student",
-  parent: "/parent",
-};
 
 const GlobalHeader = () => {
   const { profile } = useAuth();
-  const { toggle } = useSidebar();
+  const { toggle, mobileOpen } = useSidebar();
+  const { t } = useTranslation("common");
 
   const role = profile?.role ?? "student";
-  const dashboardRoute = dashboardRouteByRole[role as UserRole] ?? "/student";
 
   return (
-    <header className="sticky top-0 z-[100] h-(--app-header-h) w-full border-b border-slate-200/80 bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.06)] backdrop-blur-md dark:border-border dark:bg-background/95">
+    <header className="sticky top-0 z-[100] h-(--app-header-h) w-full border-b-0 bg-card/95 backdrop-blur-md [&_button]:min-h-11 [&_button]:min-w-11">
       <div
         data-tour="top-bar"
         className="mx-auto flex h-full w-full items-center justify-between gap-3 px-4"
@@ -39,30 +32,22 @@ const GlobalHeader = () => {
             variant="ghost"
             size="icon"
             onClick={toggle}
-            className="rounded-lg text-gray-600 hover:bg-slate-100 min-[640px]:hidden"
-            aria-label="Toggle navigation menu"
+            className="rounded-lg text-muted-foreground hover:bg-muted min-[640px]:hidden"
+            aria-label={t(mobileOpen ? "header.closeNavigation" : "header.openNavigation")}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
+            aria-haspopup="dialog"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5" aria-hidden="true" />
           </Button>
 
-          <Link
-            to={dashboardRoute}
-            className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
-            aria-label="Edeviser — go to dashboard"
-          >
-            <img
-              src="/edeviser-logo-final.png"
-              className="h-8 w-auto object-contain"
-              alt=""
-            />
-            <span className="font-black text-xl tracking-tight text-slate-900 dark:text-white">
-              Edeviser
-            </span>
-          </Link>
+          {/* Desktop branding belongs to the overlaid sidebar; do not leave an
+              invisible header link underneath it in the keyboard tab order. */}
+          <RoleBrandLink userRole={role as UserRole} className="min-[640px]:hidden" />
         </div>
 
         {/* Center: Search Command */}
-        <div className="absolute start-1/2 -translate-x-1/2 hidden min-[1280px]:block w-90">
+        <div className="absolute inset-x-0 mx-auto hidden min-[1280px]:block w-90">
           <SearchCommand showTrigger />
         </div>
 

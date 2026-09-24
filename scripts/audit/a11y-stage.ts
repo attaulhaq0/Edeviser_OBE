@@ -20,7 +20,9 @@ import { scanColorContrast } from "./color-contrast-check.ts";
 import { scanIconOnlyButtons } from "./icon-label-scan.ts";
 import type { StageResult } from "./types.ts";
 
-const ARTIFACT_NAME = "a11y-findings.json";
+// Browser teardown owns a11y-findings.json. Keep both artifacts discoverable
+// by the report aggregator's *-findings.json pattern without overwriting either.
+const ARTIFACT_NAME = "a11y-static-findings.json";
 
 export const runA11yStage = async (): Promise<StageResult> => {
   const startedAt = Date.now();

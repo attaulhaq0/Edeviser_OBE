@@ -1,8 +1,15 @@
 # PARITY.md — Prototype → React fidelity contract (Path A)
 
-This file **pins fidelity before screens are built**. It is the single reference the
-rebuild targets so "make it look exactly like the prototype" is a fixed, reviewable
-spec instead of a moving one. It has three locked parts:
+**Historical migration reference, not current design authority.** This file records
+the earlier prototype-fidelity contract and references still used by migration
+and visual tooling. For new frontend work, follow [README.md](./README.md), the
+root/nearest AGENTS instructions and the approved product contract. Do not restore
+literal prototype paint, hover lifts or fixed text over the current semantic,
+bilingual and accessibility requirements. Existing references/baselines must be
+migrated and reviewed before retirement; this notice does not approve snapshots
+or authorize deleting the prototype.
+
+The historical contract has three parts:
 
 - **§A — Class → Component parity map:** every structural prototype CSS class →
   the one React primitive/pattern that reproduces it.
@@ -14,10 +21,10 @@ spec instead of a moving one. It has three locked parts:
 
 Plus **§D** (demo-only artifacts we never port) and **§E** (fidelity caveats).
 
-> Source of truth = the prototype (`prototype/*.html`, `shared.css` ≈64 KB / 312
-> classes, `shared.js`). Those files never ship (guardrail G.2); only their
-> **values and structure** are reproduced. Ground truth here was extracted directly
-> from those files, not assumed.
+> Historical reference = the prototype (`prototype/*.html`, `shared.css` ≈64 KB /
+> 312 classes, `shared.js`). Those files never ship (guardrail G.2). The values
+> below were extracted from them; they are reference evidence, not permission to
+> override the current design-system contract.
 
 > **Scope:** the prototype defines **light mode + LTR only**. Everything below is the
 > light/LTR contract. Dark mode and Arabic/RTL are **net-new** deliverables gated
@@ -47,15 +54,16 @@ The prototype's structural classes and the React primitive that reproduces each.
 "Match" = same padding / radius / shadow / color / typography / motion, driven by
 `tokens.css`.
 
-> **Built (P0.4) — screens build from `@/design-system`.** The prototype design
+> **Historical P0.4 snapshot — not the current approved component catalog.** The prototype design
 > system now ships these patterns as prototype-faithful components (import from
 > `@/design-system` or `@/design-system/patterns`): `PageHeader`, `PCard`,
 > `SectionCard`, `SectionHeader`, `KPICard`, `HeroCard`, `StatusDot`, `StatePanel`,
 > `EMeter`, plus `MascotCharacter`/`MascotCompanion`. **Primitives** are the Shadcn
 > `ui/*` re-exported via `@/design-system` (`Button` incl. `tactile`, `Card`,
-> `Badge`, `Input`, `Select`, `Dialog`, `Tabs`, `Switch`, …). New screens import
-> from `@/design-system` — NOT `@/components/shared/*` (legacy). Reference
-> migration already on the design system: the student + parent **Fees** vertical.
+> `Badge`, `Input`, `Select`, `Dialog`, `Tabs`, `Switch`, …). Current new-screen
+> import choices are documented in README.md; `components/shared` also contains
+> active cross-feature behavior and is not uniformly legacy. Historical reference
+> migration: the student + parent **Fees** vertical.
 >
 > **Self-contained + reskinned (prototype-fidelity pass).** `MasteryRing`,
 > `WelcomeHero`, `SeverityIcon`, and `GradientCardHeader` are now **internalized**
@@ -64,8 +72,9 @@ The prototype's structural classes and the React primitive that reproduces each.
 > `KPICard`/`StatusDot` were reskinned to their **exact** `shared.css` values
 > (`.pcard` 20px + `#eef2f6` + two-layer shadow + hover-lift; `.sec-h .chip`
 > 26px/9px + teal halo + 13px/800 title; `.kpi-ic` 38px/11px; `.dot` 8px). Per the
-> strict `prototype-fidelity.md` rule, the raw `shared.css` values win over any
-> earlier deployed-flavored simplification.
+> historical `prototype-fidelity.md` approach, these raw values were the earlier
+> fidelity target. They do not overrule the current semantic/theme/accessibility
+> contract; use the current implementation/evidence ledger to assess migration.
 > The rows below remain the prototype-class → component reference.
 
 ### A.1 Surfaces & layout

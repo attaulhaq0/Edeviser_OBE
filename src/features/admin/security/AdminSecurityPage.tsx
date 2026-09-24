@@ -88,17 +88,13 @@ const AdminSecurityPage = () => {
           icon={Ban}
           label={t("security.activeBlocks", "Active IP blocks")}
           value={activeBlocks}
-          iconBgClass="bg-transparent"
-          iconColorClass="text-red-600"
-          valueClassName={activeBlocks > 0 ? "text-red-600" : "text-sky-700"}
+          tone={activeBlocks > 0 ? "danger" : "neutral"}
         />
         <KPICard
           icon={Lock}
           label={t("security.lockedAccounts", "Locked accounts")}
           value={lockedCount}
-          iconBgClass="bg-transparent"
-          iconColorClass="text-amber-600"
-          valueClassName={lockedCount > 0 ? "text-amber-600" : "text-sky-700"}
+          tone={lockedCount > 0 ? "warning" : "neutral"}
         />
         <KPICard
           icon={Activity}
@@ -109,11 +105,11 @@ const AdminSecurityPage = () => {
 
       <SectionCard icon={Ban} title={t("security.blockedIps", "Blocked IPs")}>
         {blockedIps.length === 0 ? (
-          <p className="py-3 text-sm text-gray-500">
+          <p className="py-3 text-sm text-muted-foreground">
             {t("security.noBlockedIps", "No blocked IPs.")}
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {blockedIps.map((b) => {
               const active = isBlockActive(b.blocked_until);
               return (
@@ -123,11 +119,11 @@ const AdminSecurityPage = () => {
                     <p className="truncate text-sm font-bold text-gray-900">
                       {b.ip_address}
                     </p>
-                    <p className="truncate text-[11px] text-gray-500">
+                    <p className="truncate text-[11px] text-muted-foreground">
                       {b.reason}
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-gray-500">
+                  <span className="shrink-0 text-xs font-medium text-muted-foreground">
                     {active
                       ? t("security.blockedUntil", "Until {{when}}", {
                           when: fmt(b.blocked_until),
@@ -146,11 +142,11 @@ const AdminSecurityPage = () => {
         title={t("security.lockedAccountsTitle", "Login lockouts")}
       >
         {lockedAccounts.length === 0 ? (
-          <p className="py-3 text-sm text-gray-500">
+          <p className="py-3 text-sm text-muted-foreground">
             {t("security.noLockouts", "No login lockouts.")}
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {lockedAccounts.map((a) => {
               const status = loginLockStatus(a.locked_until, a.attempt_count);
               return (
@@ -160,7 +156,7 @@ const AdminSecurityPage = () => {
                     <p className="truncate text-sm font-bold text-gray-900">
                       {a.email}
                     </p>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-muted-foreground">
                       {t(
                         "security.failedAttempts",
                         "{{count}} failed attempts",
@@ -170,7 +166,7 @@ const AdminSecurityPage = () => {
                       )}
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {status}
                   </span>
                 </li>
@@ -185,11 +181,11 @@ const AdminSecurityPage = () => {
         title={t("security.recentEventsTitle", "Recent rate-limit events")}
       >
         {rateLimitEvents.length === 0 ? (
-          <p className="py-3 text-sm text-gray-500">
+          <p className="py-3 text-sm text-muted-foreground">
             {t("security.noEvents", "No recent events.")}
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {rateLimitEvents.map((e) => {
               const severity = rateLimitSeverity(e.event_type);
               return (
@@ -199,11 +195,11 @@ const AdminSecurityPage = () => {
                     <p className="truncate text-sm font-bold text-gray-900">
                       {e.event_type}
                     </p>
-                    <p className="truncate text-[11px] text-gray-500">
+                    <p className="truncate text-[11px] text-muted-foreground">
                       {e.ip_address}
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-gray-500">
+                  <span className="shrink-0 text-xs font-medium text-muted-foreground">
                     {fmt(e.occurred_at)}
                   </span>
                 </li>

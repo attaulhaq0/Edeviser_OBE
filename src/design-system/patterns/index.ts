@@ -1,8 +1,8 @@
 // =============================================================================
-// L2 patterns — prototype design-system component surface.
-// Barrel so screens can `import { PageHeader, SectionCard, KPICard, ... } from
-// "@/design-system/patterns"`. A `.ts` barrel (not a component module), so
-// react-refresh does not apply — safe to re-export components + types together.
+// Shared presentation-pattern surface. Consult README.md and the component
+// catalog before choosing an implementation: migration/verification scope varies,
+// and a public export alone does not make a legacy recipe a recommended default.
+// This .ts barrel preserves component/type exports without duplicating behavior.
 // =============================================================================
 
 export { default as PageHeader } from "./PageHeader";
@@ -34,6 +34,12 @@ export type { DotTone, StatusDotProps } from "./StatusDot";
 
 export { default as StatePanel } from "./StatePanel";
 export type { StatePanelProps } from "./StatePanel";
+
+export { default as VisualizationFrame } from "./VisualizationFrame";
+export type { VisualizationFrameProps } from "./VisualizationFrame";
+
+export { default as PreferenceToggle } from "@/design-system/patterns/PreferenceToggle";
+export type { PreferenceToggleProps } from "@/design-system/patterns/PreferenceToggle";
 
 export { default as Shimmer } from "./Shimmer";
 export type { ShimmerProps } from "./Shimmer";

@@ -39,6 +39,12 @@ vi.mock("@/hooks/useAuth", () => ({
   }),
 }));
 
+// This page fixture does not mount App's preference owner. Supply its public
+// preference-data seam without replacing the real StudyTimeChart or its frame.
+vi.mock("@/hooks/useAccessibilityPreferences", () => ({
+  useAccessibilityPreferenceControls: () => ({ effective: { reduced_animations: false } }),
+}));
+
 // react-router-dom is only used for useNavigate on these pages.
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", () => ({

@@ -7,8 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Globe } from "lucide-react";
-import { useUpdateLanguagePreference } from "@/hooks/useLanguagePreference";
-import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 const languages = [
   { code: "en", nativeLabel: "English" },
@@ -16,29 +15,18 @@ const languages = [
 ] as const;
 
 export const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
-  const { user } = useAuth();
-  const updatePreference = useUpdateLanguagePreference();
-
-  const handleLanguageChange = (langCode: string) => {
-    i18n.changeLanguage(langCode);
-    localStorage.setItem("edeviser-language", langCode);
-    if (user) {
-      updatePreference.mutate(langCode);
-    }
-  };
-
-  const currentLang =
-    languages.find((l) => l.code === i18n.language) || languages[0];
+  const { t } = useTranslation("common");
+  const { language, direction, setLanguage } = useLanguage();
+  const currentLang = languages.find((entry) => entry.code === language) ?? languages[0];
 
   return (
-    <DropdownMenu>
+    <DropdownMenu dir={direction}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
           className="gap-2"
-          aria-label={`Language: ${currentLang.nativeLabel}`}
+          aria-label={t("header.languageMenu", { language: currentLang.nativeLabel })}
         >
           <Globe className="h-4 w-4" />
           {currentLang.nativeLabel}
@@ -48,9 +36,9 @@ export const LanguageSwitcher = () => {
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-            className={i18n.language === lang.code ? "bg-accent" : ""}
-            aria-current={i18n.language === lang.code ? "true" : undefined}
+            onSelect={() => setLanguage(lang.code)}
+            className={language === lang.code ? "bg-accent" : ""}
+            aria-current={language === lang.code ? "true" : undefined}
           >
             {lang.nativeLabel}
           </DropdownMenuItem>

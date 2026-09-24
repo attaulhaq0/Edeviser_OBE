@@ -27,7 +27,6 @@ vi.mock("@/hooks/useSurveyAssignmentsCount", () => ({
 vi.mock("@/components/shared/StudentSidebarExtras", () => ({
   default: () => null,
 }));
-vi.mock("@/components/shared/MobileTabBar", () => ({ default: () => null }));
 
 import Sidebar from "@/components/shared/Sidebar";
 import { SidebarProvider } from "@/components/shared/SidebarContext";
@@ -76,7 +75,7 @@ describe("Sidebar primary/MORE navigation", () => {
   it("keeps the student prototype destinations in the right primary and MORE order", () => {
     renderSidebar();
 
-    const links = screen.getAllByRole("link");
+    const links = within(screen.getByRole("navigation", { name: "Primary navigation" })).getAllByRole("link");
     expect(links.slice(0, 5).map((link) => link.textContent)).toEqual([
       expect.stringContaining("Home"),
       expect.stringContaining("Learn"),
@@ -105,6 +104,8 @@ describe("Sidebar primary/MORE navigation", () => {
 
   it("marks the active route exactly once", () => {
     renderSidebar("/student/progress");
-    expect(screen.getAllByText("(current page)")).toHaveLength(1);
+    const currentLinks = screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page");
+    expect(currentLinks).toHaveLength(1);
+    expect(currentLinks[0]).toHaveAttribute("href", "/student/progress");
   });
 });

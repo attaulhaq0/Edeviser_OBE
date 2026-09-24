@@ -34,13 +34,8 @@
       var(--auth-canvas-mid) 55%,
       var(--auth-canvas-end) 100%
     );
-  font-family: Inter, "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
   overflow-x: clip;
-}
-
-.auth-landing[dir="rtl"] {
-  font-family: "Noto Sans Arabic", "IBM Plex Sans Arabic", Tahoma, Arial,
-    sans-serif;
 }
 
 /* The outer desktop shell mirrors for Arabic. The illustration itself keeps
@@ -75,8 +70,9 @@
   gap: 10px;
   direction: ltr;
   color: var(--brand-navy);
+  font-family: var(--font-brand);
   font-size: clamp(18px, 1.4vw, 25px);
-  font-weight: 850;
+  font-weight: 800;
   letter-spacing: 0.015em;
   text-decoration: none;
 }

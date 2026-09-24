@@ -69,7 +69,7 @@ const ATTAINMENT_STYLES: Record<AttainmentLevel, string> = {
 const CloRow = ({ clo }: { clo: PortfolioCLO }) => {
   const { t } = useTranslation("student");
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 p-3">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
       <div className="flex min-w-0 items-center gap-2">
         <BloomsPill level={clo.blooms_level} />
         <span className="truncate text-sm font-medium text-gray-800">
@@ -231,9 +231,6 @@ const StudentPortfolioNew = () => {
           icon={TrendingUp}
           label={t("portfolio.kpi.totalXP")}
           value={(data?.totalXP ?? 0).toLocaleString()}
-          iconBgClass="bg-transparent"
-          iconColorClass="text-amber-500"
-          valueClassName="text-amber-600"
         />
         <KPICard
           icon={Award}
@@ -249,8 +246,6 @@ const StudentPortfolioNew = () => {
           icon={Award}
           label={t("portfolio.kpi.badgesEarned")}
           value={data?.badges.length ?? 0}
-          iconBgClass="bg-transparent"
-          iconColorClass="text-green-600"
         />
       </div>
 
@@ -267,7 +262,7 @@ const StudentPortfolioNew = () => {
               const { strengths, areasImproving } = splitByFriendlyGroup(clos);
               return (
                 <div key={courseName}>
-                  <h3 className="mb-3 text-sm font-bold text-gray-700">
+                  <h3 className="mb-3 text-sm font-bold text-foreground/80">
                     {courseName}
                   </h3>
                   <div className="space-y-4">
@@ -276,7 +271,7 @@ const StudentPortfolioNew = () => {
                         <p className="text-xs font-bold uppercase tracking-wide text-green-700">
                           {tw("portfolio.friendly.strengths")}
                         </p>
-                        <p className="mb-2 text-xs text-gray-500">
+                        <p className="mb-2 text-xs text-muted-foreground">
                           {tw("portfolio.friendly.strengthsHint")}
                         </p>
                         <div className="space-y-2">
@@ -291,7 +286,7 @@ const StudentPortfolioNew = () => {
                         <p className="text-xs font-bold uppercase tracking-wide text-yellow-700">
                           {tw("portfolio.friendly.areasImproving")}
                         </p>
-                        <p className="mb-2 text-xs text-gray-500">
+                        <p className="mb-2 text-xs text-muted-foreground">
                           {tw("portfolio.friendly.areasImprovingHint")}
                         </p>
                         <div className="space-y-2">
@@ -324,7 +319,7 @@ const StudentPortfolioNew = () => {
                 {data?.badges.map((b) => (
                   <PCard
                     key={b.badge_key}
-                    className="flex flex-col items-center gap-2 rounded-xl border-0 border-s-4 border-s-amber-400 bg-white p-4 text-center shadow-md"
+                    className="flex flex-col items-center gap-2 rounded-xl border-0 border-s-4 border-s-amber-400 bg-card p-4 text-center shadow-md"
                   >
                     <span className="text-3xl" aria-hidden="true">
                       {b.emoji}
@@ -332,7 +327,7 @@ const StudentPortfolioNew = () => {
                     <span className="text-xs font-bold tracking-wide">
                       {b.badge_name}
                     </span>
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-[10px] text-muted-foreground">
                       {format(new Date(b.awarded_at), "MMM d, yyyy")}
                     </span>
                   </PCard>
@@ -352,7 +347,7 @@ const StudentPortfolioNew = () => {
           />
           <div className="mt-4">
             {(data?.journals ?? []).length === 0 ? (
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {t("portfolio.noJournals")}
               </p>
             ) : (
@@ -360,17 +355,17 @@ const StudentPortfolioNew = () => {
                 {data?.journals.map((j) => (
                   <div
                     key={j.id}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 p-3"
+                    className="flex items-center justify-between rounded-lg border border-border p-3"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-gray-800">
                         {j.content_preview}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {j.course_name ?? t("portfolio.general")}
                       </p>
                     </div>
-                    <span className="shrink-0 text-xs text-gray-400">
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {format(new Date(j.created_at), "MMM d, yyyy")}
                     </span>
                   </div>

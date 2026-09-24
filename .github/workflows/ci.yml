@@ -65,6 +65,8 @@ jobs:
 
       - run: npm ci
       - run: npx tsc --noEmit
+      - name: Verify source-derived design catalog
+        run: npm run check:design-catalog
 
   test:
     name: Test
@@ -75,8 +77,9 @@ jobs:
     # suite is excluded here and runs in the dedicated `rls-smoke` job below.
     runs-on: ubuntu-latest
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+      # Unit/property tests are hermetic; never substitute deployment credentials.
+      VITE_SUPABASE_URL: http://localhost:54321
+      VITE_SUPABASE_ANON_KEY: fake-unit-test-key
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 

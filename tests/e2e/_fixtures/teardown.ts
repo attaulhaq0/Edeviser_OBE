@@ -1,28 +1,24 @@
 // tests/e2e/_fixtures/teardown.ts
 //
-// Task 4.2 / Req 1.7: Playwright globalTeardown.
-//
-// 1. Flushes the axe-core a11y findings buffer to audit/output/a11y-findings.json.
-// 2. POSTs to audit-fixtures/teardown with the runId from globalSetup.
+// Task 4.2 / Req 1.7: merge persisted browser accessibility evidence, then
+// clean up Preview seed data. Evidence errors fail teardown, never warn-and-pass.
 
 import type { FullConfig } from "@playwright/test";
-import { flushA11yFindings } from "../_helpers/axe.ts";
+import { flushA11yFindings } from "../_helpers/axe-evidence.ts";
 
-export default async function globalTeardown(
-  _config: FullConfig
-): Promise<void> {
-  // Task 15.1: Flush axe-core findings buffer → audit/output/a11y-findings.json
+export default async function globalTeardown(config: FullConfig): Promise<void> {
   try {
-    const target = flushA11yFindings();
-    console.log(`[globalTeardown] a11y findings flushed to ${target}`);
-  } catch (err) {
-    console.warn(
-      `[globalTeardown] Could not flush a11y findings: ${
-        err instanceof Error ? err.message : String(err)
-      }`
-    );
+    const target = flushA11yFindings({
+      outputDirs: config.projects.map((project) => project.outputDir),
+    });
+    console.log(`[globalTeardown] a11y findings merged to ${target}`);
+  } finally {
+    // A broken evidence file must not prevent the existing Preview cleanup.
+    await teardownSeedData();
   }
+}
 
+const teardownSeedData = async (): Promise<void> => {
   // Teardown seed data
   const runId = process.env.AUDIT_RUN_ID;
   if (!runId) {
@@ -74,4 +70,4 @@ export default async function globalTeardown(
       }`
     );
   }
-}
+};

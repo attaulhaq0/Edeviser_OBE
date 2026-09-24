@@ -4,6 +4,7 @@
 
 import { test, expect } from "@playwright/test";
 import { scanPage } from "../_helpers/axe.ts";
+import { assertTouchTargets, scanTouchTargets } from "../_helpers/touch-targets.mjs";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 
@@ -28,36 +29,17 @@ test.describe("Student a11y (mobile)", () => {
     await page.goto(`${BASE_URL}/student/dashboard`);
     await page.waitForLoadState("networkidle");
 
-    // Check that interactive elements meet minimum touch target size
-    const smallTargets = await page.evaluate(() => {
-      const interactive = Array.from(
-        document.querySelectorAll("button, a, [role='button'], input, select")
-      );
-      return interactive
-        .filter((el) => {
-          const rect = el.getBoundingClientRect();
-          return (
-            rect.width > 0 &&
-            rect.height > 0 &&
-            (rect.width < 44 || rect.height < 44)
-          );
-        })
-        .map((el) => ({
-          tag: el.tagName,
-          text: el.textContent?.trim().slice(0, 30),
-          width: Math.round(el.getBoundingClientRect().width),
-          height: Math.round(el.getBoundingClientRect().height),
-        }));
+    await expect(page).toHaveURL(/\/student\/dashboard(?:[/?#]|$)/);
+    await expect(page.locator("#main-content")).toBeVisible();
+
+    // Enforce the 44 CSS-pixel policy. Only disabled/inert, nonrendered and
+    // fully clipped keyboard-only controls are excluded, with reasons retained.
+    // Links, icon buttons and merely offscreen controls have no blanket waiver.
+    const report = await scanTouchTargets(page);
+    await test.info().attach("student-dashboard-touch-targets", {
+      body: JSON.stringify(report, null, 2),
+      contentType: "application/json",
     });
-
-    // Log for debugging — violations are advisory, not hard failures
-    if (smallTargets.length > 0) {
-      console.log(
-        `[a11y] ${smallTargets.length} touch targets below 44×44px on student dashboard`
-      );
-    }
-
-    // Assert page loaded
-    await expect(page).toHaveURL(/student/);
+    assertTouchTargets(report);
   });
 });
