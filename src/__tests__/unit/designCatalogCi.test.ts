@@ -25,7 +25,7 @@ describe("source-derived catalog CI wiring", () => {
     expect(typecheck).toContain("run: npm run check:design-catalog");
     expect(typecheck.indexOf("npm run check:design-catalog")).toBeGreaterThan(typecheck.indexOf("npx tsc --noEmit"));
     expect(typecheck).not.toMatch(/--write|generate:design-catalog|continue-on-error|\|\|\s*true/);
-    expect(job("build")).toContain("needs: [lint, typecheck, test]");
+    expect(job("build")).toContain("needs: [lint, typecheck, test, auth-expiry-local]");
   });
   it("keeps fast unit tests on fake credentials, apart from Preview validation", () => {
     const unit = job("test");
