@@ -1,6 +1,6 @@
-// Visual-regression harness config — ISOLATED from playwright.config.ts.
-// Enforces pixel parity between the approved prototype (reference) and the
-// rebuilt React screens (Path A). See visual/README.md.
+// Historical prototype comparison config — ISOLATED from playwright.config.ts.
+// Neither its old references nor candidate captures are approved app baselines.
+// See visual/README.md and the frontend remediation ledger.
 //
 // Runs only the ./visual suite. The root playwright.config.ts scopes its
 // projects to e2e/** and tests/e2e/**, so `visual/` is never picked up there and

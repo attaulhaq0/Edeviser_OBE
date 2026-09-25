@@ -1,22 +1,10 @@
 /**
- * Visual-regression screen map — the pixel-parity burn-down list.
- *
- * Single source of truth for BOTH harness specs:
- *  - prototype-reference.spec.ts captures the approved prototype screen as the
- *    reference image (the "design truth").
- *  - parity.spec.ts screenshots the REBUILT app route and diffs it against that
- *    reference; it only runs for entries flagged `rebuilt: true` (+ `appPath`),
- *    so the suite stays green while screens are still being built.
- *
- * Workflow: when a screen is rebuilt in the new design system, set its
- * `appPath`, flip `rebuilt: true`, (re)capture references, then run `test:visual`.
- * A screen is "pixel-perfect" when its diff ratio is <= its threshold at every
- * viewport.
- *
- * NOTE: the prototype defines LIGHT-mode + LTR only, so parity is defined for
- * light/LTR. Dark mode and Arabic/RTL are net-new and gated separately.
+ * Historical prototype-to-app COMPARISON map, not approved application visual
+ * baselines. Five dashboard rows currently opt in with a broad 0.6 difference
+ * ratio; neither a green diff nor a PNG establishes user-route readiness.
+ * The prototype contains light/LTR examples only; dark and Arabic/RTL remain
+ * independent, unverified acceptance work. Never auto-promote candidates.
  */
-
 export type Role = "student" | "teacher" | "coordinator" | "parent" | "admin";
 
 export interface VisualScreen {
@@ -54,11 +42,7 @@ export const DEFAULT_MAX_DIFF_RATIO = 0.12;
 /** Per-pixel color sensitivity handed to pixelmatch (0 strict … 1 loose). */
 export const PIXELMATCH_THRESHOLD = 0.1;
 
-/**
- * The map. `rebuilt` is false everywhere today (the rebuild hasn't started per
- * screen), so parity.spec.ts currently asserts nothing — it activates row by row.
- * `prototype` files verified to exist in `prototype/`.
- */
+/** Prototype references are historical; five dashboard comparison rows are active. */
 export const SCREENS: VisualScreen[] = [
   // ── Public / auth ────────────────────────────────────────────────────────
   { id: "auth-login", prototype: "auth.html", appPath: "/login" },
