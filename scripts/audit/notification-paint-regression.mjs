@@ -22,8 +22,9 @@ import {createRoot} from "react-dom/client";
 import "@/index.css";
 import "@/lib/i18n";
 import NotificationBell from "@/components/shared/NotificationBell";
+import SaleBadge from "@/components/shared/SaleBadge";
 import NotificationsFeedPage from "@/features/shared/notifications/NotificationsFeedPage";
-createRoot(document.getElementById("root")).render(<main className="min-h-screen bg-card p-5"><NotificationBell/><NotificationsFeedPage/></main>);
+createRoot(document.getElementById("root")).render(<main className="min-h-screen bg-card p-5"><div data-audit-promotion><SaleBadge discountPercentage={25}/></div><NotificationBell/><NotificationsFeedPage/></main>);
 `;
 const hookSource = `
 const now=new Date().toISOString();
@@ -232,6 +233,15 @@ async function inspect(page, config) {
   await expect(read).not.toContainText(
     config.language === "ar" ? "غير مقروء" : "Unread"
   );
+  const promotion = page.locator("[data-audit-promotion] span");
+  await expect(promotion).toContainText(
+    config.language === "ar" ? "خصم" : "Off"
+  );
+  const formattedDiscount = new Intl.NumberFormat(
+    config.language === "ar" ? "ar-QA" : "en",
+    { style: "percent", maximumFractionDigits: 2 }
+  ).format(0.25);
+  await expect(promotion).toContainText(formattedDiscount);
   const status = await page.evaluate(() => {
     const badge = document.querySelector(
       'button[aria-label] span[aria-live="polite"]'
@@ -239,7 +249,9 @@ async function inspect(page, config) {
     const dot = document.querySelector(
       '[data-testid="notif-n1"] span.bg-primary[aria-hidden="true"]'
     );
-    if (!badge || !dot) throw new Error("Real unread badge/dot missing");
+    const promotion = document.querySelector("[data-audit-promotion] span");
+    if (!badge || !dot || !promotion)
+      throw new Error("Real notification or promotion paint missing");
     const layers = (node) => {
       const result = [];
       for (let item = node.parentElement; item; item = item.parentElement)
@@ -252,6 +264,9 @@ async function inspect(page, config) {
       badgeBack: layers(badge),
       dotFg: getComputedStyle(dot).backgroundColor,
       dotBack: layers(dot),
+      promotionBg: getComputedStyle(promotion).backgroundColor,
+      promotionFg: getComputedStyle(promotion).color,
+      promotionBack: layers(promotion),
       role: document.documentElement.lang,
       dir: document.documentElement.dir,
     };
@@ -276,15 +291,33 @@ async function inspect(page, config) {
     `Unread count background contrast ${badgeSurface}:1 is below 3`
   );
   assert(dotRatio >= 3, `Unread dot contrast ${dotRatio}:1 is below 3`);
+  const promotionText = contrast(
+    channels(status.promotionFg),
+    channels(status.promotionBg)
+  );
+  const promotionSurface = contrast(
+    channels(status.promotionBg),
+    backing(status.promotionBack)
+  );
+  assert(
+    promotionText >= 4.5,
+    `Promotion badge text contrast ${promotionText}:1 is below 4.5`
+  );
+  assert(
+    promotionSurface >= 3,
+    `Promotion badge surface contrast ${promotionSurface}:1 is below 3`
+  );
   return {
     badgeRatio: +badgeRatio.toFixed(2),
     badgeSurface: +badgeSurface.toFixed(2),
     dotRatio: +dotRatio.toFixed(2),
+    promotionText: +promotionText.toFixed(2),
+    promotionSurface: +promotionSurface.toFixed(2),
   };
 }
 
 test(
-  "real Bell/feed unread cues in EN/AR light/dark/high-contrast",
+  "real Bell/feed and promotion cues in EN/AR light/dark/high-contrast",
   { timeout: 120000 },
   async () => {
     const dir = await mkdtemp(join(tmpdir(), "edeviser-notification-paint-"));

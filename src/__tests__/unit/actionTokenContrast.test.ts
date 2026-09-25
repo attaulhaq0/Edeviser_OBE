@@ -27,6 +27,7 @@ const pairs = [
   ["--muted-foreground", "--card"],
   ["--progress-attention", "--card"],
   ["--notification-unread-badge-fg", "--notification-unread-badge-bg"],
+  ["--promotion-badge-fg", "--promotion-badge-bg"],
 ] as const;
 
 describe.each([":root", ".dark"] as const)(
@@ -66,6 +67,17 @@ it.each([":root", ".dark"] as const)(
     expect(
       contrastRatio(
         scopedHexToken(css, scope, "--notification-unread-badge-bg"),
+        scopedHexToken(css, scope, "--card")
+      )
+    ).toBeGreaterThanOrEqual(3);
+  }
+);
+it.each([":root", ".dark"] as const)(
+  "%s promotion badge contrasts its card",
+  (scope) => {
+    expect(
+      contrastRatio(
+        scopedHexToken(css, scope, "--promotion-badge-bg"),
         scopedHexToken(css, scope, "--card")
       )
     ).toBeGreaterThanOrEqual(3);

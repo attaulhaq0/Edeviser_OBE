@@ -49,6 +49,8 @@
   --info-foreground: #003b5c;
   --notification-unread-badge-bg: #800000;
   --notification-unread-badge-fg: #ffffff;
+  --promotion-badge-bg: #800000;
+  --promotion-badge-fg: #ffffff;
 
   /* Keep existing semantic aliases bound to their paired consumer surfaces. */
   --action-primary: var(--primary);
@@ -129,6 +131,8 @@
   --info-foreground: #b3e5ff;
   --notification-unread-badge-bg: #ffb4b4;
   --notification-unread-badge-fg: #080808;
+  --promotion-badge-bg: #ffb4b4;
+  --promotion-badge-fg: #080808;
 }
 
 /* This generated variant hardcodes white text and a translucent dark fill.

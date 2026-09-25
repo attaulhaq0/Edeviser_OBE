@@ -603,6 +603,7 @@
       "older": "Older"
     }
   },
+  "saleBadge": { "off": "{{percent}} Off" },
   "notificationsFeed": {
     "title": "Notifications",
     "error": "Could not load notifications. Try again.",

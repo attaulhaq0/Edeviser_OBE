@@ -603,6 +603,7 @@
       "older": "أقدم"
     }
   },
+  "saleBadge": { "off": "خصم {{percent}}" },
   "notificationsFeed": {
     "title": "الإشعارات",
     "error": "تعذّر تحميل الإشعارات. حاول مرة أخرى.",

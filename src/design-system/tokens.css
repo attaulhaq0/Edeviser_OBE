@@ -119,6 +119,9 @@
   /* Unread is an attention cue, never an error or destructive action. */
   --notification-unread-badge-bg: #B91C1C;
   --notification-unread-badge-fg: #FFFFFF;
+  /* A price promotion is not an academic error or destructive action. */
+  --promotion-badge-bg: #9F1239;
+  --promotion-badge-fg: #FFFFFF;
 
   /* ══════════════════════════════════════════
      TAILWIND CONTRACT TOKENS (preserved)
@@ -341,6 +344,8 @@
   --progress-attention: #FB7185;
   --notification-unread-badge-bg: #FCA5A5;
   --notification-unread-badge-fg: #0A1628;
+  --promotion-badge-bg: #FDA4AF;
+  --promotion-badge-fg: #0A1628;
 
   /* Heatmap dark ramp */
   --heatmap-empty: #1f2937;
