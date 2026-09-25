@@ -15,10 +15,11 @@ import type {
  * canonical `get_coordinator_workspace` RPC, then HYDRATES the exact cache that hook reads
  * so it resolves as a cache hit instead of firing its own request chain.
  *
- * The RPC is `SECURITY INVOKER`: every read is RLS-scoped to the caller's
- * institution, so this adds no new data visibility (a coordinator only ever
- * receives their own institution's KPIs). On RPC failure the section hook falls
- * back to its own fetch (fully reversible).
+ * Read-only live pg_proc/pg_get_functiondef inspection confirmed a SECURITY
+ * DEFINER RPC with an explicit active coordinator/admin identity guard and
+ * assigned-program query scope. Do not describe it as SECURITY INVOKER/RLS-only;
+ * authorization behavior still needs real role-claim execution evidence.
+ * RPC failures surface as query errors; no fake KPI fallback is inserted here.
  *
  * The RPC returns the `CoordinatorKPIData` shape directly (the KPI block is the
  * only always-on fan-out section on this dashboard; programs/courses lists and

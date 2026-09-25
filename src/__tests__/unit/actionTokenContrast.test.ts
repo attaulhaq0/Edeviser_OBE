@@ -95,6 +95,17 @@ it.each([":root", ".dark"] as const)(
     ).toBeGreaterThanOrEqual(3);
   }
 );
+it.each([":root", ".dark"] as const)(
+  "%s neutral coverage fill remains distinguishable from its muted track",
+  (scope) => {
+    expect(
+      contrastRatio(
+        scopedHexToken(css, scope, "--primary"),
+        scopedHexToken(css, scope, "--muted")
+      )
+    ).toBeGreaterThanOrEqual(3);
+  }
+);
 it("keeps identity anchors separate from accessible semantic action colors", () => {
   expect(scopedHexToken(css, ":root", "--brand-primary")).toBe("#0382BD");
   expect(scopedHexToken(css, ":root", "--brand-secondary")).toBe("#5AB9B4");

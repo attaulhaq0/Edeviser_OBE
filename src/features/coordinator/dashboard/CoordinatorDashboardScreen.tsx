@@ -22,10 +22,10 @@
 //   - "Recovery pathways" is a PROTOTYPE-ONLY concept (the prototype itself tags
 //     it "Concept"; no coordinator recovery backend exists — useMasteryRecovery
 //     is student-scoped). Omitted rather than fabricated (R17).
-//   - Curriculum-gap names a specific missing outcome in the mock; here it shows
-//     the REAL CLO-coverage % + links to the matrix (no invented gap).
-//   - Accreditation evidence checklist renders the REAL `pack` when the readiness
-//     RPC is deployed; otherwise a neutral "—" (no hardcoded ticks).
+//   - Curriculum-gap only shows measured CLO outcome-mapping coverage when CLOs
+//     exist. A mapping does not prove assessment, evidence or attainment.
+//   - Accreditation evidence draws the returned checklist when available.
+//     Zero eligible courses or missing RPC data remain unmeasured, not 0%.
 // =============================================================================
 
 import { useMemo, useState, type ReactNode } from "react";
@@ -34,11 +34,9 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   CheckCircle2,
-  Circle,
   Clock,
   Compass,
   Grid3X3,
-  LayoutGrid,
   RefreshCw,
   ShieldCheck,
   Sparkles,
@@ -63,6 +61,8 @@ import {
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import { cn } from "@/lib/utils";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
+import CoordinatorCoveragePanels from "@/features/coordinator/dashboard/CoordinatorCoveragePanels";
+import { measuredEvidenceCourseCoverage } from "@/lib/coordinatorCoverageView";
 import {
   AgentChatSurface,
   AgentTaskInbox,
@@ -106,13 +106,6 @@ const PILL: Record<Tone, string> = {
   green: "bg-green-50 text-green-700 border-green-100",
   blue: "bg-blue-50 text-blue-700 border-blue-100",
   slate: "bg-slate-100 text-slate-600 border-slate-200",
-};
-
-const EVIDENCE_LABELS: Record<string, string> = {
-  cloMapping: "CLO ↔ PLO mappings",
-  samples: "Student work evidence",
-  analysis: "Attainment analysis",
-  cqi: "CQI recommendations",
 };
 
 const CQI_TONE: Record<CQIPlanStatus, Tone> = {
@@ -253,7 +246,6 @@ const CoordinatorDashboardScreen = () => {
 
   const aggregate = useCoordinatorDashboardAggregate(institutionId);
   const avgAttainment = aggregate.data?.avgAttainmentPercent ?? null;
-  const cloCoverage = aggregate.data?.cloCoveragePercent ?? null;
 
   const { data: paginatedPrograms } = usePrograms(undefined, {
     enabled: !!institutionId,
@@ -297,7 +289,7 @@ const CoordinatorDashboardScreen = () => {
   );
 
   const accred = useCoordinatorAccreditationReadiness(institutionId);
-  const readiness = accred.data?.readinessPercent ?? null;
+  const readiness = measuredEvidenceCourseCoverage(accred.data);
   const evidencePack = accred.data?.pack ?? [];
 
   const cqiQuery = useCQIPlans({});
@@ -703,143 +695,12 @@ const CoordinatorDashboardScreen = () => {
         )}
       </section>
 
-      {/* ── Curriculum coverage + Accreditation evidence ── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Curriculum coverage (real CLO-coverage %) */}
-        <Link
-          to="/coordinator/matrix"
-          className={cn(
-            CARD,
-            "block p-4 transition-transform active:scale-[.99]"
-          )}
-        >
-          <SectionHeader
-            icon={LayoutGrid}
-            title={t(
-              cloCoverage === 100
-                ? "dashboard.gap.completeTitle"
-                : cloCoverage == null
-                ? "dashboard.gap.unknownTitle"
-                : "dashboard.gap.title",
-              cloCoverage === 100
-                ? "Curriculum coverage complete"
-                : cloCoverage == null
-                ? "Curriculum coverage"
-                : "Curriculum gap detected"
-            )}
-            className="mb-3"
-          />
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-black text-gray-900">
-              {cloCoverage != null ? `${cloCoverage}%` : "—"}
-            </span>
-            <p className="min-w-0 flex-1 text-xs text-gray-500">
-              {t(
-                cloCoverage === 100
-                  ? "dashboard.gap.completeBody"
-                  : cloCoverage == null
-                  ? "dashboard.gap.unknownBody"
-                  : "dashboard.gap.body",
-                cloCoverage === 100
-                  ? "All configured outcomes have mapped assessments."
-                  : cloCoverage == null
-                  ? "Live curriculum coverage is unavailable."
-                  : "of PLOs have at least one mapped assessment. Review the matrix for coverage holes."
-              )}
-            </p>
-          </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-transparent0"
-              style={{ width: `${cloCoverage ?? 0}%` }}
-            />
-          </div>
-          <span
-            className="mt-3 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
-            style={{ background: "var(--action-primary)" }}
-          >
-            {t("dashboard.gap.cta", "Open matrix")}
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </span>
-        </Link>
-
-        {/* Accreditation evidence (real readiness % + real pack checklist) */}
-        <section className={cn(CARD, "p-4")}>
-          <SectionHeader
-            icon={ShieldCheck}
-            title={t("dashboard.evidence.title", "Accreditation evidence")}
-            action={
-              <Link
-                to="/coordinator/accreditation"
-                className="text-xs font-bold text-sky-700 hover:underline"
-              >
-                {t("dashboard.evidence.open", "Open →")}
-              </Link>
-            }
-            className="mb-3"
-          />
-          <div className="mb-2 flex items-center gap-3">
-            <div
-              className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100"
-              role="progressbar"
-              aria-label={t(
-                "dashboard.evidence.overall",
-                "Overall accreditation readiness"
-              )}
-              aria-valuenow={readiness ?? 0}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="h-full rounded-full bg-transparent0"
-                style={{ width: `${readiness ?? 0}%` }}
-              />
-            </div>
-            <span className="text-sm font-black text-blue-600">
-              {readiness != null ? `${readiness}%` : "—"}
-            </span>
-          </div>
-          {evidencePack.length > 0 ? (
-            <ul className="space-y-1.5">
-              {evidencePack.map((item) => {
-                const map = {
-                  done: { icon: CheckCircle2, cls: "text-green-600" },
-                  prog: { icon: Clock, cls: "text-amber-600" },
-                  pending: { icon: Circle, cls: "text-slate-400" },
-                } as const;
-                const { icon: Icon, cls } = map[item.state] ?? map.pending;
-                return (
-                  <li
-                    key={item.key}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <span className="flex items-center gap-2 text-xs text-gray-700">
-                      <Icon
-                        className={cn("h-3.5 w-3.5 shrink-0", cls)}
-                        aria-hidden="true"
-                      />
-                      {t(
-                        `dashboard.evidence.item.${item.key}`,
-                        EVIDENCE_LABELS[item.key] ?? item.key
-                      )}
-                    </span>
-                    <span className={cn("text-[11px] font-semibold", cls)}>
-                      {t(`dashboard.evidence.state.${item.state}`, item.state)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="py-2 text-center text-xs text-gray-500">
-              {t(
-                "dashboard.evidence.pending",
-                "Evidence checklist appears once the accreditation pack is prepared."
-              )}
-            </p>
-          )}
-        </section>
-      </div>
+      {/* Different evidence-coverage denominators; never attainment bands. */}
+      <CoordinatorCoveragePanels
+        coverage={aggregate.data?.coverage}
+        readiness={readiness}
+        evidencePack={evidencePack}
+      />
 
       {/* ── Close the loop (CQI) + Program timeline ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -912,7 +773,10 @@ const CoordinatorDashboardScreen = () => {
       {/* ── 7.8: curriculum ingestion panel — paste/upload a syllabus,
           extract CLO candidates (DRY-RUN), approve in the inbox. ── */}
       {isAiSurfaceEnabled() && (
-        <CurriculumIngestPanel courseId={ingestCourseId} onCourseChange={setIngestCourseId} />
+        <CurriculumIngestPanel
+          courseId={ingestCourseId}
+          onCourseChange={setIngestCourseId}
+        />
       )}
 
       {/* ── Ask-Edeviser assistant (capability-matrix scoped; task 3.3) ──

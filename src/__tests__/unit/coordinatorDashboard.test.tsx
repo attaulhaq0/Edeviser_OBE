@@ -7,17 +7,36 @@
 // CQI timeline (useCQIPlans), program timeline (useAcademicCalendarEvents).
 // =============================================================================
 
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const data = vi.hoisted(() => ({
+  coverage: null as null | {
+    totalClos: number;
+    mappedClos: number;
+    coveragePercent: number;
+    status: "complete" | "gaps" | "insufficientEvidence";
+  },
+  accreditation: null as null | {
+    readinessPercent: number;
+    courses: Array<{ code: string; name: string; status: string }>;
+    pack: Array<{ key: string; state: "done" | "prog" | "pending" }>;
+  },
+}));
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    i18n: { language: "en", dir: () => "ltr", changeLanguage: () => Promise.resolve() },
+    i18n: {
+      language: "en",
+      dir: () => "ltr",
+      changeLanguage: () => Promise.resolve(),
+    },
   }),
 }));
 
@@ -27,7 +46,7 @@ vi.mock("@/hooks/useAuth", () => ({
 
 vi.mock("@/hooks/useCoordinatorDashboardAggregate", () => ({
   useCoordinatorDashboardAggregate: () => ({
-    data: { avgAttainmentPercent: 73 },
+    data: { avgAttainmentPercent: 73, coverage: data.coverage },
     isPending: false,
   }),
 }));
@@ -81,7 +100,7 @@ vi.mock("@/hooks/useCoordinatorAiInsights", () => ({
 
 vi.mock("@/hooks/useCoordinatorAccreditation", () => ({
   // Null → dashboard "Accred. Ready" KPI + rail render "—" (graceful).
-  useCoordinatorAccreditationReadiness: () => ({ data: null }),
+  useCoordinatorAccreditationReadiness: () => ({ data: data.accreditation }),
   useAccreditationApprovals: () => ({ data: [] }),
 }));
 
@@ -134,6 +153,10 @@ const renderDash = () =>
   );
 
 describe("CoordinatorDashboard (prototype rebuild)", () => {
+  beforeEach(() => {
+    data.coverage = null;
+    data.accreditation = null;
+  });
   it("renders the action-hub hero and attainment alerts section", () => {
     renderDash();
     expect(screen.getByText("dashboard.hub.title")).toBeInTheDocument();
@@ -180,5 +203,52 @@ describe("CoordinatorDashboard (prototype rebuild)", () => {
     renderDash();
     const links = screen.getAllByRole("link");
     expect(links.length).toBeGreaterThan(0);
+  });
+  it("passes two source-defined coverage denominators to the actual page panels", () => {
+    data.coverage = {
+      totalClos: 4,
+      mappedClos: 2,
+      coveragePercent: 50,
+      status: "gaps",
+    };
+    data.accreditation = {
+      readinessPercent: 50,
+      courses: [
+        { code: "C1", name: "Course 1", status: "documented" },
+        { code: "C2", name: "Course 2", status: "partial" },
+      ],
+      pack: [{ key: "cloMapping", state: "prog" }],
+    };
+    renderDash();
+    expect(
+      screen.getByRole("progressbar", { name: "dashboard.gap.progressLabel" })
+    ).toHaveAttribute("aria-valuenow", "50");
+    expect(
+      screen.getByRole("progressbar", {
+        name: "dashboard.evidence.documentedCoverage",
+      })
+    ).toHaveAttribute("aria-valuenow", "50");
+    expect(
+      screen.getByRole("link", { name: /dashboard.gap.cta/ })
+    ).toHaveAttribute("href", "/coordinator/matrix");
+  });
+
+  it("does not present RPC zero as measured when both source denominators are empty", () => {
+    data.coverage = {
+      totalClos: 0,
+      mappedClos: 0,
+      coveragePercent: 0,
+      status: "insufficientEvidence",
+    };
+    data.accreditation = { readinessPercent: 0, courses: [], pack: [] };
+    renderDash();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("dashboard.evidence.coverageUnavailable")
+    ).toHaveAttribute("role", "status");
+    expect(screen.getByText("dashboard.gap.unknownBody")).toHaveAttribute(
+      "role",
+      "status"
+    );
   });
 });
