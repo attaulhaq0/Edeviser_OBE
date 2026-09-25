@@ -612,7 +612,8 @@
     "empty": "No notifications yet.",
     "unread": "Unread",
     "delete": "Delete notification"
-  },  "notificationsCta": {
+  },
+  "notificationsCta": {
     "viewGrade": "View Grade",
     "openAssignment": "Open Assignment",
     "viewBadge": "View Badge",
@@ -622,6 +623,24 @@
     "viewHabits": "View Habits",
     "viewAssignment": "View Assignment",
     "viewAll": "View All"
+  },
+  "adminPloHeatmap": {
+    "title": "PLO attainment heatmap",
+    "programFilter": "Filter PLOs by program",
+    "allPrograms": "All programs",
+    "loading": "Loading outcomes for this program…",
+    "error": "Could not load outcomes for this program. Try again.",
+    "retry": "Retry filtered outcomes",
+    "empty": "No measured program outcomes are available here.",
+    "legend": "PLO attainment visualization bands",
+    "unmeasured": "Unmeasured",
+    "sourceRecorded": "Recorded attainment data",
+    "sourceProgram": "{{formattedCount}} contributing course records",
+    "sourceClo": "{{formattedCount}} contributing CLO records",
+    "rangeAtLeast": "{{min}} and above",
+    "rangeBetween": "{{min}} to under {{max}}",
+    "rangeBelow": "Below {{threshold}}",
+    "disclaimer": "These visual bands use the current {{excellent}}/{{satisfactory}}/{{developing}} display cutoffs; the institution's native grade scale and official academic records remain authoritative."
   },
   "studentRailFallback": {
     "label": "Learning momentum",

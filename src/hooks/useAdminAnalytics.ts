@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
+import { classifyPloAttainment } from "@/lib/ploAttainmentBand";
 
 export interface WeeklyActiveLearnersPoint {
   week: string;
@@ -406,11 +407,7 @@ export const useAdminAnalytics = (
           ? Math.round(ploScores.reduce((a, b) => a + b, 0) / ploScores.length)
           : -1;
 
-        let statusBand: PLOHeatmapCard["statusBand"] = "unmeasured";
-        if (meanAtt >= 85) statusBand = "excellent";
-        else if (meanAtt >= 70) statusBand = "satisfactory";
-        else if (meanAtt >= 50) statusBand = "developing";
-        else if (meanAtt >= 0) statusBand = "notYet";
+        const statusBand = classifyPloAttainment(meanAtt);
 
         return {
           ploId: plo.id,

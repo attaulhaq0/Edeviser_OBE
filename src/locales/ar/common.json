@@ -612,7 +612,8 @@
     "empty": "لا توجد إشعارات بعد.",
     "unread": "غير مقروء",
     "delete": "حذف الإشعار"
-  },  "notificationsCta": {
+  },
+  "notificationsCta": {
     "viewGrade": "عرض الدرجة",
     "openAssignment": "فتح التكليف",
     "viewBadge": "عرض الشارة",
@@ -622,6 +623,24 @@
     "viewHabits": "عرض العادات",
     "viewAssignment": "عرض التكليف",
     "viewAll": "عرض الكل"
+  },
+  "adminPloHeatmap": {
+    "title": "خريطة تحصيل مخرجات البرنامج",
+    "programFilter": "تصفية مخرجات البرنامج",
+    "allPrograms": "جميع البرامج",
+    "loading": "جارٍ تحميل مخرجات هذا البرنامج…",
+    "error": "تعذّر تحميل مخرجات هذا البرنامج. أعد المحاولة.",
+    "retry": "إعادة تحميل مخرجات البرنامج",
+    "empty": "لا توجد مخرجات برنامج مقاسة هنا.",
+    "legend": "فئات عرض تحصيل مخرجات البرنامج",
+    "unmeasured": "غير مقاس",
+    "sourceRecorded": "بيانات تحصيل مسجّلة",
+    "sourceProgram": "{{formattedCount}} سجلات مقررات مساهمة",
+    "sourceClo": "{{formattedCount}} سجلات مخرجات مقررات مساهمة",
+    "rangeAtLeast": "{{min}} فأكثر",
+    "rangeBetween": "من {{min}} إلى أقل من {{max}}",
+    "rangeBelow": "أقل من {{threshold}}",
+    "disclaimer": "تستخدم فئات العرض حدود {{excellent}}/{{satisfactory}}/{{developing}} الحالية؛ ويظل مقياس الدرجات المعتمد وسجل التحصيل الرسمي المرجع المعتمد."
   },
   "studentRailFallback": {
     "label": "زخم التعلم",

@@ -127,6 +127,18 @@
   /* Profile last-seen hint, not a live connectivity promise. */
   --recent-activity-dot: #047857;
   --recent-activity-ring: #FFFFFF;
+  /* PLO visualization bands only. Native assessments and institution scale stay
+     authoritative; paired accent/reading surfaces adapt through semantic modes. */
+  --plo-excellent-surface: var(--success-subtle);
+  --plo-excellent-ink: var(--success-foreground);
+  --plo-satisfactory-surface: var(--info-subtle);
+  --plo-satisfactory-ink: var(--info-foreground);
+  --plo-developing-surface: var(--warning-subtle);
+  --plo-developing-ink: var(--warning-foreground);
+  --plo-not-yet-surface: var(--error-subtle);
+  --plo-not-yet-ink: var(--error-foreground);
+  --plo-unmeasured-surface: var(--muted);
+  --plo-unmeasured-ink: var(--muted-foreground);
 
   /* ══════════════════════════════════════════
      TAILWIND CONTRACT TOKENS (preserved)

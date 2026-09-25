@@ -28,6 +28,11 @@ const pairs = [
   ["--progress-attention", "--card"],
   ["--notification-unread-badge-fg", "--notification-unread-badge-bg"],
   ["--promotion-badge-fg", "--promotion-badge-bg"],
+  ["--success-foreground", "--success-subtle"],
+  ["--info-foreground", "--info-subtle"],
+  ["--warning-foreground", "--warning-subtle"],
+  ["--error-foreground", "--error-subtle"],
+  ["--muted-foreground", "--muted"],
 ] as const;
 
 describe.each([":root", ".dark"] as const)(
@@ -104,6 +109,24 @@ it.each([":root", ".dark"] as const)(
         scopedHexToken(css, scope, "--muted")
       )
     ).toBeGreaterThanOrEqual(3);
+  }
+);
+it.each([":root", ".dark"] as const)(
+  "%s PLO category markers remain distinguishable on card",
+  (scope) => {
+    for (const ink of [
+      "--success-foreground",
+      "--info-foreground",
+      "--warning-foreground",
+      "--error-foreground",
+      "--muted-foreground",
+    ])
+      expect(
+        contrastRatio(
+          scopedHexToken(css, scope, ink),
+          scopedHexToken(css, scope, "--card")
+        )
+      ).toBeGreaterThanOrEqual(3);
   }
 );
 it("keeps identity anchors separate from accessible semantic action colors", () => {

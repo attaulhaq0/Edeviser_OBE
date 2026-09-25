@@ -8,13 +8,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { PloAttainmentHeatmap } from "@/features/admin/analytics";
+import { classifyPloAttainment } from "@/lib/ploAttainmentBand";
 import { PCard, Shimmer } from "@/design-system";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import {
@@ -102,26 +97,25 @@ const AdminAnalyticsPage = () => {
     ? ploQuery.data.map((row) => ({
         ploId: row.plo_id,
         ploCodeTitle: row.plo_title,
-        meanAttainment: Math.round(row.attainment_percent),
-        derivationLabel:
-          row.derivation === "program"
-            ? `program · ${row.contributing_count} courses`
-            : row.derivation === "clo_rollup"
-            ? `CLO roll-up · ${row.contributing_count} CLOs`
-            : "unmeasured",
-        statusBand:
-          row.attainment_percent < 0
-            ? "unmeasured"
-            : row.attainment_percent >= 85
-            ? "excellent"
-            : row.attainment_percent >= 70
-            ? "satisfactory"
-            : row.attainment_percent >= 50
-            ? "developing"
-            : "notYet",
+        // Display the raw source value; band classification precedes rounding.
+        meanAttainment: row.attainment_percent,
+        derivation: row.derivation,
+        contributingCount: row.contributing_count,
+        statusBand: classifyPloAttainment(row.attainment_percent),
       }))
-    : analytics.ploAttainment;
-
+    : selectedProgram === "all"
+    ? analytics.ploAttainment
+    : [];
+  // A selected program must never silently show the unfiltered aggregate while
+  // its own PLO query is pending or failed.
+  const ploFilterState =
+    selectedProgram === "all"
+      ? "ready"
+      : ploQuery.isError
+      ? "error"
+      : ploQuery.isPending
+      ? "loading"
+      : "ready";
   const latestActive = weeklyActiveLearners[weeklyActiveLearners.length - 1];
   const hasWeeklyDenominator = weeklyActiveLearners.some(
     (point) => point.eligibleLearners > 0
@@ -142,7 +136,6 @@ const AdminAnalyticsPage = () => {
           Engagement, mastery &amp; retention — de-identified &amp; aggregated.
         </p>
       </div>
-
       {/* 1. Engagement trend (Weekly active learners) */}
       <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
@@ -195,7 +188,6 @@ const AdminAnalyticsPage = () => {
           </span>
         </div>
       </PCard>
-
       {/* 2. Mastery Distribution & Retention Risk (2-Column Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Mastery Distribution */}
@@ -261,25 +253,19 @@ const AdminAnalyticsPage = () => {
           {hasLearners ? (
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between py-1 border-b border-border">
-                <span className="text-foreground/80 font-medium">
-                  On track
-                </span>
+                <span className="text-foreground/80 font-medium">On track</span>
                 <b className="text-emerald-600 font-black">
                   {retentionRisk.onTrack}
                 </b>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-border">
-                <span className="text-foreground/80 font-medium">
-                  Watch
-                </span>
+                <span className="text-foreground/80 font-medium">Watch</span>
                 <b className="text-amber-600 font-black">
                   {retentionRisk.watch}
                 </b>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span className="text-foreground/80 font-medium">
-                  At risk
-                </span>
+                <span className="text-foreground/80 font-medium">At risk</span>
                 <b className="text-red-600 font-black">
                   {retentionRisk.atRisk}
                 </b>
@@ -310,7 +296,6 @@ const AdminAnalyticsPage = () => {
           )}
         </PCard>
       </div>
-
       {/* 3. Department Table */}
       <PCard className="p-4">
         <AdminSectionHeader emoji="🏫" title="Departments" className="mb-3" />
@@ -369,7 +354,10 @@ const AdminAnalyticsPage = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                  <td
+                    colSpan={5}
+                    className="py-6 text-center text-muted-foreground"
+                  >
                     No department analytics are available.
                   </td>
                 </tr>
@@ -378,7 +366,6 @@ const AdminAnalyticsPage = () => {
           </table>
         </div>
       </PCard>
-
       {/* 4. AI Co-Pilot Performance */}
       <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
@@ -475,104 +462,17 @@ const AdminAnalyticsPage = () => {
           </p>
         </div>
       </PCard>
-
-      {/* 5. PLO Attainment Heatmap */}
-      <PCard className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <AdminSectionHeader emoji="🗺️" title="PLO attainment heatmap" />
-          <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-            <SelectTrigger size="sm" className="text-xs font-bold">
-              <SelectValue placeholder="Program: All" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Program: All</SelectItem>
-              {(programsQuery.data?.data ?? []).map((program) => (
-                <SelectItem key={program.id} value={program.id}>
-                  {program.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Heatmap Grid */}
-        {ploAttainment.length > 0 ? (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4">
-            {ploAttainment.map((plo) => {
-              const isUnmeasured =
-                plo.meanAttainment < 0 || plo.statusBand === "unmeasured";
-              let bgClass =
-                "bg-muted text-foreground/80 dark:text-muted-foreground";
-              let textClass = "text-slate-800 dark:text-slate-100";
-
-              if (!isUnmeasured) {
-                if (plo.statusBand === "excellent") {
-                  bgClass =
-                    "bg-emerald-100/90 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200";
-                  textClass = "text-emerald-900 dark:text-emerald-100";
-                } else if (plo.statusBand === "satisfactory") {
-                  bgClass =
-                    "bg-blue-100/90 text-blue-900 dark:bg-blue-950/50 dark:text-blue-200";
-                  textClass = "text-blue-900 dark:text-blue-100";
-                } else if (plo.statusBand === "developing") {
-                  bgClass =
-                    "bg-amber-100/90 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200";
-                  textClass = "text-amber-900 dark:text-amber-100";
-                } else {
-                  bgClass =
-                    "bg-red-100/90 text-red-900 dark:bg-red-950/50 dark:text-red-200";
-                  textClass = "text-red-900 dark:text-red-100";
-                }
-              }
-
-              return (
-                <div
-                  key={plo.ploId}
-                  className={`rounded-xl p-3 ${bgClass} transition-all`}
-                >
-                  <p className="text-[11px] font-bold truncate">
-                    {plo.ploCodeTitle}
-                  </p>
-                  <p className={`text-xl font-black mt-1 ${textClass}`}>
-                    {isUnmeasured ? "—" : `${plo.meanAttainment}%`}
-                  </p>
-                  <p className="text-[10px] opacity-80 mt-0.5 font-medium">
-                    {plo.derivationLabel}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="rounded-xl border border-border bg-slate-50 p-4 text-center text-xs text-muted-foreground">
-            No live PLO attainment data is available.
-          </p>
-        )}
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-3 mt-3.5 text-[11px] text-muted-foreground dark:text-muted-foreground font-medium">
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Excellent ≥85
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Satisfactory 70–84
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Developing 50–69
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Not yet &lt;50
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-slate-300 dark:bg-slate-600 inline-block" />
-            Unmeasured
-          </span>
-        </div>
-      </PCard>
+      {/* 5. PLO attainment bands; not the separate mastery-distribution scale. */}
+      <PloAttainmentHeatmap
+        rows={ploAttainment}
+        programs={programsQuery.data?.data ?? []}
+        selectedProgram={selectedProgram}
+        onProgramChange={setSelectedProgram}
+        filterState={ploFilterState}
+        onRetry={() => {
+          void ploQuery.refetch();
+        }}
+      />
     </div>
   );
 };
