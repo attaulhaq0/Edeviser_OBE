@@ -11,13 +11,13 @@ const RenderingEnvironment = ({
   children,
   locale,
   theme,
-  largeText,
+  textScale,
   highContrast,
 }: {
   children: ReactNode;
   locale: "en" | "ar";
   theme: "light" | "dark";
-  largeText: boolean;
+  textScale: "normal" | "large" | "double";
   highContrast: boolean;
 }) => {
   useLayoutEffect(() => {
@@ -25,7 +25,8 @@ const RenderingEnvironment = ({
     root.classList.toggle("dark", theme === "dark");
     root.classList.toggle("light", theme === "light");
     root.classList.toggle("high-contrast", highContrast);
-    root.style.fontSize = largeText ? "20px" : "16px";
+    root.style.fontSize =
+      textScale === "double" ? "32px" : textScale === "large" ? "20px" : "16px";
     applyDirection(locale);
     void i18n.changeLanguage(locale).catch(() => {
       console.error(
@@ -37,7 +38,7 @@ const RenderingEnvironment = ({
       root.style.removeProperty("font-size");
       applyDirection("en");
     };
-  }, [locale, theme, largeText, highContrast]);
+  }, [locale, theme, textScale, highContrast]);
   return (
     <div className="min-h-screen bg-background p-4 text-foreground">
       <div style={{ maxWidth: "48rem", marginInline: "auto" }}>{children}</div>
@@ -81,7 +82,7 @@ const preview: Preview = {
       toolbar: {
         title: "Text",
         icon: "paragraph",
-        items: ["normal", "large"],
+        items: ["normal", "large", "double"],
         dynamicTitle: true,
       },
     },
@@ -101,7 +102,13 @@ const preview: Preview = {
       <RenderingEnvironment
         locale={context.globals.locale === "ar" ? "ar" : "en"}
         theme={context.globals.theme === "dark" ? "dark" : "light"}
-        largeText={context.globals.textScale === "large"}
+        textScale={
+          context.globals.textScale === "double"
+            ? "double"
+            : context.globals.textScale === "large"
+            ? "large"
+            : "normal"
+        }
         highContrast={context.globals.contrast === "high"}
       >
         <Story />

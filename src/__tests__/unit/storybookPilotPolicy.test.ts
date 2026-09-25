@@ -108,6 +108,8 @@ describe("PR06 real-source explorer pilot ownership", () => {
       'root.classList.toggle("high-contrast", highContrast)'
     );
     expect(preview).toContain('locale: "en"');
+    expect(preview).toContain('items: ["normal", "large", "double"]');
+    expect(preview).toContain('"32px"');
     expect(importsIn(preview).join(" ")).not.toMatch(
       /AuthProvider|ThemeProvider|LanguageProvider|AccessibilityPreferencesProvider/
     );

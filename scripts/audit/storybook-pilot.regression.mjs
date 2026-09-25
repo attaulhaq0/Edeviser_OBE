@@ -75,7 +75,7 @@ async function serveStatic() {
   };
 }
 
-async function inspect(page, id, language, theme, large, highContrast) {
+async function inspect(page, id, language, theme, textScale, highContrast) {
   const shell = page.locator("#storybook-root");
   await expect(shell).toBeVisible();
   const state = id.slice("patterns-statepanel--".length);
@@ -135,7 +135,43 @@ async function inspect(page, id, language, theme, large, highContrast) {
   const font = await page
     .locator("html")
     .evaluate((element) => getComputedStyle(element).fontSize);
-  assert.equal(font, large ? "20px" : "16px");
+  assert.equal(
+    font,
+    textScale === "double" ? "32px" : textScale === "large" ? "20px" : "16px"
+  );
+  // Actual face readiness plus computed family is bounded font delivery evidence,
+  // not screenshot/glyph-shape approval of every route or character.
+  if (language === "ar" && id === "patterns-readingsurfaces--extended-copy") {
+    const typography = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const heading = document.querySelector("#storybook-root h1");
+      return {
+        family: heading ? getComputedStyle(heading).fontFamily : "",
+        loadedArabic: [...document.fonts].some(
+          (face) =>
+            face.family.includes("Noto Sans Arabic") && face.status === "loaded"
+        ),
+      };
+    });
+    assert(
+      typography.family.includes("Noto Sans Arabic") && typography.loadedArabic,
+      `Arabic face did not load on visible ${id} at ${textScale}: ${JSON.stringify(
+        typography
+      )}`
+    );
+  }
+  if (textScale === "double") {
+    for (const node of await shell.locator("h1, h2, p:not(.sr-only)").all()) {
+      const box = await node.boundingBox();
+      if (box)
+        assert(
+          box.x >= -0.5 && box.x + box.width <= 320.5,
+          `${id} ${language}/${theme} text bounds leave 320px viewport: ${JSON.stringify(
+            box
+          )}`
+        );
+    }
+  }
   const overflow = await page.evaluate(
     () =>
       document.documentElement.scrollWidth -
@@ -143,7 +179,7 @@ async function inspect(page, id, language, theme, large, highContrast) {
   );
   assert(
     overflow <= 0,
-    `${id} ${language}/${theme}/large=${large}: horizontal overflow ${overflow}px`
+    `${id} ${language}/${theme}/scale=${textScale}/hc=${highContrast}: horizontal overflow ${overflow}px`
   );
 }
 
@@ -153,7 +189,7 @@ async function visit(
   id,
   language,
   theme,
-  large,
+  textScale,
   width,
   highContrast = false
 ) {
@@ -176,20 +212,32 @@ async function visit(
     page.on("pageerror", (error) => errors.push(error.message));
     const globals = `locale:${language};theme:${theme};contrast:${
       highContrast ? "high" : "standard"
-    };textScale:${large ? "large" : "normal"}`;
+    };textScale:${textScale}`;
     await page.goto(
       `${origin}/iframe.html?id=${id}&viewMode=story&globals=${encodeURIComponent(
         globals
       )}`,
       { waitUntil: "load" }
     );
-    await inspect(page, id, language, theme, large, highContrast);
+    await inspect(page, id, language, theme, textScale, highContrast);
     if (id === "patterns-statepanel--local-action") {
       const action = page.getByRole("button", {
         name: language === "ar" ? "عرض مثال محلي" : "Show Local Example",
       });
       await expect(action).toBeVisible();
       await action.focus();
+      await expect(action).toBeFocused();
+      if (textScale === "double") {
+        const bounds = await action.boundingBox();
+        assert(
+          bounds &&
+            bounds.width >= 44 &&
+            bounds.height >= 44 &&
+            bounds.x >= 0 &&
+            bounds.x + bounds.width <= width + 0.5,
+          `200% action clipped or below 44px: ${JSON.stringify(bounds)}`
+        );
+      }
       await page.keyboard.press("Enter");
       const localMessage =
         language === "ar" ? "تفاعل محلي" : "Local interaction only";
@@ -198,7 +246,7 @@ async function visit(
       ).toContainText(localMessage);
     }
     if (
-      !large &&
+      textScale !== "large" &&
       [
         "patterns-statepanel--error",
         "patterns-readingsurfaces--extended-copy",
@@ -236,7 +284,15 @@ test(
       for (const language of ["en", "ar"])
         for (const theme of ["light", "dark"]) {
           for (const id of IDs) {
-            await visit(browser, host.origin, id, language, theme, false, 1280);
+            await visit(
+              browser,
+              host.origin,
+              id,
+              language,
+              theme,
+              "normal",
+              1280
+            );
             scenes++;
           }
         }
@@ -246,7 +302,15 @@ test(
             ...cases,
             "patterns-readingsurfaces--extended-copy",
           ]) {
-            await visit(browser, host.origin, id, language, theme, true, 320);
+            await visit(
+              browser,
+              host.origin,
+              id,
+              language,
+              theme,
+              "large",
+              320
+            );
             scenes++;
           }
         }
@@ -262,13 +326,35 @@ test(
               id,
               language,
               theme,
-              false,
+              "normal",
               1280,
               true
             );
             scenes++;
           }
-      assert.equal(scenes, 64);
+      // 200% text is a 32px root on a 320px CSS viewport, not a claim
+      // about every browser/OS zoom behavior or authenticated route.
+      for (const language of ["en", "ar"])
+        for (const theme of ["light", "dark"])
+          for (const highContrast of [false, true])
+            for (const id of [
+              ...cases,
+              "patterns-statepanel--local-action",
+              "patterns-readingsurfaces--extended-copy",
+            ]) {
+              await visit(
+                browser,
+                host.origin,
+                id,
+                language,
+                theme,
+                "double",
+                320,
+                highContrast
+              );
+              scenes++;
+            }
+      assert.equal(scenes, 120);
       console.log(
         `Real-source Storybook pilot: ${scenes} closed-network render/state scenes; no screenshots or route attestation`
       );
