@@ -8,3 +8,4 @@ scripts/design-catalog/generate.mjs text eol=lf
 scripts/design-lint/check.mjs text eol=lf
 scripts/design-policy/repository.mjs text eol=lf
 scripts/generate-codebase-review-pack.mjs text eol=lf
+scripts/audit/route-inventory-contract.mjs text eol=lf

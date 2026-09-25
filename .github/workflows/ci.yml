@@ -67,6 +67,8 @@ jobs:
       - run: npx tsc --noEmit
       - name: Verify source-derived design catalog
         run: npm run check:design-catalog
+      - name: Verify declared-route inventory against current source
+        run: npm run check:route-inventory
 
   test:
     name: Test

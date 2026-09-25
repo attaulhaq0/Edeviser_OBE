@@ -23,6 +23,9 @@ describe("source-derived catalog CI wiring", () => {
     const typecheck = job("typecheck");
     expect(typecheck).toContain("run: npx tsc --noEmit");
     expect(typecheck).toContain("run: npm run check:design-catalog");
+    expect(packageJson.scripts["check:route-inventory"]).toBe("node scripts/audit/route-inventory-contract.mjs");
+    expect(typecheck).toContain("run: npm run check:route-inventory");
+    expect(typecheck.indexOf("npm run check:route-inventory")).toBeGreaterThan(typecheck.indexOf("npm run check:design-catalog"));
     expect(typecheck.indexOf("npm run check:design-catalog")).toBeGreaterThan(typecheck.indexOf("npx tsc --noEmit"));
     expect(typecheck).not.toMatch(/--write|generate:design-catalog|continue-on-error|\|\|\s*true/);
     expect(job("build")).toContain("needs: [lint, typecheck, test, auth-expiry-local]");
