@@ -8,7 +8,8 @@
     "dailyHabits": "Daily Habits",
     "friends": {
       "title": "Friends",
-      "viewAll": "View all →"
+      "viewAll": "View all →",
+      "recentActivity": "Recent activity recorded"
     },
     "greeting": {
       "morning": "Good morning",
@@ -78,6 +79,22 @@
         "cta": "View Progress"
       }
     }
+  },
+  "friends": {
+    "title": "Friends",
+    "subtitle": "Connect with classmates and support each other.",
+    "searchPlaceholder": "Search classmates by name…",
+    "add": "Add",
+    "noMatches": "No classmates match that name.",
+    "requests": "Friend Requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "recentActivityHeading": "Recently Active",
+    "recentActivity": "Recent activity recorded",
+    "allFriends": "All Friends",
+    "level": "Lv {{n}}",
+    "remove": "Remove friend",
+    "empty": "No friends yet. Search for a classmate above to send a request."
   },
   "team": {
     "title": "My Team",

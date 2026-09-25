@@ -8,7 +8,8 @@
     "dailyHabits": "العادات اليومية",
     "friends": {
       "title": "الأصدقاء",
-      "viewAll": "عرض الكل ←"
+      "viewAll": "عرض الكل ←",
+      "recentActivity": "سُجّل نشاط حديث"
     },
     "greeting": {
       "morning": "صباح الخير",
@@ -78,6 +79,22 @@
         "cta": "عرض التقدم"
       }
     }
+  },
+  "friends": {
+    "title": "الأصدقاء",
+    "subtitle": "تواصل مع زملائك وساندوا بعضكم.",
+    "searchPlaceholder": "ابحث عن زملائك بالاسم…",
+    "add": "إضافة",
+    "noMatches": "لم يُعثر على زملاء بهذا الاسم.",
+    "requests": "طلبات الصداقة",
+    "accept": "قبول",
+    "decline": "رفض",
+    "recentActivityHeading": "نشاط حديث",
+    "recentActivity": "سُجّل نشاط حديث",
+    "allFriends": "جميع الأصدقاء",
+    "level": "المستوى {{n}}",
+    "remove": "إزالة الصديق",
+    "empty": "ليس لديك أصدقاء بعد. ابحث عن زميل أعلاه لإرسال طلب."
   },
   "team": {
     "title": "فريقي",

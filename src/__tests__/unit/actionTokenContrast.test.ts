@@ -83,6 +83,18 @@ it.each([":root", ".dark"] as const)(
     ).toBeGreaterThanOrEqual(3);
   }
 );
+it.each([":root", ".dark"] as const)(
+  "%s recent activity remains distinct from its card and outline",
+  (scope) => {
+    const dot = scopedHexToken(css, scope, "--recent-activity-dot");
+    expect(
+      contrastRatio(dot, scopedHexToken(css, scope, "--card"))
+    ).toBeGreaterThanOrEqual(3);
+    expect(
+      contrastRatio(dot, scopedHexToken(css, scope, "--recent-activity-ring"))
+    ).toBeGreaterThanOrEqual(3);
+  }
+);
 it("keeps identity anchors separate from accessible semantic action colors", () => {
   expect(scopedHexToken(css, ":root", "--brand-primary")).toBe("#0382BD");
   expect(scopedHexToken(css, ":root", "--brand-secondary")).toBe("#5AB9B4");

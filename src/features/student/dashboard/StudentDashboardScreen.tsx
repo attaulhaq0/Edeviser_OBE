@@ -10,8 +10,8 @@
 //   - useStudentCourses            → My Courses strip (per-course mastery ring)
 //   - useTodayViewData             → Today's Habits (login/submit/journal/read)
 //
-// Pixel parity vs the prototype is proven by the owner's `npm run test:visual`
-// gate (visual/screen-map.ts `auth`/`student-dashboard`), then refined.
+// Prototype styling is a historical migration reference; real user-route
+// visual approval remains open in the frontend remediation ledger.
 //
 // NOTE (incremental): the hero carousel's secondary slides (leaderboard rank
 // movement, "badge 1 session away") and the Daily-Review / Weekly-Activity /
@@ -21,6 +21,8 @@
 // =============================================================================
 
 import { useMemo } from "react";
+import { hasRecentActivity } from "@/lib/recentActivity";
+import { useRecentActivityClock } from "@/features/student/hooks/useRecentActivityClock";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -185,6 +187,7 @@ const StudentDashboardScreen = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const studentId = user?.id ?? "";
+  const observedAt = useRecentActivityClock();
   const friends = useFriends(studentId).data ?? [];
 
   const aggregate = useStudentDashboardAggregate(studentId);
@@ -942,19 +945,19 @@ const StudentDashboardScreen = () => {
         )}
       </section>
 
-      {/* ── Friends online rail (community presence; task 6.8) ── */}
+      {/* ── Friends rail: profile activity hint, not online connectivity ── */}
       {friends.length > 0 && (
-        <section className="rounded-2xl bg-white p-3.5 shadow-md">
+        <section className="rounded-2xl bg-card p-3.5 shadow-md">
           <div className="mb-2 flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-md bg-transparent text-xs">
               👥
             </span>
-            <p className="text-xs font-black tracking-tight text-slate-900">
+            <p className="text-xs font-black tracking-tight text-foreground">
               {t("dashboard.friends.title", "Friends")}
             </p>
             <Link
               to="/student/friends"
-              className="ms-auto text-[10px] font-bold text-blue-600 hover:underline"
+              className="ms-auto text-[10px] font-bold text-primary hover:underline"
             >
               {t("dashboard.friends.viewAll", "View all")}
             </Link>
@@ -978,11 +981,22 @@ const StudentDashboardScreen = () => {
                       .slice(0, 2)
                       .toUpperCase() || "?"}
                   </div>
-                  {f.online && (
-                    <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-transparent0" />
+                  {hasRecentActivity(f.last_seen_at, observedAt) && (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--recent-activity-ring)] bg-[var(--recent-activity-dot)]"
+                      />
+                      <span className="sr-only">
+                        {t(
+                          "dashboard.friends.recentActivity",
+                          "Recent activity recorded"
+                        )}
+                      </span>
+                    </>
                   )}
                 </div>
-                <span className="w-full truncate text-center text-[10px] font-semibold text-gray-700">
+                <span className="w-full truncate text-center text-[10px] font-semibold text-muted-foreground">
                   {f.full_name.split(" ")[0]}
                 </span>
               </div>

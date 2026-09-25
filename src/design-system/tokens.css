@@ -122,6 +122,9 @@
   /* A price promotion is not an academic error or destructive action. */
   --promotion-badge-bg: #9F1239;
   --promotion-badge-fg: #FFFFFF;
+  /* Profile last-seen hint, not a live connectivity promise. */
+  --recent-activity-dot: #047857;
+  --recent-activity-ring: #FFFFFF;
 
   /* ══════════════════════════════════════════
      TAILWIND CONTRACT TOKENS (preserved)
@@ -346,6 +349,8 @@
   --notification-unread-badge-fg: #0A1628;
   --promotion-badge-bg: #FDA4AF;
   --promotion-badge-fg: #0A1628;
+  --recent-activity-dot: #34D399;
+  --recent-activity-ring: #0A1628;
 
   /* Heatmap dark ramp */
   --heatmap-empty: #1f2937;
