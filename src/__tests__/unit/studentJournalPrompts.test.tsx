@@ -114,6 +114,29 @@ describe("seedContentWithPrompt", () => {
 // ─── Component: prompt seeding & unguided fallback ───────────────────────────
 
 describe("StudentJournalPage — prompts & fallback", () => {
+  it("owns its streak and prompt content without a second rail even when there are no entries", () => {
+    renderPage();
+    expect(
+      screen.getByRole("heading", { name: "Your Journaling Journey" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Day streak")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Today’s prompt:|Today's prompt:/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("complementary", { name: "Journal" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the same owned journal reflection sections in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    renderPage();
+    expect(
+      screen.getByRole("heading", { name: "رحلتك في كتابة اليومية" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("سلسلة الأيام")).toBeInTheDocument();
+    expect(screen.getByText(/محفز اليوم:/)).toBeInTheDocument();
+  });
   beforeEach(async () => {
     vi.clearAllMocks();
     await i18n.changeLanguage("en");
