@@ -38,6 +38,8 @@
   --brand-gradient: linear-gradient(135deg, #0382BD 0%, #09B99C 100%);
   --brand-gradient-v: linear-gradient(180deg, #0382BD 0%, #09B99C 100%);
   --brand-gradient-r: linear-gradient(225deg, #0382BD 0%, #09B99C 100%);
+  /* Inverse controls on the dark-gradient hero, not a generic surface color. */
+  --hero-inverse-control-hover: rgba(255, 255, 255, 0.20);
 
   /* ── Primary Scale ────────────────────────── */
   --primary-50:  #EFF8FF;

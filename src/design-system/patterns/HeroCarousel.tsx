@@ -217,7 +217,7 @@ const HeroCarousel = ({
                   "h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-full p-0",
                   isLight
                     ? "text-foreground hover:bg-muted"
-                    : "text-white hover:bg-white/20"
+                    : "text-white hover:bg-[var(--hero-inverse-control-hover)] dark:hover:bg-[var(--hero-inverse-control-hover)]"
                 )}
               >
                 <span

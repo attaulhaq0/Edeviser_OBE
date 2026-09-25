@@ -106,6 +106,8 @@ There is not yet a complete approved component catalog or enforced import bounda
 
 The [seven-entry pilot catalog](../../docs/design-system/catalog/README.generated.md) combines curated adoption guidance with source-derived TypeScript APIs and typechecked examples. Its [curated metadata](../../docs/design-system/catalog/pilot.json) is not a second prop specification. Run `npm run check:design-catalog` for read-only source/example validation and artifact drift; regenerate explicitly with `npm run generate:design-catalog` after review. The CI typecheck workflow now invokes the read-only command; this is catalog-integrity enforcement, not a whole-repository semantic design-policy gate. Catalog text fingerprints and comparisons normalize CRLF/LF without changing literal escape sequences; they are not binary asset hashes. Native props are partially summarized, compatibility examples are not new-work defaults, and evidence links do not attest execution. This pilot does not install Storybook, an MCP server, a registry or a whole-repository import policy.
 
+The [design-policy no-growth guide](../../docs/design-system/DESIGN-POLICY-RATCHET.md) documents a local, explicit-baseline authored-TS candidate comparison. It is **not yet a required CI gate**: the trusted remote main baseline lacks the reviewed scanner. A no-growth result retains unresolved debt and cannot certify imports, CSS cascade, visual contrast, role states, RTL or accessibility.
+
 ## Color and action ownership
 
 - Preserve the brand anchors and active Hawdex Logo. Brand blue `--brand-primary` is not automatically a safe normal-text color; semantic text/action colors can be darker without recoloring brand assets or changing domain-status meaning.

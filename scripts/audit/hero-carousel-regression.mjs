@@ -26,10 +26,11 @@ import {Button} from "@/components/ui/button";
 import {AccessibilityPreferencesContext} from "@/providers/AccessibilityPreferencesContext";
 function Scene(){
   const [reduced,setReduced]=useState(false);
+  const [theme,setTheme]=useState("light");
   const [count,setCount]=useState(3);
-  window.__carousel={setReduced,setCount,changeLanguage:(language)=>i18n.changeLanguage(language)};
+  window.__carousel={setReduced,setCount,setTheme,changeLanguage:(language)=>i18n.changeLanguage(language)};
   const slides=[0,1,2].slice(0,count).map((number)=><div key={number} className="min-h-[126px] p-5"><Button type="button" aria-label={"Slide action "+number}>Slide action {number}</Button></div>);
-  return <AccessibilityPreferencesContext.Provider value={{controls:{effective:{reduced_animations:reduced}}}}><HeroCarousel theme="light" slides={slides}/></AccessibilityPreferencesContext.Provider>;
+  return <AccessibilityPreferencesContext.Provider value={{controls:{effective:{reduced_animations:reduced}}}}><HeroCarousel theme={theme} slides={slides}/></AccessibilityPreferencesContext.Provider>;
 }
 createRoot(document.getElementById("root")).render(<Scene/>);
 `;
@@ -350,6 +351,56 @@ test(
             await context.close();
           }
         }
+      // Dark inverse controls keep the same 20%-white hover intent after
+      // moving its paint into the named CSS owner; not baseline approval.
+      for (const language of ["en", "ar"]) {
+        const context = await browser.newContext({
+          viewport: { width: 1280, height: 900 },
+          serviceWorkers: "block",
+        });
+        try {
+          await context.addInitScript(
+            (locale) => localStorage.setItem("edeviser-language", locale),
+            language
+          );
+          const page = await context.newPage();
+          const errors = [];
+          page.on("pageerror", (error) => errors.push(error.message));
+          await page.goto(host.base, { waitUntil: "load" });
+          await page.evaluate(async (locale) => {
+            document.documentElement.classList.add("dark");
+            await window.__carousel.changeLanguage(locale);
+            window.__carousel.setTheme("dark");
+          }, language);
+          const dot = page.getByRole("button", {
+            name: language === "ar" ? "انتقل إلى الشريحة 2" : "Go to slide 2",
+          });
+          await expect(dot).toBeVisible();
+          await dot.hover();
+          // Button has a native color transition; poll computed paint, never sample mid-transition.
+          await expect
+            .poll(() =>
+              dot.evaluate(
+                (element) => getComputedStyle(element).backgroundColor
+              )
+            )
+            .toMatch(/^rgba?\(255,\s*255,\s*255,\s*0\.2\)$/);
+          const paint = await dot.evaluate((element) => ({
+            hover: getComputedStyle(element).backgroundColor,
+            token: getComputedStyle(document.documentElement)
+              .getPropertyValue("--hero-inverse-control-hover")
+              .trim(),
+          }));
+          assert.match(paint.hover, /^rgba?\(255,\s*255,\s*255,\s*0\.2\)$/);
+          assert.match(paint.token, /^(?:rgba?\(255,\s*255,\s*255,\s*0\.20?\)|#fff3)$/i);
+          assert.deepEqual(errors, []);
+          console.log(
+            `Carousel ${language} dark inverse hover: ${paint.hover}`
+          );
+        } finally {
+          await context.close();
+        }
+      }
       for (const mode of ["os", "stored"]) {
         const context = await browser.newContext({
           viewport: { width: 390, height: 900 },

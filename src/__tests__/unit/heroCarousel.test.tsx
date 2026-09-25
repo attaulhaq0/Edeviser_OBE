@@ -77,6 +77,15 @@ describe("HeroCarousel shared contract", () => {
     expect(second.inert).toBe(true);
   });
 
+  it("keeps the inverse dark control hover behind the named component token", () => {
+    render(<HeroCarousel slides={slides} theme="dark" />);
+    const dot = screen.getByRole("button", { name: "Go to slide 2" });
+    expect(dot).toHaveClass(
+      "hover:bg-[var(--hero-inverse-control-hover)]",
+      "dark:hover:bg-[var(--hero-inverse-control-hover)]"
+    );
+    expect(dot).not.toHaveClass("hover:bg-white/20");
+  });
   it("holds keyboard focus on a visible control when a focused slide is replaced", () => {
     render(<HeroCarousel slides={slides} />);
     const action = screen.getByRole("button", { name: "First action" });
