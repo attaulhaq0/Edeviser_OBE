@@ -166,7 +166,9 @@ const NotificationBell = () => {
   const notificationsLabel = t("header.notificationsLabel") || "Notifications";
   const bellAriaLabel =
     unreadCount > 0
-      ? `${notificationsLabel}, ${unreadCount} unread`
+      ? `${notificationsLabel}, ${t("header.unreadCount", {
+          count: unreadCount,
+        })}`
       : notificationsLabel;
 
   return (
@@ -175,15 +177,15 @@ const NotificationBell = () => {
         <Button
           variant="ghost"
           size="icon-sm"
-          className="relative"
+          className="relative min-h-11 min-w-11"
           aria-label={bellAriaLabel}
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
             <span
               aria-live="polite"
               aria-label={t("header.unreadCount", { count: unreadCount })}
-              className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-transparent0 px-1 text-[10px] font-bold text-white leading-none"
+              className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--notification-unread-badge-bg)] px-1 text-[10px] font-bold text-[var(--notification-unread-badge-fg)] leading-none"
             >
               {badgeCount}
             </span>

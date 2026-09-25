@@ -116,6 +116,9 @@
   /* Relative learning attention, not a failing/error attainment band.
      Opaque sRGB pairs support both labels on cards and fills on muted tracks. */
   --progress-attention: #E11D48;
+  /* Unread is an attention cue, never an error or destructive action. */
+  --notification-unread-badge-bg: #B91C1C;
+  --notification-unread-badge-fg: #FFFFFF;
 
   /* ══════════════════════════════════════════
      TAILWIND CONTRACT TOKENS (preserved)
@@ -336,6 +339,8 @@
   --info-subtle: #1A3055;
   --info-foreground: #BFDBFE;
   --progress-attention: #FB7185;
+  --notification-unread-badge-bg: #FCA5A5;
+  --notification-unread-badge-fg: #0A1628;
 
   /* Heatmap dark ramp */
   --heatmap-empty: #1f2937;

@@ -603,7 +603,15 @@
       "older": "Older"
     }
   },
-  "notificationsCta": {
+  "notificationsFeed": {
+    "title": "Notifications",
+    "error": "Could not load notifications. Try again.",
+    "markAll": "Mark All as Read",
+    "recent": "Recent",
+    "empty": "No notifications yet.",
+    "unread": "Unread",
+    "delete": "Delete notification"
+  },  "notificationsCta": {
     "viewGrade": "View Grade",
     "openAssignment": "Open Assignment",
     "viewBadge": "View Badge",

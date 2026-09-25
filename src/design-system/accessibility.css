@@ -47,6 +47,8 @@
   --info: #003b5c;
   --info-subtle: #edf7ff;
   --info-foreground: #003b5c;
+  --notification-unread-badge-bg: #800000;
+  --notification-unread-badge-fg: #ffffff;
 
   /* Keep existing semantic aliases bound to their paired consumer surfaces. */
   --action-primary: var(--primary);
@@ -125,6 +127,8 @@
   --info: #b3e5ff;
   --info-subtle: #0d1c27;
   --info-foreground: #b3e5ff;
+  --notification-unread-badge-bg: #ffb4b4;
+  --notification-unread-badge-fg: #080808;
 }
 
 /* This generated variant hardcodes white text and a translucent dark fill.

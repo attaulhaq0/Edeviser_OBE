@@ -603,7 +603,15 @@
       "older": "أقدم"
     }
   },
-  "notificationsCta": {
+  "notificationsFeed": {
+    "title": "الإشعارات",
+    "error": "تعذّر تحميل الإشعارات. حاول مرة أخرى.",
+    "markAll": "تحديد الكل كمقروء",
+    "recent": "الأحدث",
+    "empty": "لا توجد إشعارات بعد.",
+    "unread": "غير مقروء",
+    "delete": "حذف الإشعار"
+  },  "notificationsCta": {
     "viewGrade": "عرض الدرجة",
     "openAssignment": "فتح التكليف",
     "viewBadge": "عرض الشارة",

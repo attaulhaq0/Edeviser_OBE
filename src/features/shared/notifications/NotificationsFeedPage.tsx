@@ -155,10 +155,15 @@ const NotificationsFeedPage = () => {
                       </span>
                     </span>
                     {!n.is_read && (
-                      <span
-                        className="mt-1 h-2 w-2 shrink-0 rounded-full bg-transparent0"
-                        aria-label={t("notificationsFeed.unread", "Unread")}
-                      />
+                      <>
+                        <span
+                          className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary"
+                          aria-hidden="true"
+                        />
+                        <span className="sr-only">
+                          {t("notificationsFeed.unread", "Unread")}
+                        </span>
+                      </>
                     )}
                   </Button>
                   <Button

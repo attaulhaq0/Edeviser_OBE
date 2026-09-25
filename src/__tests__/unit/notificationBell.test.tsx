@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act, render, screen } from "@testing-library/react";
+import i18n from "@/lib/i18n";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,12 @@ vi.mock("@/hooks/useNotificationRealtime", () => ({
 }));
 
 import NotificationBell from "@/components/shared/NotificationBell";
+
+afterEach(async () => {
+  await act(async () => {
+    await i18n.changeLanguage("en");
+  });
+});
 
 describe("NotificationBell", () => {
   beforeEach(() => {
@@ -72,5 +79,31 @@ describe("NotificationBell", () => {
     const button = screen.getByRole("button");
     // aria-label includes the unread count
     expect(button.getAttribute("aria-label")).toMatch(/3 unread/);
+  });
+  it("uses paired unread paint, a 44px trigger and a hidden decorative bell", () => {
+    mockUnreadCount.mockReturnValue({ data: 5 });
+    render(<NotificationBell />);
+    const button = screen.getByRole("button", {
+      name: /5 unread notifications/i,
+    });
+    expect(button).toHaveClass("min-h-11", "min-w-11");
+    expect(button.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    const badge = screen.getByText("5");
+    expect(badge).toHaveClass(
+      "bg-[var(--notification-unread-badge-bg)]",
+      "text-[var(--notification-unread-badge-fg)]"
+    );
+  });
+
+  it("keeps the uncapped translated count in Arabic while the visible badge caps at 99+", async () => {
+    await act(async () => {
+      await i18n.changeLanguage("ar");
+    });
+    mockUnreadCount.mockReturnValue({ data: 150 });
+    render(<NotificationBell />);
+    expect(
+      screen.getByRole("button", { name: /الإشعارات.*150.*إشعار غير مقروء/ })
+    ).toBeInTheDocument();
+    expect(screen.getByText("99+")).toBeInTheDocument();
   });
 });
