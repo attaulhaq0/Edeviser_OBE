@@ -30,9 +30,9 @@ export interface PresentedNavItem extends NavItem {
 }
 
 /**
- * Exact desktop chrome copied from prototype/shared.js ROLE_NAV. Desktop uses
- * the prototype emoji artwork; the mobile bar keeps the matching Lucide glyphs
- * because that is what the approved phone layouts use.
+ * Primary desktop treatment remains role-curated, while canonical `navItems`
+ * determines destination ownership and MORE order. Mobile core tabs use a
+ * finite subset; the drawer makes every listed destination reachable.
  */
 const desktopPrimaryByRole: Record<UserRole, PrototypeDesktopItem[]> = {
   student: [
@@ -80,9 +80,8 @@ const desktopPrimaryByRole: Record<UserRole, PrototypeDesktopItem[]> = {
 };
 
 /**
- * Prototype ROLE_MORE order, restricted to destinations already backed by a
- * real route. Intentional repetitions (for example Studio/Course Materials)
- * are preserved because the approved sidebar uses those task-oriented labels.
+ * Presentation treatments only; navItems owns which destinations exist and
+ * their order. Repeat links or mislabeled aliases must not compete with it.
  */
 const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
   student: [
@@ -103,16 +102,13 @@ const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
     },
   ],
   teacher: [
-    { to: "/teacher/modules", labelKey: "nav.curriculumStudio", emoji: "🧬" },
     { to: "/teacher/questions", labelKey: "nav.questionBank", emoji: "🧠" },
     { to: "/teacher/rubrics", labelKey: "nav.rubricBuilder", emoji: "📐" },
-    { to: "/teacher/modules", labelKey: "nav.courseMaterials", emoji: "📚" },
     {
       to: "/teacher/tutor-handoffs",
       labelKey: "nav.tutorHandoffs",
       emoji: "🧭",
     },
-    { to: "/teacher/grading", labelKey: "nav.gradingQueue", emoji: "✍️" },
     { to: "/teacher/gradebook", labelKey: "nav.gradebook", emoji: "📊" },
     { to: "/teacher/attendance", labelKey: "nav.attendance", emoji: "🗓️" },
     { to: "/teacher/discussions", labelKey: "nav.discussions", emoji: "💭" },
@@ -129,22 +125,14 @@ const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
   ],
   parent: [
     { to: "/parent/attendance", labelKey: "nav.attendance", emoji: "🗓️" },
-    { to: "/parent/progress", labelKey: "nav.gradesReports", emoji: "📊" },
     { to: "/parent/fees", labelKey: "nav.feesPayments", emoji: "💳" },
     {
       to: "/parent/communications",
       labelKey: "nav.announcements",
       emoji: "📣",
     },
-    { to: "/parent/profile", labelKey: "nav.settings", emoji: "⚙️" },
   ],
   coordinator: [
-    { to: "/coordinator/plos", labelKey: "nav.outcomeAttainment", emoji: "🎯" },
-    {
-      to: "/coordinator/matrix",
-      labelKey: "nav.curriculumMatrix",
-      emoji: "🗂️",
-    },
     { to: "/coordinator/cqi", labelKey: "nav.cqiPlans", emoji: "🔧" },
     {
       to: "/coordinator/course-file",
@@ -162,19 +150,9 @@ const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
       emoji: "🧭",
     },
     {
-      to: "/coordinator/accreditation",
-      labelKey: "nav.accreditation",
-      emoji: "📋",
-    },
-    {
       to: "/coordinator/discussions",
       labelKey: "nav.discussions",
       emoji: "💭",
-    },
-    {
-      to: "/coordinator/notifications",
-      labelKey: "nav.announcements",
-      emoji: "📣",
     },
     {
       to: "/coordinator/notifications",
@@ -185,8 +163,8 @@ const desktopMoreByRole: Record<UserRole, PrototypeDesktopItem[]> = {
   admin: [
     { to: "/admin/marketplace", labelKey: "nav.marketplace", emoji: "🛍️" },
     {
-      to: "/admin/settings/institution",
-      labelKey: "nav.institutionStructure",
+      to: "/admin/settings/configuration",
+      labelKey: "nav.institutionSettings",
       emoji: "🏛️",
     },
     { to: "/admin/import", labelKey: "nav.bulkImport", emoji: "📥" },
@@ -319,30 +297,44 @@ const presentItems = (
   const itemsByPath = new Map(
     (navItems[role] ?? []).map((item) => [item.to, item])
   );
-  return definitions.flatMap((definition) => {
+  return definitions.map((definition) => {
     const item = itemsByPath.get(definition.to);
-    return item
-      ? [{ ...item, labelKey: definition.labelKey, emoji: definition.emoji }]
-      : [];
+    if (!item)
+      throw new Error(
+        `Undeclared ${role} navigation destination: ${definition.to}`
+      );
+    return { ...item, labelKey: definition.labelKey, emoji: definition.emoji };
   });
 };
 
 export const getPrimaryNavItems = (role: UserRole): PresentedNavItem[] =>
   presentItems(role, desktopPrimaryByRole[role]).map((item) => {
-    const prototypeItem = mobileTabsByRole[role].find(
+    const mobile = mobileTabsByRole[role].find(
       (candidate) => candidate.to === item.to
     );
-    return prototypeItem
-      ? {
-          ...item,
-          labelKey: prototypeItem.labelKey,
-          icon: prototypeItem.icon,
-        }
+    return mobile
+      ? { ...item, labelKey: mobile.labelKey, icon: mobile.icon }
       : item;
   });
 
-export const getMoreNavItems = (role: UserRole): PresentedNavItem[] =>
-  presentItems(role, desktopMoreByRole[role]);
+/** Every canonical destination appears exactly once in primary or MORE. */
+export const getMoreNavItems = (role: UserRole): PresentedNavItem[] => {
+  const primaryPaths = new Set(getPrimaryNavItems(role).map((item) => item.to));
+  const treatments = new Map<string, PresentedNavItem>();
+  for (const item of presentItems(role, desktopMoreByRole[role])) {
+    if (primaryPaths.has(item.to) || treatments.has(item.to))
+      throw new Error(`Repeated ${role} MORE destination: ${item.to}`);
+    treatments.set(item.to, item);
+  }
+  return navItems[role]
+    .filter((item) => !primaryPaths.has(item.to))
+    .map((item) => treatments.get(item.to) ?? { ...item, emoji: "" });
+};
 
+/** The bottom bar is intentionally a subset; the mobile drawer contains MORE. */
 export const getMobileTabItems = (role: UserRole): MobileTabItem[] =>
-  mobileTabsByRole[role];
+  mobileTabsByRole[role].map((item) => {
+    if (!navItems[role].some((source) => source.to === item.to))
+      throw new Error(`Undeclared ${role} mobile tab: ${item.to}`);
+    return item;
+  });

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { Dialog } from "radix-ui";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSurveyAssignmentsCount } from "@/hooks/useSurveyAssignmentsCount";
 import { navItems } from "@/lib/navItems";
+import { isNavDestinationActive } from "@/lib/navActive";
 import {
   getMoreNavItems,
   getPrimaryNavItems,
@@ -43,7 +44,11 @@ const Sidebar = () => {
   const { profile } = useAuth();
   const { mobileOpen, close } = useSidebar();
   const location = useLocation();
-  const isDesktop = useSyncExternalStore(subscribeToDesktop, getDesktopSnapshot, () => true);
+  const isDesktop = useSyncExternalStore(
+    subscribeToDesktop,
+    getDesktopSnapshot,
+    () => true
+  );
   const opener = useRef<HTMLElement | null>(null);
   const routeKey = useRef(location.key);
   const focusContentOnClose = useRef(false);
@@ -93,10 +98,7 @@ const Sidebar = () => {
   );
 
   const isItemActive = (to: string): boolean =>
-    location.pathname === to ||
-    (to !== `/${role}/dashboard` &&
-      to !== `/${role}` &&
-      location.pathname.startsWith(to));
+    isNavDestinationActive(location.pathname, to, role);
 
   // The prototype companion item route per role: the one primary item that keeps
   // a colorful circular icon even when inactive (Tutor for student, Studio for
@@ -111,7 +113,7 @@ const Sidebar = () => {
   const isCompanion = (to: string) => companionRoute[role] === to;
 
   const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
-    const isActive = section === "primary" && isItemActive(item.to);
+    const isActive = isItemActive(item.to);
     const itemIsCompanion = section === "primary" && isCompanion(item.to);
     const group = section === "primary" ? "primary" : "secondary";
     const variant = itemIsCompanion ? "companion" : "standard";
@@ -123,7 +125,7 @@ const Sidebar = () => {
     const itemClassName = cn(
       "sidebar-item flex items-center transition-colors duration-150",
       section === "primary"
-        ? "min-h-[47px] gap-[12px] rounded-[13px] px-[16px] min-[1024px]:min-h-[42px]"
+        ? "min-h-[47px] gap-[12px] rounded-[13px] px-[16px] min-[1024px]:min-h-11"
         : "min-h-11 gap-3 rounded-[10px] px-[18px] py-[8px] min-[1024px]:py-[6px]",
       isActive ? "font-semibold" : "hover:bg-muted/50 dark:hover:bg-slate-800"
     );
@@ -186,22 +188,9 @@ const Sidebar = () => {
       prefetchRoute(item.to)
     );
 
-    return section === "primary" ? (
-      <NavLink
-        key={`${section}:${item.to}:${item.labelKey}`}
-        to={item.to}
-        onClick={closeForNavigation}
-        viewTransition
-        data-group={group}
-        data-variant={variant}
-        data-active={isActive ? "true" : "false"}
-        {...sharedProps}
-        style={isActive ? activeNavStyle : undefined}
-        className={itemClassName}
-      >
-        {content}
-      </NavLink>
-    ) : (
+    // The owned segment/alias policy controls both styling and aria-current;
+    // NavLink's independent matcher would override the alias announcement.
+    return (
       <Link
         key={`${section}:${item.to}:${item.labelKey}`}
         to={item.to}
@@ -209,8 +198,10 @@ const Sidebar = () => {
         viewTransition
         data-group={group}
         data-variant={variant}
-        data-active="false"
+        data-active={isActive ? "true" : "false"}
+        aria-current={isActive ? "page" : undefined}
         {...sharedProps}
+        style={isActive ? activeNavStyle : undefined}
         className={itemClassName}
       >
         {content}
@@ -218,52 +209,55 @@ const Sidebar = () => {
     );
   };
 
-  const surfaceClass = role === "student"
-    ? "bg-[linear-gradient(180deg,#ffffff_0%,#f5fdff_100%)]"
-    : "bg-white";
+  const surfaceClass =
+    role === "student"
+      ? "bg-[linear-gradient(180deg,#ffffff_0%,#f5fdff_100%)]"
+      : "bg-white";
   const content = (
-        <div className="relative flex h-full min-h-0 flex-1 flex-col px-3.5 pb-5 pt-4 min-[640px]:pt-18.5 min-[1024px]:px-3 min-[1024px]:pb-4 min-[1024px]:pt-16">
-          {isDesktop ? <RoleBrandLink userRole={role} className="absolute start-4 top-1" /> : null}
+    <div className="relative flex h-full min-h-0 flex-1 flex-col px-3.5 pb-5 pt-4 min-[640px]:pt-18.5 min-[1024px]:px-3 min-[1024px]:pb-4 min-[1024px]:pt-16">
+      {isDesktop ? (
+        <RoleBrandLink userRole={role} className="absolute start-4 top-1" />
+      ) : null}
 
-          {/* Mobile close button */}
-          <div className="flex items-center justify-end p-2 min-[640px]:hidden">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={close}
-              className="min-h-11 min-w-11 rounded-lg text-muted-foreground hover:bg-muted"
-              aria-label={t("header.closeNavigation")}
-            >
-              <X className="h-5 w-5" aria-hidden="true" />
-            </Button>
+      {/* Mobile close button */}
+      <div className="flex items-center justify-end p-2 min-[640px]:hidden">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={close}
+          className="min-h-11 min-w-11 rounded-lg text-muted-foreground hover:bg-muted"
+          aria-label={t("header.closeNavigation")}
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
+        </Button>
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* Nav items */}
+        <nav role="navigation" aria-label={t("header.primaryNav.label")}>
+          <div className="space-y-1">
+            {primaryItems.map((item) => renderItem(item, "primary"))}
           </div>
+        </nav>
 
-          <div className="flex min-h-0 flex-1 flex-col">
-            {/* Nav items */}
-            <nav role="navigation" aria-label={t("header.primaryNav.label")}>
-              <div className="space-y-1">
-                {primaryItems.map((item) => renderItem(item, "primary"))}
-              </div>
-            </nav>
-
-            {moreItems.length > 0 ? (
-              <div className="sidebar-extra mt-2.5 flex min-h-0 flex-1 flex-col">
-                <div
-                  className="side-sep mx-3 mb-2 mt-3 h-px bg-transparent"
-                  aria-hidden="true"
-                />
-                <p className="side-label px-4.5 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] leading-3.5 text-muted-foreground">
-                  {t("nav.more")}
-                </p>
-                <div className="space-y-0.5">
-                  {moreItems.map((item) => renderItem(item, "more"))}
-                </div>
-                {role === "student" ? <StudentSidebarExtras /> : null}
-              </div>
-            ) : null}
+        {moreItems.length > 0 ? (
+          <div className="sidebar-extra mt-2.5 flex min-h-0 flex-1 flex-col">
+            <div
+              className="side-sep mx-3 mb-2 mt-3 h-px bg-transparent"
+              aria-hidden="true"
+            />
+            <p className="side-label px-4.5 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] leading-3.5 text-muted-foreground">
+              {t("nav.more")}
+            </p>
+            <div className="space-y-0.5">
+              {moreItems.map((item) => renderItem(item, "more"))}
+            </div>
+            {role === "student" ? <StudentSidebarExtras /> : null}
           </div>
-        </div>
+        ) : null}
+      </div>
+    </div>
   );
 
   if (isDesktop) {
@@ -283,7 +277,12 @@ const Sidebar = () => {
   // Compose existing Radix modal primitives instead of a translated-but-focusable
   // offscreen aside. Closed content is unmounted; open content owns focus/scroll.
   return (
-    <Dialog.Root open={mobileOpen} onOpenChange={(open) => { if (!open) close(); }}>
+    <Dialog.Root
+      open={mobileOpen}
+      onOpenChange={(open) => {
+        if (!open) close();
+      }}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[120] bg-black/40 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150" />
         <Dialog.Content
@@ -297,20 +296,29 @@ const Sidebar = () => {
             surfaceClass
           )}
           onOpenAutoFocus={() => {
-            opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+            opener.current =
+              document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
             focusContentOnClose.current = false;
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             const trigger = opener.current;
-            if (!focusContentOnClose.current && trigger?.isConnected && trigger.getClientRects().length > 0) {
+            if (
+              !focusContentOnClose.current &&
+              trigger?.isConnected &&
+              trigger.getClientRects().length > 0
+            ) {
               trigger.focus();
             } else {
               document.getElementById("main-content")?.focus();
             }
           }}
         >
-          <Dialog.Title className="sr-only">{t("header.primaryNav.label")}</Dialog.Title>
+          <Dialog.Title className="sr-only">
+            {t("header.primaryNav.label")}
+          </Dialog.Title>
           {content}
         </Dialog.Content>
       </Dialog.Portal>

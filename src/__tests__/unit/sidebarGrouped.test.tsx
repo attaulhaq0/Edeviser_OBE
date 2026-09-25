@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 // =============================================================================
-// Sidebar — prototype primary/MORE navigation
+// Sidebar — curated primary with every declared role MORE destination
 // Feature: prototype-frontend-rebuild, Task 1.2.2
 // =============================================================================
 
@@ -72,10 +72,12 @@ beforeEach(async () => {
 afterEach(cleanup);
 
 describe("Sidebar primary/MORE navigation", () => {
-  it("keeps the student prototype destinations in the right primary and MORE order", () => {
+  it("keeps curated student primary and exposes all listed MORE destinations", () => {
     renderSidebar();
 
-    const links = within(screen.getByRole("navigation", { name: "Primary navigation" })).getAllByRole("link");
+    const links = within(
+      screen.getByRole("navigation", { name: "Primary navigation" })
+    ).getAllByRole("link");
     expect(links.slice(0, 5).map((link) => link.textContent)).toEqual([
       expect.stringContaining("Home"),
       expect.stringContaining("Learn"),
@@ -91,8 +93,8 @@ describe("Sidebar primary/MORE navigation", () => {
       within(more).getByRole("link", { name: "Courses & Tasks" })
     ).toBeInTheDocument();
     expect(
-      within(more).queryByRole("link", { name: "Settings" })
-    ).not.toBeInTheDocument();
+      within(more).getByRole("link", { name: "Settings" })
+    ).toHaveAttribute("href", "/student/settings/profile");
   });
 
   it("keeps conditional Surveys out of the sidebar even if the item exists in data", () => {
@@ -104,7 +106,9 @@ describe("Sidebar primary/MORE navigation", () => {
 
   it("marks the active route exactly once", () => {
     renderSidebar("/student/progress");
-    const currentLinks = screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page");
+    const currentLinks = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("aria-current") === "page");
     expect(currentLinks).toHaveLength(1);
     expect(currentLinks[0]).toHaveAttribute("href", "/student/progress");
   });

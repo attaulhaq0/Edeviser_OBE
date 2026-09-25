@@ -14,11 +14,12 @@
 // shared height/raised-affordance/safe-area variables; no body-wide padding rule.
 // =============================================================================
 
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/hooks/useAuth";
 import { getMobileTabItems } from "@/lib/navPresentation";
+import { isNavDestinationActive } from "@/lib/navActive";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
@@ -33,10 +34,7 @@ const MobileTabBar = () => {
 
   // Active detection mirrors Sidebar.isItemActive so the two chromes agree.
   const isActive = (to: string): boolean =>
-    location.pathname === to ||
-    (to !== `/${role}/dashboard` &&
-      to !== `/${role}` &&
-      location.pathname.startsWith(to));
+    isNavDestinationActive(location.pathname, to, role);
 
   if (items.length === 0) return null;
 
@@ -50,7 +48,7 @@ const MobileTabBar = () => {
         const active = isActive(item.to);
         const isFab = item.raised;
         return (
-          <NavLink
+          <Link
             key={item.to}
             to={item.to}
             viewTransition
@@ -74,7 +72,7 @@ const MobileTabBar = () => {
               aria-hidden="true"
             />
             <span className="max-w-full truncate">{t(item.labelKey)}</span>
-          </NavLink>
+          </Link>
         );
       })}
     </nav>
