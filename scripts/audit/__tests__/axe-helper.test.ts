@@ -144,15 +144,15 @@ describe("globalTeardown evidence boundary (Preview cleanup disabled)", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("propagates invalid evidence while still executing the existing guarded cleanup", async () => {
-    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  it("propagates invalid evidence while refusing unowned Preview cleanup", async () => {
+    const notice = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const scan = persistA11yScan({
       outputDir: join(workspace, "worker-results"), projectName: "student", testId: "broken",
       workerIndex: 0, parallelIndex: 0, retry: 0, repeatEachIndex: 0,
     }, []);
     writeFileSync(scan.path, "{broken", "utf8");
     await expect(globalTeardown(config())).rejects.toThrow();
-    expect(warning).toHaveBeenCalledWith("[globalTeardown] AUDIT_RUN_ID not set — skipping teardown");
+    expect(notice).toHaveBeenCalledWith("[globalTeardown] No Preview fixture started by this setup; no deletion requested");
     expect(fetch).not.toHaveBeenCalled();
   });
 });

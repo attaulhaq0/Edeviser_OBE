@@ -5,8 +5,14 @@
 
 import type { FullConfig } from "@playwright/test";
 import { flushA11yFindings } from "../_helpers/axe-evidence.ts";
+import {
+  verifyGitLinkedPreview,
+  type PreviewFixtureEnvironment,
+} from "../_helpers/previewFixtureTarget.ts";
 
-export default async function globalTeardown(config: FullConfig): Promise<void> {
+export default async function globalTeardown(
+  config: FullConfig
+): Promise<void> {
   try {
     const target = flushA11yFindings({
       outputDirs: config.projects.map((project) => project.outputDir),
@@ -18,56 +24,59 @@ export default async function globalTeardown(config: FullConfig): Promise<void> 
   }
 }
 
-const teardownSeedData = async (): Promise<void> => {
-  // Teardown seed data
-  const runId = process.env.AUDIT_RUN_ID;
-  if (!runId) {
-    console.warn("[globalTeardown] AUDIT_RUN_ID not set — skipping teardown");
-    return;
-  }
+interface FixtureLifecycleEnvironment extends PreviewFixtureEnvironment {
+  AUDIT_FIXTURE_STARTED?: string;
+  AUDIT_RUN_ID?: string;
+  AUDIT_PREVIEW_REF?: string;
+  AUDIT_PREVIEW_BRANCH?: string;
+  AUDIT_PREVIEW_PR_NUMBER?: string;
+}
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
-  if (
-    process.env.E2E_FIXTURES_ENABLED !== "true" ||
-    process.env.SUPABASE_DB_ENV !== "preview" ||
-    !supabaseUrl ||
-    !anonKey
-  ) {
-    console.warn(
-      "[globalTeardown] Preview E2E fixture guard is not satisfied — skipping teardown"
+/** A run-id by itself never authorizes deletion. No live call without matching PR. */
+export const teardownSeedData = async (
+  env: FixtureLifecycleEnvironment = process.env,
+  fetchTarget: typeof fetch = fetch
+): Promise<void> => {
+  if (env.AUDIT_FIXTURE_STARTED !== "true") {
+    console.log(
+      "[globalTeardown] No Preview fixture started by this setup; no deletion requested"
     );
     return;
   }
+  const runId = env.AUDIT_RUN_ID;
+  if (
+    !runId ||
+    !env.AUDIT_PREVIEW_REF ||
+    !env.AUDIT_PREVIEW_BRANCH ||
+    !env.AUDIT_PREVIEW_PR_NUMBER
+  )
+    throw new Error(
+      "Missing owned fixture run identity; refusing Preview teardown"
+    );
 
-  const auditFixturesUrl = `${supabaseUrl}/functions/v1/audit-fixtures`;
+  const target = await verifyGitLinkedPreview(env, fetchTarget);
+  if (
+    target.ref !== env.AUDIT_PREVIEW_REF ||
+    target.branch !== env.AUDIT_PREVIEW_BRANCH ||
+    target.prNumber !== env.AUDIT_PREVIEW_PR_NUMBER
+  )
+    throw new Error("Preview identity changed since seed; refusing teardown");
 
-  try {
-    const res = await fetch(`${auditFixturesUrl}/teardown`, {
+  const res = await fetchTarget(
+    `${target.url}/functions/v1/audit-fixtures/teardown`,
+    {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${anonKey}`,
-        apikey: anonKey,
+        Authorization: `Bearer ${env.VITE_SUPABASE_ANON_KEY}`,
+        apikey: env.VITE_SUPABASE_ANON_KEY!,
       },
       body: JSON.stringify({ runId }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      console.warn(
-        `[globalTeardown] teardown returned ${res.status}: ${text.slice(
-          0,
-          200
-        )}`
-      );
-    } else {
-      console.log(`[globalTeardown] Teardown complete. runId=${runId}`);
     }
-  } catch (err) {
-    console.warn(
-      `[globalTeardown] Could not reach audit-fixtures teardown: ${
-        err instanceof Error ? err.message : String(err)
-      }`
+  );
+  if (!res.ok)
+    throw new Error(
+      `[globalTeardown] audit-fixtures/teardown returned HTTP ${res.status}`
     );
-  }
+  console.log("[globalTeardown] Owned Preview fixture cleanup acknowledged");
 };
