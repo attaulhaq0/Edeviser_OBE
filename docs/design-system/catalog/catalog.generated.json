@@ -27,7 +27,7 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "1a5d14eecc6585522a308f4d763888ca7c87416886295e57f3ce86213efcea93"
+      "sha256": "ac3393e2777830bb8d03e18cae59550afb9b078ce9ec94f2dc01b06855d28109"
     },
     {
       "path": "scripts/design-catalog/generate.mjs",

@@ -60,7 +60,7 @@ describe("source-derived catalog CI wiring", () => {
       /--write|generate:design-catalog|continue-on-error|\|\|\s*true/
     );
     expect(job("build")).toContain(
-      "needs: [lint, typecheck, test, auth-expiry-local]"
+      "needs: [lint, typecheck, test, auth-expiry-local, storybook-pilot]"
     );
   });
   it("keeps fast unit tests on fake credentials, apart from Preview validation", () => {

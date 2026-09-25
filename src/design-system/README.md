@@ -108,6 +108,8 @@ The [seven-entry pilot catalog](../../docs/design-system/catalog/README.generate
 
 The [design-policy no-growth guide](../../docs/design-system/DESIGN-POLICY-RATCHET.md) documents a local, explicit-baseline authored-TS candidate comparison. It is **not yet a required CI gate**: the trusted remote main baseline lacks the reviewed scanner. A no-growth result retains unresolved debt and cannot certify imports, CSS cascade, visual contrast, role states, RTL or accessibility.
 
+The [real-source Storybook pilot](../../docs/design-system/STORYBOOK-PILOT.md) adds only eight reviewed pattern stories using the actual CSS/i18n and simulated palette/direction/root scale. It never mounts auth/profile-owned providers, imports live route data, or promotes an unchecked visual baseline. A built local story is **not** an authenticated application route.
+
 ## Color and action ownership
 
 - Preserve the brand anchors and active Hawdex Logo. Brand blue `--brand-primary` is not automatically a safe normal-text color; semantic text/action colors can be darker without recoloring brand assets or changing domain-status meaning.

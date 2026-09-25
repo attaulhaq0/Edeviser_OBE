@@ -65,7 +65,7 @@ describe("V10 collection and honest local session refresh proof", () => {
       /seed|SUPABASE_DB_ENV|E2E_FIXTURES_ENABLED|continue-on-error|\|\|\s*true|secrets\./
     );
     expect(job("build")).toContain(
-      "needs: [lint, typecheck, test, auth-expiry-local]"
+      "needs: [lint, typecheck, test, auth-expiry-local, storybook-pilot]"
     );
   });
 });

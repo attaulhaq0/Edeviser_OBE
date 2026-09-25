@@ -15,6 +15,8 @@ export default tseslint.config(
       "src/components/ui",
       ".claude",
       "coverage",
+      // Storybook static output is generated, ignored and never authored source.
+      "test-results/storybook-pilot/**",
       "loginsignup",
       "runtime-governance-scratch",
       // Standalone Figma reference extraction, not application source.
@@ -48,6 +50,12 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/incompatible-library": "off",
     },
+  },
+  {
+    // This explorer config exports preview metadata beside its local decorator;
+    // it is not part of the app's React Fast Refresh module graph.
+    files: [".storybook/preview.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
   {
     // Remotion compositions are rendered headlessly (not part of the Vite
