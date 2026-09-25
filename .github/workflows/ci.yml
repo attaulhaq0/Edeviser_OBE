@@ -67,6 +67,8 @@ jobs:
       - run: npx tsc --noEmit
       - name: Verify source-derived design catalog
         run: npm run check:design-catalog
+      - name: Verify source-derived portable color pilot
+        run: npm run check:portable-tokens
       - name: Verify declared-route inventory against current source
         run: npm run check:route-inventory
 

@@ -44,7 +44,7 @@ These are selected public references, not an exhaustive current-market compariso
 
 ### Ownership contract
 
-1. **Foundations:** tokens.css owns brand, typography scales, surfaces, semantic fill/foreground pairs and motion defaults. Light defaults precede dark overrides. Domain meaning is separate from role identity.
+1. **Foundations:** tokens.css owns brand, typography scales, surfaces, semantic fill/foreground pairs and motion defaults. The [portable color pilot](../../docs/design-system/PORTABLE-TOKENS.md) exports only 16 selected normal light/dark literals from that CSS; its generated JSON is not another editable source, Resolver implementation, or all-token adoption proof. Light defaults precede dark overrides. Domain meaning is separate from role identity.
 2. **Theme/locale/accessibility:** explicit owners select the root theme and typography preferences; component rules must not silently defeat them. Inspect inline styles as well as stylesheet layers and specificity.
 3. **Role scope:** small consumed semantic overrides at role boundaries, carried into portals. An inherited alias is resolved where declared; rebinding a dependency on a descendant is not enough.
 4. **Primitives:** existing generated Shadcn implementations remain the primitive source; their design-system exports are facades, not duplicate implementations. Use supported composition/regeneration rather than hand-forking generated code.
@@ -133,6 +133,7 @@ Run lint → TypeScript → unit tests before relevant build/browser checks. Use
 npm test -- src/__tests__/unit/cssEntry.test.ts src/__tests__/unit/actionTokenContrast.test.ts src/__tests__/unit/designSystemDocs.test.ts
 node --test scripts/shell-navigation.regression.mjs
 npm run i18n:check
+npm run check:portable-tokens  # selected opaque colors; export-only, no CSS generation
 ```
 
 The real shell fixture exercises shared chrome with isolated business data and ancillary widgets; it does not attest authenticated pages, backend policy, physical notches, every font or every application surface. Its contrast checks reject unsupported paint rather than invent an opaque background. The source design-policy scanner still needs semantic triage; passing selected color tests does not make all of its matches resolved.

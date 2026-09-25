@@ -11,6 +11,8 @@
     "check:design-catalog": "node scripts/design-catalog/generate.mjs --check",
     "check:route-inventory": "node scripts/audit/route-inventory-contract.mjs",
     "generate:design-catalog": "node scripts/design-catalog/generate.mjs --write",
+    "check:portable-tokens": "node scripts/design-tokens/export.mjs --check",
+    "generate:portable-tokens": "node scripts/design-tokens/export.mjs --write",
     "preview": "vite preview",
     "smoke:build": "node scripts/smoke-prod-build.mjs",
     "test": "vitest --run",
