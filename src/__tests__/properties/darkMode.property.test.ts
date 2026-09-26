@@ -1,47 +1,60 @@
 // Feature: edeviser-platform, Property 48: Dark mode token consistency
 // **Validates: Requirements 62.1, 62.5**
+// Updated for Hawdex canonical tokens (tokens.css).
 
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 
-// ─── Token definitions extracted from src/index.css ─────────────────────────
+// ─── Token definitions from canonical tokens.css (Hawdex Precision + Obsidian) ──
 
-/** Light mode brand design tokens (from :root in index.css). */
+/** Light mode (Precision) tokens from tokens.css :root. */
 const LIGHT_TOKENS: Record<string, string> = {
-  "--surface-background": "#ffffff",
-  "--surface-card": "#ffffff",
-  "--surface-subtle": "#f8fafc",
-  "--surface-border": "#e2e8f0",
-  "--surface-input-border": "#d1d5db",
-  "--text-primary": "#0f172a",
-  "--text-secondary": "#64748b",
-  "--shadow-sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-  "--shadow-md":
-    "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-  "--shadow-lg":
-    "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-  "--shadow-xl":
-    "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+  "--background": "#F3F7FB",
+  "--foreground": "#1D3557",
+  "--card": "#FFFFFF",
+  "--card-foreground": "#1D3557",
+  "--primary": "#0382BD",
+  "--primary-foreground": "#FFFFFF",
+  "--secondary": "#5AB9B4",
+  "--secondary-foreground": "#1D3557",
+  "--muted": "#EEF3F8",
+  "--muted-foreground": "#64748B",
+  "--accent": "#E8F4FB",
+  "--accent-foreground": "#0382BD",
+  "--destructive": "#E53E3E",
+  "--border": "rgba(29, 53, 87, 0.09)",
+  "--input": "transparent",
+  "--ring": "#0382BD",
+  "--text-primary": "#1D3557",
+  "--text-secondary": "#64748B",
+  "--text-tertiary": "#94A3B8",
   "--xp-track": "#e2e8f0",
+  "--xp-fill": "#14b8a6",
 };
 
-/** Dark mode brand design tokens (from .dark in index.css). */
+/** Dark mode (Obsidian) tokens from tokens.css .dark. */
 const DARK_TOKENS: Record<string, string> = {
-  "--surface-background": "#020617",
-  "--surface-card": "#0f172a",
-  "--surface-subtle": "#1e293b",
-  "--surface-border": "#334155",
-  "--surface-input-border": "#475569",
-  "--text-primary": "#f1f5f9",
-  "--text-secondary": "#94a3b8",
-  "--shadow-sm": "0 1px 2px 0 rgb(0 0 0 / 0.2)",
-  "--shadow-md":
-    "0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3)",
-  "--shadow-lg":
-    "0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)",
-  "--shadow-xl":
-    "0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3)",
+  "--background": "#0A1628",
+  "--foreground": "#E2EBF4",
+  "--card": "#111E30",
+  "--card-foreground": "#E2EBF4",
+  "--primary": "#1A9BD5",
+  "--primary-foreground": "#FFFFFF",
+  "--secondary": "#4AADA8",
+  "--secondary-foreground": "#E2EBF4",
+  "--muted": "#172238",
+  "--muted-foreground": "#7A9AB8",
+  "--accent": "#162B44",
+  "--accent-foreground": "#5AB9B4",
+  "--destructive": "#F87171",
+  "--border": "rgba(255, 255, 255, 0.07)",
+  "--input": "rgba(255, 255, 255, 0.05)",
+  "--ring": "#1A9BD5",
+  "--text-primary": "#E2EBF4",
+  "--text-secondary": "#7A9AB8",
+  "--text-tertiary": "#4E6E8A",
   "--xp-track": "#334155",
+  "--xp-fill": "#14b8a6",
 };
 
 /** Shadcn/ui tokens that must exist in both :root and .dark. */
@@ -140,8 +153,8 @@ describe("Property 48 — Dark mode token consistency", () => {
   });
 
   it("P48c: light mode text has sufficient contrast against light background", () => {
-    const textPrimary = LIGHT_TOKENS["--text-primary"]!;
-    const background = LIGHT_TOKENS["--surface-background"]!;
+    const textPrimary = LIGHT_TOKENS["--foreground"]!;
+    const background = LIGHT_TOKENS["--background"]!;
     const ratio = contrastRatio(textPrimary, background);
 
     // WCAG AA requires 4.5:1 for normal text
@@ -150,8 +163,8 @@ describe("Property 48 — Dark mode token consistency", () => {
   });
 
   it("P48d: dark mode text has sufficient contrast against dark background", () => {
-    const textPrimary = DARK_TOKENS["--text-primary"]!;
-    const background = DARK_TOKENS["--surface-background"]!;
+    const textPrimary = DARK_TOKENS["--foreground"]!;
+    const background = DARK_TOKENS["--background"]!;
     const ratio = contrastRatio(textPrimary, background);
 
     expect(ratio).not.toBeNull();
@@ -177,8 +190,9 @@ describe("Property 48 — Dark mode token consistency", () => {
 
   it("P48f: dark and light tokens have different values for surface/text tokens", () => {
     const surfaceAndTextTokens = [
-      "--surface-background",
-      "--surface-card",
+      "--background",
+      "--foreground",
+      "--card",
       "--text-primary",
       "--text-secondary",
     ];

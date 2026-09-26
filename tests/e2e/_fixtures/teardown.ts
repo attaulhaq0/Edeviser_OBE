@@ -1,77 +1,82 @@
 // tests/e2e/_fixtures/teardown.ts
 //
-// Task 4.2 / Req 1.7: Playwright globalTeardown.
-//
-// 1. Flushes the axe-core a11y findings buffer to audit/output/a11y-findings.json.
-// 2. POSTs to audit-fixtures/teardown with the runId from globalSetup.
+// Task 4.2 / Req 1.7: merge persisted browser accessibility evidence, then
+// clean up Preview seed data. Evidence errors fail teardown, never warn-and-pass.
 
 import type { FullConfig } from "@playwright/test";
-import { flushA11yFindings } from "../_helpers/axe.ts";
+import { flushA11yFindings } from "../_helpers/axe-evidence.ts";
+import {
+  verifyGitLinkedPreview,
+  type PreviewFixtureEnvironment,
+} from "../_helpers/previewFixtureTarget.ts";
 
 export default async function globalTeardown(
-  _config: FullConfig
+  config: FullConfig
 ): Promise<void> {
-  // Task 15.1: Flush axe-core findings buffer → audit/output/a11y-findings.json
   try {
-    const target = flushA11yFindings();
-    console.log(`[globalTeardown] a11y findings flushed to ${target}`);
-  } catch (err) {
-    console.warn(
-      `[globalTeardown] Could not flush a11y findings: ${
-        err instanceof Error ? err.message : String(err)
-      }`
-    );
+    const target = flushA11yFindings({
+      outputDirs: config.projects.map((project) => project.outputDir),
+    });
+    console.log(`[globalTeardown] a11y findings merged to ${target}`);
+  } finally {
+    // A broken evidence file must not prevent the existing Preview cleanup.
+    await teardownSeedData();
   }
+}
 
-  // Teardown seed data
-  const runId = process.env.AUDIT_RUN_ID;
-  if (!runId) {
-    console.warn("[globalTeardown] AUDIT_RUN_ID not set — skipping teardown");
+interface FixtureLifecycleEnvironment extends PreviewFixtureEnvironment {
+  AUDIT_FIXTURE_STARTED?: string;
+  AUDIT_RUN_ID?: string;
+  AUDIT_PREVIEW_REF?: string;
+  AUDIT_PREVIEW_BRANCH?: string;
+  AUDIT_PREVIEW_PR_NUMBER?: string;
+}
+
+/** A run-id by itself never authorizes deletion. No live call without matching PR. */
+export const teardownSeedData = async (
+  env: FixtureLifecycleEnvironment = process.env,
+  fetchTarget: typeof fetch = fetch
+): Promise<void> => {
+  if (env.AUDIT_FIXTURE_STARTED !== "true") {
+    console.log(
+      "[globalTeardown] No Preview fixture started by this setup; no deletion requested"
+    );
     return;
   }
-
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const runId = env.AUDIT_RUN_ID;
   if (
-    process.env.E2E_FIXTURES_ENABLED !== "true" ||
-    process.env.SUPABASE_DB_ENV !== "preview" ||
-    !supabaseUrl ||
-    !anonKey
-  ) {
-    console.warn(
-      "[globalTeardown] Preview E2E fixture guard is not satisfied — skipping teardown"
+    !runId ||
+    !env.AUDIT_PREVIEW_REF ||
+    !env.AUDIT_PREVIEW_BRANCH ||
+    !env.AUDIT_PREVIEW_PR_NUMBER
+  )
+    throw new Error(
+      "Missing owned fixture run identity; refusing Preview teardown"
     );
-    return;
-  }
 
-  const auditFixturesUrl = `${supabaseUrl}/functions/v1/audit-fixtures`;
+  const target = await verifyGitLinkedPreview(env, fetchTarget);
+  if (
+    target.ref !== env.AUDIT_PREVIEW_REF ||
+    target.branch !== env.AUDIT_PREVIEW_BRANCH ||
+    target.prNumber !== env.AUDIT_PREVIEW_PR_NUMBER
+  )
+    throw new Error("Preview identity changed since seed; refusing teardown");
 
-  try {
-    const res = await fetch(`${auditFixturesUrl}/teardown`, {
+  const res = await fetchTarget(
+    `${target.url}/functions/v1/audit-fixtures/teardown`,
+    {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${anonKey}`,
-        apikey: anonKey,
+        Authorization: `Bearer ${env.VITE_SUPABASE_ANON_KEY}`,
+        apikey: env.VITE_SUPABASE_ANON_KEY!,
       },
       body: JSON.stringify({ runId }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      console.warn(
-        `[globalTeardown] teardown returned ${res.status}: ${text.slice(
-          0,
-          200
-        )}`
-      );
-    } else {
-      console.log(`[globalTeardown] Teardown complete. runId=${runId}`);
     }
-  } catch (err) {
-    console.warn(
-      `[globalTeardown] Could not reach audit-fixtures teardown: ${
-        err instanceof Error ? err.message : String(err)
-      }`
+  );
+  if (!res.ok)
+    throw new Error(
+      `[globalTeardown] audit-fixtures/teardown returned HTTP ${res.status}`
     );
-  }
-}
+  console.log("[globalTeardown] Owned Preview fixture cleanup acknowledged");
+};

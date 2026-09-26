@@ -5,6 +5,8 @@ import { AlertTriangle } from "lucide-react";
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Only failed boundaries reset when the owned route changes. */
+  resetKey?: string;
 }
 
 interface State {
@@ -26,6 +28,12 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("ErrorBoundary caught:", error, errorInfo);
   }
 
+  componentDidUpdate(previous: Props): void {
+    if (this.state.hasError && previous.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, error: null });
+    }
+  }
+
   handleRetry = (): void => {
     this.setState({ hasError: false, error: null });
   };
@@ -39,7 +47,7 @@ class ErrorBoundary extends Component<Props, State> {
           <ErrorState
             title="Something went wrong"
             message={
-              this.state.error?.message ?? "An unexpected error occurred."
+              "The application could not continue. Try again or reload this page."
             }
             icon={<AlertTriangle className="h-8 w-8 text-red-500" />}
             onRetry={this.handleRetry}

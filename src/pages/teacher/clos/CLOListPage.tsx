@@ -102,7 +102,7 @@ const CLOListPage = () => {
       {/* Filters */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search CLOs..."
             value={search}
@@ -134,18 +134,18 @@ const CLOListPage = () => {
 
       {/* Curriculum readiness (E2.B) — shown when a course is selected */}
       {readiness && readiness.total > 0 && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/60 bg-white/80 px-4 py-3 backdrop-blur-xs">
-          <span className="text-sm font-medium text-gray-700">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 backdrop-blur-xs">
+          <span className="text-sm font-medium text-foreground/80">
             Curriculum readiness: {readiness.confirmed} of {readiness.total}{" "}
             CLOs confirmed
           </span>
-          <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-2 w-40 overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-transparent0 transition-all"
+              className="h-full rounded-full bg-(--text-teal) transition-all"
               style={{ width: `${readiness.percent}%` }}
             />
           </div>
-          <span className="text-xs text-gray-500">{readiness.percent}%</span>
+          <span className="text-xs text-muted-foreground">{readiness.percent}%</span>
           {readiness.ready && (
             <Badge className="gap-1 bg-green-50 text-green-700 border-green-200">
               <CheckCircle2 className="h-3 w-3" /> Curriculum ready

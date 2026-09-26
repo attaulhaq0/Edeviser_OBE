@@ -8,7 +8,8 @@
     "dailyHabits": "Daily Habits",
     "friends": {
       "title": "Friends",
-      "viewAll": "View all →"
+      "viewAll": "View all →",
+      "recentActivity": "Recent activity recorded"
     },
     "greeting": {
       "morning": "Good morning",
@@ -78,6 +79,22 @@
         "cta": "View Progress"
       }
     }
+  },
+  "friends": {
+    "title": "Friends",
+    "subtitle": "Connect with classmates and support each other.",
+    "searchPlaceholder": "Search classmates by name…",
+    "add": "Add",
+    "noMatches": "No classmates match that name.",
+    "requests": "Friend Requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "recentActivityHeading": "Recently Active",
+    "recentActivity": "Recent activity recorded",
+    "allFriends": "All Friends",
+    "level": "Lv {{n}}",
+    "remove": "Remove friend",
+    "empty": "No friends yet. Search for a classmate above to send a request."
   },
   "team": {
     "title": "My Team",
@@ -221,7 +238,39 @@
     "xpHistory": "XP History",
     "attainment": "Attainment",
     "evidence": "Evidence",
-    "noAssessments": "No assessments yet"
+    "noAssessments": "No assessments yet",
+    "subtitle": "Review recorded attainment and choose a course to explore your learning evidence.",
+    "notMeasured": "Not measured",
+    "retry": "Retry loading progress",
+    "signInRequired": "Sign in with your student account to view your progress.",
+    "loadError": "Your progress could not be loaded. Retry to request your recorded results again.",
+    "unavailable": "Progress information is unavailable. Retry to check for recorded results.",
+    "waitingConnection": "Waiting for a connection to load progress…",
+    "loading": "Loading recorded progress…",
+    "noCourses": "No active course enrollments were returned for your account.",
+    "browseCourses": "View courses",
+    "enrolledCourses": "Enrolled courses",
+    "recordedCourses": "Courses with recorded attainment",
+    "overallAttainment": "Overall attainment",
+    "excellentCourses": "Courses in the excellent band",
+    "partial": "Attainment is recorded for {{recorded}} of {{total}} courses. Overall attainment and band totals are withheld until every course has a valid recorded result.",
+    "focusTitle": "An outcome to review",
+    "focusDescription": "This is the lowest recorded outcome returned for your courses. Review its evidence before choosing what to practise next.",
+    "openTutor": "Open tutor",
+    "unnamedCourse": "Course title unavailable",
+    "unnamedOutcome": "Outcome title unavailable",
+    "reviewCourse": "Review this course",
+    "noOutcomeEvidence": "No valid outcome-level result was returned. This does not mean there are no learning gaps.",
+    "byCourse": "Progress by course",
+    "openCourse": "Open {{course}} ({{code}})",
+    "outcomeCount": "Learning outcomes: {{value}}",
+    "sampleCount": "Recorded samples: {{value}}",
+    "bands": {
+      "Excellent": "Excellent",
+      "Satisfactory": "Satisfactory",
+      "Developing": "Developing",
+      "Not_Yet": "Not yet attained"
+    }
   },
   "learningPath": {
     "title": "Learning Path",

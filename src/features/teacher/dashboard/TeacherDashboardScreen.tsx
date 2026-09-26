@@ -66,7 +66,6 @@ import {
   useAtRiskPredictions,
   type AIAtRiskPrediction,
 } from "@/hooks/useAtRiskPredictions";
-import { attainmentValueClass } from "@/lib/attainmentTone";
 import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
 import {
@@ -184,14 +183,14 @@ const ActionTile = ({
   <button
     type="button"
     onClick={onClick}
-    className="flex items-center gap-3 rounded-4xl border border-[#eef2f6] bg-white p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
+    className="flex items-center gap-3 rounded-4xl border-0 bg-card p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
   >
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 shadow-2xs backdrop-blur-xs text-teal-700">
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-border/60 shadow-2xs backdrop-blur-xs text-teal-700">
       <Icon className="h-5 w-5" aria-hidden="true" />
     </span>
     <div className="min-w-0">
-      <p className="truncate text-[13px] font-bold text-gray-900">{title}</p>
-      <p className="truncate text-xs text-gray-500">{subtitle}</p>
+      <p className="truncate text-[13px] font-bold text-foreground">{title}</p>
+      <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
     </div>
     <ArrowRight
       className="ms-auto h-4 w-4 shrink-0 text-gray-300"
@@ -264,7 +263,8 @@ const TeacherDashboardScreen = () => {
       {/* ── Hero carousel (briefing + real teaching momentum) ── */}
       <HeroCarousel
         ariaLabel={t("dashboard.hero.label", "Teaching highlights")}
-        className="rounded-2xl border border-slate-200/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs"
+        className="rounded-2xl border border-border/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs"
+        theme="light"
         slides={[
           <div key="briefing" className="relative min-h-29 p-4">
             <div
@@ -275,7 +275,7 @@ const TeacherDashboardScreen = () => {
               }}
             />
             <div className="relative flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-transparent text-sky-600">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-transparent text-sky-600">
                 <GraduationCap className="h-6 w-6" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
@@ -285,7 +285,7 @@ const TeacherDashboardScreen = () => {
                   })}{" "}
                   👋
                 </h1>
-                <p className="truncate text-[12px] text-slate-600">
+                <p className="truncate text-[12px] text-muted-foreground">
                   {t(
                     "dashboard.welcome.subtitle",
                     "Here's your teaching cockpit — nothing acts without your OK."
@@ -303,7 +303,7 @@ const TeacherDashboardScreen = () => {
                       .getElementById("triage-sec")
                       ?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
-                  className="h-auto rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  className="h-auto rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
                 >
                   <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
                   {t("dashboard.hero.needAttention", {
@@ -317,7 +317,7 @@ const TeacherDashboardScreen = () => {
                   type="button"
                   variant="ghost"
                   onClick={() => navigate("/teacher/grading")}
-                  className="h-auto rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  className="h-auto rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
                 >
                   <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
                   {t("dashboard.hero.toGrade", {
@@ -329,7 +329,7 @@ const TeacherDashboardScreen = () => {
             </div>
           </div>,
           <div key="momentum" className="flex min-h-29 items-center gap-4 p-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/60 bg-transparent text-sky-600">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-transparent text-sky-600">
               <TrendingUp className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
@@ -342,7 +342,7 @@ const TeacherDashboardScreen = () => {
                   percent: avgAttainment,
                 })}
               </h2>
-              <p className="mt-1 text-[12px] text-slate-600">
+              <p className="mt-1 text-[12px] text-muted-foreground">
                 {t("dashboard.hero.momentumBody", {
                   defaultValue:
                     "{{graded}} graded this week · {{pending}} still in queue",
@@ -355,7 +355,7 @@ const TeacherDashboardScreen = () => {
               type="button"
               variant="ghost"
               onClick={() => navigate("/teacher/gradebook")}
-              className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+              className="shrink-0 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
             >
               {t("dashboard.hero.openGradebook", "Open")}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -382,24 +382,17 @@ const TeacherDashboardScreen = () => {
             icon={TrendingUp}
             label={t("dashboard.avgAttainment", "Avg mastery")}
             value={`${avgAttainment}%`}
-            valueClassName={attainmentValueClass(avgAttainment)}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-green-600"
           />
           <KPICard
             icon={PenLine}
             label={t("dashboard.pendingSubmissions", "To grade")}
             value={pending}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-teal-600"
           />
           <KPICard
             icon={AlertTriangle}
             label={t("dashboard.atRiskStudents", "At-risk")}
             value={atRiskCount}
-            valueClassName={atRiskCount > 0 ? "text-red-600" : "text-sky-700"}
-            iconBgClass={atRiskCount > 0 ? "bg-transparent" : "bg-transparent"}
-            iconColorClass={atRiskCount > 0 ? "text-red-600" : "text-blue-600"}
+            tone={atRiskCount > 0 ? "danger" : "neutral"}
           />
         </div>
       )}
@@ -436,7 +429,7 @@ const TeacherDashboardScreen = () => {
                     "inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors",
                     active
                       ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-200 bg-white text-gray-600 hover:bg-slate-50"
+                      : "border-border bg-card text-gray-600 hover:bg-muted/50"
                   )}
                 >
                   {style.label}
@@ -445,7 +438,7 @@ const TeacherDashboardScreen = () => {
                       "rounded-full px-1.5 py-0.5 text-[10px] font-black",
                       active
                         ? "bg-white/20 text-white"
-                        : "bg-slate-100 text-gray-600"
+                        : "bg-muted text-gray-600"
                     )}
                   >
                     {buckets[key].length}
@@ -474,7 +467,7 @@ const TeacherDashboardScreen = () => {
               return (
                 <div
                   key={s.id}
-                  className="student-triage-row flex flex-col gap-3 rounded-2xl border border-[#eef2f6] bg-white p-3.5 shadow-xs transition-all hover:border-slate-200 sm:flex-row sm:items-center sm:justify-between"
+                  className="student-triage-row flex flex-col gap-3 rounded-2xl border border-[#eef2f6] bg-card p-3.5 shadow-xs transition-all hover:border-border sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
@@ -487,7 +480,7 @@ const TeacherDashboardScreen = () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-bold text-gray-900 truncate">
+                        <p className="text-sm font-bold text-foreground truncate">
                           {s.full_name}
                         </p>
                         <span
@@ -547,7 +540,7 @@ const TeacherDashboardScreen = () => {
             )}
           </div>
         ) : (
-          <div className="rounded-4xl border border-[#eef2f6] bg-white p-6 text-center text-sm text-gray-500 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+          <div className="rounded-4xl border border-[#eef2f6] bg-card p-6 text-center text-sm text-muted-foreground shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
             {t(
               "dashboard.triage.empty",
               "No students flagged — everyone's on track."
@@ -559,7 +552,7 @@ const TeacherDashboardScreen = () => {
       {/* ── Evidence-backed attention flags + Bloom's coverage ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Deterministic attention flags (useAtRiskPredictions) */}
-        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+        <div className="rounded-4xl border border-[#eef2f6] bg-card p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={AlertTriangle}
             title={t("dashboard.prediction.title", "Needs Attention")}
@@ -572,7 +565,7 @@ const TeacherDashboardScreen = () => {
                   })}
                 </span>
               ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
                   Standard rules active
                 </span>
               )
@@ -592,14 +585,14 @@ const TeacherDashboardScreen = () => {
                   return (
                     <div key={p.id} className="py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200/60 bg-white/80 text-xs font-black text-amber-700 backdrop-blur-xs">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 bg-white/80 text-xs font-black text-amber-700 backdrop-blur-xs">
                           {initials(p.student_name)}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-bold text-gray-900">
                             {p.student_name}
                           </p>
-                          <p className="truncate text-[11px] text-gray-500">
+                          <p className="truncate text-[11px] text-muted-foreground">
                             {p.suggestion_data.clo_title}
                           </p>
                         </div>
@@ -648,14 +641,14 @@ const TeacherDashboardScreen = () => {
                 })}
               </div>
             ) : (
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-center">
-                <p className="text-xs font-bold text-slate-700">
+              <div className="rounded-xl border border-border bg-muted/50 p-4 text-center">
+                <p className="text-xs font-bold text-foreground/80">
                   {t(
                     "dashboard.prediction.emptyTitle",
                     `Rule-based risk: ${triageStudents.length} students flagged`
                   )}
                 </p>
-                <p className="mt-1 text-[11px] text-slate-500">
+                <p className="mt-1 text-[11px] text-muted-foreground">
                   {t(
                     "dashboard.prediction.emptySubtitle",
                     "Versioned deterministic rules evaluate authorized attendance, submission, activity and CLO evidence."
@@ -667,7 +660,7 @@ const TeacherDashboardScreen = () => {
         </div>
 
         {/* Bloom's coverage (real bloomsDistribution — teacher-wide) */}
-        <div className="rounded-4xl border border-[#eef2f6] bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
+        <div className="rounded-4xl border border-[#eef2f6] bg-card p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]">
           <SectionHeader
             icon={Brain}
             title={t("dashboard.bloomsDistribution", "Bloom's coverage")}
@@ -698,7 +691,7 @@ const TeacherDashboardScreen = () => {
                       )}
                       aria-hidden="true"
                     />
-                    <span className="flex-1 capitalize text-gray-700">
+                    <span className="flex-1 capitalize text-foreground/80">
                       {row.level}
                     </span>
                     <span className="font-black text-gray-900">
@@ -708,7 +701,7 @@ const TeacherDashboardScreen = () => {
                 ))}
               </ul>
             ) : (
-              <p className="py-6 text-center text-sm text-gray-500">
+              <p className="py-6 text-center text-sm text-muted-foreground">
                 {t("dashboard.noClosDefined", "No CLOs defined yet.")}
               </p>
             )}
@@ -761,7 +754,7 @@ const TeacherDashboardScreen = () => {
       </div>
 
       {/* ── Autonomy footer (static policy chrome — A2) ── */}
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
         <p className="flex items-center gap-2 text-xs text-gray-600">
           <ShieldCheck
             className="h-4 w-4 shrink-0 text-sky-600"

@@ -2,143 +2,164 @@
 
 /**
  * Edeviser Design System Lint
- * ===========================
- * Automated compliance checks for canonical design-system rules.
  *
- * Checks performed:
- *  1. Icon wrapper backgrounds — no solid colored fills on decorative wrappers
- *  2. Brand gradient usage — no legacy `from-teal-500 to-blue-600`
- *  3. Physical CSS properties — no ml-/mr-/pl-/pr- (must use logical)
- *  4. Semantic color registry — verify semantic color sources are canonical
+ * Source-text checks (including comments and fixtures, not a JSX semantic parser):
+ *  1. Disallowed icon background utilities in .ts/.tsx, with canonical exemptions
+ *  2. Legacy brand gradient utility pairs in .ts/.tsx/.css
+ *  3. Physical spacing utilities in .tsx (use logical spacing instead)
+ *  4. Raw var(--brand-gradient) in .tsx (use GradientCardHeader)
  *
- * Usage:
- *   node scripts/design-lint/check.mjs
- *
- * Exit code 0 = all checks pass, 1 = violations found.
+ * Usage: node scripts/design-lint/check.mjs [--root <repository-directory>]
+ * Exit codes: 0 = clean, 1 = violations, 2 = scan/I/O/argument error.
+ * No subprocesses, cwd dependence, or import-time execution.
  */
 
-import { execSync } from "node:child_process";
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { lstatSync, readdirSync, readFileSync } from "node:fs";
+import { extname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const ROOT = resolve(__dirname, "..", "..");
-
-function runCheck(label, powershellCmd, exemptFiles = []) {
-  try {
-    const result = execSync(powershellCmd, {
-      cwd: ROOT,
-      encoding: "utf8",
-      maxBuffer: 10 * 1024 * 1024,
-      shell: "powershell.exe",
-    });
-    if (!result.trim()) {
-      console.log(`[PASS] ${label}: 0 violations`);
-      return [];
-    }
-    const lines = result.trim().split("\n").filter(Boolean);
-    const violations = [];
-    for (const line of lines) {
-      const fileMatch = line.match(/^(src[/\\][^:]+)/);
-      const file = fileMatch ? fileMatch[1].replace(/\\/g, "/") : "";
-      if (file && exemptFiles.some((f) => file.startsWith(f))) continue;
-      violations.push(line.trim());
-    }
-    if (violations.length > 0) {
-      console.error(`\n[FAIL] ${label}: ${violations.length} violation(s)`);
-      for (const v of violations) console.error(`  ${v}`);
-    } else {
-      console.log(`[PASS] ${label}: 0 violations`);
-    }
-    return violations;
-  } catch (e) {
-    if (e.status === 1 && !e.stdout) {
-// ---------------------------------------------------------------------------
-// Check 1: Icon wrapper backgrounds — no solid colored fills
-// ---------------------------------------------------------------------------
-const DISALLOWED_ICON_BG = [
-  "bg-blue-50", "bg-green-50", "bg-yellow-50", "bg-red-50",
-  "bg-purple-50", "bg-indigo-50", "bg-orange-50", "bg-teal-50",
-  "bg-pink-50", "bg-rose-50", "bg-amber-50", "bg-emerald-50",
-  "bg-cyan-50", "bg-sky-50", "bg-violet-50", "bg-fuchsia-50",
-];
-
-const SEMANTIC_EXEMPT = [
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
+const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".css"]);
+const SEMANTIC_EXEMPT = new Set([
   "src/lib/attainmentClassifier.ts",
   "src/lib/bloomsVerbs.ts",
   "src/lib/leagueTier.ts",
   "src/lib/aiGovernancePolicy.ts",
   "src/pages/LoginPage.tsx",
+]);
+const BRAND_GRADIENT_EXEMPT = new Set(["src/pages/NotFoundPage.tsx"]);
+const CHECKS = [
+  ["icon-background", "Check 1 — Icon Wrapper Backgrounds"],
+  ["legacy-gradient", "Check 2 — Legacy Gradient"],
+  ["physical-css", "Check 3 — Physical CSS"],
+  ["raw-brand-gradient", "Check 4 — Raw Brand Gradient"],
 ];
 
-function checkIconWrappers() {
-  const allViolations = [];
-  for (const color of DISALLOWED_ICON_BG) {
-    const cmd = `Select-String -Path 'src/**/*.tsx','src/**/*.ts' -Pattern '${color}' | ForEach-Object { $_.Path -replace '.*\\\\src\\\\','src/' + ':' + $_.LineNumber + ': ' + $_.Line.Trim() }`;
-    const v = runCheck(`Icon BG: ${color}`, cmd, SEMANTIC_EXEMPT);
-    allViolations.push(...v);
-  }
-  if (allViolations.length === 0) {
-    console.log("[PASS] Check 1 — Icon Wrapper Backgrounds: 0 violations total");
-  }
-  return allViolations;
-}
-// ---------------------------------------------------------------------------
-// Check 2: Legacy brand gradient utilities
-// ---------------------------------------------------------------------------
-function checkLegacyGradient() {
-  return runCheck(
-    "Check 2 — Legacy Gradient",
-    "Select-String -Path 'src/**/*.tsx','src/**/*.ts','src/**/*.css' -Pattern 'from-teal-500 to-blue-600|bg-gradient-to-r from-teal-500' | ForEach-Object { $_.Path -replace '.*\\\\src\\\\','src/' + ':' + $_.LineNumber }"
-  );
-}
+// Utility boundaries must not confuse a shade of 50 with 500, nor a custom
+// prefixed/suffixed class with a Tailwind utility. Variants, important markers,
+// negative spacing and opacity modifiers still contain the governed utility.
+const ICON_BG = /(?<![\w-])bg-(?:blue|green|yellow|red|purple|indigo|orange|teal|pink|rose|amber|emerald|cyan|sky|violet|fuchsia)-50(?![\w-])/g;
+const LEGACY_GRADIENT = /(?<![\w-])(?:from-teal-500\s+to-blue-600|bg-gradient-to-r\s+from-teal-500)(?![\w-])/;
+// These four families are prohibited even when the value is built dynamically.
+const PHYSICAL_CSS = /(?<![\w-])-?(?:ml|mr|pl|pr)-/;
+const RAW_BRAND_GRADIENT = /var\(\s*--brand-gradient\s*\)/;
 
-// ---------------------------------------------------------------------------
-// Check 3: Physical CSS properties (ml-/mr-/pl-/pr-)
-// ---------------------------------------------------------------------------
-function checkPhysicalCSS() {
-  return runCheck(
-    "Check 3 — Physical CSS",
-    "Select-String -Path 'src/**/*.tsx' -Pattern '\\bml-|\\bmr-|\\bpl-|\\bpr-' | ForEach-Object { $_.Path -replace '.*\\\\src\\\\','src/' + ':' + $_.LineNumber + ': ' + $_.Line.Trim() }"
-  );
-}
+/** Pure source-text scanner; returns one finding per check/line (per icon color). */
+export function scanSource(file, source) {
+  const normalizedFile = file.replace(/\\/g, "/");
+  const extension = extname(normalizedFile);
+  if (!SOURCE_EXTENSIONS.has(extension)) return [];
 
-// ---------------------------------------------------------------------------
-// Check 4: Raw brand gradient (must use GradientCardHeader)
-// ---------------------------------------------------------------------------
-const BRAND_GRADIENT_EXEMPT = ["src/pages/NotFoundPage.tsx"];
-
-function checkRawBrandGradient() {
-  return runCheck(
-    "Check 4 — Raw Brand Gradient",
-    "Select-String -Path 'src/**/*.tsx' -Pattern 'var\\\\(--brand-gradient\\\\)' | ForEach-Object { $_.Path -replace '.*\\\\src\\\\','src/' + ':' + $_.LineNumber + ': ' + $_.Line.Trim() }",
-    BRAND_GRADIENT_EXEMPT
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-console.log("Edeviser Design System Lint");
-console.log("============================\n");
-
-const allViolations = [
-  ...checkIconWrappers(),
-  ...checkLegacyGradient(),
-  ...checkPhysicalCSS(),
-  ...checkRawBrandGradient(),
-];
-
-if (allViolations.length === 0) {
-  console.log("\nALL CHECKS PASSED");
-  process.exit(0);
-} else {
-  console.error(`\n${allViolations.length} TOTAL VIOLATION(S) FOUND`);
-  process.exit(1);
-}
-      console.log(`[PASS] ${label}: 0 violations`);
-      return [];
+  const violations = [];
+  for (const [index, text] of source.split(/\r\n|\n|\r/).entries()) {
+    const add = (check, match) => violations.push({
+      check, file: normalizedFile, line: index + 1, match, text: text.trim(),
+    });
+    if (extension !== ".css" && !SEMANTIC_EXEMPT.has(normalizedFile)) {
+      for (const color of new Set(Array.from(text.matchAll(ICON_BG), (match) => match[0]))) {
+        add("icon-background", color);
+      }
     }
-    throw e;
+    const legacy = text.match(LEGACY_GRADIENT);
+    if (legacy) add("legacy-gradient", legacy[0]);
+    if (extension === ".tsx") {
+      const physical = text.match(PHYSICAL_CSS);
+      if (physical) add("physical-css", physical[0]);
+      const rawGradient = text.match(RAW_BRAND_GRADIENT);
+      if (rawGradient && !BRAND_GRADIENT_EXEMPT.has(normalizedFile)) {
+        add("raw-brand-gradient", rawGradient[0]);
+      }
+    }
   }
+  return violations;
+}
+
+const filesystem = {
+  lstat: (path) => lstatSync(path),
+  readdir: (path) => readdirSync(path, { withFileTypes: true }),
+  readFile: (path) => readFileSync(path, "utf8"),
+};
+
+function readOrThrow(operation, path, read) {
+  try {
+    return read(path);
+  } catch (cause) {
+    throw new Error(`Cannot ${operation} ${path}: ${cause instanceof Error ? cause.message : String(cause)}`, { cause });
+  }
+}
+
+/** Read every nested source file, or throw. Never return a partial clean scan. */
+export function scanDesignSystem(root = ROOT, io = filesystem) {
+  const sourceRoot = join(resolve(root), "src");
+  const stat = readOrThrow("inspect", sourceRoot, io.lstat);
+  if (!stat.isDirectory() || stat.isSymbolicLink()) {
+    throw new Error(`Source root must be a real directory: ${sourceRoot}`);
+  }
+
+  const files = [];
+  const walk = (directory, relativeDirectory) => {
+    const entries = readOrThrow("list directory", directory, io.readdir);
+    // Code-unit ordering is independent of the host's locale and filesystem.
+    entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    for (const entry of entries) {
+      const absolute = join(directory, entry.name);
+      const relative = `${relativeDirectory}/${entry.name}`;
+      if (entry.isSymbolicLink()) {
+        // Do not silently omit linked source or follow cycles/out-of-root links.
+        throw new Error(`Symbolic links are not supported in the source scan: ${relative}`);
+      }
+      if (entry.isDirectory()) walk(absolute, relative);
+      else if (!entry.isFile()) throw new Error(`Unsupported source entry: ${relative}`);
+      else if (SOURCE_EXTENSIONS.has(extname(entry.name))) files.push({ absolute, relative });
+    }
+  };
+  walk(sourceRoot, "src");
+  if (files.length === 0) throw new Error(`No .ts, .tsx or .css source files found in ${sourceRoot}`);
+  files.sort((a, b) => a.relative < b.relative ? -1 : a.relative > b.relative ? 1 : 0);
+
+  const violations = [];
+  for (const file of files) {
+    const source = readOrThrow("read file", file.absolute, io.readFile);
+    violations.push(...scanSource(file.relative, source));
+  }
+  return { filesScanned: files.length, violations };
+}
+
+/** CLI runner with injectable output; importing this module never invokes it. */
+export function run(argv = [], output = console, io = filesystem) {
+  try {
+    let root = ROOT;
+    if (argv.length !== 0) {
+      if (argv.length !== 2 || argv[0] !== "--root" || !argv[1] || argv[1].startsWith("--")) {
+        throw new Error("Usage: node scripts/design-lint/check.mjs [--root <repository-directory>]");
+      }
+      root = resolve(argv[1]);
+    }
+    output.log("Edeviser Design System Lint\n============================");
+    const { filesScanned, violations } = scanDesignSystem(root, io);
+    output.log(`Scanned ${filesScanned} source file(s).`);
+    for (const [check, label] of CHECKS) {
+      const findings = violations.filter((violation) => violation.check === check);
+      if (findings.length === 0) output.log(`[PASS] ${label}: 0 violations`);
+      else {
+        output.error(`[FAIL] ${label}: ${findings.length} violation(s)`);
+        for (const finding of findings) {
+          output.error(`  ${finding.file}:${finding.line}: [${finding.match}] ${finding.text}`);
+        }
+      }
+    }
+    if (violations.length === 0) {
+      output.log("ALL CHECKS PASSED");
+      return 0;
+    }
+    output.error(`${violations.length} TOTAL VIOLATION(S) FOUND`);
+    return 1;
+  } catch (error) {
+    output.error(`[ERROR] Design lint scan failed: ${error instanceof Error ? error.message : String(error)}`);
+    return 2;
+  }
+}
+
+if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+  process.exitCode = run(process.argv.slice(2));
 }

@@ -1,27 +1,14 @@
 const RTL_LANGUAGES = ["ar", "he", "fa", "ur"];
 
-/**
- * Returns the text direction for a given language code.
- */
+/** Returns layout direction; locale typography is owned by CSS. */
 export const getDirection = (language: string): "rtl" | "ltr" => {
-  return RTL_LANGUAGES.includes(language) ? "rtl" : "ltr";
+  const primaryLanguage = language.toLowerCase().split("-")[0] ?? "";
+  return RTL_LANGUAGES.includes(primaryLanguage) ? "rtl" : "ltr";
 };
 
-/**
- * Applies the correct dir, lang, and font-family to the <html> element
- * based on the active language. Idempotent — safe to call multiple times.
- */
+/** Applies dir/lang only. Idempotent and independent of reading-font state. */
 export const applyDirection = (language: string): void => {
-  const dir = getDirection(language);
   const htmlEl = document.documentElement;
-  htmlEl.setAttribute("dir", dir);
+  htmlEl.setAttribute("dir", getDirection(language));
   htmlEl.setAttribute("lang", language);
-
-  if (dir === "rtl") {
-    htmlEl.style.fontFamily =
-      '"Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif';
-  } else {
-    htmlEl.style.fontFamily =
-      '"Noto Sans", ui-sans-serif, system-ui, sans-serif';
-  }
 };

@@ -24,6 +24,37 @@ const ensureDir = (file: string) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
 };
 
+/** Never promote a prototype capture into the committed historical reference. */
+export const prototypeCandidatePath = (
+  id: string,
+  viewport: string,
+  runId: string,
+  root = process.cwd()
+): string => {
+  if (![id, viewport, runId].every((value) => /^[a-z0-9-]+$/.test(value))) {
+    throw new Error("Invalid prototype candidate path segment");
+  }
+  return path.join(
+    root,
+    "test-results",
+    "visual-candidates",
+    runId,
+    `${id}__${viewport}.png`
+  );
+};
+/** Exclusive create: a repeat capture cannot replace even another candidate. */
+export const writePrototypeCandidate = (
+  image: Buffer,
+  id: string,
+  viewport: string,
+  runId: string,
+  root = process.cwd()
+): string => {
+  const target = prototypeCandidatePath(id, viewport, runId, root);
+  ensureDir(target);
+  fs.writeFileSync(target, image, { flag: "wx" });
+  return target;
+};
 export const referencePath = (id: string, viewport: string): string =>
   path.join(process.cwd(), "visual", "references", `${id}__${viewport}.png`);
 

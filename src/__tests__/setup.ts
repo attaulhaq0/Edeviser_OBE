@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom";
 import { expect } from "vitest";
 import * as matchers from "vitest-axe/matchers";
+import { guardUnitSupabaseFetch } from "@/__tests__/helpers/unitNetwork";
 
 expect.extend(matchers);
 
@@ -34,33 +35,11 @@ Object.defineProperty(globalThis, "sessionStorage", {
   value: sessionStoragePolyfill,
 });
 
-// CI intentionally supplies a loopback Supabase URL when no preview secrets
-// are configured. Keep the unit/property suite hermetic: a few integration-
-// shaped components can still construct a real client, and the client's
-// retrying fetches otherwise leave hundreds of refused sockets open on a
-// hosted runner. Tests that need HTTP explicitly mock `globalThis.fetch`.
-if (
-  process.env.CI === "true" &&
-  (process.env.VITE_SUPABASE_URL ?? "").startsWith("http://localhost:54321")
-) {
-  const nativeFetch = globalThis.fetch.bind(globalThis);
-  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
-    const requestUrl =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-        ? input.href
-        : input.url;
-
-    if (requestUrl.startsWith("http://localhost:54321")) {
-      return Promise.reject(
-        new Error("Supabase network access is disabled in hermetic CI tests")
-      );
-    }
-
-    return nativeFetch(input, init);
-  }) as typeof fetch;
-}
+// The unit config fixes the Supabase origin/key even outside CI. Preview RLS
+// intentionally has a separate config with no unit setup. Do not leave real
+// client's retries running simply because a local invocation omitted CI=true.
+// Other HTTP remains the test author's responsibility to mock explicitly.
+globalThis.fetch = guardUnitSupabaseFetch(globalThis.fetch);
 
 if (typeof window !== "undefined") {
   Object.defineProperty(window, "localStorage", {

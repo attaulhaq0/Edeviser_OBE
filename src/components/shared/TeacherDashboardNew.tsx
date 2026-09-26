@@ -33,7 +33,6 @@ import {
 } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeacherDashboardAggregate } from "@/hooks/useTeacherDashboardAggregate";
-import { attainmentValueClass } from "@/lib/attainmentTone";
 
 /** Canonical Bloom's-level dot colors (design system domain coding). */
 const BLOOM_DOT: Record<string, string> = {
@@ -84,22 +83,17 @@ const TeacherDashboardNew = () => {
             icon={CheckSquare}
             label={t("dashboard.gradedThisWeek")}
             value={kpis?.gradedThisWeek ?? 0}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-green-600"
           />
           <KPICard
             icon={TrendingUp}
             label={t("dashboard.avgAttainment")}
             value={`${avgAttainment}%`}
-            valueClassName={attainmentValueClass(avgAttainment)}
           />
           <KPICard
             icon={AlertTriangle}
             label={t("dashboard.atRiskStudents")}
             value={atRisk}
-            valueClassName={atRisk > 0 ? "text-red-600" : "text-sky-700"}
-            iconBgClass={atRisk > 0 ? "bg-transparent" : "bg-transparent"}
-            iconColorClass={atRisk > 0 ? "text-red-600" : "text-blue-600"}
+            tone={atRisk > 0 ? "danger" : "neutral"}
           />
         </div>
       )}
@@ -160,7 +154,7 @@ const TeacherDashboardNew = () => {
                         }`}
                         aria-hidden="true"
                       />
-                      <span className="flex-1 capitalize text-gray-700">
+                      <span className="flex-1 capitalize text-foreground/80">
                         {row.level}
                       </span>
                       <span className="font-semibold text-gray-900">
@@ -170,7 +164,7 @@ const TeacherDashboardNew = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="py-6 text-center text-sm text-gray-500">
+                <p className="py-6 text-center text-sm text-muted-foreground">
                   {t("dashboard.noClosDefined", "No CLOs defined yet")}
                 </p>
               )}
@@ -192,7 +186,7 @@ const TeacherDashboardNew = () => {
               <p className="text-sm font-semibold text-gray-900">
                 {atRisk} · {t("dashboard.atRiskStudents")}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {t("dashboard.gradedThisWeek")}: {kpis?.gradedThisWeek ?? 0}
               </p>
             </div>

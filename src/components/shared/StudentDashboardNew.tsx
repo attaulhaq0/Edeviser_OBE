@@ -43,7 +43,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStudentDashboardAggregate } from "@/hooks/useStudentDashboardAggregate";
 import { formatNumber, formatPercent } from "@/lib/formatNumber";
 import { formatLocalDate } from "@/lib/formatDate";
-import { attainmentValueClass } from "@/lib/attainmentTone";
 
 const StudentDashboardNew = () => {
   const { t } = useTranslation("student");
@@ -120,7 +119,7 @@ const StudentDashboardNew = () => {
                     ? nextDeadline.title
                     : t("dashboard.primaryCta.continueCourse.label")}
                 </p>
-                <p className="truncate text-xs text-gray-500">
+                <p className="truncate text-xs text-muted-foreground">
                   {nextDeadline
                     ? `${nextDeadline.course_name} · ${formatLocalDate(
                         nextDeadline.due_date,
@@ -168,21 +167,16 @@ const StudentDashboardNew = () => {
             icon={CheckCircle2}
             label={t("dashboard.completed")}
             value={formatNumber(kpis?.completedAssignments ?? 0)}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-green-600"
           />
           <KPICard
             icon={TrendingUp}
             label={t("dashboard.avgAttainment")}
             value={formatPercent(avgAttainment)}
-            valueClassName={attainmentValueClass(avgAttainment)}
           />
           <KPICard
             icon={Flame}
             label={t("dashboard.streak")}
             value={`${kpis?.currentStreak ?? 0}d`}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-orange-500"
           />
         </div>
       )}
@@ -243,21 +237,21 @@ const StudentDashboardNew = () => {
                       <button
                         type="button"
                         onClick={() => navigate(`/student/assignments/${d.id}`)}
-                        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-start transition-colors hover:bg-slate-50"
+                        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-start transition-colors hover:bg-muted/50"
                       >
                         <CalendarClock
-                          className="h-4 w-4 shrink-0 text-gray-400"
+                          className="h-4 w-4 shrink-0 text-muted-foreground"
                           aria-hidden="true"
                         />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium text-gray-900">
                             {d.title}
                           </span>
-                          <span className="block truncate text-xs text-gray-500">
+                          <span className="block truncate text-xs text-muted-foreground">
                             {d.course_name}
                           </span>
                         </span>
-                        <span className="shrink-0 whitespace-nowrap text-xs text-gray-400">
+                        <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
                           {formatLocalDate(d.due_date, "MMM d")}
                         </span>
                       </button>
@@ -265,7 +259,7 @@ const StudentDashboardNew = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="py-6 text-center text-sm text-gray-500">
+                <p className="py-6 text-center text-sm text-muted-foreground">
                   {t("dashboard.noDeadlines", "No upcoming deadlines")}
                 </p>
               )}
@@ -287,7 +281,7 @@ const StudentDashboardNew = () => {
               <p className="text-sm font-semibold text-gray-900">
                 {t("nav.aiTutor", { ns: "common" })}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {t(
                   "dashboard.tutorPrompt",
                   "Get unstuck with your AI study partner"

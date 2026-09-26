@@ -52,7 +52,7 @@ const STATUS_CONFIG: Record<
   },
   no_evidence: {
     label: "No Evidence",
-    color: "bg-gray-100 text-gray-700",
+    color: "bg-muted text-foreground/80",
     icon: HelpCircle,
   },
 };
@@ -120,7 +120,7 @@ const GapAnalysisView = () => {
             <div className="flex items-center gap-5">
               <MasteryRing value={fullyMappedPct} size={104} tone="auto" />
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Fully Mapped
                 </p>
                 <p
@@ -137,23 +137,19 @@ const GapAnalysisView = () => {
                 icon={Target}
                 label="Outcomes"
                 value={summary.total}
-                className="shadow-none ring-1 ring-slate-100"
+                surface="inset"
               />
               <KPICard
                 icon={CheckCircle}
                 label="Fully Mapped"
                 value={`${fullyMappedPct}%`}
-                valueClassName={attainmentValueClass(fullyMappedPct)}
-                iconBgClass="bg-transparent"
-                iconColorClass="text-green-600"
-                className="shadow-none ring-1 ring-slate-100"
+                surface="inset"
               />
               <KPICard
                 icon={ClipboardCheck}
                 label="With Evidence"
                 value={`${withEvidencePct}%`}
-                valueClassName={attainmentValueClass(withEvidencePct)}
-                className="shadow-none ring-1 ring-slate-100"
+                surface="inset"
               />
             </div>
           </div>
@@ -165,7 +161,7 @@ const GapAnalysisView = () => {
           <SectionHeader icon={Search} title="Outcome Coverage" />
           <div className="mt-4">
             {!programId ? (
-              <p className="py-12 text-center text-sm text-slate-400">
+              <p className="py-12 text-center text-sm text-muted-foreground">
                 Select a program to analyze gaps.
               </p>
             ) : isLoading ? (
@@ -186,7 +182,7 @@ const GapAnalysisView = () => {
                   return (
                     <div
                       key={gap.outcome_id}
-                      className="flex items-start gap-3 rounded-xl border border-slate-100 p-3 transition-colors hover:bg-slate-50"
+                      className="flex items-start gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50"
                     >
                       <SeverityIcon
                         icon={Icon}
@@ -219,7 +215,7 @@ const GapAnalysisView = () => {
                           </div>
                         )}
                         {gap.recommendation && (
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             {gap.recommendation}
                           </p>
                         )}

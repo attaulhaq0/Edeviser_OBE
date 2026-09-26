@@ -1,9 +1,38 @@
 {
+  "metric": {
+    "unavailable": "Unavailable"
+  },
+  "studyTimeChart": {
+    "title": "Study Time Trends",
+    "summary": "Weekly records: {{recordCount}}. {{average}}",
+    "missingRecords": "Unavailable records: {{recordCount}}.",
+    "emptySummary": "No weekly observations were supplied.",
+    "empty": "No study data available",
+    "weeklyHours": "Weekly Hours",
+    "average": "Average ({{hours}}/week)",
+    "averageUnavailable": "Average unavailable",
+    "hours": "{{value}} h",
+    "unavailable": "Unavailable",
+    "courseFilter": "Filter study time by course",
+    "allCourses": "All Courses",
+    "dataTitle": "Weekly study data",
+    "showData": "View data",
+    "hideData": "Hide data",
+    "weekStarting": "Week starting",
+    "studyHours": "Study hours",
+    "invalidDate": "Unrecognized date: {{value}}",
+    "dateUnavailable": "Date unavailable"
+  },
   "carousel": {
     "previous": "Previous slide",
     "next": "Next slide",
     "slideOf": "{{current}} of {{total}}",
-    "goTo": "Go to slide {{number}}"
+    "goTo": "Go to slide {{number}}",
+    "label": "Highlights",
+    "controls": "Carousel controls",
+    "position": "Choose a slide",
+    "pause": "Pause automatic slides",
+    "play": "Resume automatic slides"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -97,6 +126,7 @@
     "accreditation": "Accreditation",
     "aiGovernance": "AI Governance",
     "institutionStructure": "Institution Structure",
+    "institutionSettings": "Institution Settings",
     "bulkImport": "Bulk Import",
     "badgeDefinitions": "Badge Definitions",
     "feesManagement": "Fees Management",
@@ -164,6 +194,13 @@
     "download": "Download",
     "upload": "Upload"
   },
+  "routeState": {
+    "loading": "Loading page…",
+    "checkingAccess": "Checking access…",
+    "title": "Page unavailable",
+    "message": "Reload this page to try again. If it still fails, return to another page.",
+    "reload": "Reload page"
+  },
   "status": {
     "active": "Active",
     "inactive": "Inactive",
@@ -199,6 +236,19 @@
     "networkError": "Network error. Please check your connection.",
     "timeout": "The request timed out. Please try again.",
     "validation": "Please check the form for errors."
+  },
+  "tableSorting": {
+    "loading": "Loading results…",
+    "pageOnly": "Sorting applies to this page only, not all results.",
+    "previousResults": "Updating results. The rows shown belong to the previous request.",
+    "pageUnknownCount": "Page {{page}} · total unavailable",
+    "updatingResults": "Updating results…"
+  },
+  "courseListSorting": {
+    "name": "Name",
+    "sortName": "Sort courses by name",
+    "loadError": "The requested courses could not be loaded. Retry to load these results.",
+    "retry": "Retry courses"
   },
   "pagination": {
     "previous": "Previous",
@@ -374,7 +424,22 @@
     "levelLabel": "Level",
     "coursesLabel": "courses",
     "noChildren": "No linked children yet. Ask your institution's admin to set up the parent-student link.",
-    "xp": "XP"
+    "xp": "XP",
+    "help": {
+      "title": "One way to help this week",
+      "prompt": "“{{name}}, can you explain one thing you learned this week?”",
+      "explanation": "A short conversation can give {{name}} a chance to explain their learning in their own words.",
+      "remindBtn": "Remind me tonight",
+      "unavailable": "This screen cannot currently schedule an evening reminder or confirm its delivery. You can view existing updates in Notifications.",
+      "openNotifications": "Open notifications",
+      "moreIdeas": "More ideas"
+    },
+    "celebrate": {
+      "title": "Worth celebrating",
+      "detail": "A few words of encouragement can support {{name}}’s learning.",
+      "sendBtn": "Send encouragement",
+      "unavailable": "This screen cannot currently send an encouragement message or confirm its delivery. You can share encouragement directly with {{name}}."
+    }
   },
   "parentPlanner": {
     "title": "Study Plan",
@@ -403,14 +468,39 @@
     "fontXLarge": "Extra Large",
     "highContrast": "High Contrast",
     "reducedAnimations": "Reduced Animations",
-    "dyslexiaFont": "Dyslexia-Friendly Font",
+    "dyslexiaFont": "Alternative Latin reading font",
     "simplifiedView": "Simplified View",
-    "cognitiveLoadMessage": "This page has a lot of information — would you like a simplified view?"
+    "cognitiveLoadMessage": "This page has a lot of information — would you like a simplified view?",
+    "menuLabel": "Reading & display",
+    "dialogDescription": "Choose how text, contrast and motion appear while you learn.",
+    "on": "On",
+    "off": "Off",
+    "devicePolicy": "Changes apply immediately. New edits take priority while account preferences load. Saved device choices can remain after sign-out.",
+    "highContrastHelp": "Increase contrast between text, controls and their surfaces while keeping your chosen light or dark theme.",
+    "motionHelp": "Reduce movement and transitions. Your device’s reduced-motion preference is also respected.",
+    "readingFontHelp": "Use a different letter style for supported Latin text. Arabic and other unsupported characters keep their usual typefaces.",
+    "loadingAccount": "Loading account preferences…",
+    "accountLoaded": "Account preferences loaded.",
+    "noAccountPreferences": "No saved account preferences were returned. Device preferences are in use.",
+    "savedDevice": "Your changes were saved on this device.",
+    "syncingAccount": "Syncing account preferences…",
+    "savedAccount": "Account preferences confirmed.",
+    "loadingFont": "Loading the reading font… You can still turn it off.",
+    "fontReady": "Reading font loaded for supported Latin text.",
+    "invalidAccount": "Saved account preferences could not be interpreted safely. Device preferences remain available; retry to check again.",
+    "readFailed": "Account preferences could not be loaded. Current preferences remain available; retry to check your account.",
+    "syncFailed": "Your changes still apply here, but account sync failed. Retry to sync the current choices.",
+    "deviceFailed": "Your changes apply now but could not be saved on this device. They may not survive a refresh; retry device storage.",
+    "fontFailed": "The reading font could not load. Standard fonts remain in use; retry the download or turn this option off.",
+    "retryRead": "Reload account preferences",
+    "retrySync": "Retry account sync",
+    "retryDevice": "Retry device storage",
+    "retryFont": "Retry reading font"
   },
   "user": "User",
   "skipToMain": "Skip to main content",
   "search": "Search",
-  "searchPlaceholder": "Search courses, assignments, announcements...",
+  "searchPlaceholder": "Search courses, assignments, announcements…",
   "searchLoading": "Searching…",
   "searchEmpty": "No results for “{{q}}”",
   "searchType": {
@@ -425,9 +515,15 @@
   "profileSettings": "Profile Settings",
   "institutionSettings": "Institution Settings",
   "header": {
+    "accountMenu": "Account menu for {{name}}",
+    "openNavigation": "Open navigation menu",
+    "closeNavigation": "Close navigation menu",
+    "dashboardLink": "Edeviser — go to dashboard",
+    "mobileNavLabel": "Mobile navigation",
+    "languageMenu": "Language: {{language}}",
     "user": "User",
     "search": "Search",
-    "searchPlaceholder": "Search courses, assignments, announcements...",
+    "searchPlaceholder": "Search courses, assignments, announcements…",
     "searchLoading": "Searching…",
     "searchEmpty": "No results for “{{q}}”",
     "searchType": {
@@ -488,7 +584,7 @@
       "student": "Student",
       "parent": "Parent",
       "studentLevel": "Lvl {{level}} · {{xp}} XP",
-      "teacherDetail": "{{department}} · {{count}} classes",
+      "teacherDetail": "{{department}} · Courses: {{formattedCount}}",
       "guardianOf": "Guardian of {{name}}"
     },
     "stats": {
@@ -516,6 +612,16 @@
       "older": "Older"
     }
   },
+  "saleBadge": { "off": "{{percent}} Off" },
+  "notificationsFeed": {
+    "title": "Notifications",
+    "error": "Could not load notifications. Try again.",
+    "markAll": "Mark All as Read",
+    "recent": "Recent",
+    "empty": "No notifications yet.",
+    "unread": "Unread",
+    "delete": "Delete notification"
+  },
   "notificationsCta": {
     "viewGrade": "View Grade",
     "openAssignment": "Open Assignment",
@@ -526,6 +632,24 @@
     "viewHabits": "View Habits",
     "viewAssignment": "View Assignment",
     "viewAll": "View All"
+  },
+  "adminPloHeatmap": {
+    "title": "PLO attainment heatmap",
+    "programFilter": "Filter PLOs by program",
+    "allPrograms": "All programs",
+    "loading": "Loading outcomes for this program…",
+    "error": "Could not load outcomes for this program. Try again.",
+    "retry": "Retry filtered outcomes",
+    "empty": "No measured program outcomes are available here.",
+    "legend": "PLO attainment visualization bands",
+    "unmeasured": "Unmeasured",
+    "sourceRecorded": "Recorded attainment data",
+    "sourceProgram": "{{formattedCount}} contributing course records",
+    "sourceClo": "{{formattedCount}} contributing CLO records",
+    "rangeAtLeast": "{{min}} and above",
+    "rangeBetween": "{{min}} to under {{max}}",
+    "rangeBelow": "Below {{threshold}}",
+    "disclaimer": "These visual bands use the current {{excellent}}/{{satisfactory}}/{{developing}} display cutoffs; the institution's native grade scale and official academic records remain authoritative."
   },
   "studentRailFallback": {
     "label": "Learning momentum",
@@ -1092,6 +1216,61 @@
           "body": "For privacy-related questions, contact our privacy team."
         }
       }
+    }
+  },
+  "statePanel": {
+    "empty": "Nothing here yet.",
+    "partial": "Some information is unavailable.",
+    "permission": "You do not have permission to view this information."
+  },
+  "parentAttendance": {
+    "title": "Attendance",
+    "subtitle": "Recorded attendance, punctuality and absences by course.",
+    "overviewTitle": "Attendance overview",
+    "childrenError": "Could not load linked students. Please try again.",
+    "childrenUnavailable": "Linked student data is unavailable. Please try again.",
+    "error": "Could not load attendance records. Please try again.",
+    "unavailable": "Attendance data is unavailable. Please try again.",
+    "noRecords": "No attendance sessions are recorded for this selection.",
+    "noTrend": "No recorded periods to display.",
+    "noCourses": "No course attendance records to display.",
+    "noMatchingRecords": "No records match this filter.",
+    "notMeasured": "Not measured",
+    "selectChild": "Select a student",
+    "courseFilter": "Course filter",
+    "allCourses": "All courses",
+    "availableRecords": "Available attendance records",
+    "summary": "{{name}} — attended sessions: {{attended}} of {{total}}.",
+    "trendTitle": "Attendance by recorded period",
+    "periodRate": "{{date}} — attendance rate: {{rate}}",
+    "byCourseTitle": "Attendance by course",
+    "recentTitle": "Recent attendance",
+    "recordFilter": "Filter attendance records",
+    "course": "Course",
+    "attended": "Attended",
+    "rate": "Attendance rate",
+    "totalSessions": "Recorded sessions",
+    "listedCourses": "Listed courses",
+    "recordedPeriod": "Recorded period",
+    "status": {
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "excused": "Excused"
+    },
+    "filters": {
+      "exceptions": "Late or absent",
+      "all": "All records"
+    },
+    "rail": {
+      "label": "Attendance summary and support",
+      "summaryTitle": "Recorded attendance",
+      "absencesByCourse": "Absences by course",
+      "attentionMessage": "{{course}} — Recorded absences: {{missed}}.",
+      "filterHint": "Use the course filter to review its records.",
+      "needHelp": "Need help?",
+      "helpBody": "Contact your institution for attendance records or policy information.",
+      "getSupport": "Get support"
     }
   },
   "empty": {

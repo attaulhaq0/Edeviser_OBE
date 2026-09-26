@@ -1,0 +1,83 @@
+import { describe, expect, it } from "vitest";
+import { isNavDestinationActive, navActiveAliases } from "@/lib/navActive";
+
+describe("exact role route activity, not unchecked string prefixes", () => {
+  it("matches exact paths and genuine nested segments without claiming lookalikes", () => {
+    expect(
+      isNavDestinationActive(
+        "/student/progress",
+        "/student/progress",
+        "student"
+      )
+    ).toBe(true);
+    expect(
+      isNavDestinationActive(
+        "/student/progress/clos",
+        "/student/progress",
+        "student"
+      )
+    ).toBe(true);
+    expect(
+      isNavDestinationActive(
+        "/student/progressive",
+        "/student/progress",
+        "student"
+      )
+    ).toBe(false);
+    expect(
+      isNavDestinationActive(
+        "/student/learning-path",
+        "/student/dashboard",
+        "student"
+      )
+    ).toBe(false);
+    expect(
+      isNavDestinationActive(
+        "/admin/settings/configuration",
+        "/admin/settings/profile",
+        "admin"
+      )
+    ).toBe(false);
+  });
+  it("preserves only explicit router aliases for the equivalent canonical destination", () => {
+    expect(
+      isNavDestinationActive(
+        "/admin/settings/institution",
+        "/admin/departments",
+        "admin"
+      )
+    ).toBe(true);
+    expect(
+      isNavDestinationActive(
+        "/admin/settings/institution",
+        "/admin/settings/configuration",
+        "admin"
+      )
+    ).toBe(false);
+    expect(
+      isNavDestinationActive(
+        "/coordinator/outcomes",
+        "/coordinator/plos",
+        "coordinator"
+      )
+    ).toBe(true);
+    expect(
+      isNavDestinationActive("/teacher/content", "/teacher/modules", "teacher")
+    ).toBe(true);
+    expect(
+      isNavDestinationActive(
+        "/parent/notifications",
+        "/parent/communications",
+        "parent"
+      )
+    ).toBe(true);
+    expect(
+      isNavDestinationActive(
+        "/parent/notifications",
+        "/parent/progress",
+        "parent"
+      )
+    ).toBe(false);
+    expect(navActiveAliases.student).toBeUndefined();
+  });
+});

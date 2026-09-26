@@ -57,16 +57,12 @@ const FeePaymentList = ({
           icon={Receipt}
           label={t("fees.paid", "Paid")}
           value={paidCount}
-          iconBgClass="bg-transparent"
-          iconColorClass="text-green-600"
         />
         <KPICard
           icon={Wallet}
           label={t("fees.outstanding", "Outstanding")}
           value={outstanding}
-          iconBgClass="bg-transparent"
-          iconColorClass="text-amber-600"
-          valueClassName={outstanding > 0 ? "text-amber-600" : "text-sky-700"}
+          tone={outstanding > 0 ? "warning" : "neutral"}
         />
         <KPICard
           icon={Receipt}
@@ -77,11 +73,11 @@ const FeePaymentList = ({
 
       <SectionCard icon={Wallet} title={t("fees.history", "Payment history")}>
         {payments.length === 0 ? (
-          <p className="py-3 text-sm text-gray-500">
+          <p className="py-3 text-sm text-muted-foreground">
             {t("fees.empty", "No fee records yet.")}
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {payments.map((payment) => {
               const canDownload =
                 payment.status === "paid" && Boolean(payment.receipt_number);
@@ -94,7 +90,7 @@ const FeePaymentList = ({
                   {isPaymentStatus(payment.status) ? (
                     <FeeStatusBadge status={payment.status} />
                   ) : (
-                    <span className="text-xs font-semibold text-gray-500">
+                    <span className="text-xs font-semibold text-muted-foreground">
                       {payment.status}
                     </span>
                   )}
@@ -102,7 +98,7 @@ const FeePaymentList = ({
                     <p className="text-sm font-bold text-gray-900">
                       {payment.amount_paid.toLocaleString()}
                     </p>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-muted-foreground">
                       {fmtDate(payment.payment_date)}
                       {payment.receipt_number
                         ? ` · #${payment.receipt_number}`

@@ -2,7 +2,7 @@
 // =============================================================================
 // SelfEfficacyStep — Unit tests (Task 18.4)
 //
-// Covers two of the three behaviours required by task 18.4:
+// Covers fallback/framing behaviour and the D15 paired selection contract:
 //   • Non-blocking fallback (task 18.1 / R11.3, R11.4, R11.4a, R11.4b):
 //       - a non-alarming zero-data fallback (never an admin-contact error)
 //         when there are genuinely zero questions;
@@ -18,7 +18,7 @@
 // =============================================================================
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { I18nextProvider } from "react-i18next";
 
@@ -186,6 +186,86 @@ describe("SelfEfficacyStep", () => {
       await user.click(screen.getByRole("button", { name: /continue/i }));
       expect(onComplete).toHaveBeenCalledTimes(1);
     });
+  });
+
+  describe("paired selection paint and response values", () => {
+    beforeEach(async () => {
+      await i18n.changeLanguage("en");
+      mockQuestionsResult = {
+        data: [makeQuestion({ id: "q-selected" })],
+        isLoading: false,
+        isError: false,
+      };
+    });
+
+    it.each([0, 1, 2, 3, 4])(
+      "pairs radio %i with its surface and saves the one-based answer",
+      async (optionIndex) => {
+        const user = userEvent.setup();
+        renderStep({ assessmentVersion: 3 });
+
+        expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: /begin/i }));
+
+        const options = screen.getAllByRole("radio");
+        expect(options).toHaveLength(5);
+        const complete = screen.getByRole("button", {
+          name: i18n.t("onboarding.selfEfficacy.complete", { ns: "student" }),
+        });
+        expect(complete).toBeDisabled();
+        expect(mockSaveResponses).not.toHaveBeenCalled();
+
+        for (const option of options) {
+          expect(option).toHaveAttribute("aria-checked", "false");
+          expect(option).toHaveClass(
+            "border-border",
+            "bg-card",
+            "text-foreground/80",
+            "hover:border-border",
+            "hover:bg-muted/50"
+          );
+          expect(option.firstElementChild).toHaveClass("border-muted-foreground");
+          expect(option.firstElementChild).toBeEmptyDOMElement();
+        }
+
+        // Selecting a different answer removes the old dot without changing
+        // the native radio shape, the response key, or its 1–5 value mapping.
+        const previous = options[(optionIndex + 1) % options.length]!;
+        await user.click(previous);
+        const selected = options[optionIndex]!;
+        await user.click(selected);
+
+        expect(screen.getAllByRole("radio", { checked: true })).toEqual([selected]);
+        expect(selected).toHaveAttribute("id", `q-selected-option-${optionIndex + 1}`);
+        expect(selected).toHaveClass(
+          "border-primary",
+          "bg-accent",
+          "text-accent-foreground"
+        );
+        expect(selected.firstElementChild).toHaveClass("border-primary");
+        expect(selected.firstElementChild?.firstElementChild).toHaveClass("bg-primary");
+        expect(previous).toHaveAttribute("aria-checked", "false");
+        expect(previous).toHaveClass("bg-card", "text-foreground/80");
+        expect(previous.firstElementChild).toHaveClass("border-muted-foreground");
+        expect(previous.firstElementChild).toBeEmptyDOMElement();
+        expect(complete).toBeEnabled();
+        expect(mockSaveResponses).not.toHaveBeenCalled();
+
+        await user.click(complete);
+        await waitFor(() => {
+          expect(mockSaveResponses).toHaveBeenCalledTimes(1);
+          expect(mockSaveResponses).toHaveBeenCalledWith({
+            student_id: "student-1",
+            assessment_type: "self_efficacy",
+            assessment_version: 3,
+            responses: [
+              { question_id: "q-selected", selected_option: optionIndex + 1 },
+            ],
+          });
+          expect(onComplete).toHaveBeenCalledTimes(1);
+        });
+      }
+    );
   });
 
   // ── Framing gate (R17.2a) ────────────────────────────────────────────────

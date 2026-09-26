@@ -32,6 +32,20 @@ describe("HabitDifficultyIndicator", () => {
     expect(screen.getByText("7 days to Level 2")).toBeInTheDocument();
   });
 
+  it.each([0, 3, 7, 10])("preserves streak %i progress with the strong-green fill", (streak) => {
+    const { container } = render(<HabitDifficultyIndicator level={1} habitLevelStreak={streak} />);
+    const fill = container.querySelector<HTMLElement>("[style]");
+    expect(fill).toHaveClass("bg-(--success-foreground)");
+    expect(fill?.parentElement).toHaveClass("bg-muted");
+    expect(fill?.style.width).toBe(`${Math.min((streak / 7) * 100, 100)}%`);
+  });
+
+  it("does not render progress at the maximum level", () => {
+    const { container } = render(<HabitDifficultyIndicator level={3} habitLevelStreak={10} />);
+    expect(container.querySelector("[style]")).toBeNull();
+    expect(screen.getByText("Max level reached")).toBeInTheDocument();
+  });
+
   it('shows singular "day" when 1 day remaining', () => {
     render(<HabitDifficultyIndicator level={2} habitLevelStreak={6} />);
     expect(screen.getByText("1 day to Level 3")).toBeInTheDocument();

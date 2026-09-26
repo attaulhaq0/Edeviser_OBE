@@ -9,6 +9,7 @@ import { render, screen } from "@testing-library/react";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { checkA11y } from "@/__tests__/helpers/a11y";
+import { assertTextContrast, contrastRatio, scopedHexToken } from "@/__tests__/helpers/contrast";
 import SkipToMain from "@/components/shared/SkipToMain";
 
 const appTsx = readFileSync(resolve(__dirname, "../../App.tsx"), "utf-8");
@@ -102,42 +103,71 @@ describe("Reduced motion support (audit)", () => {
     expect(indexCss).toContain("@media (prefers-reduced-motion: reduce)");
   });
 
-  it('Framer Motion uses reducedMotion="user" in App.tsx', () => {
-    expect(appTsx).toContain('reducedMotion="user"');
+  it("App delegates motion to the owned preference adapter without opting out of the OS", () => {
+    expect(appTsx).toContain("<AccessibilityMotion>");
+    const motion = readFileSync(resolve(__dirname, "../../providers/AccessibilityMotion.tsx"), "utf-8");
+    expect(motion).toContain('reducedMotion={effective.reduced_animations ? "always" : "user"}');
+    expect(motion).not.toContain('"never"');
   });
 });
 
 // ─── Color Contrast Requirements ─────────────────────────────────────────────
 
-describe("Color contrast — design token audit", () => {
-  // WCAG AA requires 4.5:1 for normal text, 3:1 for large text.
-  // These tests verify the design system tokens are defined and documented.
+describe("Color contrast — Hawdex opaque source-token pairs", () => {
+  // Numeric source-token checks, NOT proof of rendered text size, CSS cascade,
+  // opacity, gradients, or browser contrast. Large text is >=24px normal or
+  // >=56/3px at weight >=700. A 14px bold button is still NORMAL text.
+  const tokensCss = readFileSync(
+    resolve(__dirname, "../../design-system/tokens.css"),
+    "utf-8"
+  );
+  const color = (theme: ":root" | ".dark", token: string): string =>
+    scopedHexToken(tokensCss, theme, token);
 
-  it("defines brand-primary (#3b82f6) — passes AA on white for large text (3.13:1)", () => {
-    expect(indexCss).toContain("--brand-primary: #3b82f6");
+  describe("Precision (light) — foreground/background pairs", () => {
+    it.each([
+      ["--foreground", "--background", "AAA"],
+      ["--success-foreground", "--success-subtle", "AA"],
+      ["--warning-foreground", "--warning-subtle", "AA"],
+      ["--error-foreground", "--error-subtle", "AAA"],
+      ["--info-foreground", "--info-subtle", "AAA"],
+      ["--brand-neutral", "--card", "AA"],
+    ] as const)("%s on %s meets %s normal-text contrast", (foreground, background, level) => {
+      expect(() => assertTextContrast(color(":root", foreground), color(":root", background), 16, 400, level)).not.toThrow();
+    });
+
+    it.each([
+      ["--primary", "--card"],
+      ["--destructive-foreground", "--destructive"],
+    ])("%s on %s meets normal and large source-text contrast", (foreground, background) => {
+      const text = color(":root", foreground);
+      const surface = color(":root", background);
+      expect(() => assertTextContrast(text, surface, 14, 500)).not.toThrow();
+      expect(() => assertTextContrast(text, surface, 24, 400)).not.toThrow();
+      expect(() => assertTextContrast(text, surface, 56 / 3, 700)).not.toThrow();
+      // Real consumer opacity/hover/active composition is checked in Chromium.
+      expect(contrastRatio(text, surface)).toBeGreaterThanOrEqual(4.5);
+    });
   });
 
-  it("defines brand-primary-dark (#2563eb) — passes AA on white (4.57:1)", () => {
-    expect(indexCss).toContain("--brand-primary-dark: #2563eb");
+  describe("Obsidian (dark) — foreground/background pairs", () => {
+    it.each([
+      ["--primary", "--background", "AA"],
+      ["--foreground", "--background", "AAA"],
+      ["--text-primary", "--card", "AAA"],
+      ["--success", "--background", "AAA"],
+      ["--error", "--background", "AA"],
+      ["--text-secondary", "--background", "AA"],
+      ["--success-foreground", "--success-subtle", "AA"],
+      ["--warning-foreground", "--warning-subtle", "AA"],
+      ["--error-foreground", "--error-subtle", "AA"],
+      ["--info-foreground", "--info-subtle", "AA"],
+    ] as const)("%s on %s meets %s normal-text contrast", (foreground, background, level) => {
+      expect(() => assertTextContrast(color(".dark", foreground), color(".dark", background), 16, 400, level)).not.toThrow();
+    });
   });
 
-  it("defines color-success (#22c55e) — used on bg-green-50 backgrounds", () => {
-    expect(indexCss).toContain("--color-success: #22c55e");
-  });
-
-  it("defines color-warning (#f59e0b) — used on bg-yellow-50 backgrounds", () => {
-    expect(indexCss).toContain("--color-warning: #f59e0b");
-  });
-
-  it("defines color-destructive-brand (#ef4444) — passes AA on white (4.0:1 large text)", () => {
-    expect(indexCss).toContain("--color-destructive-brand: #ef4444");
-  });
-
-  it("defines color-neutral (#64748b) — passes AA on white (4.63:1)", () => {
-    expect(indexCss).toContain("--color-neutral: #64748b");
-  });
-
-  it("defines surface-border (#e2e8f0) for non-text decorative borders", () => {
-    expect(indexCss).toContain("--surface-border: #e2e8f0");
+  it("retains decorative-border presence coverage without claiming text contrast", () => {
+    expect(tokensCss).toContain("--border-default:");
   });
 });

@@ -1,5 +1,5 @@
 // =============================================================================
-// useFriends — student peer connections (friends), presence & leaderboard
+// useFriends — student peer connections and last-seen activity hints
 // =============================================================================
 //
 // Backs the student Friends page, the dashboard "Friends online" rail, and the
@@ -19,19 +19,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { hasRecentActivity } from "@/lib/recentActivity";
 import { useAuth } from "@/hooks/useAuth";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const untyped = supabase as any;
 
-/** A student is considered "online" if seen within this window. */
-const ONLINE_WINDOW_MS = 5 * 60 * 1000;
-
-const isOnline = (lastSeenAt: string | null): boolean => {
-  if (!lastSeenAt) return false;
-  const seen = new Date(lastSeenAt).getTime();
-  return Number.isFinite(seen) && Date.now() - seen < ONLINE_WINDOW_MS;
-};
+// Historical `online` field stays API-compatible: a query-time recent-activity hint,
+// not a verified socket connection or continuously fresh browser presence.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,6 +38,7 @@ export interface Friend {
   xp_total: number;
   level: number;
   streak_current: number;
+  /** Compatibility field: query-time recent profile activity, not live connectivity. */
   online: boolean;
 }
 
@@ -115,6 +111,7 @@ export const useFriends = (studentId: string | undefined) => {
         (gamResult.data ?? []).map((g) => [g.student_id, g])
       );
 
+      const observedAt = Date.now();
       return (profilesResult.data ?? [])
         .map((p): Friend => {
           const g = gamMap.get(p.id);
@@ -126,7 +123,7 @@ export const useFriends = (studentId: string | undefined) => {
             xp_total: g?.xp_total ?? 0,
             level: g?.level ?? 1,
             streak_current: g?.streak_current ?? 0,
-            online: isOnline(p.last_seen_at),
+            online: hasRecentActivity(p.last_seen_at, observedAt),
           };
         })
         .sort(

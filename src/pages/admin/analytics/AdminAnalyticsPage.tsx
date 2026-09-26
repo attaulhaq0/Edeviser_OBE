@@ -8,13 +8,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { PloAttainmentHeatmap } from "@/features/admin/analytics";
+import { classifyPloAttainment } from "@/lib/ploAttainmentBand";
 import { PCard, Shimmer } from "@/design-system";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import {
@@ -102,26 +97,25 @@ const AdminAnalyticsPage = () => {
     ? ploQuery.data.map((row) => ({
         ploId: row.plo_id,
         ploCodeTitle: row.plo_title,
-        meanAttainment: Math.round(row.attainment_percent),
-        derivationLabel:
-          row.derivation === "program"
-            ? `program · ${row.contributing_count} courses`
-            : row.derivation === "clo_rollup"
-            ? `CLO roll-up · ${row.contributing_count} CLOs`
-            : "unmeasured",
-        statusBand:
-          row.attainment_percent < 0
-            ? "unmeasured"
-            : row.attainment_percent >= 85
-            ? "excellent"
-            : row.attainment_percent >= 70
-            ? "satisfactory"
-            : row.attainment_percent >= 50
-            ? "developing"
-            : "notYet",
+        // Display the raw source value; band classification precedes rounding.
+        meanAttainment: row.attainment_percent,
+        derivation: row.derivation,
+        contributingCount: row.contributing_count,
+        statusBand: classifyPloAttainment(row.attainment_percent),
       }))
-    : analytics.ploAttainment;
-
+    : selectedProgram === "all"
+    ? analytics.ploAttainment
+    : [];
+  // A selected program must never silently show the unfiltered aggregate while
+  // its own PLO query is pending or failed.
+  const ploFilterState =
+    selectedProgram === "all"
+      ? "ready"
+      : ploQuery.isError
+      ? "error"
+      : ploQuery.isPending
+      ? "loading"
+      : "ready";
   const latestActive = weeklyActiveLearners[weeklyActiveLearners.length - 1];
   const hasWeeklyDenominator = weeklyActiveLearners.some(
     (point) => point.eligibleLearners > 0
@@ -135,14 +129,13 @@ const AdminAnalyticsPage = () => {
     <div className={`${adminPageClass} no-scrollbar`}>
       {/* Page Title & Subtitle */}
       <div>
-        <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="text-xl font-black tracking-tight text-foreground">
           Institution analytics
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-0.5">
           Engagement, mastery &amp; retention — de-identified &amp; aggregated.
         </p>
       </div>
-
       {/* 1. Engagement trend (Weekly active learners) */}
       <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
@@ -152,7 +145,7 @@ const AdminAnalyticsPage = () => {
 
         {/* 5-week Bar Chart */}
         {hasWeeklyDenominator ? (
-          <div className="flex h-28 items-end gap-2.5 border-b border-slate-100 pb-0 dark:border-slate-800">
+          <div className="flex h-28 items-end gap-2.5 border-b border-border pb-0">
             {weeklyActiveLearners.map((pt, idx) => {
               const isLatest = idx === weeklyActiveLearners.length - 1;
               const barHeightPct = Math.min(pt.activePercent, 100);
@@ -173,8 +166,8 @@ const AdminAnalyticsPage = () => {
                   <span
                     className={`text-[9px] ${
                       isLatest
-                        ? "font-extrabold text-slate-700 dark:text-slate-200"
-                        : "text-slate-400"
+                        ? "font-extrabold text-foreground/80 dark:text-slate-200"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {pt.week}
@@ -184,18 +177,17 @@ const AdminAnalyticsPage = () => {
             })}
           </div>
         ) : (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+          <p className="rounded-xl border border-border bg-slate-50 p-4 text-center text-xs text-muted-foreground">
             No live learner activity data is available for this institution.
           </p>
         )}
-        <div className="flex items-center justify-between mt-2 text-[10px] text-slate-400">
+        <div className="flex items-center justify-between mt-2 text-[10px] text-muted-foreground">
           <span>5-week trend · active learners / week</span>
-          <span className="italic text-slate-400 font-medium">
+          <span className="italic text-muted-foreground font-medium">
             Real live Supabase data
           </span>
         </div>
       </PCard>
-
       {/* 2. Mastery Distribution & Retention Risk (2-Column Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Mastery Distribution */}
@@ -228,23 +220,23 @@ const AdminAnalyticsPage = () => {
                 },
               ].map((row) => (
                 <div key={row.label} className="flex items-center gap-2">
-                  <span className="text-xs w-24 shrink-0 text-slate-600 dark:text-slate-400 font-medium">
+                  <span className="text-xs w-24 shrink-0 text-muted-foreground dark:text-muted-foreground font-medium">
                     {row.label}
                   </span>
-                  <div className="flex-1 h-4 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="flex-1 h-4 rounded-md bg-muted overflow-hidden">
                     <div
                       className="h-full bg-blue-500 transition-all"
                       style={{ width: `${Math.min(row.pct, 100)}%` }}
                     />
                   </div>
-                  <span className="text-xs font-bold w-10 text-end text-slate-800 dark:text-slate-200">
+                  <span className="text-xs font-bold w-10 text-end text-foreground/80">
                     {row.pct}%
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+            <p className="rounded-xl border border-border bg-slate-50 p-4 text-center text-xs text-muted-foreground">
               No learner records are available for this institution.
             </p>
           )}
@@ -260,33 +252,27 @@ const AdminAnalyticsPage = () => {
 
           {hasLearners ? (
             <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-700 dark:text-slate-300 font-medium">
-                  On track
-                </span>
+              <div className="flex items-center justify-between py-1 border-b border-border">
+                <span className="text-foreground/80 font-medium">On track</span>
                 <b className="text-emerald-600 font-black">
                   {retentionRisk.onTrack}
                 </b>
               </div>
-              <div className="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-700 dark:text-slate-300 font-medium">
-                  Watch
-                </span>
+              <div className="flex items-center justify-between py-1 border-b border-border">
+                <span className="text-foreground/80 font-medium">Watch</span>
                 <b className="text-amber-600 font-black">
                   {retentionRisk.watch}
                 </b>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span className="text-slate-700 dark:text-slate-300 font-medium">
-                  At risk
-                </span>
+                <span className="text-foreground/80 font-medium">At risk</span>
                 <b className="text-red-600 font-black">
                   {retentionRisk.atRisk}
                 </b>
               </div>
             </div>
           ) : (
-            <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+            <p className="rounded-xl border border-border bg-slate-50 p-4 text-center text-xs text-muted-foreground">
               No learner records are available for retention analysis.
             </p>
           )}
@@ -310,7 +296,6 @@ const AdminAnalyticsPage = () => {
           )}
         </PCard>
       </div>
-
       {/* 3. Department Table */}
       <PCard className="p-4">
         <AdminSectionHeader emoji="🏫" title="Departments" className="mb-3" />
@@ -318,7 +303,7 @@ const AdminAnalyticsPage = () => {
         <div className="overflow-x-auto">
           <table className={adminTableClass}>
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+              <tr className="border-b border-border text-muted-foreground dark:text-muted-foreground font-bold uppercase text-[10px] tracking-wider">
                 <th className="pb-2 text-start">Department</th>
                 <th className="pb-2 text-center">Learners</th>
                 <th className="pb-2 text-center">Active</th>
@@ -326,7 +311,7 @@ const AdminAnalyticsPage = () => {
                 <th className="pb-2 text-center">Trend</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-border dark:divide-slate-800">
               {departmentRows.length > 0 ? (
                 departmentRows.map((dept) => {
                   const isSuppressed =
@@ -341,15 +326,15 @@ const AdminAnalyticsPage = () => {
                   return (
                     <tr
                       key={dept.departmentName}
-                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                      className="hover:bg-muted/50 dark:hover:bg-slate-800/40"
                     >
-                      <td className="py-2.5 font-bold text-slate-900 dark:text-slate-100">
+                      <td className="py-2.5 font-bold text-foreground">
                         {dept.departmentName}
                       </td>
-                      <td className="py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300">
+                      <td className="py-2.5 text-center font-semibold text-muted-foreground">
                         {isSuppressed ? "< 3 (suppressed)" : dept.learners}
                       </td>
-                      <td className="py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300">
+                      <td className="py-2.5 text-center font-semibold text-muted-foreground">
                         {dept.activePercent}%
                       </td>
                       <td className="py-2.5 text-center font-black">
@@ -369,7 +354,10 @@ const AdminAnalyticsPage = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-slate-500">
+                  <td
+                    colSpan={5}
+                    className="py-6 text-center text-muted-foreground"
+                  >
                     No department analytics are available.
                   </td>
                 </tr>
@@ -378,7 +366,6 @@ const AdminAnalyticsPage = () => {
           </table>
         </div>
       </PCard>
-
       {/* 4. AI Co-Pilot Performance */}
       <PCard className="p-4">
         <div className="flex items-center justify-between mb-4">
@@ -390,14 +377,14 @@ const AdminAnalyticsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-bold text-foreground/80">
                   Suggestion acceptance
                 </span>
-                <span className="text-lg font-black text-slate-900 dark:text-slate-100">
+                <span className="text-lg font-black text-foreground">
                   {aiCopilotPerformance.suggestionAcceptanceRate}%
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 mt-2 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-muted mt-2 overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full"
                   style={{
@@ -405,21 +392,21 @@ const AdminAnalyticsPage = () => {
                   }}
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 {aiCopilotPerformance.suggestionTotal} module suggestions logged
               </p>
             </div>
 
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-bold text-foreground/80">
                   Prediction accuracy
                 </span>
-                <span className="text-lg font-black text-slate-900 dark:text-slate-100">
+                <span className="text-lg font-black text-foreground">
                   {aiCopilotPerformance.predictionAccuracyRate}%
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 mt-2 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-muted mt-2 overflow-hidden">
                 <div
                   className="h-full bg-blue-600 rounded-full"
                   style={{
@@ -427,7 +414,7 @@ const AdminAnalyticsPage = () => {
                   }}
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 {aiCopilotPerformance.predictionTotal} at-risk predictions
                 validated
               </p>
@@ -435,144 +422,57 @@ const AdminAnalyticsPage = () => {
 
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-bold text-foreground/80">
                   Draft acceptance
                 </span>
-                <span className="text-lg font-black text-slate-900 dark:text-slate-100">
+                <span className="text-lg font-black text-foreground">
                   {aiCopilotPerformance.draftAcceptanceRate}%
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 mt-2 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-muted mt-2 overflow-hidden">
                 <div
-                  className="h-full bg-transparent0 rounded-full"
+                  className="h-full bg-(--success-foreground) rounded-full"
                   style={{
                     width: `${aiCopilotPerformance.draftAcceptanceRate}%`,
                   }}
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 {aiCopilotPerformance.draftTotal} feedback drafts used
               </p>
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-center dark:border-slate-800 dark:bg-slate-950/40">
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+          <div className="rounded-xl border border-border bg-slate-50/70 p-4 text-center dark:bg-slate-950/40">
+            <p className="text-xs font-bold text-foreground/80">
               Not enough usage data
             </p>
-            <p className="text-[11px] text-slate-500 mt-1">
+            <p className="text-[11px] text-muted-foreground mt-1">
               AI Co-Pilot metrics will populate automatically as staff generate,
               edit, and validate suggestions.
             </p>
           </div>
         )}
 
-        <div className="mt-3 bg-slate-50 border border-slate-100 rounded-xl p-3 dark:bg-slate-800/40 dark:border-slate-800">
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+        <div className="mt-3 bg-slate-50 border border-border rounded-xl p-3/40">
+          <p className="text-[11px] text-muted-foreground dark:text-muted-foreground leading-relaxed font-medium">
             How often staff accept AI suggestions, how accurate at-risk
             predictions proved, and how often AI feedback drafts were used — the
             trust signals behind the autonomy ceiling.
           </p>
         </div>
       </PCard>
-
-      {/* 5. PLO Attainment Heatmap */}
-      <PCard className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <AdminSectionHeader emoji="🗺️" title="PLO attainment heatmap" />
-          <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-            <SelectTrigger size="sm" className="text-xs font-bold">
-              <SelectValue placeholder="Program: All" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Program: All</SelectItem>
-              {(programsQuery.data?.data ?? []).map((program) => (
-                <SelectItem key={program.id} value={program.id}>
-                  {program.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Heatmap Grid */}
-        {ploAttainment.length > 0 ? (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4">
-            {ploAttainment.map((plo) => {
-              const isUnmeasured =
-                plo.meanAttainment < 0 || plo.statusBand === "unmeasured";
-              let bgClass =
-                "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
-              let textClass = "text-slate-800 dark:text-slate-100";
-
-              if (!isUnmeasured) {
-                if (plo.statusBand === "excellent") {
-                  bgClass =
-                    "bg-emerald-100/90 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200";
-                  textClass = "text-emerald-900 dark:text-emerald-100";
-                } else if (plo.statusBand === "satisfactory") {
-                  bgClass =
-                    "bg-blue-100/90 text-blue-900 dark:bg-blue-950/50 dark:text-blue-200";
-                  textClass = "text-blue-900 dark:text-blue-100";
-                } else if (plo.statusBand === "developing") {
-                  bgClass =
-                    "bg-amber-100/90 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200";
-                  textClass = "text-amber-900 dark:text-amber-100";
-                } else {
-                  bgClass =
-                    "bg-red-100/90 text-red-900 dark:bg-red-950/50 dark:text-red-200";
-                  textClass = "text-red-900 dark:text-red-100";
-                }
-              }
-
-              return (
-                <div
-                  key={plo.ploId}
-                  className={`rounded-xl p-3 ${bgClass} transition-all`}
-                >
-                  <p className="text-[11px] font-bold truncate">
-                    {plo.ploCodeTitle}
-                  </p>
-                  <p className={`text-xl font-black mt-1 ${textClass}`}>
-                    {isUnmeasured ? "—" : `${plo.meanAttainment}%`}
-                  </p>
-                  <p className="text-[10px] opacity-80 mt-0.5 font-medium">
-                    {plo.derivationLabel}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
-            No live PLO attainment data is available.
-          </p>
-        )}
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-3 mt-3.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Excellent ≥85
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Satisfactory 70–84
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Developing 50–69
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-transparent0 inline-block" />
-            Not yet &lt;50
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <i className="w-2.5 h-2.5 rounded-xs bg-slate-300 dark:bg-slate-600 inline-block" />
-            Unmeasured
-          </span>
-        </div>
-      </PCard>
+      {/* 5. PLO attainment bands; not the separate mastery-distribution scale. */}
+      <PloAttainmentHeatmap
+        rows={ploAttainment}
+        programs={programsQuery.data?.data ?? []}
+        selectedProgram={selectedProgram}
+        onProgramChange={setSelectedProgram}
+        filterState={ploFilterState}
+        onRetry={() => {
+          void ploQuery.refetch();
+        }}
+      />
     </div>
   );
 };

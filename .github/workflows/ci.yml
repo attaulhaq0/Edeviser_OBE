@@ -65,6 +65,14 @@ jobs:
 
       - run: npm ci
       - run: npx tsc --noEmit
+      - name: Verify source-derived design catalog
+        run: npm run check:design-catalog
+      - name: Verify source-derived portable color pilot
+        run: npm run check:portable-tokens
+      - name: Verify declared-route inventory against current source
+        run: npm run check:route-inventory
+      - name: Typecheck isolated real-source component explorer
+        run: npm run check:storybook:pilot
 
   test:
     name: Test
@@ -75,8 +83,9 @@ jobs:
     # suite is excluded here and runs in the dedicated `rls-smoke` job below.
     runs-on: ubuntu-latest
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+      # Unit/property tests are hermetic; never substitute deployment credentials.
+      VITE_SUPABASE_URL: http://localhost:54321
+      VITE_SUPABASE_ANON_KEY: fake-unit-test-key
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
@@ -96,10 +105,51 @@ jobs:
           path: coverage/
           retention-days: 14
 
+  storybook-pilot:
+    # Static stories use fake env and never inherit the production build credentials.
+    name: Component explorer (bounded)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CI: true
+      STORYBOOK_DISABLE_TELEMETRY: '1'
+      VITE_SUPABASE_URL: http://127.0.0.1:54321
+      VITE_SUPABASE_ANON_KEY: fake-storybook-pilot-key
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build:storybook:pilot
+      - run: npx playwright install chromium
+      - run: npm run test:storybook:pilot
+
+  auth-expiry-local:
+    # Real AuthProvider/client against a fake loopback; no Preview mutation.
+    name: Auth expiry (hermetic browser)
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: http://127.0.0.1:54321
+      VITE_SUPABASE_ANON_KEY: fake-auth-expiry-key
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run test:auth-expiry
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test]
+    needs: [lint, typecheck, test, auth-expiry-local, storybook-pilot]
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
@@ -202,7 +252,9 @@ jobs:
           path: dist/
 
       - name: Run Lighthouse CI
-        run: npx @lhci/cli autorun || true
+        # Perf score and timing remain warn-only in lighthouserc.cjs; error-level
+        # accessibility, best-practices, SEO and byte-weight assertions fail this job.
+        run: npm run lighthouse
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
@@ -259,11 +311,10 @@ jobs:
         run: |
           # Total gzipped JS budget across ALL chunks (including lazy-loaded
           # route chunks, not just initial load). Initial dashboard load is
-          # enforced separately by Lighthouse CI. Raised to 1500KB after the
-          # student-experience remediation added many new code-split routes
-          # (planner, journal, leaderboard, habits, tutor, marketplace, teams)
-          # and the live admin/coordinator prototype-parity surfaces. This is
-          # an aggregate all-route ceiling, not an initial-load allowance.
+          # NOT an initial/role-route transfer limit. Lighthouse tests a local
+          # built public surface; its performance metrics are warn-only, and
+          # its error-level total-byte-weight measures a different network
+          # quantity. This is an all-route gzipped-JS ceiling.
           MAX_SIZE_KB=1800
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -288,12 +339,13 @@ jobs:
           fi
 
   e2e:
-    name: E2E Tests
+    name: E2E Collection (not role runtime)
     runs-on: ubuntu-latest
     needs: [build]
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+      # Never run legacy login attempts against an arbitrary configured endpoint.
+      VITE_SUPABASE_URL: http://localhost:54321
+      VITE_SUPABASE_ANON_KEY: fake-unit-test-key
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
@@ -312,19 +364,10 @@ jobs:
           npm run check:playwright-contracts
           npx playwright test --list
 
-      - name: Check if Supabase backend is available
-        id: backend
+      - name: State authenticated-role coverage boundary
         run: |
-          if [[ "$VITE_SUPABASE_URL" == "http://localhost:54321" ]]; then
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::E2E tests skipped — set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY secrets to enable"
-          else
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Run Playwright tests
-        if: steps.backend.outputs.available == 'true'
-        run: npx playwright test --project=legacy-smoke
+          echo "::notice::Collected E2E specs only. No role or legacy login tests ran in this job; backend presence is not Git-linked Preview proof."
+          echo "::notice::The separate hermetic auth-expiry job runs real browser cases with a fake loopback client."
 
       - name: Upload test artifacts
         if: failure()

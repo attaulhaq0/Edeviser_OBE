@@ -1,77 +1,59 @@
-// tests/e2e/rtl/layout.spec.ts
-//
-// Tasks 11.3–11.7 / Req 10.4: Per-role RTL Playwright specs.
-//
-// Each role's dashboard is loaded under ar locale with dir="rtl".
-// Screenshots are captured and pixel-diffed against baselines in
-// audit/baselines/rtl-screens/<role>.png at 0.3% tolerance.
-//
-// On first run (no baseline), screenshots are written as the new baseline.
-// Subsequent runs enforce the baseline.
+// Tasks 11.3–11.7 / Req 10.4: Per-role RTL visual verification.
+// The selected application surfaces must actually render Arabic with dir=rtl.
+// Existing snapshots are resolved through Playwright's own matcher path, with
+// 0.3% tolerance. Verification never creates or refreshes missing baselines;
+// capture and human visual review are separate prerequisites, not a first-run pass.
 
 import { test, expect } from "@playwright/test";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 import { loadStorageState, type AuditRole } from "../_helpers/auth.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
-const BASELINES_DIR = resolve("audit", "baselines", "rtl-screens");
 const MAX_DIFF_PERCENT = 0.3;
 
-// Roles and their dashboard paths
+// These are direct routes in AppRouter, not dashboard aliases. Keep the matrix
+// and learning-path surfaces named accurately without changing their coverage.
 const RTL_ROLES: Array<{
   role: AuditRole;
   path: string;
+  surface: string;
   taskId: string;
 }> = [
-  { role: "admin", path: "/admin/dashboard", taskId: "11.3" },
-  {
-    role: "coordinator",
-    path: "/coordinator/matrix",
-    taskId: "11.4",
-  },
-  { role: "teacher", path: "/teacher/dashboard", taskId: "11.5" },
-  { role: "student", path: "/student/learning-path", taskId: "11.6" },
-  { role: "parent", path: "/parent/dashboard", taskId: "11.7" },
+  { role: "admin", path: "/admin/dashboard", surface: "dashboard", taskId: "11.3" },
+  { role: "coordinator", path: "/coordinator/matrix", surface: "curriculum matrix", taskId: "11.4" },
+  { role: "teacher", path: "/teacher/dashboard", surface: "dashboard", taskId: "11.5" },
+  { role: "student", path: "/student/learning-path", surface: "learning path", taskId: "11.6" },
+  { role: "parent", path: "/parent/dashboard", surface: "dashboard", taskId: "11.7" },
 ];
 
-mkdirSync(BASELINES_DIR, { recursive: true });
-
-for (const { role, path, taskId } of RTL_ROLES) {
+for (const { role, path, surface, taskId } of RTL_ROLES) {
   test.describe(`RTL layout — ${role} (Task ${taskId})`, () => {
-    test(`${taskId} — ${role} dashboard renders correctly in RTL Arabic locale`, async ({
-      page,
-    }) => {
-      await loadStorageState(page.context(), role);
-
-      // Navigate to the role's dashboard
-      await page.goto(`${BASE_URL}${path}`);
-      await page.waitForLoadState("networkidle");
-
-      // Assert the page has dir="rtl" or the html lang is ar
-      const dir = await page.evaluate(
-        () =>
-          document.documentElement.dir || document.documentElement.lang || "ltr"
-      );
-      expect(dir === "rtl" || dir.startsWith("ar")).toBe(true);
-
-      // Take a full-page screenshot
-      const screenshot = await page.screenshot({ fullPage: true });
-
-      const baselinePath = resolve(BASELINES_DIR, `${role}.png`);
-
+    test(`${taskId} — ${role} ${surface} renders correctly in RTL Arabic locale`, async ({ page }, testInfo) => {
+      // Check the resolved policy too: CLI or programmatic overrides must not
+      // turn a verification expectation into an update or an ignored assertion.
+      if (testInfo.config.updateSnapshots !== "none" || testInfo.project.ignoreSnapshots) {
+        throw new Error("RTL verification requires updateSnapshots=none and ignoreSnapshots=false.");
+      }
+      const snapshotName = `rtl-${role}.png`;
+      const baselinePath = testInfo.snapshotPath(snapshotName);
       if (!existsSync(baselinePath)) {
-        // First run — write baseline
-        writeFileSync(baselinePath, screenshot);
-        console.log(`[rtl] ${role}: baseline written to ${baselinePath}`);
-        // Pass on first run
-        expect(screenshot.byteLength).toBeGreaterThan(0);
-        return;
+        throw new Error(
+          `Missing RTL baseline: ${baselinePath}. Verification does not create baselines; capture and human visual review are required separately.`
+        );
       }
 
-      // Compare against baseline using Playwright's built-in snapshot comparison
-      // We use toMatchSnapshot with a threshold
-      expect(screenshot).toMatchSnapshot(`rtl-${role}.png`, {
+      await loadStorageState(page.context(), role);
+      await page.goto(`${BASE_URL}${path}`);
+      await page.waitForLoadState("networkidle");
+      await expect.poll(() => new URL(page.url()).pathname).toBe(path);
+
+      // Read the actual provider-owned state. Browser locale alone is not proof
+      // of Arabic, and neither locale nor direction may stand in for the other.
+      await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+      await expect(page.locator("html")).toHaveAttribute("lang", /^ar(?:-|$)/i);
+
+      const screenshot = await page.screenshot({ fullPage: true });
+      expect(screenshot).toMatchSnapshot(snapshotName, {
         maxDiffPixelRatio: MAX_DIFF_PERCENT / 100,
         threshold: 0.2,
       });

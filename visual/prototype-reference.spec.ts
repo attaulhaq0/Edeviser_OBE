@@ -1,29 +1,21 @@
 /**
- * Captures the approved prototype screens as pixel-parity REFERENCE images.
- * Runs only when VISUAL_CAPTURE=1 (npm run test:visual:capture) so the normal
- * suite never overwrites committed references.
- *
- * Output: visual/references/<id>__<viewport>.png (committed = the design truth).
- * Requires network (the prototype loads CDN Tailwind + Google Fonts).
+ * Historical prototype screenshot CANDIDATES only. Never updates existing
+ * visual/references PNGs or grants app visual approval. Review is separate.
  */
 import { test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 import { SCREENS, VIEWPORTS, edvModeFor } from "./screen-map";
-import { referencePath } from "./compare";
+import { writePrototypeCandidate } from "./compare";
 
 const PROTOTYPE_URL = process.env.PROTOTYPE_URL ?? "http://localhost:4180";
 const CAPTURE = process.env.VISUAL_CAPTURE === "1";
+const captureRunId = randomUUID();
 
 const FREEZE_ANIMATIONS =
   "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}";
 
 if (!CAPTURE) {
-  test("prototype reference capture is disabled", () => {
-    test.info().annotations.push({
-      type: "note",
-      value:
-        "Run `npm run test:visual:capture` (sets VISUAL_CAPTURE=1) to (re)generate reference images.",
-    });
-  });
+  test.skip("prototype candidate capture disabled (not visual evidence)", () => {});
 } else {
   for (const screen of SCREENS) {
     for (const vp of VIEWPORTS) {
@@ -82,7 +74,14 @@ if (!CAPTURE) {
           .catch(() => {});
         await page.waitForTimeout(200);
 
-        await page.screenshot({ path: referencePath(screen.id, vp.name) });
+        const screenshot = await page.screenshot();
+        const candidate = writePrototypeCandidate(
+          screenshot,
+          screen.id,
+          vp.name,
+          captureRunId
+        );
+        console.log(`CAPTURED_UNREVIEWED ${candidate}`);
       });
     }
   }

@@ -1,10 +1,11 @@
-import { lazy, Suspense, useEffect, type ReactNode } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense, type ReactNode } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import RouteGuard from "@/router/RouteGuard";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
-import { Button } from "@/components/ui/button";
+import RouteContentBoundary from "@/components/shared/RouteContentBoundary";
+import RouteFailureState from "@/components/shared/RouteFailureState";
+import RouteLoadingState from "@/components/shared/RouteLoadingState";
 import { criticalRouteSegments, criticalRoutes } from "@/lib/criticalRoutes";
-import { captureAnalyticsEvent } from "@/lib/analyticsConsent";
 
 // ---------------------------------------------------------------------------
 // Public pages (no auth required)
@@ -511,79 +512,22 @@ const AdminSecurityPage = lazy(
   () => import("@/features/admin/security/AdminSecurityPage")
 );
 
-// ---------------------------------------------------------------------------
-// Page-level error fallback
-// ---------------------------------------------------------------------------
-const PageErrorFallback = () => {
-  // QA signal: a route-level error UI was actually shown to the user.
-  useEffect(() => {
-    captureAnalyticsEvent("route_error_shown", {
-      path: window.location.pathname,
-    });
-  }, []);
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-      <div className="rounded-full bg-transparent p-4 mb-4">
-        <svg
-          className="h-8 w-8 text-red-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2">
-        Page failed to load
-      </h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Something went wrong loading this page.
-      </p>
-      <Button
-        type="button"
-        onClick={() => window.location.reload()}
-        variant="tactile"
-      >
-        Reload page
-      </Button>
-    </div>
-  );
-};
-
-// ---------------------------------------------------------------------------
-// Shared loading fallback
-// ---------------------------------------------------------------------------
-const LoadingFallback = () => (
-  <div className="p-6 space-y-4">
-    <div className="h-8 w-48 rounded-lg animate-shimmer" />
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-24 rounded-xl animate-shimmer" />
-      ))}
-    </div>
-    <div className="h-64 rounded-xl animate-shimmer" />
-  </div>
-);
-
+// Public pages retain a main landmark while their leaf chunk fails.
 const PublicMain = ({ children }: { children: ReactNode }) => (
   <main id="main-content" tabIndex={-1}>
-    {children}
+    <RouteContentBoundary>{children}</RouteContentBoundary>
   </main>
 );
 
 // ---------------------------------------------------------------------------
 // AppRouter
 // ---------------------------------------------------------------------------
-const AppRouter = () => (
-  <div>
-    <ErrorBoundary fallback={<PageErrorFallback />}>
-      <Suspense fallback={<LoadingFallback />}>
+const AppRouter = () => {
+  const { pathname } = useLocation();
+  return (
+    <div>
+      <ErrorBoundary resetKey={pathname} fallback={<RouteFailureState />}>
+      <Suspense fallback={<RouteLoadingState />}>
         <Routes>
           {/* Public routes */}
           <Route
@@ -1078,7 +1022,9 @@ const AppRouter = () => (
             path="/student/focus/:sessionId"
             element={
               <RouteGuard allowedRoles={["student"]}>
-                <FocusModePage />
+                <RouteContentBoundary immersive>
+                  <FocusModePage />
+                </RouteContentBoundary>
               </RouteGuard>
             }
           />
@@ -1130,8 +1076,9 @@ const AppRouter = () => (
           />
         </Routes>
       </Suspense>
-    </ErrorBoundary>
-  </div>
-);
+      </ErrorBoundary>
+    </div>
+  );
+};
 
 export default AppRouter;

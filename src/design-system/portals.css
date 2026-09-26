@@ -1,0 +1,57 @@
+/* Official generated slot adoption, not a generic role or portal-wrapper rule.
+   These unlayered declarations beat the generated z-50 utilities. Radix Popper
+   reads the content's computed z-index for its own positioning wrapper.
+   Existing chrome is 40–130 (feedback 210–220); tours remain 10000 and toast
+   11000. Concurrent tours/nested modal stacks still require browser ownership.
+   No AlertDialog/HoverCard/ContextMenu/Menubar wrappers currently exist here;
+   the legacy Popover has no data-slot and is intentionally not guessed at. */
+[data-slot="dialog-overlay"],
+[data-slot="sheet-overlay"] {
+  z-index: var(--z-modal-overlay);
+}
+
+[data-slot="dialog-content"],
+[data-slot="sheet-content"] {
+  z-index: var(--z-modal);
+}
+
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"],
+[data-slot="tooltip-content"] {
+  z-index: var(--z-floating);
+}
+
+[data-slot="dropdown-menu-sub-content"] {
+  z-index: var(--z-floating-submenu);
+}
+
+/* Low-priority defaults, deliberately NOT unlayered: caller max-height/overflow
+   utilities retain ownership (including smaller existing bounds). No width,
+   transform, generic placement, paint, footer or floating-widget sizing is overridden; the reviewed generated RTL close placement is separate.
+   Close controls scroll normally; long dialogs need a reachable footer action. */
+@layer base {
+  [data-slot="dialog-content"] {
+    max-block-size: calc(100dvh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  [data-slot="sheet-content"] {
+    max-block-size: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Adopt generated slots without editing Shadcn custody. The RTL close fix
+   targets ONLY its physical right-4 default, never the logical shared close. */
+@media (min-width: 40rem) {
+  [data-slot="dialog-header"][class~="sm:text-left"] {
+    text-align: start;
+  }
+}
+
+[data-slot="dialog-content"]:dir(rtl) > [data-slot="dialog-close"][class~="right-4"] {
+  right: auto;
+  left: 1rem;
+}

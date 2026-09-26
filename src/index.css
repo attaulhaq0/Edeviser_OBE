@@ -1,155 +1,46 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./design-system/fonts.css";
+@import "./design-system/tokens.css";
+@import "./design-system/accessibility.css";
+@import "./design-system/portals.css";
+@import "./design-system/controls.css";
+
+/* Development-only benchmark: no runtime consumers. Keep its example layout
+   utilities out of production CSS; do not broadly exclude legacy/test sources. */
+@source not "./__tests__/fixtures/design-agent-benchmark";
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant rtl (&:where([dir="rtl"], [dir="rtl"] *));
 
-@theme {
-  --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-}
+/* Compile canonical Precision/Obsidian tokens in this SAME Tailwind CSS graph.
+   A separate JS import of tokens.css cannot supply @theme names to this graph's
+   utilities (bg-background, bg-card, text-foreground, etc.). Token values stay
+   owned by design-system/tokens.css; this entry adds variants and shared chrome. */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-body);
+  --font-branding: var(--font-brand);
 }
 
-/* Canonical Shadcn semantic tokens, mapped 1:1 to the PROTOTYPE design system
-   (P0.2 token canonicalization). No neutral/grayscale "New York" defaults leak:
-   primary + ring are brand blue, surfaces are slate, cards are white. Values are
-   the prototype's (shared.css / tokens.css). Light + LTR is the prototype scope. */
-:root {
-  --radius: 0.75rem; /* prototype interactive radius (btn3d 12px); cards use explicit 20px */
-  --background: #f8fafc; /* prototype body — slate-50 */
-  --foreground: #0f172a; /* slate-900 */
-
-  /* === SIDEBAR TYPOGRAPHY & ICON TOKENS === */
-  --sidebar-font-family: "Noto Sans", sans-serif;
-  --sidebar-label-size: 14px;
-  --sidebar-label-weight: 600;
-  --sidebar-active-color: #075985;
-  --sidebar-primary-muted: #475569;
-  --sidebar-secondary-color: #5f7390;
-  --sidebar-icon-muted: #91a4bd;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #2563eb; /* accessible brand blue — primary CTA / active / links */
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9; /* slate-100 */
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9; /* slate-100 */
-  --muted-foreground: #64748b; /* slate-500 */
-  --accent: #f1f5f9; /* slate-100 — subtle hover (never color-only) */
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444; /* prototype destructive */
-  --border: #e2e8f0; /* slate-200 */
-  --input: #e2e8f0; /* slate-200 */
-  --ring: #3b82f6; /* brand focus ring */
-  --chart-1: #14b8a6; /* teal */
-  --chart-2: #3b82f6; /* blue */
-  --chart-3: #f59e0b; /* amber */
-  --chart-4: #22c55e; /* green */
-  --chart-5: #a855f7; /* violet */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #3b82f6; /* brand */
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9; /* slate-100 hover */
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #3b82f6;
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #2563eb; /* accessible brand blue (prototype is light-only; dark is parity) */
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #3b82f6;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  html,
-  body {
-    font-family: var(--sidebar-font-family);
-    @apply bg-background text-foreground antialiased;
-  }
-}
+/* Base typography is owned by tokens.css; font-sans resolves at the consumer.
+   Face delivery is owned by fonts.css, including the optional reading faces. */
 
 /* === CANONICAL SIDEBAR TYPOGRAPHY & ICON SYSTEM === */
 
+/* Shared sidebar typography; semantic colors bind at the consuming surface. */
+:root {
+  --sidebar-font-family: var(--font-body);
+  --sidebar-label-size: 14px;
+  --sidebar-label-weight: 600;
+}
+
 .app-sidebar {
+  --sidebar-active-color: var(--sidebar-accent-foreground);
+  --sidebar-primary-muted: var(--muted-foreground);
+  --sidebar-secondary-color: var(--muted-foreground);
+  --sidebar-icon-muted: var(--muted-foreground);
   font-family: var(--sidebar-font-family);
 }
 
@@ -177,20 +68,20 @@
 }
 
 .sidebar-item[data-group="primary"][data-active="false"] .sidebar-nav-label {
-  color: var(--sidebar-primary-muted); /* #7c8da6 */
+  color: var(--sidebar-primary-muted);
   font-weight: 600;
   opacity: 1;
 }
 
 .sidebar-item[data-variant="companion"][data-active="false"]
   .sidebar-nav-label {
-  color: var(--sidebar-primary-muted); /* #7c8da6 */
+  color: var(--sidebar-primary-muted);
   font-weight: 600;
   opacity: 1;
 }
 
 .sidebar-item[data-group="secondary"] .sidebar-nav-label {
-  color: var(--sidebar-secondary-color); /* #5f7390 */
+  color: var(--sidebar-secondary-color);
   font-weight: 600;
   opacity: 1;
 }
@@ -201,7 +92,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--muted-foreground);
   opacity: 1;
 }
 
@@ -224,131 +115,18 @@
 
 /* --- Standard Inactive Primary Icons (Requirement 4) --- */
 .sidebar-item[data-group="primary"][data-active="false"] .sidebar-icon {
-  color: var(--sidebar-icon-muted); /* #91a4bd */
+  color: var(--sidebar-icon-muted);
   opacity: 1;
 }
 
 /* --- Active Icons (Requirement 5) --- */
 .sidebar-item[data-active="true"] .sidebar-icon {
-  color: #2563eb;
+  color: var(--sidebar-active-color);
   opacity: 1;
 }
 
-/* ─── Brand Design Tokens ─────────────────────────────────────────────────── */
-
-:root {
-  /* === BRAND COLORS === */
-  --brand-primary: #3b82f6; /* Blue-500 — primary CTA, active states, links */
-  --brand-primary-dark: #2563eb; /* Blue-600 — hover states */
-  --brand-secondary: #14b8a6; /* Teal-500 — secondary accents, gradient start */
-  --brand-secondary-dark: #0d9488; /* Teal-600 — teal hover states */
-  --gradient-start: #14b8a6; /* Teal */
-  --gradient-end: #0382bd; /* Blue */
-
-  /* === GLOBAL PRIMARY ACTION BUTTON TOKENS === */
-  --action-primary: #026fa3;
-  --action-primary-hover: #026fa3;
-  --action-primary-active: #025c88;
-  --action-primary-text: #ffffff;
-
-  /* === GRADIENTS === */
-  /* prettier-ignore */
-  --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%); /* prototype-exact (adopted Path A) */
-  --hero-gradient: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e3a8a 50%,
-    #312e81 100%
-  );
-
-  /* === SEMANTIC COLORS === */
-  --color-success: #22c55e; /* Green-500 — completed states, pass grades */
-  --color-warning: #f59e0b; /* Amber-500 — at-risk alerts, approaching deadline */
-  --color-destructive-brand: #ef4444; /* Red-500 — errors, delete actions, failed states */
-  --color-neutral: #64748b; /* Slate-500 — secondary text, inactive elements */
-
-  /* === SURFACE COLORS === */
-  --surface-background: #ffffff; /* Page background */
-  --surface-card: #ffffff; /* Card backgrounds */
-  --surface-subtle: #f8fafc; /* Slate-50 — alternate row, inner containers */
-  --surface-border: #e2e8f0; /* Slate-200 — card borders, dividers */
-  --surface-input-border: #d1d5db; /* Gray-300 — form input borders */
-
-  /* === TYPOGRAPHY === */
-  --font-mono: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
-
-  /* === SHADOWS === */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
-    0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-  /* === GAMIFICATION XP BAR === */
-  --xp-track: #e2e8f0; /* Gray track */
-  --xp-fill: #14b8a6; /* Teal fill */
-
-  /* === TEXT COLORS (design-doc tokens) === */
-  --text-primary: #0f172a; /* Slate-900 */
-  --text-secondary: #64748b; /* Slate-500 */
-
-  /* === HABIT HEATMAP SCALE (sequential single-hue, success-green) ===
-     Sequential single-hue ramp keeps the scale colorblind-safe and reads as
-     "more activity = more/darker green", matching the design system's success
-     token (#22c55e / green-500). Replaces the previous orange→red scale, which
-     read as a warning/danger gradient for what is positive activity. Steps are
-     spaced for ≥3:1 UI-object contrast between adjacent levels (WCAG 1.4.11). */
-  --heatmap-empty: #eaeef2; /* Slate-100/200 blend — distinct from level 1 */
-  --heatmap-level-1: #bbf7d0; /* green-200 */
-  --heatmap-level-2: #4ade80; /* green-400 */
-  --heatmap-level-3: #16a34a; /* green-600 */
-  --heatmap-level-4: #14532d; /* green-900 — darkest, highest activity */
-  --heatmap-cell-ring: rgba(
-    15,
-    23,
-    42,
-    0.28
-  ); /* hover ring (slate-900 @ 28%) */
-  --heatmap-cell-outline: rgba(15, 23, 42, 0.06); /* 1px inset definition */
-}
-
-/* ─── Dark Mode Brand Overrides ───────────────────────────────────────────── */
-
-.dark {
-  --surface-background: #020617; /* Slate-950 */
-  --surface-card: #0f172a; /* Slate-900 */
-  --surface-subtle: #1e293b; /* Slate-800 */
-  --surface-border: #334155; /* Slate-700 */
-  --surface-input-border: #475569; /* Slate-600 */
-
-  --text-primary: #f1f5f9; /* Slate-100 */
-  --text-secondary: #94a3b8; /* Slate-400 */
-
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3),
-    0 4px 6px -4px rgb(0 0 0 / 0.3);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3),
-    0 8px 10px -6px rgb(0 0 0 / 0.3);
-
-  --xp-track: #334155; /* Slate-700 */
-
-  /* Heatmap ramp inverts for dark surfaces: dark empty → bright green at peak,
-     mirroring how dark-theme contribution graphs stay legible on dark cards. */
-  --heatmap-empty: #1f2937; /* Slate-800 */
-  --heatmap-level-1: #0f3d24; /* deep green */
-  --heatmap-level-2: #15803d; /* green-700 */
-  --heatmap-level-3: #22c55e; /* green-500 */
-  --heatmap-level-4: #86efac; /* green-300 — brightest, highest activity */
-  --heatmap-cell-ring: rgba(
-    226,
-    232,
-    240,
-    0.5
-  ); /* hover ring (slate-200 @ 50%) */
-  --heatmap-cell-outline: rgba(255, 255, 255, 0.06);
-}
+/* Sidebar-specific overrides are applied via data attributes; colors use
+   the canonical Hawdex tokens from tokens.css as the fallback. */
 
 /* ─── Custom Keyframes ────────────────────────────────────────────────────── */
 
@@ -524,11 +302,6 @@
 
 /* ─── RTL Support ─────────────────────────────────────────────────────────── */
 
-[dir="rtl"] {
-  font-family: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui,
-    sans-serif;
-}
-
 /* Ensure Shadcn/ui dialogs and popovers respect direction */
 [dir="rtl"] [data-radix-popper-content-wrapper] {
   direction: rtl;
@@ -574,64 +347,11 @@
 
 /* ─── Accessibility Overrides ─────────────────────────────────────────────── */
 
-/* Dyslexia-friendly font */
-.dyslexia-font {
-  font-family: var(
-    --font-body,
-    "OpenDyslexic",
-    "Noto Sans",
-    ui-sans-serif,
-    system-ui,
-    sans-serif
-  );
-}
+/* Effective alternate-font tokens are owned by tokens.css, not an inherited
+   root font-family override. Monospace and brand consumers remain explicit. */
 
-.dyslexia-font[dir="rtl"] {
-  font-family: var(
-    --font-body,
-    "OpenDyslexic",
-    "Noto Sans Arabic",
-    "Noto Sans",
-    ui-sans-serif,
-    system-ui,
-    sans-serif
-  );
-}
-
-/* High contrast mode */
-.high-contrast {
-  --background: #ffffff;
-  --foreground: #000000;
-  --card: #ffffff;
-  --card-foreground: #000000;
-  --border: #000000;
-  --ring: #000000;
-}
-
-.high-contrast * {
-  border-color: #000000 !important;
-}
-
-.high-contrast .text-gray-500,
-.high-contrast .text-gray-400,
-.high-contrast .text-slate-500 {
-  color: #000000 !important;
-}
-
-/* Reduced animations — overrides all custom keyframe animations */
-.reduce-animations *,
-.reduce-animations *::before,
-.reduce-animations *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-}
-
-/* Preserve essential UI transitions in reduced animation mode */
-.reduce-animations [data-radix-popper-content-wrapper],
-.reduce-animations [data-state] {
-  transition-duration: 100ms !important;
-}
+/* High-contrast pairs and the effective reduced-motion backstop are owned by
+   design-system/accessibility.css. No descendant paint or motion exceptions. */
 
 /* Simplified view — hide non-essential elements */
 .simplified-view [data-focus-hide="true"] {
@@ -688,28 +408,28 @@ html.font-x-large {
   }
 }
 
-/* Tactile (pressable) button surface — solid action palette (#0382bd / #026fa3 / #025c88).
+/* Tactile (pressable) button surface — canonical theme-aware action tokens.
    Applied via the Button `tactile` variant. Keyboard focus ring is inherited from Button base. */
 .btn-tactile {
-  background-color: var(--action-primary, #026fa3);
-  color: var(--action-primary-text, #ffffff);
-  box-shadow: 0 4px 0 0 var(--action-primary-active, #025c88);
+  background-color: var(--action-primary);
+  color: var(--action-primary-text);
+  box-shadow: 0 4px 0 0 var(--action-primary-active);
   transition: transform 0.1s ease, box-shadow 0.1s ease,
     background-color 0.1s ease;
 }
 
 @media (hover: hover) {
   .btn-tactile:hover {
-    background-color: var(--action-primary-hover, #026fa3);
-    color: var(--action-primary-text, #ffffff);
+    background-color: var(--action-primary-hover);
+    color: var(--action-primary-text);
   }
 }
 
 .btn-tactile:active {
-  background-color: var(--action-primary-active, #025c88);
+  background-color: var(--action-primary-active);
   transform: translateY(2px);
-  box-shadow: 0 1px 0 0 var(--action-primary-active, #025c88);
-  color: var(--action-primary-text, #ffffff);
+  box-shadow: 0 1px 0 0 var(--action-primary-active);
+  color: var(--action-primary-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -721,15 +441,220 @@ html.font-x-large {
   }
 }
 
-/* Mobile bottom tab bar (new chrome, < lg): reserve space at the bottom of the
-   scrollable content so the fixed bar (see MobileTabBar) never covers the last
-   items. Scoped by :has() so it applies ONLY when the bar is present (new chrome
-   + small screens), and never on desktop or with the flag off. */
-@media (max-width: 639.98px) {
-  body:has(.new-mobile-tabbar) main {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+/* Shared navigation PRIMITIVES also serve the app-level notification host,
+   which is outside RoleAppShell. Compose clearance at each actual consumer:
+   a local shell safe-area override must still affect its grid/nav clearance. */
+:root {
+  --app-mobile-nav-h: 3.25rem;
+  --app-mobile-nav-overhang: 1.25rem;
+  --app-mobile-nav-safe-area: env(safe-area-inset-bottom, 0px);
+  --app-focus-scroll-gap: 0.5rem;
+}
+
+.role-app-shell {
+  --app-mobile-nav-clearance: calc(var(--app-mobile-nav-h) + var(--app-mobile-nav-overhang) + var(--app-mobile-nav-safe-area));
+}
+
+/* Native keyboard/anchor scrolling must leave room for the focus frame.
+   Use the real document scrollport; no focus handlers or forced target scrolls. */
+html {
+  scroll-padding-block: var(--app-focus-scroll-gap);
+}
+
+html:has(.role-app-shell) {
+  scroll-padding-block-start: calc(var(--app-header-h) + var(--app-focus-scroll-gap));
+}
+
+:where(a[href], button, input, select, textarea, [tabindex]) {
+  scroll-margin-block: var(--app-focus-scroll-gap);
+}
+
+@media (max-width: 639px) {
+  /* Only scrolling page content needs to clear the fixed tabs. Reading the
+     shell's computed clearance here preserves its local safe-area overrides;
+     fixed navigation controls themselves must not cause document scrolling. */
+  .role-app-shell #main-content :where(a[href], button, input, select, textarea, [tabindex]) {
+    scroll-margin-block-end: calc(var(--app-mobile-nav-clearance) + var(--app-focus-scroll-gap));
   }
 }
+
+/* AppToaster: one bounded adoption of Sonner 2.x's unlayered vendor stylesheet.
+   Class + data selectors deliberately outrank late-injected vendor defaults;
+   no important overrides, role variants or replicated toast component tree.
+   Sonner still owns positioning, stack/swipe transforms, lifetimes and focus.
+   Per-toast inline/custom JSX styles remain explicit caller escape hatches. */
+.app-toaster[data-sonner-toaster] {
+  --app-toast-bottom: calc(var(--app-mobile-nav-safe-area) + 1rem);
+  font-family: inherit;
+  z-index: var(--z-toast);
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) minmax(44px, 2.75rem);
+  max-block-size: calc(100dvh - var(--app-toast-bottom) - 1rem);
+  /* AppToaster's touch boundary preserves native scrolling, zoom and clicks. */
+  touch-action: pan-y pinch-zoom;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-items: start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--depth-3);
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: start;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-content] {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-styled="true"]:has([data-icon]) [data-content] {
+  grid-column-start: 2;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-styled="true"]:has([data-close-button]) [data-content] {
+  grid-column-end: 3;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-title] {
+  color: var(--popover-foreground);
+  font-size: inherit;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-description] {
+  color: var(--muted-foreground);
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-icon] {
+  grid-column: 1;
+  grid-row: 1;
+  width: 1rem;
+  height: 1rem;
+  margin: 0.25rem 0 0;
+  color: var(--muted-foreground);
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-icon] svg {
+  margin: 0;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"][data-type="success"] [data-icon] { color: var(--success-foreground); }
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"][data-type="info"] [data-icon] { color: var(--info-foreground); }
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"][data-type="warning"] [data-icon] { color: var(--warning-foreground); }
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"][data-type="error"] [data-icon] { color: var(--error-foreground); }
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-button] {
+  grid-column: 1 / -1;
+  justify-content: center;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  transition: background-color 150ms, color 150ms, border-color 150ms;
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-action] {
+  background: var(--action-primary);
+  color: var(--action-primary-text);
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-cancel] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-close-button] {
+  position: static;
+  grid-column: 3;
+  grid-row: 1;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  transform: none;
+  touch-action: manipulation;
+}
+
+@media (hover: hover) {
+  .app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-action]:hover {
+    background: var(--action-primary-hover);
+    color: var(--action-primary-text);
+  }
+
+  .app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] :is([data-cancel], [data-close-button]):hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+    border-color: var(--primary);
+  }
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] [data-action]:active {
+  background: var(--action-primary-active);
+  color: var(--action-primary-text);
+}
+
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast][data-styled="true"] :is([data-button], [data-close-button]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* Sonner's Alt+T focuses its negative-tabindex list programmatically. Chromium
+   does not always infer :focus-visible after a modifier shortcut. Give that
+   exact list focus a visible frame; ordinary controls retain :focus-visible. */
+.app-toaster[data-sonner-toaster] .app-toast[data-sonner-toast]:focus-visible,
+.app-toaster[data-sonner-toaster]:focus .app-toast[data-sonner-toast][data-front="true"] {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: var(--depth-3);
+}
+
+@media (max-width: 639px) {
+  :root:has(.role-app-shell) .app-toaster[data-sonner-toaster] {
+    --app-toast-bottom: calc(var(--app-mobile-nav-h) + var(--app-mobile-nav-overhang) + var(--app-mobile-nav-safe-area) + 1rem);
+  }
+
+  /* Extend Sonner's 600px mobile positioning to the real 640px app boundary.
+     Use the two offsets once, rather than a 100vw list plus side offsets. */
+  .app-toaster[data-sonner-toaster][data-x-position] {
+    left: var(--mobile-offset-left);
+    right: var(--mobile-offset-right);
+    width: auto;
+    transform: none;
+  }
+}
+/* End AppToaster vendor adoption. */
 
 /* The prototype sidebar scrolls when its role menu exceeds the viewport, but
    keeps the rail visually clean instead of exposing native scrollbar chrome. */

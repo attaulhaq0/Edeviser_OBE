@@ -10,11 +10,11 @@
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LocalizedDialogContent as DialogContent } from "@/components/shared/LocalizedDialogContent";
 import { Badge } from "@/components/ui/badge";
 import { InlineEmpty } from "@/components/shared/EmptyState";
 import {

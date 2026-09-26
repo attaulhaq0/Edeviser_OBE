@@ -62,9 +62,6 @@ import {
 import AgentGovernanceCard from "@/ai/components/AgentGovernanceCard";
 import { isAiSurfaceEnabled } from "@/ai/lib/featureGate";
 
-const BRAND_SURFACE = "#0f172a";
-const HERO_SURFACE = "#0f172a";
-
 // Experimental AI surfaces (Production & Delivery Safety): the governance
 // card and the assistant panel mount ONLY when the deployment opted into the
 // experimental AI feature — same gate as the RoleAppShell intelligence panel.
@@ -83,7 +80,7 @@ const DashboardApprovalInbox = () => {
 
 /** Prototype `.pcard` surface. */
 const CARD =
-  "rounded-[20px] border border-[#eef2f6] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]";
+  "rounded-[20px] border-0 bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]";
 
 /** Outcome-type role badge colors (design-system domain coding). */
 const ROLE_BADGE: Record<string, string> = {
@@ -150,19 +147,19 @@ const AdminDashboardScreen = () => {
       {/* ── Institution carousel (overview + real executive watch item) ── */}
       <HeroCarousel
         ariaLabel={t("dashboard.hero.carouselLabel", "Institution highlights")}
-        className="rounded-2xl text-white shadow-lg"
-        style={{ background: HERO_SURFACE }}
+        className="rounded-2xl border border-border/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs"
+        theme="light"
         slides={[
           <div key="overview" className="min-h-[126px] p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-transparent text-sky-600">
                 <Building2 className="h-6 w-6" aria-hidden="true" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg font-bold tracking-tight">
+                <h1 className="text-lg font-bold tracking-tight text-slate-900">
                   {t("dashboard.hero.title", "Your institution, this week")}
                 </h1>
-                <p className="text-[12px] text-white/75">
+                <p className="text-[12px] text-muted-foreground">
                   {t(
                     "dashboard.hero.subtitle",
                     "De-identified, institution-wide signals — no individual student data."
@@ -175,7 +172,7 @@ const AdminDashboardScreen = () => {
                 type="button"
                 variant="ghost"
                 onClick={() => navigate("/admin/users")}
-                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                className="h-auto rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
               >
                 <Users className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hero.users", {
@@ -187,7 +184,7 @@ const AdminDashboardScreen = () => {
                 type="button"
                 variant="ghost"
                 onClick={() => navigate("/admin/users")}
-                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                className="h-auto rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
               >
                 <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hero.active", {
@@ -199,7 +196,7 @@ const AdminDashboardScreen = () => {
                 type="button"
                 variant="ghost"
                 onClick={() => navigate("/admin/programs")}
-                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                className="h-auto rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
               >
                 <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hero.programs", {
@@ -215,17 +212,17 @@ const AdminDashboardScreen = () => {
                   key="watch-item"
                   className="flex min-h-[126px] items-center gap-4 p-5"
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-transparent text-sky-600">
                     <Lightbulb className="h-6 w-6" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-200">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">
                       {t("dashboard.hero.watchEyebrow", "Executive watch item")}
                     </p>
-                    <h2 className="mt-0.5 truncate text-lg font-bold">
+                    <h2 className="mt-0.5 truncate text-lg font-bold text-slate-900">
                       {lowestDept.department_name}
                     </h2>
-                    <p className="mt-1 text-[12px] text-white/75">
+                    <p className="mt-1 text-[12px] text-muted-foreground">
                       {t("dashboard.hero.watchBody", {
                         defaultValue:
                           "{{percent}}% average PLO attainment · lowest measured department",
@@ -237,7 +234,7 @@ const AdminDashboardScreen = () => {
                     type="button"
                     variant="ghost"
                     onClick={() => navigate("/admin/analytics")}
-                    className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
+                    className="shrink-0 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground/80 hover:bg-muted/50 hover:text-slate-900"
                   >
                     {t("dashboard.hero.openAnalytics", "Review")}
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -261,26 +258,25 @@ const AdminDashboardScreen = () => {
             icon={Users}
             label={t("dashboard.totalUsers", "Users")}
             value={displayMetric(totalUsers)}
+            valueState={totalUsers != null ? "available" : "unavailable"}
           />
           <KPICard
             icon={UserCheck}
             label={t("dashboard.activeUsers", "Active users")}
             value={displayMetric(activeUsers)}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-green-600"
+            valueState={activeUsers != null ? "available" : "unavailable"}
           />
           <KPICard
             icon={TrendingUp}
             label={t("dashboard.avgMastery", "Avg mastery")}
             value={avgMastery != null ? `${avgMastery}%` : "—"}
-            valueClassName={
-              avgMastery != null ? attainmentValueClass(avgMastery) : undefined
-            }
+            valueState={avgMastery != null ? "available" : "unavailable"}
           />
           <KPICard
             icon={GraduationCap}
             label={t("dashboard.courses", "Courses")}
             value={displayMetric(totalCourses)}
+            valueState={totalCourses != null ? "available" : "unavailable"}
           />
         </div>
       )}
@@ -295,7 +291,7 @@ const AdminDashboardScreen = () => {
         {kpiLoading ? (
           <Shimmer className="h-16 rounded-lg" />
         ) : aggregate.isError ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             {t(
               "dashboard.insight.unavailable",
               "Live institution metrics are unavailable."
@@ -303,7 +299,7 @@ const AdminDashboardScreen = () => {
           </p>
         ) : (
           <>
-            <p className="text-sm leading-relaxed text-gray-700">
+            <p className="text-sm leading-relaxed text-foreground/80">
               {t("dashboard.insight.body", {
                 defaultValue:
                   "Your institution has {{users}} users ({{active}} active) across {{programs}} programs and {{courses}} courses.",
@@ -374,7 +370,7 @@ const AdminDashboardScreen = () => {
               {measuredDepts.slice(0, 6).map((d) => (
                 <div key={d.department_id}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="truncate text-sm font-medium text-gray-900">
+                    <span className="truncate text-sm font-medium text-foreground">
                       {d.department_name}
                     </span>
                     <b
@@ -386,9 +382,9 @@ const AdminDashboardScreen = () => {
                       {d.avg_plo_attainment}%
                     </b>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full bg-transparent0"
+                      className="h-full rounded-full bg-primary"
                       style={{ width: `${d.avg_plo_attainment}%` }}
                     />
                   </div>
@@ -396,7 +392,7 @@ const AdminDashboardScreen = () => {
               ))}
             </div>
           ) : (
-            <p className="py-6 text-center text-sm text-gray-500">
+            <p className="py-6 text-center text-sm text-muted-foreground">
               {t(
                 "dashboard.departments.empty",
                 "No department attainment data yet."
@@ -439,14 +435,14 @@ const AdminDashboardScreen = () => {
                   <Badge variant="outline" className={ROLE_BADGE[role] ?? ""}>
                     {role.charAt(0).toUpperCase() + role.slice(1)}
                   </Badge>
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-foreground">
                     {formatNumber(count)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="py-6 text-center text-sm text-gray-500">
+            <p className="py-6 text-center text-sm text-muted-foreground">
               {t("dashboard.noActiveUsers", "No active users yet.")}
             </p>
           )}
@@ -454,7 +450,7 @@ const AdminDashboardScreen = () => {
       </div>
 
       {/* ── Autonomy footer (static policy chrome — A2) ── */}
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
         <p className="flex items-center gap-2 text-xs text-gray-600">
           <ShieldCheck
             className="h-4 w-4 shrink-0 text-sky-600"
@@ -466,8 +462,7 @@ const AdminDashboardScreen = () => {
           )}
         </p>
         <span
-          className="hidden shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold text-white sm:inline"
-          style={{ background: BRAND_SURFACE }}
+          className="hidden shrink-0 rounded-lg bg-muted px-2 py-1 text-[10px] font-bold text-muted-foreground sm:inline"
         >
           {t("dashboard.autonomy.tag", "Governed")}
         </span>

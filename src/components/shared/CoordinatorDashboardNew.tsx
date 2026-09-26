@@ -73,7 +73,6 @@ import {
   useAcademicCalendarEvents,
   type AcademicCalendarEvent,
 } from "@/hooks/useAcademicCalendar";
-import { attainmentValueClass } from "@/lib/attainmentTone";
 import { cn } from "@/lib/utils";
 
 type Tone = "red" | "amber" | "green" | "blue" | "slate";
@@ -83,7 +82,7 @@ const PILL: Record<Tone, string> = {
   amber: "bg-amber-50 text-amber-700",
   green: "bg-green-50 text-green-600",
   blue: "bg-blue-50 text-blue-600",
-  slate: "bg-slate-100 text-slate-600",
+  slate: "bg-muted text-muted-foreground",
 };
 
 const DOT: Record<Tone, string> = {
@@ -150,7 +149,7 @@ const ActionChip = ({
 }) => (
   <Link
     to={to}
-    className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-start outline-none transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-sky-300"
+    className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-slate-50 p-3 text-start outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-sky-300"
   >
     <span className="flex min-w-0 items-center gap-2.5">
       <span
@@ -165,7 +164,7 @@ const ActionChip = ({
         {title}
       </span>
     </span>
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors group-hover:bg-transparent group-hover:text-teal-700">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground/80 transition-colors group-hover:bg-transparent group-hover:text-teal-700">
       {cta}
       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
     </span>
@@ -210,7 +209,7 @@ const AlertRow = ({
   secondaryLabel: string;
   secondaryTo: string;
 }) => (
-  <div className="rounded-xl border border-slate-100 p-4">
+  <div className="rounded-xl border border-border p-4">
     <div className="flex items-start gap-3">
       <SeverityIcon
         icon={AlertTriangle}
@@ -227,7 +226,7 @@ const AlertRow = ({
           </Pill>
           <Pill tone={priorityTone}>{priorityLabel}</Pill>
         </div>
-        {meta && <p className="mt-1 text-xs text-gray-500">{meta}</p>}
+        {meta && <p className="mt-1 text-xs text-muted-foreground">{meta}</p>}
         <p className="mt-1.5 text-xs text-gray-600">{body}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button variant="tactile" size="sm" asChild>
@@ -256,7 +255,7 @@ const MiniCard = ({
   ctaLabel: string;
   ctaTo: string;
 }) => (
-  <Card className="card-elevated flex flex-col gap-0 border-0 bg-white py-0">
+  <Card className="card-elevated flex flex-col gap-0 border-0 bg-card py-0">
     <div className="flex flex-1 flex-col p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-bold text-gray-900">{title}</p>
@@ -301,7 +300,7 @@ const TimelineItem = ({
       {!last && <span className="mt-1 w-px flex-1 bg-slate-200" />}
     </div>
     <div className={cn("min-w-0", last ? "pb-0" : "pb-3.5")}>
-      {date && <p className="text-[11px] font-bold text-gray-400">{date}</p>}
+      {date && <p className="text-[11px] font-bold text-muted-foreground">{date}</p>}
       <p
         className={cn(
           "text-xs font-semibold text-gray-800",
@@ -335,12 +334,12 @@ const ChecklistRow = ({
   const map = {
     done: { icon: CheckCircle2, cls: "text-green-600" },
     prog: { icon: Clock, cls: "text-amber-600" },
-    pend: { icon: Circle, cls: "text-slate-400" },
+    pend: { icon: Circle, cls: "text-muted-foreground" },
   } as const;
   const { icon: Icon, cls } = map[state];
   return (
     <li className="flex items-center justify-between gap-2">
-      <span className="flex items-center gap-2 text-xs text-gray-700">
+      <span className="flex items-center gap-2 text-xs text-foreground/80">
         <Icon className={cn("h-3.5 w-3.5 shrink-0", cls)} aria-hidden="true" />
         {label}
       </span>
@@ -519,23 +518,23 @@ const CoordinatorDashboardNew = () => {
       <div className="min-w-0 space-y-6">
         {/* ── Action-hub hero ─────────────────────────────────────────────── */}
         {/* E1.19: white liquid-glass hero (design principle #5) */}
-        <Card className="overflow-hidden rounded-xl border border-slate-200/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs">
+        <Card className="overflow-hidden rounded-xl border border-border/60 bg-white/80 text-slate-900 shadow-sm backdrop-blur-xs">
           <div className="p-6">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/60 bg-white/80 text-teal-600">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-white/80 text-teal-600">
                   <Activity className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <h1 className="text-xl font-bold tracking-tight">
                     {t("dashboard.hub.title")}
                   </h1>
-                  <p className="mt-0.5 text-sm text-slate-500">
+                  <p className="mt-0.5 text-sm text-muted-foreground">
                     {t("dashboard.hub.subtitle")}
                   </p>
                 </div>
               </div>
-              <span className="hidden shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 sm:inline-flex">
+              <span className="hidden shrink-0 items-center gap-1 rounded-full border border-border bg-slate-50 px-2.5 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">
                 <Info className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("dashboard.hub.why")}
               </span>
@@ -600,7 +599,6 @@ const CoordinatorDashboardNew = () => {
                 icon={TrendingUp}
                 label={t("dashboard.kpi.avgPlo")}
                 value={`${avgAttainment}%`}
-                valueClassName={attainmentValueClass(avgAttainment)}
               />
             </Link>
             <Link
@@ -612,13 +610,7 @@ const CoordinatorDashboardNew = () => {
                 icon={TrendingDown}
                 label={t("dashboard.kpi.belowTarget")}
                 value={belowTargetCount}
-                {...(belowTargetCount > 0
-                  ? {
-                      iconBgClass: "bg-transparent",
-                      iconColorClass: "text-red-600",
-                      valueClassName: "text-red-600",
-                    }
-                  : {})}
+                tone={belowTargetCount > 0 ? "danger" : "neutral"}
               />
             </Link>
             <Link
@@ -632,16 +624,14 @@ const CoordinatorDashboardNew = () => {
                 value={
                   evidenceReadiness != null ? `${evidenceReadiness}%` : "—"
                 }
-                iconBgClass="bg-transparent"
-                iconColorClass="text-green-600"
-                valueClassName="text-green-600"
+                valueState={evidenceReadiness != null ? "available" : "unavailable"}
               />
             </Link>
           </div>
         )}
 
         {/* ── Attainment alerts ───────────────────────────────────────────── */}
-        <Card className="card-elevated gap-0 border-0 bg-white py-0">
+        <Card className="card-elevated gap-0 border-0 bg-card py-0">
           <div className="p-6">
             <SectionHeader
               icon={AlertTriangle}
@@ -662,7 +652,7 @@ const CoordinatorDashboardNew = () => {
                   className="mt-0.5 h-4 w-4 shrink-0 text-teal-600"
                   aria-hidden="true"
                 />
-                <p className="text-xs text-gray-700">{ai.data.narrative}</p>
+                <p className="text-xs text-foreground/80">{ai.data.narrative}</p>
               </div>
             )}
             <div className="mt-4 space-y-3">
@@ -717,7 +707,7 @@ const CoordinatorDashboardNew = () => {
                       })}
                     </p>
                     {lowestPlo?.attainment != null && (
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {t("dashboard.alerts.lowest", {
                           title: lowestPlo.title,
                           pct: lowestPlo.attainment,
@@ -742,7 +732,7 @@ const CoordinatorDashboardNew = () => {
             <p className="text-sm font-semibold text-gray-800">
               {t("dashboard.gap.body")}
             </p>
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-muted-foreground">
               {t("dashboard.gap.detail")}
             </p>
             <span className="mt-3 inline-block">
@@ -762,7 +752,7 @@ const CoordinatorDashboardNew = () => {
             ctaTo="/coordinator/accreditation"
           >
             <div
-              className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+              className="h-2 w-full overflow-hidden rounded-full bg-muted"
               role="progressbar"
               aria-valuenow={evidenceReadiness ?? 0}
               aria-valuemin={0}
@@ -816,7 +806,7 @@ const CoordinatorDashboardNew = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {t("dashboard.cqi.empty")}
               </p>
             )}
@@ -848,7 +838,7 @@ const CoordinatorDashboardNew = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {t("dashboard.timeline.empty")}
               </p>
             )}

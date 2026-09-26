@@ -3,7 +3,7 @@
 // WeeklyCalendarGrid, WeeklyGoalPanel, tabs for Check Progress and Reflect
 // =============================================================================
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format, parseISO, addDays } from "date-fns";
@@ -143,6 +143,8 @@ const WeeklyPlannerPage = () => {
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(todayStr);
+  const taskOpenerRef = useRef<HTMLButtonElement>(null);
+  const sessionOpenerRef = useRef<HTMLButtonElement>(null);
 
   // ─── Build WeekDay[] ────────────────────────────────────────────────────────
   // Derived assignments/deadlines per day plus suggested study sessions on
@@ -355,6 +357,7 @@ const WeeklyPlannerPage = () => {
                 variant="outline"
                 size="sm"
                 className="h-8 gap-1 text-xs"
+                ref={taskOpenerRef}
                 onClick={() => {
                   setSelectedDate(todayStr);
                   setTaskDialogOpen(true);
@@ -367,6 +370,7 @@ const WeeklyPlannerPage = () => {
                 size="sm"
                 variant="tactile"
                 className="h-8 gap-1 text-xs"
+                ref={sessionOpenerRef}
                 onClick={() => {
                   setSelectedDate(todayStr);
                   setSessionDialogOpen(true);
@@ -501,6 +505,7 @@ const WeeklyPlannerPage = () => {
       {/* Dialogs */}
       <CreateSessionDialog
         open={sessionDialogOpen}
+        returnFocusRef={sessionOpenerRef}
         onOpenChange={setSessionDialogOpen}
         defaultDate={selectedDate}
         courses={suggestionCourses}
@@ -509,6 +514,7 @@ const WeeklyPlannerPage = () => {
       />
       <CreateTaskDialog
         open={taskDialogOpen}
+        returnFocusRef={taskOpenerRef}
         onOpenChange={setTaskDialogOpen}
         defaultDate={selectedDate}
         courses={suggestionCourses}

@@ -20,10 +20,6 @@ import {
 } from "@/lib/loginAttemptTracker";
 import { logActivity } from "@/lib/activityLogger";
 import { awardPerfectDayIfComplete } from "@/lib/perfectDay";
-import {
-  loadAccessibilityPreferences,
-  applyAccessibilityPreferences,
-} from "@/lib/accessibilityPreferences";
 import i18n from "@/lib/i18n";
 import {
   readCachedProfile,
@@ -31,6 +27,8 @@ import {
   clearCachedProfile,
   isProfileFresh,
 } from "@/lib/profileCache";
+import { createProfilePreferenceSync, type PreferenceOwnership } from "@/lib/profilePreferenceSync";
+import { ProfilePreferenceSyncContext } from "@/providers/ProfilePreferenceSyncContext";
 import { clearCachedDashboard } from "@/lib/dashboardCache";
 import { mapSignupError } from "@/lib/authErrors";
 import {
@@ -49,19 +47,6 @@ const ROLE_DASHBOARD_MAP: Record<UserRole, string> = {
   teacher: "/teacher",
   student: "/student",
   parent: "/parent",
-};
-
-// ---------------------------------------------------------------------------
-// Hydrate the user's language preference into i18n (fire-and-forget). Kept at
-// module scope so both the cache-hydration and network-revalidation paths in
-// syncSession can reuse it without adding hook dependencies.
-// ---------------------------------------------------------------------------
-const applyProfileLanguage = (profile: Profile | null): void => {
-  if (profile?.language_preference) {
-    i18n.changeLanguage(profile.language_preference).catch(() => {
-      // Never block session hydration on i18n.
-    });
-  }
 };
 
 export interface SignUpOptions {
@@ -119,7 +104,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Req 8.1). A token rotation does not change the profile, so re-fetching it on
   // every refresh is a pure round-trip cost.
   const currentUserIdRef = useRef<string | null>(null);
+  // Profile identity is independent of the incoming session while its SELECT
+  // is pending. Keep this ref in sync with accepted publication/clearing only.
+  const profileOwnerIdRef = useRef<string | null>(null);
   const identifiedAnalyticsUserIdRef = useRef<string | null>(null);
+  const [preferenceOwnership, setPreferenceOwnership] = useState<PreferenceOwnership | null>(null);
+  const preferenceSync = useMemo(() => createProfilePreferenceSync((ownerId, leaves, isCurrent) => {
+    setProfile((current) => isCurrent() && current?.id === ownerId ? { ...current, ...leaves } : current);
+  }), []);
+
+  const activatePreferenceOwner = useCallback((ownerId: string | null) => {
+    const token = preferenceSync.setOwner(ownerId);
+    setPreferenceOwnership(token);
+    return token;
+  }, [preferenceSync]);
+  const setCurrentUserId = useCallback((ownerId: string | null) => {
+    currentUserIdRef.current = ownerId;
+    activatePreferenceOwner(ownerId);
+  }, [activatePreferenceOwner]);
+
+  useEffect(() => {
+    activatePreferenceOwner(currentUserIdRef.current);
+    return () => { preferenceSync.setOwner(null); };
+  }, [preferenceSync, activatePreferenceOwner]);
+
+  const preferenceContext = useMemo(() => ({ sync: preferenceSync, ownership: preferenceOwnership }), [preferenceSync, preferenceOwnership]);
+
+  // Reconcile only preference writes confirmed after this response's request
+  // began. Full-profile timestamps/metadata retain their existing semantics.
+  const publishProfile = useCallback((next: Profile | null, cache = false): Profile | null | undefined => {
+    const reconciled = next ? preferenceSync.reconcile(next) : null;
+    if (reconciled === undefined) return undefined;
+    profileOwnerIdRef.current = reconciled?.id ?? null;
+    setProfile(reconciled);
+    if (cache && reconciled) writeCachedProfile(reconciled.id, reconciled);
+    return reconciled;
+  }, [preferenceSync]);
 
   const identifyAuthenticatedUser = useCallback(
     (authenticatedUser: User, authenticatedProfile: Profile | null): void => {
@@ -146,6 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // -------------------------------------------------------------------
   const fetchProfile = useCallback(
     async (userId: string): Promise<Profile | null> => {
+      const preferenceRead = preferenceSync.beginRead(userId);
       const { data, error } = await supabase
         .from("profiles")
         .select(
@@ -158,9 +179,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Failed to fetch profile:", error.message);
         return null;
       }
-      return data as Profile | null;
+      return preferenceSync.trackRead(data as Profile | null, preferenceRead);
     },
-    []
+    [preferenceSync]
   );
 
   // -------------------------------------------------------------------
@@ -169,7 +190,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const syncSession = useCallback(
     async (session: Session | null) => {
       if (!session?.user) {
-        currentUserIdRef.current = null;
+        setCurrentUserId(null);
         // No authenticated session — drop any cached profile/dashboard so it
         // can never be hydrated for an unauthenticated (or subsequent) user.
         clearCachedProfile();
@@ -177,13 +198,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         resetAnalyticsUser();
         identifiedAnalyticsUserIdRef.current = null;
         setUser(null);
+        profileOwnerIdRef.current = null;
         setProfile(null);
         setIsLoading(false);
         return;
       }
 
       const uid = session.user.id;
-      currentUserIdRef.current = uid;
+      setCurrentUserId(uid);
+      const preferenceOwner = preferenceSync.capture(uid);
+      const cached = readCachedProfile(uid);
+      if (!cached && profileOwnerIdRef.current !== uid) {
+        // Never expose A's identity/role with B's newly adopted session while B
+        // loads. An already-published same-actor profile stays usable on refresh.
+        profileOwnerIdRef.current = null;
+        setProfile(null);
+        setIsLoading(true);
+      }
       setUser(session.user);
 
       // Shell-first hydration: if a cached profile exists for THIS user, apply
@@ -191,10 +222,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // paints without waiting on the network. The cache is non-authoritative
       // UI hydration only — RLS remains the source of truth server-side — and
       // it is identity-guarded so one user can never hydrate another's data.
-      const cached = readCachedProfile(uid);
       if (cached) {
-        setProfile(cached.profile);
-        applyProfileLanguage(cached.profile);
+        publishProfile(cached.profile);
         identifyAuthenticatedUser(session.user, cached.profile);
         setIsLoading(false);
 
@@ -207,11 +236,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         void (async () => {
           const fresh = await fetchProfile(uid);
           // Ignore if the user changed while this was in flight.
-          if (currentUserIdRef.current !== uid) return;
+          if (currentUserIdRef.current !== uid || !preferenceSync.isCurrent(preferenceOwner)) return;
           if (fresh) {
-            setProfile(fresh);
-            writeCachedProfile(uid, fresh);
-            applyProfileLanguage(fresh);
+            publishProfile(fresh, true);
             identifyAuthenticatedUser(session.user, fresh);
           }
         })();
@@ -221,24 +248,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Cache miss (first load on this device): fetch before revealing the
       // route so the guard resolves the correct role on the very first paint.
       const userProfile = await fetchProfile(uid);
-      if (currentUserIdRef.current !== uid) return;
-      setProfile(userProfile);
-      if (userProfile) writeCachedProfile(uid, userProfile);
-      applyProfileLanguage(userProfile);
+      if (currentUserIdRef.current !== uid || !preferenceSync.isCurrent(preferenceOwner)) return;
+      publishProfile(userProfile, true);
       identifyAuthenticatedUser(session.user, userProfile);
       setIsLoading(false);
     },
-    [fetchProfile, identifyAuthenticatedUser]
+    [fetchProfile, identifyAuthenticatedUser, preferenceSync, publishProfile, setCurrentUserId]
   );
 
   // -------------------------------------------------------------------
   // Bootstrap: restore persisted session + subscribe to auth changes
   // -------------------------------------------------------------------
-  useEffect(() => {
-    // Apply accessibility preferences from localStorage on startup
-    applyAccessibilityPreferences(loadAccessibilityPreferences());
-  }, []);
-
   useEffect(() => {
     let mounted = true;
     const resolveInitialSession = (session: Session | null) => {
@@ -259,8 +279,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           clearCachedDashboard();
           resetAnalyticsUser();
           identifiedAnalyticsUserIdRef.current = null;
-          currentUserIdRef.current = null;
+          setCurrentUserId(null);
           setUser(null);
+          profileOwnerIdRef.current = null;
           setProfile(null);
           setIsLoading(false);
           break;
@@ -272,7 +293,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // user id actually changed (or no profile was synced yet).
           if (session?.user && session.user.id === currentUserIdRef.current) {
             setUser(session.user);
-            setIsLoading(false);
+            // A token rotation must not release an in-flight new-actor profile
+            // load merely because its session id has already been adopted.
+            if (profileOwnerIdRef.current === session.user.id) setIsLoading(false);
             break;
           }
           syncSession(session);
@@ -323,10 +346,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
+      // StrictMode replay must establish its own live request: the disposed
+      // lifecycle's pending profile response is now correctly rejected.
+      initialSessionResolved.current = false;
       window.clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
-  }, [syncSession]);
+  }, [syncSession, setCurrentUserId]);
 
   useEffect(() => {
     const identifyAfterConsent = () => {
@@ -401,10 +427,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Fire-and-forget — don't block successful login
       });
 
+      activatePreferenceOwner(data.user.id);
       const userProfile = await fetchProfile(data.user.id);
-      currentUserIdRef.current = data.user.id;
+      setCurrentUserId(data.user.id);
       setUser(data.user);
-      setProfile(userProfile);
+      publishProfile(userProfile, true);
       identifyAuthenticatedUser(data.user, userProfile);
       captureAnalyticsEvent("login_succeeded", {
         role: userProfile?.role ?? "unknown",
@@ -417,7 +444,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Seed the shell-first cache so the SIGNED_IN event that supabase-js
       // emits right after this hydrates from the fresh cache instead of firing
       // a second `profiles` SELECT for the same user.
-      if (userProfile) writeCachedProfile(data.user.id, userProfile);
 
       const redirectTo = userProfile?.role
         ? ROLE_DASHBOARD_MAP[userProfile.role]
@@ -504,7 +530,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { success: true, redirectTo };
     },
-    [fetchProfile, identifyAuthenticatedUser]
+    [fetchProfile, identifyAuthenticatedUser, publishProfile, setCurrentUserId, activatePreferenceOwner]
   );
 
   // -------------------------------------------------------------------
@@ -577,12 +603,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Session established — fetch the freshly-created profile and route
       // to the appropriate dashboard.
       if (data.user) {
+        activatePreferenceOwner(data.user.id);
         const userProfile = await fetchProfile(data.user.id);
-        currentUserIdRef.current = data.user.id;
+        setCurrentUserId(data.user.id);
         setUser(data.user);
-        setProfile(userProfile);
+        publishProfile(userProfile, true);
         identifyAuthenticatedUser(data.user, userProfile);
-        if (userProfile) writeCachedProfile(data.user.id, userProfile);
 
         const redirectTo = userProfile?.role
           ? ROLE_DASHBOARD_MAP[userProfile.role]
@@ -592,7 +618,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { success: true };
     },
-    [fetchProfile, identifyAuthenticatedUser]
+    [fetchProfile, identifyAuthenticatedUser, publishProfile, setCurrentUserId, activatePreferenceOwner]
   );
 
   // -------------------------------------------------------------------
@@ -604,10 +630,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     clearCachedDashboard();
     resetAnalyticsUser();
     identifiedAnalyticsUserIdRef.current = null;
-    currentUserIdRef.current = null;
+    setCurrentUserId(null);
     setUser(null);
+    profileOwnerIdRef.current = null;
     setProfile(null);
-  }, []);
+  }, [setCurrentUserId]);
 
   // -------------------------------------------------------------------
   // resetPassword
@@ -633,10 +660,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const fresh = await fetchProfile(uid);
     if (currentUserIdRef.current !== uid) return; // user changed mid-flight
     if (fresh) {
-      setProfile(fresh);
-      writeCachedProfile(uid, fresh);
+      publishProfile(fresh, true);
     }
-  }, [fetchProfile]);
+  }, [fetchProfile, publishProfile]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -665,5 +691,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     ]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <ProfilePreferenceSyncContext.Provider value={preferenceContext}>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    </ProfilePreferenceSyncContext.Provider>
+  );
 };

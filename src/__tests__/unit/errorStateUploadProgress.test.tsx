@@ -92,8 +92,8 @@ describe("UploadProgress", () => {
     expect(screen.getByText("500.0 KB")).toBeInTheDocument();
   });
 
-  it("shows progress bar during uploading status", () => {
-    const { container } = render(
+  it("exposes named upload progress with its visible fill width", () => {
+    render(
       <UploadProgress
         progress={75}
         fileName="test.pdf"
@@ -101,22 +101,45 @@ describe("UploadProgress", () => {
         status="uploading"
       />
     );
-    const progressBar = container.querySelector(".bg-transparent0");
-    expect(progressBar).not.toBeNull();
-    expect(progressBar?.getAttribute("style")).toContain("width: 75%");
+    const progressBar = screen.getByRole("progressbar", { name: "test.pdf" });
+    expect(progressBar).toHaveAttribute("aria-valuemin", "0");
+    expect(progressBar).toHaveAttribute("aria-valuemax", "100");
+    expect(progressBar).toHaveAttribute("aria-valuenow", "75");
+    expect(progressBar.firstElementChild).toHaveStyle({ width: "75%" });
   });
 
-  it("clamps progress to 0-100 range", () => {
-    const { container } = render(
+  it.each([
+    [-10, 0],
+    [0, 0],
+    [25, 25],
+    [100, 100],
+    [150, 100],
+  ])("clamps progress %s to %s for both semantics and fill", (progress, expected) => {
+    render(
       <UploadProgress
-        progress={150}
+        progress={progress}
         fileName="test.pdf"
         fileSize={1024}
         status="uploading"
       />
     );
-    const progressBar = container.querySelector(".bg-transparent0");
-    expect(progressBar?.getAttribute("style")).toContain("width: 100%");
+    const progressBar = screen.getByRole("progressbar", { name: "test.pdf" });
+    expect(progressBar).toHaveAttribute("aria-valuenow", String(expected));
+    expect(progressBar.firstElementChild).toHaveStyle({ width: `${expected}%` });
+  });
+
+  it("keeps simultaneous uploads independently named, including Arabic filenames", () => {
+    render(
+      <>
+        <UploadProgress progress={20} fileName="assignment.pdf" fileSize={1024} status="uploading" />
+        <UploadProgress progress={60} fileName="واجب.pdf" fileSize={2048} status="uploading" />
+      </>
+    );
+    const first = screen.getByRole("progressbar", { name: "assignment.pdf" });
+    const second = screen.getByRole("progressbar", { name: "واجب.pdf" });
+    expect(first).toHaveAttribute("aria-valuenow", "20");
+    expect(second).toHaveAttribute("aria-valuenow", "60");
+    expect(first.getAttribute("aria-labelledby")).not.toBe(second.getAttribute("aria-labelledby"));
   });
 
   it("shows success icon when status is success", () => {
@@ -180,7 +203,7 @@ describe("UploadProgress", () => {
   });
 
   it("does not show progress bar when status is success", () => {
-    const { container } = render(
+    render(
       <UploadProgress
         progress={100}
         fileName="test.pdf"
@@ -188,12 +211,11 @@ describe("UploadProgress", () => {
         status="success"
       />
     );
-    const progressBar = container.querySelector(".bg-transparent0");
-    expect(progressBar).toBeNull();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("does not show progress bar when status is error", () => {
-    const { container } = render(
+    render(
       <UploadProgress
         progress={30}
         fileName="test.pdf"
@@ -201,8 +223,7 @@ describe("UploadProgress", () => {
         status="error"
       />
     );
-    const progressBar = container.querySelector(".bg-transparent0");
-    expect(progressBar).toBeNull();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 });
 

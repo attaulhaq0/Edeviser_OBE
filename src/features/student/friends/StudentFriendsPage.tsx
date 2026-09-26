@@ -2,13 +2,13 @@
 // StudentFriendsPage — the student "Friends" surface (net-new feature).
 // =============================================================================
 //
-// A privacy-appropriate adaptation of Duolingo's friends system for education:
-// mutual friend requests, scoped to the same institution, with online presence.
+// A privacy-appropriate friends surface for school peers:
+// mutual requests scoped to one institution and a last-seen activity hint.
 // Composed from `@/design-system` primitives following the leaderboard-list
 // archetype (the prototype has no dedicated friends screen). Wired to the real
 // friends hooks (useFriends & co.); no faked data.
 //
-// Sections: add-friends search · incoming requests · online-now · all friends.
+// Sections: add-friends search · incoming requests · recent activity · all friends.
 // =============================================================================
 
 import { useState } from "react";
@@ -27,9 +27,11 @@ import {
   type Friend,
 } from "@/hooks/useFriends";
 import { cn } from "@/lib/utils";
+import { hasRecentActivity } from "@/lib/recentActivity";
+import { useRecentActivityClock } from "@/features/student/hooks/useRecentActivityClock";
 
 const CARD =
-  "rounded-[20px] border border-[#eef2f6] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]";
+  "rounded-[20px] border border-border bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]";
 
 const initials = (name: string): string =>
   name
@@ -39,14 +41,14 @@ const initials = (name: string): string =>
     .slice(0, 2)
     .toUpperCase() || "?";
 
-/** Brand-gradient avatar with an online presence dot. */
+/** Brand-gradient avatar with a recent-profile-activity hint, not live presence. */
 const FriendAvatar = ({
   name,
-  online,
+  recentlyActive,
   size = "md",
 }: {
   name: string;
-  online?: boolean;
+  recentlyActive?: boolean;
   size?: "sm" | "md";
 }) => (
   <div className="relative shrink-0">
@@ -60,8 +62,11 @@ const FriendAvatar = ({
     >
       {initials(name)}
     </div>
-    {online && (
-      <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-white bg-transparent0" />
+    {recentlyActive && (
+      <span
+        aria-hidden="true"
+        className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--recent-activity-ring)] bg-[var(--recent-activity-dot)]"
+      />
     )}
   </div>
 );
@@ -70,6 +75,7 @@ const StudentFriendsPage = () => {
   const { t } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id ?? "";
+  const observedAt = useRecentActivityClock();
 
   const friends = useFriends(studentId);
   const requests = useFriendRequests(studentId);
@@ -81,14 +87,16 @@ const StudentFriendsPage = () => {
   const search = useClassmateSearch(query, studentId);
 
   const friendList = friends.data ?? [];
-  const onlineFriends = friendList.filter((f) => f.online);
+  const recentFriends = friendList.filter((f) =>
+    hasRecentActivity(f.last_seen_at, observedAt)
+  );
   const requestList = requests.data ?? [];
 
   return (
     <div className="w-full space-y-4">
       <div>
         <PageHeader title={t("friends.title", "Friends")} />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           {t(
             "friends.subtitle",
             "Connect with classmates, cheer each other on, and climb together."
@@ -100,7 +108,7 @@ const StudentFriendsPage = () => {
       <section className={cn(CARD, "p-4")}>
         <div className="relative">
           <Search
-            className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
           <Input
@@ -125,10 +133,10 @@ const StudentFriendsPage = () => {
               (search.data ?? []).map((c) => (
                 <div
                   key={c.student_id}
-                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-2.5"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-2.5"
                 >
                   <FriendAvatar name={c.full_name} size="sm" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
                     {c.full_name}
                   </span>
                   <Button
@@ -143,7 +151,7 @@ const StudentFriendsPage = () => {
                 </div>
               ))
             ) : (
-              <p className="py-2 text-center text-sm text-gray-500">
+              <p className="py-2 text-center text-sm text-muted-foreground">
                 {t("friends.noMatches", "No classmates match that name.")}
               </p>
             )}
@@ -154,7 +162,7 @@ const StudentFriendsPage = () => {
       {/* ── Incoming requests ── */}
       {requestList.length > 0 && (
         <section className={cn(CARD, "p-4")}>
-          <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-slate-900">
+          <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-foreground">
             <UserPlus className="h-4 w-4 text-sky-600" aria-hidden="true" />
             {t("friends.requests", "Friend requests")}
             <span className="rounded-full bg-transparent px-2 py-0.5 text-[10px] font-bold text-sky-700">
@@ -165,7 +173,7 @@ const StudentFriendsPage = () => {
             {requestList.map((r) => (
               <div key={r.friendship_id} className="flex items-center gap-3">
                 <FriendAvatar name={r.full_name} size="sm" />
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
                   {r.full_name}
                 </span>
                 <Button
@@ -202,27 +210,30 @@ const StudentFriendsPage = () => {
         </section>
       )}
 
-      {/* ── Online now ── */}
-      {onlineFriends.length > 0 && (
+      {/* ── Recent activity recorded in profiles, not socket presence ── */}
+      {recentFriends.length > 0 && (
         <section className={cn(CARD, "p-4")}>
-          <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-slate-900">
+          <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-foreground">
             <span
-              className="h-2 w-2 rounded-full bg-transparent0"
+              className="h-2 w-2 rounded-full bg-[var(--recent-activity-dot)]"
               aria-hidden="true"
             />
-            {t("friends.onlineNow", "Online now")}
-            <span className="text-[11px] font-bold text-gray-400">
-              {onlineFriends.length}
+            {t("friends.recentActivityHeading", "Recently Active")}
+            <span className="text-[11px] font-bold text-muted-foreground">
+              {recentFriends.length}
             </span>
           </h2>
           <div className="no-scrollbar flex gap-4 overflow-x-auto pb-1">
-            {onlineFriends.map((f) => (
+            {recentFriends.map((f) => (
               <div
                 key={f.student_id}
                 className="flex w-16 shrink-0 flex-col items-center gap-1.5"
               >
-                <FriendAvatar name={f.full_name} online />
-                <span className="w-full truncate text-center text-[11px] text-gray-600">
+                <FriendAvatar name={f.full_name} recentlyActive />
+                <span className="sr-only">
+                  {t("friends.recentActivity", "Recent activity recorded")}
+                </span>
+                <span className="w-full truncate text-center text-[11px] text-muted-foreground">
                   {f.full_name.split(" ")[0]}
                 </span>
               </div>
@@ -233,11 +244,11 @@ const StudentFriendsPage = () => {
 
       {/* ── All friends ── */}
       <section className={cn(CARD, "p-4")}>
-        <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-slate-900">
+        <h2 className="mb-3 flex items-center gap-2 text-[13px] font-black tracking-tight text-foreground">
           <Users className="h-4 w-4 text-sky-600" aria-hidden="true" />
           {t("friends.allFriends", "All friends")}
           {friendList.length > 0 && (
-            <span className="text-[11px] font-bold text-gray-400">
+            <span className="text-[11px] font-bold text-muted-foreground">
               {friendList.length}
             </span>
           )}
@@ -254,11 +265,16 @@ const StudentFriendsPage = () => {
               <FriendRow
                 key={f.student_id}
                 friend={f}
+                recentlyActive={hasRecentActivity(f.last_seen_at, observedAt)}
                 onRemove={() => removeFriend.mutate(f.student_id)}
                 removing={removeFriend.isPending}
                 labels={{
                   level: t("friends.level", "Lv {{n}}", { n: f.level }),
                   remove: t("friends.remove", "Remove"),
+                  recentActivity: t(
+                    "friends.recentActivity",
+                    "Recent activity recorded"
+                  ),
                 }}
               />
             ))}
@@ -268,7 +284,7 @@ const StudentFriendsPage = () => {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-transparent">
               <Users className="h-6 w-6 text-blue-500" aria-hidden="true" />
             </div>
-            <p className="max-w-xs text-sm text-gray-500">
+            <p className="max-w-xs text-sm text-muted-foreground">
               {t(
                 "friends.empty",
                 "No friends yet — search for a classmate above to send your first request."
@@ -283,22 +299,27 @@ const StudentFriendsPage = () => {
 
 const FriendRow = ({
   friend,
+  recentlyActive,
   onRemove,
   removing,
   labels,
 }: {
   friend: Friend;
+  recentlyActive: boolean;
   onRemove: () => void;
   removing: boolean;
-  labels: { level: string; remove: string };
+  labels: { level: string; remove: string; recentActivity: string };
 }) => (
-  <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-2.5">
-    <FriendAvatar name={friend.full_name} online={friend.online} />
+  <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-2.5">
+    <FriendAvatar name={friend.full_name} recentlyActive={recentlyActive} />
     <div className="min-w-0 flex-1">
-      <p className="truncate text-sm font-bold text-gray-900">
+      <p className="truncate text-sm font-bold text-foreground">
         {friend.full_name}
       </p>
-      <div className="flex items-center gap-2 text-[11px] text-gray-500">
+      {recentlyActive && (
+        <span className="sr-only">{labels.recentActivity}</span>
+      )}
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span className="font-bold text-blue-600">{labels.level}</span>
         {friend.streak_current > 0 && (
           <span className="inline-flex items-center gap-0.5 text-orange-600">
@@ -313,7 +334,7 @@ const FriendRow = ({
     </div>
     <Button
       variant="ghost"
-      className="h-8 px-2 text-xs text-gray-400 hover:text-red-600"
+      className="h-8 px-2 text-xs text-muted-foreground hover:text-red-600"
       disabled={removing}
       onClick={onRemove}
       aria-label={labels.remove}

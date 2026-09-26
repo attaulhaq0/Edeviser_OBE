@@ -5,14 +5,18 @@
 // =============================================================================
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, cleanup } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
 let mockProfile: Record<string, unknown> | null = null;
 vi.mock("@/hooks/useAuth", () => ({
-  useAuth: () => ({ profile: mockProfile }),
+  useAuth: () => ({
+    user: mockProfile ? { id: mockProfile.id } : null,
+    profile: mockProfile,
+  }),
 }));
 
 const mockUpdate = vi.fn().mockReturnValue({
@@ -31,7 +35,9 @@ import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe("ThemeProvider", () => {
+  let queryClient: QueryClient;
   beforeEach(() => {
+    queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
     vi.clearAllMocks();
     localStorage.clear();
     document.documentElement.classList.remove("light", "dark");
@@ -39,11 +45,15 @@ describe("ThemeProvider", () => {
   });
 
   afterEach(() => {
+    cleanup();
+    queryClient.clear();
+    vi.useRealTimers();
     document.documentElement.classList.remove("light", "dark");
   });
 
   const wrapper = ({ children }: { children: ReactNode }) =>
-    createElement(ThemeProvider, null, children);
+    createElement(QueryClientProvider, { client: queryClient },
+      createElement(ThemeProvider, null, children));
 
   it("defaults to system theme when no stored preference", () => {
     const { result } = renderHook(() => useTheme(), { wrapper });

@@ -16,7 +16,7 @@ const CQI_STATUS_STYLES: Record<
   CQIStatus,
   { bg: string; text: string; label: string }
 > = {
-  planned: { bg: "bg-gray-100", text: "text-gray-700", label: "Planned" },
+  planned: { bg: "bg-muted", text: "text-foreground/80", label: "Planned" },
   in_progress: {
     bg: "bg-blue-100",
     text: "text-blue-700",

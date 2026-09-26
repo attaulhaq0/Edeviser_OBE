@@ -1,10 +1,6 @@
 {
-  "maxCount": 151,
+  "maxCount": 148,
   "entries": [
-    {
-      "file": "src/features/parent/dashboard/ParentDashboardScreen.tsx",
-      "pattern": "insert-as-never"
-    },
     {
       "file": "src/pages/parent/settings/ParentProfilePage.tsx",
       "pattern": "update-as-never"
@@ -276,10 +272,6 @@
     {
       "file": "src/pages/admin/competency-frameworks/CompetencyFrameworkManager.tsx",
       "pattern": "insert-as-never"
-    },
-    {
-      "file": "src/providers/LanguageProvider.tsx",
-      "pattern": "update-as-never"
     }
   ]
 }

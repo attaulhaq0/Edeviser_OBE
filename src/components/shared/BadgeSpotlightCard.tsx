@@ -65,13 +65,13 @@ const BadgeSpotlightCard = ({
 
           {/* Progress toward next tier */}
           <div className="mt-2" data-testid="spotlight-progress">
-            <div className="flex items-center justify-between text-[10px] text-gray-500">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>Progress to next tier</span>
               <span>{progressPercent}%</span>
             </div>
-            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden mt-1">
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
               <div
-                className="h-full rounded-full bg-transparent0 transition-all duration-300"
+                className="h-full rounded-full bg-primary transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -79,7 +79,7 @@ const BadgeSpotlightCard = ({
 
           {/* Countdown */}
           <p
-            className="text-[10px] text-gray-400 mt-1.5"
+            className="text-[10px] text-muted-foreground mt-1.5"
             data-testid="spotlight-countdown"
           >
             {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining

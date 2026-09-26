@@ -114,7 +114,7 @@ describe("AssessmentTimer", () => {
       advanceBySeconds(1); // 299 seconds remaining — well above 120
       const timer = screen.getByRole("timer");
       expect(timer.className).not.toContain("animate-pulse");
-      expect(timer.className).toContain("text-gray-700");
+      expect(timer.className).toContain("text-foreground/80");
     });
 
     it("applies expired styles at 00:00", () => {

@@ -1,5 +1,5 @@
 // =============================================================================
-// MobileTabBar — thumb-reachable bottom navigation for < lg screens
+// MobileTabBar — thumb-reachable bottom navigation below 640px
 // =============================================================================
 //
 // Responsive navigation for the redesigned chrome (spec: ui-prototype-migration,
@@ -9,16 +9,17 @@
 // `navItems[role]` single source of truth, is RTL-safe (logical flow), uses
 // ≥44px touch targets, and respects the safe-area inset.
 //
-// Rendered only when the `newUiChrome` flag is on (from Sidebar) and only below
-// `lg` (`lg:hidden`). The `.new-mobile-tabbar` class is a hook for the
-// content-padding rule in index.css (so the fixed bar never covers content).
+// RoleAppShell is the only owner. CSS hides the bar at 640px and above, where
+// Sidebar supplies navigation. The shell alone reserves content clearance using
+// shared height/raised-affordance/safe-area variables; no body-wide padding rule.
 // =============================================================================
 
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/hooks/useAuth";
 import { getMobileTabItems } from "@/lib/navPresentation";
+import { isNavDestinationActive } from "@/lib/navActive";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
@@ -33,36 +34,33 @@ const MobileTabBar = () => {
 
   // Active detection mirrors Sidebar.isItemActive so the two chromes agree.
   const isActive = (to: string): boolean =>
-    location.pathname === to ||
-    (to !== `/${role}/dashboard` &&
-      to !== `/${role}` &&
-      location.pathname.startsWith(to));
+    isNavDestinationActive(location.pathname, to, role);
 
   if (items.length === 0) return null;
 
   return (
     <nav
-      className="new-mobile-tabbar fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-[#e6ebf1] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_2px_rgba(15,23,42,0.05)] min-[640px]:hidden"
-      aria-label={t("header.primaryNav.label")}
+      className="new-mobile-tabbar fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t-0 bg-card pb-[var(--app-mobile-nav-safe-area,env(safe-area-inset-bottom))] min-[640px]:hidden"
+      aria-label={t("header.mobileNavLabel")}
     >
       {items.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.to);
         const isFab = item.raised;
         return (
-          <NavLink
+          <Link
             key={item.to}
             to={item.to}
             viewTransition
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-bold transition-colors",
+              "flex min-h-[var(--app-mobile-nav-h,3.25rem)] min-w-11 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-bold transition-colors",
               isFab &&
-                "-mt-5 min-h-14 max-w-14 rounded-full border-[4px] border-white bg-[image:var(--brand-gradient)] px-2 text-white shadow-[0_8px_20px_rgba(3,130,189,0.32)] hover:text-white",
+                "-mt-[var(--app-mobile-nav-overhang,1.25rem)] min-h-14 max-w-14 rounded-full border-[4px] border-card bg-[image:var(--brand-gradient)] px-2 text-white shadow-[0_8px_20px_var(--primary-200)] hover:text-white",
               !isFab &&
                 (active
-                  ? "text-[#075985]"
-                  : "text-gray-500 hover:text-gray-700")
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground")
             )}
           >
             <Icon
@@ -74,7 +72,7 @@ const MobileTabBar = () => {
               aria-hidden="true"
             />
             <span className="max-w-full truncate">{t(item.labelKey)}</span>
-          </NavLink>
+          </Link>
         );
       })}
     </nav>

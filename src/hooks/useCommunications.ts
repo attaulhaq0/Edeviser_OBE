@@ -32,7 +32,7 @@ export const useCommunications = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: queryKeys.notifications.list({ userId }),
+    queryKey: queryKeys.notifications.list({ userId, scope: "communications" }),
     queryFn: async () => {
       if (!userId) return { notifications: [], announcements: [] };
 

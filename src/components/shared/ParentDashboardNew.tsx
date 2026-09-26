@@ -30,7 +30,6 @@ import {
 } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useParentDashboardAggregate } from "@/hooks/useParentDashboardAggregate";
-import { attainmentValueClass } from "@/lib/attainmentTone";
 
 const ParentDashboardNew = () => {
   const { t } = useTranslation("common");
@@ -72,14 +71,11 @@ const ParentDashboardNew = () => {
             icon={TrendingUp}
             label={t("parentDashboard.avgAttainment")}
             value={`${kpis?.avgAttainment ?? 0}%`}
-            valueClassName={attainmentValueClass(kpis?.avgAttainment ?? 0)}
           />
           <KPICard
             icon={CalendarDays}
             label={t("parentDashboard.deadlines")}
             value={kpis?.upcomingDeadlines ?? 0}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-amber-600"
           />
         </div>
       )}
@@ -100,7 +96,7 @@ const ParentDashboardNew = () => {
             {children.map((child) => (
               <div
                 key={child.student_id}
-                className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 p-4 transition-colors hover:border-slate-200"
+                className="flex items-center justify-between gap-4 rounded-xl border border-border p-4 transition-colors hover:border-border"
               >
                 <div className="flex min-w-0 items-center gap-4">
                   <MasteryRing
@@ -113,7 +109,7 @@ const ParentDashboardNew = () => {
                     <p className="truncate text-sm font-semibold text-gray-900">
                       {child.student_name}
                     </p>
-                    <p className="truncate text-xs text-gray-500">
+                    <p className="truncate text-xs text-muted-foreground">
                       {t("parentDashboard.levelLabel")} {child.current_level} ·{" "}
                       {child.enrolled_courses}{" "}
                       {t("parentDashboard.coursesLabel")}
@@ -137,7 +133,7 @@ const ParentDashboardNew = () => {
             <div className="mb-3 rounded-full bg-transparent p-3">
               <Users className="h-8 w-8 text-blue-500" aria-hidden="true" />
             </div>
-            <p className="max-w-[260px] text-sm text-gray-500">
+            <p className="max-w-[260px] text-sm text-muted-foreground">
               {t("parentDashboard.noChildren")}
             </p>
           </div>

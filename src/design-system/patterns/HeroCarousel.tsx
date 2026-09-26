@@ -1,143 +1,183 @@
-// =============================================================================
-// HeroCarousel — prototype `.hero-carousel` (shared.css + shared.js
-// `initHeroCarousel`). A multi-slide dashboard hero: dots + prev/next arrows +
-// touch swipe + auto-advance that pauses on hover/focus, reduced-motion-safe.
-//
-// Generic + presentational: the caller supplies fully-styled slides and the
-// root's look (rounding / gradient background / shadow) via `className`+`style`,
-// exactly like the prototype markup where the carousel root carries
-// `rounded-2xl text-white shadow-lg` + `background:var(--hero-gradient)`.
-//
-// Values are reproduced 1:1 from `prototype/shared.css`:
-//   .hero-slides transition .35s cubic-bezier(.2,.7,.2,1)
-//   .hero-dots button 16x4 radius2 bg rgba(255,255,255,.25); .on -> 22px #fff
-//   .hero-arrow 26x26 round bg rgba(255,255,255,.14) border rgba(255,255,255,.2)
-//   auto-advance 7000ms (shared.js), swipe threshold 40px
-// =============================================================================
-
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { AccessibilityPreferencesContext } from "@/providers/AccessibilityPreferencesContext";
 import { cn } from "@/lib/utils";
 
 export interface HeroCarouselProps {
-  /** Fully-styled slide nodes. With a single slide, chrome (dots/arrows) is hidden. */
+  /** Caller-owned slides; the active slide alone is interactive and exposed. */
   slides: React.ReactNode[];
-  /** Applied to the carousel root — carries the hero look (rounding/bg/shadow). */
   className?: string;
   style?: React.CSSProperties;
-  /** Auto-advance interval; matches the prototype's 7s. */
+  /** Auto-advance is permitted only at 5 seconds or longer. Defaults to 7s. */
   autoAdvanceMs?: number;
-  /** Accessible name for the carousel region. */
   ariaLabel?: string;
+  /** Light presentation for white/glass hero surfaces; dark is retained for legacy callers. */
+  theme?: "dark" | "light";
 }
 
-/**
- * Prototype-faithful hero carousel. Auto-advance is disabled under
- * `prefers-reduced-motion` and while the user is hovering/focused within it.
- */
+/** One controlled, bilingual carousel. Movement is never required to read a slide. */
 const HeroCarousel = ({
   slides,
   className,
   style,
   autoAdvanceMs = 7000,
-  ariaLabel = "Highlights",
+  ariaLabel,
+  theme = "dark",
 }: HeroCarouselProps) => {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
+  const rtl = i18n.dir() === "rtl";
+  const owner = useContext(AccessibilityPreferencesContext);
+  const osReduction = useReducedMotion();
+  const reduceMotion = Boolean(
+    osReduction || owner?.controls.effective.reduced_animations
+  );
+  const isLight = theme === "light";
   const count = slides.length;
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const reduceMotion = useReducedMotion();
-  const touchStartX = useRef<number | null>(null);
-
-  const current = count > 0 ? index % count : 0;
+  const [cursor, setCursor] = useState({ index: 0, count });
+  const [userPaused, setUserPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [pageVisible, setPageVisible] = useState(
+    () =>
+      typeof document === "undefined" || document.visibilityState !== "hidden"
+  );
+  const [announcement, setAnnouncement] = useState("");
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // React adjusts current-component state before commit when slide count changes.
+  // A stale position must not return after a 2→1→2 data transition.
+  if (cursor.count !== count) setCursor({ index: 0, count });
+  const current =
+    count > 0 && cursor.count === count ? cursor.index % count : 0;
+  const multi = count > 1;
+  const canAutoAdvance =
+    multi &&
+    !reduceMotion &&
+    Number.isFinite(autoAdvanceMs) &&
+    autoAdvanceMs >= 5000;
 
   const go = useCallback(
-    (n: number) => {
-      if (count === 0) return;
-      setIndex(((n % count) + count) % count);
+    (next: number) => {
+      if (count < 2) return;
+      const normalized = ((next % count) + count) % count;
+      if (
+        normalized !== current &&
+        slideRefs.current[current]?.contains(document.activeElement)
+      ) {
+        rootRef.current
+          ?.querySelector<HTMLButtonElement>("[data-carousel-next]")
+          ?.focus();
+      }
+      setUserPaused(true); // User interaction never restarts rotation without consent.
+      setCursor({ index: normalized, count });
+      setAnnouncement(
+        t("carousel.slideOf", { current: normalized + 1, total: count })
+      );
     },
-    [count]
+    [count, current, t]
   );
 
-  // Auto-advance (functional update so the interval never needs re-creating on
-  // each tick). Pauses on hover/focus and honors reduced-motion.
   useEffect(() => {
-    if (count < 2 || paused || reduceMotion) return;
-    const id = window.setInterval(
-      () => setIndex((i) => (i + 1) % count),
+    const syncVisibility = () =>
+      setPageVisible(document.visibilityState !== "hidden");
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!canAutoAdvance || userPaused || hovered || focused || !pageVisible)
+      return;
+    const timer = window.setInterval(
+      () =>
+        setCursor((value) => ({
+          index: ((value.count === count ? value.index : 0) + 1) % count,
+          count,
+        })),
       autoAdvanceMs
     );
-    return () => window.clearInterval(id);
-  }, [count, paused, reduceMotion, autoAdvanceMs]);
+    return () => window.clearInterval(timer);
+  }, [
+    autoAdvanceMs,
+    canAutoAdvance,
+    count,
+    focused,
+    hovered,
+    pageVisible,
+    userPaused,
+  ]);
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0]?.clientX ?? null;
+  const onTouchStart = (event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
   };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
-    if (Math.abs(dx) > 40) go(current + (dx < 0 ? 1 : -1));
-    touchStartX.current = null;
+  const onTouchEnd = (event: React.TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+      const forward = rtl ? dx > 0 : dx < 0;
+      go(current + (forward ? 1 : -1));
+    }
   };
 
-  const multi = count > 1;
+  const chrome = isLight
+    ? "border border-border bg-card text-foreground hover:bg-muted hover:text-foreground"
+    : "border border-white/50 bg-white/15 text-white hover:bg-white/25 hover:text-white";
+  const control = cn("h-11 w-11 shrink-0 rounded-full p-0", chrome);
 
   return (
     <div
-      className={cn("relative overflow-hidden", className)}
+      ref={rootRef}
+      className={cn("relative min-w-0 overflow-clip", className)}
       style={style}
       role="region"
       aria-roledescription="carousel"
-      aria-label={ariaLabel}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
+      dir={rtl ? "rtl" : "ltr"}
+      aria-label={ariaLabel ?? t("carousel.label")}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+          setFocused(false);
+      }}
     >
-      {multi && (
-        <>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => go(current - 1)}
-            aria-label={t("carousel.previous")}
-            className="absolute start-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white hover:bg-white/25 hover:text-white"
-          >
-            <span aria-hidden="true">&lsaquo;</span>
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => go(current + 1)}
-            aria-label={t("carousel.next")}
-            className="absolute end-1.5 top-1/2 z-[5] !h-[26px] !w-[26px] -translate-y-1/2 rounded-full border border-white/20 bg-white/[.14] text-xs leading-none text-white hover:bg-white/25 hover:text-white"
-          >
-            <span aria-hidden="true">&rsaquo;</span>
-          </Button>
-        </>
-      )}
-
       <div
         className="flex transition-transform duration-[350ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] motion-reduce:transition-none"
-        style={{ transform: `translateX(-${current * 100}%)` }}
+        dir={rtl ? "rtl" : "ltr"}
+        style={{
+          transform: `translateX(${rtl ? "" : "-"}${current * 100}%)`,
+          transitionDuration: reduceMotion ? "0ms" : undefined,
+          touchAction: "pan-y",
+        }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        onTouchCancel={() => {
+          touchStart.current = null;
+        }}
       >
-        {/* Slides are a stable, caller-ordered list — index identity is correct. */}
-        {slides.map((slide, i) => (
+        {slides.map((slide, position) => (
           <div
-            key={i}
+            key={position}
             className="min-w-0 flex-[0_0_100%]"
             role="group"
             aria-roledescription="slide"
             aria-label={t("carousel.slideOf", {
-              current: i + 1,
+              current: position + 1,
               total: count,
             })}
+            aria-hidden={position !== current}
+            ref={(element) => {
+              slideRefs.current[position] = element;
+              if (element) element.inert = position !== current;
+            }}
           >
             {slide}
           </div>
@@ -145,23 +185,88 @@ const HeroCarousel = ({
       </div>
 
       {multi && (
-        <div className="flex justify-center gap-[5px] pb-2.5 pt-2">
-          {slides.map((_, i) => (
+        <div
+          role="group"
+          aria-label={t("carousel.controls")}
+          className="flex min-w-0 items-center justify-center gap-1 px-2 py-1.5"
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => go(current - 1)}
+            aria-label={t("carousel.previous")}
+            className={control}
+          >
+            <span aria-hidden="true" className="text-xl">
+              {rtl ? "›" : "‹"}
+            </span>
+          </Button>
+          <div
+            className="flex min-w-0 flex-1 items-center justify-center gap-0.5 overflow-x-auto"
+            aria-label={t("carousel.position")}
+          >
+            {slides.map((_, position) => (
+              <Button
+                key={position}
+                type="button"
+                variant="ghost"
+                onClick={() => go(position)}
+                aria-label={t("carousel.goTo", { number: position + 1 })}
+                aria-current={position === current ? "true" : undefined}
+                className={cn(
+                  "h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-full p-0",
+                  isLight
+                    ? "text-foreground hover:bg-muted"
+                    : "text-white hover:bg-[var(--hero-inverse-control-hover)] dark:hover:bg-[var(--hero-inverse-control-hover)]"
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "block h-1 rounded-full",
+                    position === current ? "w-[22px]" : "w-4",
+                    isLight ? "bg-slate-700" : "bg-white"
+                  )}
+                />
+              </Button>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            data-carousel-next
+            onClick={() => go(current + 1)}
+            aria-label={t("carousel.next")}
+            className={control}
+          >
+            <span aria-hidden="true" className="text-xl">
+              {rtl ? "‹" : "›"}
+            </span>
+          </Button>
+          {canAutoAdvance && (
             <Button
-              key={i}
               type="button"
               variant="ghost"
-              onClick={() => go(i)}
-              aria-label={t("carousel.goTo", { number: i + 1 })}
-              aria-current={i === current}
-              className={cn(
-                "!h-1 min-h-0 rounded-sm p-0 transition-all duration-150 hover:bg-white/50",
-                i === current ? "!w-[22px] bg-white" : "!w-4 bg-white/25"
-              )}
-            />
-          ))}
+              className={control}
+              onClick={() => setUserPaused((value) => !value)}
+              aria-label={t(userPaused ? "carousel.play" : "carousel.pause")}
+              aria-pressed={userPaused}
+            >
+              <span aria-hidden="true" className="text-base">
+                {userPaused ? "▶" : "Ⅱ"}
+              </span>
+            </Button>
+          )}
         </div>
       )}
+      <span
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {announcement}
+      </span>
     </div>
   );
 };

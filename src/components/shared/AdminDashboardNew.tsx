@@ -113,8 +113,6 @@ const AdminDashboardNew = () => {
             icon={UserCheck}
             label={t("dashboard.activeUsers")}
             value={formatNumber(kpis?.activeUsers ?? 0)}
-            iconBgClass="bg-transparent"
-            iconColorClass="text-green-600"
           />
           <KPICard
             icon={BookOpen}
@@ -157,7 +155,7 @@ const AdminDashboardNew = () => {
                 ))}
               </div>
             ) : (
-              <p className="py-6 text-center text-sm text-gray-500">
+              <p className="py-6 text-center text-sm text-muted-foreground">
                 {t("dashboard.noActiveUsers")}
               </p>
             )}
@@ -178,7 +176,7 @@ const AdminDashboardNew = () => {
               <p className="text-sm font-semibold text-gray-900">
                 {t("dashboard.usersByRole")}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {t("dashboard.totalUsers")}:{" "}
                 {formatNumber(kpis?.totalUsers ?? 0)}
               </p>

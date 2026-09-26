@@ -31,23 +31,19 @@ export interface FindingsArtifact {
   readonly findings: readonly Finding[];
 }
 
-const AUDIT_OUTPUT_ROOT = resolve("audit", "output");
-
-const outputPath = (relativeName: string): string => {
-  return resolve(AUDIT_OUTPUT_ROOT, relativeName);
-};
-
 export const writeFindingsArtifact = (
   relativeName: string,
   artifact: FindingsArtifact
 ): string => {
-  const destination = outputPath(relativeName);
+  // Resolve at call time: callers may switch workspaces after importing us.
+  const workspaceRoot = process.cwd();
+  const destination = resolve(workspaceRoot, "audit", "output", relativeName);
   mkdirSync(dirname(destination), { recursive: true });
   writeFileSync(destination, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
   // Return a workspace-relative, POSIX-style path so the manifest is
   // reproducible across machines and OSes (important for CI diffs and
   // cross-platform grep-through-logs).
-  return relative(process.cwd(), destination).split("\\").join("/");
+  return relative(workspaceRoot, destination).split("\\").join("/");
 };
 
 /**

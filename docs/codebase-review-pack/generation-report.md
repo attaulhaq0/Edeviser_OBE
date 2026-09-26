@@ -1,3 +1,5 @@
+# HISTORICAL, UNVERIFIED — not a current audit or safe-to-distribute source pack
+
 # Edeviser Codebase Documentation & Audit Generation Report
 
 - **Generated At**: 2026-08-01T20:18:11.356Z
@@ -5,7 +7,7 @@
 - **Total First-Party Files Scanned**: 2510
 - **Text Source Files Included**: 2314
 - **Total Source Lines Included**: 369042
-- **Secrets Redacted**: Yes (0 secret patterns leaked)
+- **Secrets Redacted**: NOT VERIFIED. The old generator used narrow substitutions; no independent byte/credential review was recorded.
 - **PDF Deliverables Created**:
   1. `docs/codebase-review-pack/Edeviser-Complete-Codebase.pdf`
   2. `docs/codebase-review-pack/Edeviser-Complete-Codebase-Volume-01.pdf`
@@ -20,4 +22,4 @@
 
 ## Status
 
-🎉 All codebase review artifacts generated cleanly and successfully!
+Historical generator wrote artifact files; their route, security, live-state and completeness claims were not independently verified. See README.md before any use.

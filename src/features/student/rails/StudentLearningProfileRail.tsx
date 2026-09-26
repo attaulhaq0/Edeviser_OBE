@@ -20,7 +20,7 @@ const StudentLearningProfileRail = () => {
     >
       <RailCard>
         <RailHead title={t("learningProfile.rail.whyTitle")} />
-        <p className="m-0 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+        <p className="m-0 text-xs leading-relaxed text-muted-foreground">
           {t("learningProfile.rail.whyBody")}
         </p>
       </RailCard>
@@ -37,13 +37,13 @@ const StudentLearningProfileRail = () => {
         {profile.isPending ? (
           <Shimmer className="h-5 rounded-md" />
         ) : boundedCompleteness == null ? (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {t("learningProfile.rail.completenessEmpty")}
           </p>
         ) : (
           <>
             <div
-              className="h-1.5 overflow-hidden rounded-full bg-slate-100"
+              className="h-1.5 overflow-hidden rounded-full bg-muted"
               role="progressbar"
               aria-label={t("learningProfile.completeness")}
               aria-valuemin={0}
@@ -51,7 +51,7 @@ const StudentLearningProfileRail = () => {
               aria-valuenow={Math.round(boundedCompleteness)}
             >
               <div
-                className="h-full rounded-full bg-transparent0 transition-[width]"
+                className="h-full rounded-full bg-(--text-teal) transition-[width]"
                 style={{ width: `${boundedCompleteness}%` }}
               />
             </div>

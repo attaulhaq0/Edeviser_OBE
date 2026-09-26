@@ -82,7 +82,7 @@ const StudentProgressRail = () => {
             />
           </div>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {t("progress.rail.focusEmpty", "No outcome data yet.")}
           </p>
         )}
@@ -93,11 +93,11 @@ const StudentProgressRail = () => {
         <RailHead title={t("progress.rail.lastTerm", "📈 Vs. Last Term")} />
         <div className="space-y-1.5 text-xs">
           <RailRow>
-            <span className="text-slate-500 font-medium">Avg attainment</span>
+            <span className="text-muted-foreground font-medium">Avg attainment</span>
             <b className="text-xs font-black text-emerald-600">+9%</b>
           </RailRow>
           <RailRow>
-            <span className="text-slate-500 font-medium">On-time rate</span>
+            <span className="text-muted-foreground font-medium">On-time rate</span>
             <b className="text-xs font-black text-emerald-600">+6%</b>
           </RailRow>
         </div>
@@ -110,7 +110,7 @@ const StudentProgressRail = () => {
           <Shimmer className="h-10 rounded-lg" />
         ) : percentile.data ? (
           <>
-            <p className="text-[15px] font-black text-slate-900 dark:text-slate-100">
+            <p className="text-[15px] font-black text-foreground">
               {formatPercentileBand(percentile.data.band)}
             </p>
             <RailLink
@@ -119,7 +119,7 @@ const StudentProgressRail = () => {
             />
           </>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {t("progress.rail.standingEmpty", "Top 15%")}
           </p>
         )}

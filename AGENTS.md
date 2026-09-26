@@ -15,6 +15,12 @@
 | Claude Code        | `CLAUDE.md`                                          | Thin pointer → this file + `.claude/settings.json` permissions |
 | Cline              | `.clinerules/`                                       | See `.clinerules/00-read-first.md` pointer                     |
 
+## Frontend Design Entry Point
+
+For frontend design or component work, read [`src/design-system/README.md`](src/design-system/README.md) after the nearest frontend instructions. It maps current owners, imports and migration limits. Historical prototype-fidelity references are not authority to override the current semantic, bilingual or accessibility contract. The remediation ledger records evidence; architectural proposals are not automatically implemented capabilities.
+
+For this frontend remediation, the approved direction is a configurable, multilingual K–12 learning-intelligence workspace. The historical product summary below predates that direction. Full product/governance documentation synchronization is separate work and is deliberately not imported into this frontend-only checkpoint. Preserve existing backend, authorization and native assessment contracts.
+
 ## Project Overview
 
 Edeviser is a Human-Centric OBE (Outcome-Based Education) + Gamification platform for higher education. It targets the Qatar market with full Arabic/English bilingual support.

@@ -93,6 +93,7 @@ const adminNavItems: NavItem[] = [
     icon: FileText,
   },
   { to: "/admin/settings/profile", labelKey: "nav.me", icon: UserCog },
+  { to: "/admin/settings/configuration", labelKey: "nav.institutionSettings", icon: SlidersHorizontal },
   { to: "/admin/users", labelKey: "nav.users", icon: Users },
   { to: "/admin/departments", labelKey: "nav.departments", icon: Building2 },
   { to: "/admin/programs", labelKey: "nav.programs", icon: BookOpen },

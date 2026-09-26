@@ -1,20 +1,24 @@
 // =============================================================================
-// Design system — single import surface (prototype design language).
-//
-// Screens should build from HERE, not from the legacy `@/components/shared/*`
-// app components. This makes the eventual transformation to the prototype UI a
-// mechanical swap of imports rather than a rewrite.
+// Design system — shared public export surface during Precision/Obsidian migration.
 //
 //   import { PageHeader, SectionCard, KPICard, EMeter, Button, Card } from "@/design-system";
 //
 // Layers:
-//   - primitives/ — Shadcn ui/* adopted as the L2 primitive layer.
-//   - patterns/   — prototype-faithful compositions (SectionHeader, KPICard,
-//                   PCard, SectionCard, HeroCard, StatusDot, StatePanel, EMeter).
-//   - mascot/     — living character system (Foxi/Owlie/Pengu).
-//   - tokens.css  — L1 foundations (imported at cutover; the live index.css
-//                   already carries the canonical 93.65deg --brand-gradient).
+//   - primitives/ — existing generated Shadcn ui/* components, re-exported.
+//   - patterns/   — shared compositions; remaining migration gaps are in README.md
+//                   and the forensic remediation ledger, not blanket parity claims.
+//   - mascot/     — production-owned character system (Foxi/Owlie/Pengu).
+//   - tokens.css  — active foundations imported by src/index.css in the same
+//                   Tailwind compilation graph. main.tsx loads index.css once.
+// Application chrome in components/shared still owns real shared behavior.
+// Keep active Hawdex facades and Logo exports stable while consolidating APIs.
 // =============================================================================
+
+// Compatibility exports — preserve active Hawdex consumers during consolidation.
+export { AccentDot, IconBox, Logo } from "./hawdex/primitives";
+export { HBadge, HAvatar, HButton, HCard, ProgressRing } from "./hawdex/components";
+export { HexBadge, TIER_COLORS, CLAY } from "./hawdex/gamification";
+export type { BadgeTier } from "./hawdex/gamification";
 
 export * from "./primitives";
 export * from "./patterns";

@@ -1,108 +1,23 @@
-# Visual-Regression Harness (pixel-parity gate)
+# Historical prototype comparison — not application visual approval
 
-Enforces that the rebuilt React screens match the approved **prototype**
-pixel-for-pixel (Path A, requirement R2.6). Isolated from the main Playwright
-suites via `playwright.visual.config.ts` (`testDir: ./visual`).
+The `visual/` suite is isolated by `playwright.visual.config.ts`. Its `visual/references/*.png` files are **old prototype snapshots**, not founder-approved, application-owned, bilingual, authenticated or customer-ready baselines. Keep them as migration references; do not replace them automatically or describe a passing cross-implementation diff as pixel-perfect product approval. The [frontend remediation ledger](../docs/audits/frontend-forensic-remediation-ledger.md) remains the acceptance tracker. The approved product direction is in the founder's launch contract maintained outside this frontend-only checkpoint.
 
-## How it works
+## Current measurable scope
 
-1. **Reference capture** (`prototype-reference.spec.ts`) serves `prototype/` via
-   `scripts/serve-prototype.mjs` and screenshots every mapped screen at 4
-   viewports → commits them to `visual/references/<id>__<viewport>.png`. These
-   are the design truth.
-2. **Parity diff** (`parity.spec.ts`) screenshots the **rebuilt app route** and
-   diffs it against that reference with `pixelmatch`; fails above the screen's
-   `maxDiffRatio`, writing an annotated diff to `test-results/visual-diffs/`.
-3. **Screen map** (`screen-map.ts`) is the single source + burn-down list. A
-   screen's parity check activates only when you set `appPath` and flip
-   `rebuilt: true`.
+- `screen-map.ts` has five active (`rebuilt: true`) **dashboard** comparisons against prototype light/LTR PNGs, each with four viewports (360, 768, 1024, 1440). Their historical `maxDiffRatio: 0.6` permits up to **60% mismatched pixels**; it is not a release, accessibility or fidelity certificate. Other map rows are not asserted. Do not weaken these limits or flip flags just to obtain green.
+- `parity.spec.ts` now fails rather than skipping when an active reference is missing. A protected route requires a present, parseable role storageState; neither file presence nor token-shaped JSON proves a live/authorized actor. The exact final URL and light/English/LTR root are checked before a screenshot; font readiness must settle, but that does not prove loaded glyphs. A test cannot certify the role's data, provider-owned persisted preferences, physical display, or image appearance without independent review.
+- The RTL spec under `tests/e2e/rtl/` has its separate snapshot path and fail-closed missing-baseline policy. Its mocked source tests are not a reviewed EN/AR rendered route. The full five-role, state, theme, viewport and accessibility matrix remains open.
 
-Viewports: **360 / 768 / 1024 / 1440**. Reference = **light + LTR** (all the
-prototype defines). Dark mode + Arabic/RTL are net-new and gated separately.
+## Candidate capture (never baseline promotion)
 
-## Commands
+`npm run test:visual:capture` currently serves the *prototype* only. It creates unique **CAPTURED_UNREVIEWED** files under ignored `test-results/visual-candidates/<run-id>/`, not `visual/references/`. The capture code uses exclusive creation; existing PNGs and other worktree assets cannot be overwritten. CDN styling/fallback fonts and the absence of real user data mean a prototype candidate is not a production-scene reference. This command is **not** authority to update Git snapshots.
 
-```bash
-# One-time: install browsers
-npm run audit:install-browsers        # (existing) installs chromium + webkit
+`npm run test:visual` compares active app routes to retained prototype references. Do **not** launch it against an arbitrary Vite/dev URL or a live user session; it starts an application server and will fail if appropriate role states are unavailable. The default root Playwright config also installs Preview seeding hooks and is not a substitute for this isolated visual config. Candidate review, application-owned approved baselines, safe exact-head authenticated fixture collection, reviewed captures and two themes/two languages must be established before a release visual gate can be called complete. No current model session has approved the rendered images.
 
-# 1) Capture / refresh prototype references (needs network for CDN Tailwind+fonts)
-npm run test:visual:capture
+## Safe review path still to implement
 
-# 2) Run the pixel-parity gate against rebuilt screens
-npm run test:visual
-```
+1. Collect application-owned scenes using a separately governed fake-data or valid Git-linked Preview role fixture; label build hash, role/tenant, theme, locale, viewport, interaction state, font loading and auth/data seams.
+2. Have a human/image-capable reviewer inspect paint, contrast, layout, focus and sensitive content. Record reviewer, source identity, approved reference bytes and rollback; the old prototype PNGs remain historical.
+3. Validate the exact reviewed app baselines and every reachable route/state in a read-only no-update comparison. Missing, stale, unreviewed, redirected or unauthenticated scenes must fail—not become ignored/skipped.
 
-If the Playwright-managed Chromium download is unavailable but Google Chrome is
-installed locally, opt into that browser for both commands so captures and diffs
-use the same engine:
-
-```bash
-npx cross-env PLAYWRIGHT_CHANNEL=chrome npm run test:visual:capture
-npx cross-env PLAYWRIGHT_CHANNEL=chrome npm run test:visual
-```
-
-## Adding a screen to the gate
-
-1. Build the screen in the new design system and route it.
-2. In `screen-map.ts` set its `appPath` and `rebuilt: true` (tune `maxDiffRatio`
-   if needed).
-3. `npm run test:visual:capture` (if its reference doesn't exist yet).
-4. `npm run test:visual` — iterate until the diff is within threshold at all 4
-   viewports. The screen is "pixel-perfect" when green.
-
-## Notes
-
-- Cross-implementation diffs are never byte-identical (font hinting,
-  emoji→Lucide, dynamic data), so `DEFAULT_MAX_DIFF_RATIO` is a pragmatic
-  starting tolerance — tighten per screen as baselines stabilize.
-- App routes that require auth load `tests/e2e/_fixtures/storage-states/<role>.json`
-  when present (generated by the audit seed); wire that when the first role
-  screen activates.
-- Screenshots use the viewport size (not full-page) so both sides share exact
-  dimensions for `pixelmatch`.
-- `visual/references/` should be committed; `test-results/visual-diffs/` is
-  disposable output.
-- **References track the prototype and must be refreshed when it changes.** The
-  prototype is still being refined/expanded (see
-  `.kiro/specs/prototype-backend-parity/`), so any edit to a mapped
-  `prototype/*.html` (or adding a screen to `screen-map.ts`) invalidates the
-  affected references — re-run `npm run test:visual:capture` to regenerate them.
-- **Capture references on the same machine you run parity from.** Headless font
-  hinting/emoji rendering varies by OS, so the reference and the parity shot must
-  come from one environment to be comparable.
-
-## Path-A rebuild — wired screens (ready for the parity gate)
-
-These screens are built on `@/design-system` and now carry an `appPath` in
-`screen-map.ts`, and their prototype reference PNGs already exist under
-`visual/references/` (all 4 viewports). They are **not** yet flagged
-`rebuilt: true`, so the parity gate does not assert on them until you opt each in
-(flipping the flag is the deliberate "I claim this matches the prototype" step,
-and pixel parity must be verified on the machine that captured the references).
-
-| Screen id               | App route                | Reference exists |
-| ----------------------- | ------------------------ | ---------------- |
-| `student-dashboard`     | `/student/dashboard`     | yes              |
-| `teacher-dashboard`     | `/teacher/dashboard`     | yes              |
-| `parent-dashboard`      | `/parent/dashboard`      | yes              |
-| `coordinator-dashboard` | `/coordinator/dashboard` | yes              |
-| `admin-dashboard`       | `/admin/dashboard`       | yes              |
-| `student-transcript`    | `/student/transcript`    | yes              |
-| `admin-security`        | `/admin/security`        | yes              |
-| `shared-notifications`  | `/student/notifications` | yes              |
-| `shared-fees`           | `/student/fees`          | yes              |
-
-To activate the gate for a screen (run on the machine that holds the references):
-
-```bash
-# 1) In screen-map.ts, set rebuilt: true on the screen (tune maxDiffRatio if needed)
-# 2) (only if the prototype HTML changed since capture) refresh its reference:
-npm run test:visual:capture
-# 3) Run the pixel-parity gate:
-npm run test:visual
-```
-
-Note: **Parent Fees** (`/parent/fees`) is functionally built and tested but is
-intentionally absent from the parity map — the prototype defines only a
-student-scoped `fees.html`, so there is no parent reference to diff against.
+This is a migration aid and evidence backlog, not a second completion checklist or permission to merge/deploy.

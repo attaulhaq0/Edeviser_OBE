@@ -187,17 +187,17 @@ describe("KPICard", () => {
   it("applies label typography classes", () => {
     render(<KPICard icon={Users} label="Test Label" value={0} />);
     const label = screen.getByText("Test Label");
-    expect(label.className).toContain("text-[10px]");
-    expect(label.className).toContain("font-black");
-    expect(label.className).toContain("tracking-widest");
-    expect(label.className).toContain("uppercase");
+    expect(label.tagName).toBe("DT");
+    expect(label).toHaveClass("text-sm", "font-medium", "text-muted-foreground");
+    expect(label).not.toHaveClass("uppercase", "tracking-widest", "text-[10px]");
+    expect(screen.getByText("0")).toBeInTheDocument();
   });
 
   it("applies value typography classes", () => {
     render(<KPICard icon={Users} label="Test" value={99} />);
     const value = screen.getByText("99");
-    expect(value.className).toContain("text-2xl");
-    expect(value.className).toContain("font-black");
+    expect(value.tagName).toBe("DD");
+    expect(value).toHaveClass("text-2xl", "font-semibold", "tabular-nums", "text-card-foreground");
   });
 });
 
@@ -332,7 +332,7 @@ describe("CQIStatusBadge", () => {
 
   it("applies gray styling for planned", () => {
     const { container } = render(<CQIStatusBadge status="planned" />);
-    expect(container.firstElementChild?.className).toContain("bg-gray-100");
+    expect(container.firstElementChild?.className).toContain("bg-muted");
   });
 
   it("applies blue styling for in_progress", () => {

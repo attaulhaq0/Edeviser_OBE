@@ -1,11 +1,19 @@
-// Visual-regression harness config — ISOLATED from playwright.config.ts.
-// Enforces pixel parity between the approved prototype (reference) and the
-// rebuilt React screens (Path A). See visual/README.md.
+// Historical prototype comparison config — ISOLATED from playwright.config.ts.
+// Neither its old references nor candidate captures are approved app baselines.
+// See visual/README.md and the frontend remediation ledger.
 //
 // Runs only the ./visual suite. The root playwright.config.ts scopes its
 // projects to e2e/** and tests/e2e/**, so `visual/` is never picked up there and
 // these two configs do not collide.
 import { defineConfig, devices } from "@playwright/test";
+
+// Keep verification snapshot policy fixed, even when invoked with CLI flags.
+// This does not change the separate, explicit prototype capture workflow.
+if (process.argv.slice(2).some((argument) =>
+  /^--(?:update|ignore)-snapshots(?:=|$)/.test(argument) || /^-[^-]*u/.test(argument)
+)) {
+  throw new Error("Snapshot update/ignore CLI overrides are disabled for verification.");
+}
 
 const APP_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 const PROTO_PORT = process.env.PROTOTYPE_PORT ?? "4180";
@@ -34,6 +42,8 @@ const appServer = {
 export default defineConfig({
   testDir: "./visual",
   fullyParallel: true,
+  updateSnapshots: "none",
+  ignoreSnapshots: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: [
@@ -42,7 +52,7 @@ export default defineConfig({
   use: {
     baseURL: APP_URL,
     trace: "on-first-retry",
-    reducedMotion: "reduce",
+    contextOptions: { reducedMotion: "reduce" },
   },
   projects: [
     {

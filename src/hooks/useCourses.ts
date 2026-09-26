@@ -17,6 +17,7 @@ import type { Profile } from "@/types/app";
 import type { PaginatedResult } from "@/types/pagination";
 import { getPaginationRange } from "@/types/pagination";
 import { sanitizePostgrestValue } from "@/lib/sanitizeFilter";
+import { getCourseSortOrders, type CourseNameSort } from "@/lib/courseListSorting";
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
@@ -26,6 +27,8 @@ export interface CourseFilters {
   teacherId?: string;
   page?: number;
   pageSize?: number;
+  /** Opt-in Name ordering across the filtered result, with an id tie-break. */
+  nameSort?: CourseNameSort;
 }
 
 /**
@@ -62,14 +65,15 @@ export const useCourses = (
     // caller — fully backward-compatible.
     enabled: options?.enabled ?? true,
     queryFn: async (): Promise<PaginatedResult<CourseWithRelations>> => {
+      const orders = getCourseSortOrders(filters.nameSort);
       let query = supabase
         .from("courses")
         .select(
           "*, programs!courses_program_id_fkey(name), teacher:profiles!courses_teacher_id_fkey(full_name)",
           { count: "exact" }
-        )
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        );
+      for (const order of orders) query = query.order(order.column, { ascending: order.ascending });
+      query = query.range(from, to);
 
       if (filters.programId) {
         query = query.eq("program_id", filters.programId);

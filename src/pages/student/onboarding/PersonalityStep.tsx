@@ -55,17 +55,17 @@ const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => {
             onClick={() => onChange(optionValue)}
             className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
               isSelected
-                ? "border-blue-500 bg-blue-50 text-blue-700"
-                : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
+                ? "border-primary bg-accent text-accent-foreground"
+                : "border-border bg-card text-foreground/80 hover:border-border hover:bg-muted/50"
             }`}
           >
             <span
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                isSelected ? "border-blue-500" : "border-slate-300"
+                isSelected ? "border-primary" : "border-muted-foreground"
               }`}
             >
               {isSelected && (
-                <span className="h-2.5 w-2.5 rounded-full bg-transparent0" />
+                <span className="h-2.5 w-2.5 rounded-full bg-primary" />
               )}
             </span>
             {label}
@@ -186,7 +186,7 @@ export const PersonalityStep = ({
 
   if (totalQuestions === 0) {
     return (
-      <div className="py-16 text-center text-sm text-gray-500">
+      <div className="py-16 text-center text-sm text-muted-foreground">
         {t("onboarding.personality.noQuestions")}
       </div>
     );
@@ -221,7 +221,7 @@ export const PersonalityStep = ({
         </h2>
       </div>
 
-      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         {t("onboarding.personality.dimensionProgress", {
           dimension: currentDimension,
           current: currentIndex + 1,
@@ -230,7 +230,7 @@ export const PersonalityStep = ({
       </p>
 
       {/* Question progress */}
-      <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
+      <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-muted">
         <motion.div
           className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
@@ -252,7 +252,7 @@ export const PersonalityStep = ({
           transition={motionGate.transition({ duration: 0.2 })}
           className="w-full max-w-md"
         >
-          <Card className="border-0 bg-white p-6 shadow-md rounded-xl">
+          <Card className="border-0 bg-card p-6 shadow-md rounded-xl">
             <p className="mb-6 text-sm font-medium text-gray-900">
               {currentQuestion?.question_text}
             </p>
@@ -271,7 +271,7 @@ export const PersonalityStep = ({
           variant="ghost"
           onClick={handleBack}
           disabled={currentIndex === 0}
-          className="text-gray-500"
+          className="text-muted-foreground"
         >
           {t("onboarding.personality.previous")}
         </Button>

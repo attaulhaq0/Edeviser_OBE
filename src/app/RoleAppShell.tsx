@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from "react";
 import GlobalHeader from "@/components/shared/GlobalHeader";
 import Sidebar from "@/components/shared/Sidebar";
 import MobileTabBar from "@/components/shared/MobileTabBar";
+import RouteContentBoundary from "@/components/shared/RouteContentBoundary";
 import { SidebarProvider } from "@/components/shared/SidebarContext";
 import GuidedTour from "@/components/shared/GuidedTour";
 import EmailVerificationBanner from "@/components/shared/EmailVerificationBanner";
@@ -42,12 +43,12 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
       <div
         data-role={userRole}
         data-norail={hasRail ? undefined : "true"}
-        className="role-app-shell min-h-screen bg-slate-50 dark:bg-background"
+        className="role-app-shell min-h-screen bg-background dark:bg-background"
       >
         <GlobalHeader />
         <div
           className={cn(
-            "grid min-h-[calc(100vh-var(--app-header-h))] grid-cols-1 px-(--app-gutter-mobile) pb-[calc(3.25rem+env(safe-area-inset-bottom))]",
+            "role-shell-grid grid min-h-[calc(100vh-var(--app-header-h))] grid-cols-1 px-(--app-gutter-mobile) pb-(--app-mobile-nav-clearance)",
             "min-[640px]:grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)] min-[640px]:gap-(--app-gutter) min-[640px]:px-0 min-[640px]:pb-0",
             hasRail &&
               "xl:grid-cols-[var(--app-sidebar-w)_minmax(0,1fr)_var(--app-rail-w)]"
@@ -67,11 +68,13 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
                   hasRail && "max-w-(--app-content-max) mx-auto"
                 )}
               >
-                {children}
+                <RouteContentBoundary>{children}</RouteContentBoundary>
               </div>
             </main>
           </div>
-          {rail}
+          {hasRail ? (
+            <RouteContentBoundary compact>{rail}</RouteContentBoundary>
+          ) : null}
         </div>
         <GuidedTour />
         {intelligenceUiEnabled ? (

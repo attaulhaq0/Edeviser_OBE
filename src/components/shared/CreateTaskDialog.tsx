@@ -4,6 +4,7 @@
 // description
 // =============================================================================
 
+import type { RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -15,12 +16,12 @@ import type { z } from "zod";
 type TaskFormValues = z.input<typeof createPlannerTaskSchema>;
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { LocalizedDialogContent as DialogContent } from "@/components/shared/LocalizedDialogContent";
 import {
   Form,
   FormField,
@@ -49,6 +50,7 @@ interface CourseOption {
 interface CreateTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
   defaultDate?: string;
   courses: CourseOption[];
   onSubmit: (data: CreatePlannerTaskInput) => void;
@@ -58,6 +60,7 @@ interface CreateTaskDialogProps {
 const CreateTaskDialog = ({
   open,
   onOpenChange,
+  returnFocusRef,
   defaultDate,
   courses,
   onSubmit,
@@ -81,7 +84,7 @@ const CreateTaskDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent returnFocusRef={returnFocusRef} className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ListTodo className="h-5 w-5 text-blue-600" />
@@ -95,7 +98,7 @@ const CreateTaskDialog = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
+            className="min-w-0 space-y-4"
           >
             {/* Title */}
             <FormField
@@ -113,15 +116,15 @@ const CreateTaskDialog = ({
             />
 
             {/* Due Date + Priority */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="min-w-0 grid-cols-[minmax(0,1fr)]">
                     <FormLabel>Due Date</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" className="min-w-0 max-w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -216,11 +219,12 @@ const CreateTaskDialog = ({
               <Button
                 type="button"
                 variant="outline"
+                className="min-h-11"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} variant="tactile">
+              <Button type="submit" disabled={isPending} variant="tactile" className="min-h-11">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Create Task
               </Button>

@@ -1,9 +1,9 @@
 // =============================================================================
-// L2 primitives — the prototype design system adopts the existing Shadcn
-// wrappers (`src/components/ui/*`) as its primitive layer (PARITY.md §A). This
-// `.ts` facade re-exports them so screens import primitives from a single
-// design-system surface. `Button` carries the `tactile` variant that reproduces
-// the prototype `.btn3d`.
+// Canonical primitive facade: adopt existing generated Shadcn implementations,
+// rather than create another component library. Current ownership, imports and
+// migration limits are documented in design-system/README.md. Generated custody
+// remains in src/components/ui; shared token/control adoption stays centralized.
+// Existing variants remain compatible; exports are not blanket verification.
 // =============================================================================
 
 export * from "@/components/ui/button";

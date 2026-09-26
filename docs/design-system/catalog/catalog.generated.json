@@ -1,0 +1,994 @@
+{
+  "schemaVersion": 1,
+  "scope": "pilot",
+  "typescriptVersion": "6.0.3",
+  "limitations": [
+    "7 selected entries in the repository pilot, not a complete component or route inventory; unlisted exports are unclassified.",
+    "Status is curated adoption guidance, not proof that every variant meets accessibility or visual requirements.",
+    "Examples are typechecked source compositions, not rendered stories. Evidence paths establish source existence, not executed results; the remediation ledger owns verification history.",
+    "API details are source-derived; native React/DOM props are explicitly omitted. Defaults and runtime behavior are not inferred or evaluated.",
+    "Compatibility replacements are review candidates, never automatic drop-in migrations.",
+    "Evidence documents/test sources are reference-only and are not content-derived API inputs or execution attestations. Their paths, kinds and real containment are validated; edits to reference content alone do not require regeneration. Curated metadata and compiler inputs do.",
+    "Dependency declaration provenance uses portable npm: paths, not host drive paths. Generated output paths reject symbolic links/junctions; this local tooling is not an adversarial filesystem sandbox.",
+    "Input SHA-256 values hash UTF-8 TEXT after physical CRLF-to-LF normalization, not raw binary bytes. Artifact comparison and extracted API/JSDoc/tag line endings use the same policy. Literal escape sequences, other content and whitespace remain significant; tokens and binary font/assets are not transformed."
+  ],
+  "inputs": [
+    {
+      "path": "docs/design-system/catalog/examples/compatibility.tsx",
+      "sha256": "5a21e7fd12a2f47367cbd2a0e3c11dd972271336c805465690d7eac25fe25a42"
+    },
+    {
+      "path": "docs/design-system/catalog/examples/recommended.tsx",
+      "sha256": "214560e95012be4085a7988b36d4d214d3fcc32729373e76f9723bf08a2267b4"
+    },
+    {
+      "path": "docs/design-system/catalog/pilot.json",
+      "sha256": "6ef5f9353c94f5a28fc1228e6d548c247db0e9846f53a484ec71fc30888636ef"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "ac3393e2777830bb8d03e18cae59550afb9b078ce9ec94f2dc01b06855d28109"
+    },
+    {
+      "path": "scripts/design-catalog/generate.mjs",
+      "sha256": "6162cad002171eed3a78ac3af8072c8941adb0606e1ba6212ad1261f7076217a"
+    },
+    {
+      "path": "src/components/ui/alert.tsx",
+      "sha256": "81b14e7d6fe2c185c3660e8d00271cbddeb28fbb4553f2d9fa16c53153ae741e"
+    },
+    {
+      "path": "src/components/ui/avatar.tsx",
+      "sha256": "0a7a44cc0d16b33ebd22c92eb4e84fa565125e70e5fcb4eaf6fc2a872502cbed"
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "sha256": "9f30390c27e0593a502dc79b31c2fc6d27a982ebd86958025d6d487c671380e5"
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "sha256": "4fdd28c3501b1a72dff4ad2372b3e17ce873aeffa085490b8f86021489410ee1"
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "sha256": "1397e7d264d90162220ea7473b311e434651886267c71e7f58d4488be9d8ff39"
+    },
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "sha256": "b810ab2c528b9e23e29005c3281d43def213945eda11475c9c3ea667559e65b7"
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "sha256": "1eb1e0f7fbfc72f7db20e28c7744f060ea594bee5641200766331b2d9a7fc657"
+    },
+    {
+      "path": "src/components/ui/dropdown-menu.tsx",
+      "sha256": "c7c840aea78fde2c37797e0075f71d6c83a0cc06d6f588e97ee4b2006df55e22"
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "sha256": "5fcd5b7d7b66965a54af578246797ee4416c4a7de202e002af7492fe155b1954"
+    },
+    {
+      "path": "src/components/ui/label.tsx",
+      "sha256": "ab8ed276c7215eebed685029f4c991155994c756aea8de5f242261bd766b2f6c"
+    },
+    {
+      "path": "src/components/ui/popover.tsx",
+      "sha256": "7a300fa2f5c1e3392fb8b6363e9ffbbbb388c3a7a8090a8b73727725e7da9b4e"
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "sha256": "a9ae4027c4eaafcac65e39824db2fc1fe618ba65535e3cb9f881072056540280"
+    },
+    {
+      "path": "src/components/ui/separator.tsx",
+      "sha256": "c7d600dd7c8428a9c13f6d81f2597da5daaa1c34735d14285dc8bb3a0c71dfba"
+    },
+    {
+      "path": "src/components/ui/sheet.tsx",
+      "sha256": "a8341d7d90e68f3cff54a7ea04c955570a3f0b08b5676e3bf531fe1ade54a85b"
+    },
+    {
+      "path": "src/components/ui/switch.tsx",
+      "sha256": "d2390b8d38149f231b2011413e1e40a1f8e3acfc72060db25aa9316b1f219a7a"
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "sha256": "085566291cf03c9fea590aa9b77339feebf04cf8ce23494a3667f84bf4811e29"
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "sha256": "8f837209f09b369d1b7f636b72916517e48f1404baa79ef45a8c62c887037f82"
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "sha256": "9b076eb3b077f42b2b6b28b5b9ec54ccc8b04f4e9e78c82e7b5d7684dee3e0f8"
+    },
+    {
+      "path": "src/design-system/hawdex/HexBadge.tsx",
+      "sha256": "79527cdeb5b3416fc6b7094784b10486c358d13d01cebefc584fa366e21ff982"
+    },
+    {
+      "path": "src/design-system/hawdex/components.tsx",
+      "sha256": "ced12b9506f077feee3aac35330dee1f775561c8a1050847cc93f002918bda62"
+    },
+    {
+      "path": "src/design-system/hawdex/gamification-data.tsx",
+      "sha256": "9193f45d72f3b0843e56060c4291a55474b2e5036efa5276e91604d1dd1fc240"
+    },
+    {
+      "path": "src/design-system/hawdex/gamification.ts",
+      "sha256": "fda702857aa77c4d9876ffa4272e49489103d0567f5bd284a87e9024d404d79e"
+    },
+    {
+      "path": "src/design-system/hawdex/primitive-components.tsx",
+      "sha256": "b18e6f1909c0f6a1beee005383927d0c9822587ea51c377e3a99b9f8c36d163d"
+    },
+    {
+      "path": "src/design-system/hawdex/primitives.ts",
+      "sha256": "c8b6bb8f447964568791987ba9785abc7407d9bda3338be400abfc019356f507"
+    },
+    {
+      "path": "src/design-system/index.ts",
+      "sha256": "d32c074af12431811646a48532694ed36be3b2b40f429245ffb61f22b0431343"
+    },
+    {
+      "path": "src/design-system/mascot/MascotCharacter.tsx",
+      "sha256": "1ff4ea6d9a667b39565a762f2039f3df39b8605d2abf154276fb5481db7ffcd0"
+    },
+    {
+      "path": "src/design-system/mascot/MascotCompanion.tsx",
+      "sha256": "07a79145a4fe7b6372e0c179a3f525feff41d1eb99c66211bd889f87f3dd0346"
+    },
+    {
+      "path": "src/design-system/mascot/characters.ts",
+      "sha256": "110bdfc5572a7d77a137177238c1d2f284c11be2208f872c81e7a3bfc4d821b5"
+    },
+    {
+      "path": "src/design-system/mascot/index.ts",
+      "sha256": "2235b02902b7bd68dd472da0da8aa8599d2152a22888513364e80c96f3d15327"
+    },
+    {
+      "path": "src/design-system/patterns/AdminPrimitives.tsx",
+      "sha256": "36b45c496b2b88360926bb001e1625c56912dc6cb8f90547328306c3b879752b"
+    },
+    {
+      "path": "src/design-system/patterns/EMeter.tsx",
+      "sha256": "3516c651ad819e6427fcbca63a3ee442433cd6ce63fd71287908953a738905bd"
+    },
+    {
+      "path": "src/design-system/patterns/GradientCardHeader.tsx",
+      "sha256": "8d49fbf1f760d529e1bd70ae518b3664747a9b4250cfb0e28620cf7c4b24b71e"
+    },
+    {
+      "path": "src/design-system/patterns/HeroCard.tsx",
+      "sha256": "9483802f582690d427859ae7de8b22cca841d841a1e6c11d4720d6b844af0a4a"
+    },
+    {
+      "path": "src/design-system/patterns/HeroCarousel.tsx",
+      "sha256": "b9398a8ed03d76cf86d8809d316e18345dffeece1195cfdbc591cc3518bbbff4"
+    },
+    {
+      "path": "src/design-system/patterns/KPICard.tsx",
+      "sha256": "252c8f696bff2d23ab21bc5a0cca9a22ac9a98c3bdf02d638aa21b78ff10a1a8"
+    },
+    {
+      "path": "src/design-system/patterns/MasteryRing.tsx",
+      "sha256": "f65e28f8092c07c078eccd3d1520c675f6a2ef87e0a4b122b4cd3cb4f07c504f"
+    },
+    {
+      "path": "src/design-system/patterns/PCard.tsx",
+      "sha256": "12e84a127763e2225df04e38e27306edd1c561f5ea7cb2bf9b26c2fffc8d4a7d"
+    },
+    {
+      "path": "src/design-system/patterns/PageHeader.tsx",
+      "sha256": "a5055bda7197b815074a4a8e4c560b70659261a1bb47ab2b5d5f82b70ed8d901"
+    },
+    {
+      "path": "src/design-system/patterns/PreferenceToggle.tsx",
+      "sha256": "2f880cb0d8297a5ff3b32bac02b31130ef978f3b8c2b3ed4c7e0930de80a5163"
+    },
+    {
+      "path": "src/design-system/patterns/Rail.tsx",
+      "sha256": "a93f92cc34aa4e19ce95500b74d991e9a0268e36a68ff73be4860748cc4a159c"
+    },
+    {
+      "path": "src/design-system/patterns/SectionCard.tsx",
+      "sha256": "7ec58080fc221c0e184bb62aa2a6387db1d080ed4973c38d3a9e11f3d15eb1f5"
+    },
+    {
+      "path": "src/design-system/patterns/SectionHeader.tsx",
+      "sha256": "66decc37e0eb434fe2d32fbe98f7a55463971642d81f4be989179aabbc2802e7"
+    },
+    {
+      "path": "src/design-system/patterns/SeverityIcon.tsx",
+      "sha256": "951593e80eae85f641b0b94b874f79a2d2627ed8ed789435ed5ff3fec2a02adc"
+    },
+    {
+      "path": "src/design-system/patterns/Shimmer.tsx",
+      "sha256": "2f39d31ea977f59291cdc3d0f93e14be5e7e400b66310d652ee4ffda1f99a480"
+    },
+    {
+      "path": "src/design-system/patterns/StatePanel.tsx",
+      "sha256": "59186b4054e100f0c9865b00db4e9281ce14c421fa753ae2673ceac37427258f"
+    },
+    {
+      "path": "src/design-system/patterns/StatusDot.tsx",
+      "sha256": "35a49edfa16d55df33e033c2648b1d1c0a8668df4995979420bb5745f45905f8"
+    },
+    {
+      "path": "src/design-system/patterns/VisualizationFrame.tsx",
+      "sha256": "34c0345586238e7cb627404ffaa8c76f0653a39350f1497bd153a5ae438e3064"
+    },
+    {
+      "path": "src/design-system/patterns/WelcomeHero.tsx",
+      "sha256": "a6b8029defbe900fb2fe3a3e7a26bf86e833bd0cb4a100a31e91d22e371400bd"
+    },
+    {
+      "path": "src/design-system/patterns/index.ts",
+      "sha256": "0c4e68c3354ac6bc3773698f36c9ad3eab2eb8daa905b77253e5dee8fbca29d8"
+    },
+    {
+      "path": "src/design-system/primitives/index.ts",
+      "sha256": "174273b33db049d2d1d1feba7ec45dbdf2b009a0e586f7357b4ea68d84185538"
+    },
+    {
+      "path": "src/lib/accessibilityPreferenceOwner.ts",
+      "sha256": "575deb2c7e1e4c072d6666a6f8f80b17f968b4099e964e3d8cb59b663a75e848"
+    },
+    {
+      "path": "src/lib/accessibilityPreferences.ts",
+      "sha256": "d1c00f7b86919a54167976a3c0a666e7f350928071fa43c562cfff7420d3b067"
+    },
+    {
+      "path": "src/lib/displayName.ts",
+      "sha256": "5c8a8e5c21dcaaa9af35325aa8179165828bcc22fd1eaab9b33ccfced079f236"
+    },
+    {
+      "path": "src/lib/fontPreferences.ts",
+      "sha256": "b1e1351feb3a5ebbc53ec4b95da0668ba98d14ee8d2c767cb6f833194590008c"
+    },
+    {
+      "path": "src/lib/mascotGuidance.ts",
+      "sha256": "9bea2b032553ed135cd9db23bf5a929983d612e5b077c963b885c5639e13425d"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "sha256": "d1f1e0d62cb8d8d1e04c26e14de842d8a151f75812d81b046c65b5d1fe8e4b27"
+    },
+    {
+      "path": "src/providers/AccessibilityPreferencesContext.ts",
+      "sha256": "eb7f458ba2efc2dde29fe3e82631b5ac60e6643f49b074816b1d4a839e1d3925"
+    },
+    {
+      "path": "src/runtime-dependency-governance.d.ts",
+      "sha256": "a2e7cffcffb51978b2024c7b0752cc7aad9dd206ef6cac1b8963eca8382f8514"
+    },
+    {
+      "path": "src/types/app.ts",
+      "sha256": "5079c96819e16d20c562a9c21af992b17b283ec0ce36fe53466847e6731be776"
+    },
+    {
+      "path": "src/types/database.ts",
+      "sha256": "297470af691b00bf2de9ce38c1c409d0e93decc0cb796d59a45cb17487f70834"
+    },
+    {
+      "path": "src/types/deno-remote.d.ts",
+      "sha256": "29d555a1365f8fd5efdade99b28cd2d185ddf32469514b8b7d7a8d2a7f511b3c"
+    },
+    {
+      "path": "src/vite-env.d.ts",
+      "sha256": "9fad2a0ad48b9d4c91fdc1baa5307e72d17c9f70af21314227ab73dfc1b698c4"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "e2313c707f7e6cdc8b95e7203ca4d2c8e90a9a5b23233d8e0b4e26e0d9063a1a"
+    }
+  ],
+  "entries": [
+    {
+      "id": "button",
+      "exportName": "Button",
+      "canonicalImport": "@/design-system/primitives",
+      "purpose": "Existing generated Shadcn Button exposed through the application facade.",
+      "status": "adopted-primitive",
+      "constraints": [
+        "Do not hand-edit the generated implementation. Supply an accessible translated label; inspect the shared CSS owners. Not all variants, opacity combinations or consumer overrides are certified."
+      ],
+      "requiredStates": [
+        "focus",
+        "disabled",
+        "hover",
+        "light/dark",
+        "high contrast"
+      ],
+      "replacement": null,
+      "example": {
+        "path": "docs/design-system/catalog/examples/recommended.tsx",
+        "exportName": "ReadingSurfaceExample"
+      },
+      "evidence": [
+        {
+          "kind": "test-source",
+          "path": "src/__tests__/unit/accessibilityFoundation.test.ts",
+          "scope": "Selected semantic/alpha contrast and adoption contracts, not every native attribute or variant rendering."
+        }
+      ],
+      "implementation": {
+        "path": "src/components/ui/button.tsx",
+        "line": 46
+      },
+      "documentation": null,
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "(props: Omit<React.ClassAttributes<HTMLButtonElement> & React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; destructive: string; outline: string; secondary: string; ghost: string; link: string; tactile: string; }; size: { default: string; xs: string; sm: string; lg: string; icon: string; \"icon-xs\": string; \"icon-sm\": string; \"icon-lg\": string; }; }> & ClassProp) | undefined) => string> & { asChild?: boolean; }, \"ref\"> & React.RefAttributes<HTMLButtonElement>): React.ReactNode",
+          "propsType": "Omit<React.ClassAttributes<HTMLButtonElement> & React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; destructive: string; outline: string; secondary: string; ghost: string; link: string; tactile: string; }; size: { default: string; xs: string; sm: string; lg: string; icon: string; \"icon-xs\": string; \"icon-sm\": string; \"icon-lg\": string; }; }> & ClassProp) | undefined) => string> & { asChild?: boolean; }, \"ref\"> & React.RefAttributes<HTMLButtonElement>",
+          "properties": [
+            {
+              "name": "asChild",
+              "type": "boolean | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/components/ui/button.tsx",
+                  "line": 50
+                }
+              ]
+            },
+            {
+              "name": "children",
+              "type": "ReactI18NextChildren | Iterable<ReactI18NextChildren>",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "npm:react-i18next/index.d.ts",
+                  "line": 184
+                }
+              ]
+            },
+            {
+              "name": "size",
+              "type": "\"icon\" | \"default\" | \"xs\" | \"sm\" | \"lg\" | \"icon-xs\" | \"icon-sm\" | \"icon-lg\" | null | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/components/ui/button.tsx",
+                  "line": 28
+                }
+              ]
+            },
+            {
+              "name": "variant",
+              "type": "\"link\" | \"default\" | \"destructive\" | \"outline\" | \"secondary\" | \"ghost\" | \"tactile\" | null | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/components/ui/button.tsx",
+                  "line": 11
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 275,
+            "sources": [
+              "npm:@types/react/index.d.ts"
+            ],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    },
+    {
+      "id": "hawdex-card",
+      "exportName": "HCard",
+      "canonicalImport": "@/design-system",
+      "purpose": "Existing Hawdex card facade retained for active compatibility consumers.",
+      "status": "compatibility-review",
+      "constraints": [
+        "Do not select as a new default or delete it without consumer evidence. Compatibility status is not a deprecation announcement."
+      ],
+      "requiredStates": [
+        "consumer inventory",
+        "surface/layout parity"
+      ],
+      "replacement": {
+        "kind": "review-candidate",
+        "targetIds": [
+          "pcard"
+        ],
+        "note": "Compare spacing, style and behavior before migrating; no automatic substitution is authorized."
+      },
+      "example": {
+        "path": "docs/design-system/catalog/examples/compatibility.tsx",
+        "exportName": "LegacyHawdexReference"
+      },
+      "evidence": [
+        {
+          "kind": "review-document",
+          "path": "src/design-system/README.md",
+          "scope": "Current compatibility/import guidance, not approval of every Hawdex implementation."
+        }
+      ],
+      "implementation": {
+        "path": "src/design-system/hawdex/components.tsx",
+        "line": 69
+      },
+      "documentation": null,
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "({ children, className, style }: { children: ReactNode; className?: string; style?: React.CSSProperties; }): JSX.Element",
+          "propsType": "{ children: ReactNode; className?: string; style?: React.CSSProperties; }",
+          "properties": [
+            {
+              "name": "children",
+              "type": "ReactNode",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/hawdex/components.tsx",
+                  "line": 69
+                }
+              ]
+            },
+            {
+              "name": "className",
+              "type": "string | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/hawdex/components.tsx",
+                  "line": 69
+                }
+              ]
+            },
+            {
+              "name": "style",
+              "type": "CSSProperties | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/hawdex/components.tsx",
+                  "line": 69
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 0,
+            "sources": [],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    },
+    {
+      "id": "kpi-card",
+      "exportName": "KPICard",
+      "canonicalImport": "@/design-system/patterns",
+      "purpose": "Metric tile migrated to finite semantic presentation; consumer and rendered acceptance remain under review.",
+      "status": "compatibility-review",
+      "constraints": [
+        "The new API removes arbitrary paint/class overrides. Supply domain-owned values and explicit availability; tone must not infer academic classification. Source migration does not certify all consumers or rendered states."
+      ],
+      "requiredStates": [
+        "missing versus measured zero",
+        "native formatted values",
+        "all tones",
+        "light/dark/high contrast",
+        "long values",
+        "EN/AR",
+        "no hover lift"
+      ],
+      "replacement": null,
+      "example": {
+        "path": "docs/design-system/catalog/examples/compatibility.tsx",
+        "exportName": "LegacyKpiReference"
+      },
+      "evidence": [
+        {
+          "kind": "review-document",
+          "path": "docs/architecture/frontend-design-system-strategy.md",
+          "scope": "Migration findings, not approval or browser verification."
+        }
+      ],
+      "implementation": {
+        "path": "src/design-system/patterns/KPICard.tsx",
+        "line": 28
+      },
+      "documentation": "Static metric surface. Missing data is explicit; measured zero stays zero.\nInvalid runtime values fail closed without turning a count into a status.",
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "({ icon: Icon, label, value, tone, valueState, surface, }: KPICardProps): JSX.Element",
+          "propsType": "KPICardProps",
+          "properties": [
+            {
+              "name": "icon",
+              "type": "LucideIcon",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/KPICard.tsx",
+                  "line": 7
+                }
+              ]
+            },
+            {
+              "name": "label",
+              "type": "string",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/KPICard.tsx",
+                  "line": 8
+                }
+              ]
+            },
+            {
+              "name": "surface",
+              "type": "\"default\" | \"inset\" | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/KPICard.tsx",
+                  "line": 14
+                }
+              ]
+            },
+            {
+              "name": "tone",
+              "type": "\"neutral\" | \"success\" | \"warning\" | \"danger\" | \"info\" | undefined",
+              "optional": true,
+              "documentation": "Presentation of an explicit domain fact, never inferred from the value.",
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/KPICard.tsx",
+                  "line": 12
+                }
+              ]
+            },
+            {
+              "name": "value",
+              "type": "string | number",
+              "optional": false,
+              "documentation": "Already formatted by its domain owner; never classified or reformatted here.",
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/KPICard.tsx",
+                  "line": 10
+                }
+              ]
+            },
+            {
+              "name": "valueState",
+              "type": "\"available\" | \"unavailable\" | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/KPICard.tsx",
+                  "line": 13
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 0,
+            "sources": [],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pcard",
+      "exportName": "PCard",
+      "canonicalImport": "@/design-system/patterns",
+      "purpose": "Static, unpadded reading surface composed from the canonical Card.",
+      "status": "recommended-scoped",
+      "constraints": [
+        "Callers own layout and heading semantics; do not imply interaction with decorative hover treatment."
+      ],
+      "requiredStates": [
+        "light/dark",
+        "LTR/RTL",
+        "long content"
+      ],
+      "replacement": null,
+      "example": {
+        "path": "docs/design-system/catalog/examples/recommended.tsx",
+        "exportName": "ReadingSurfaceExample"
+      },
+      "evidence": [
+        {
+          "kind": "test-source",
+          "path": "src/__tests__/unit/designSystemPatterns.test.tsx",
+          "scope": "Shared pattern contracts; not every consumer or route."
+        }
+      ],
+      "implementation": {
+        "path": "src/design-system/patterns/PCard.tsx",
+        "line": 15
+      },
+      "documentation": null,
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "({ children, className, ...props }: PCardProps): JSX.Element",
+          "propsType": "PCardProps",
+          "properties": [
+            {
+              "name": "children",
+              "type": "ReactNode",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PCard.tsx",
+                  "line": 11
+                }
+              ]
+            },
+            {
+              "name": "className",
+              "type": "string | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PCard.tsx",
+                  "line": 12
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 262,
+            "sources": [
+              "npm:@types/react/index.d.ts"
+            ],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    },
+    {
+      "id": "preference-toggle",
+      "exportName": "PreferenceToggle",
+      "canonicalImport": "@/design-system/patterns",
+      "purpose": "Labelled controlled preference switch using the adopted Button.",
+      "status": "recommended-scoped",
+      "constraints": [
+        "Caller owns state and persistence; supply translated label and description. Minimum target treatment is not a whole-app accessibility certificate."
+      ],
+      "requiredStates": [
+        "on/off",
+        "disabled",
+        "keyboard",
+        "EN/AR",
+        "long copy"
+      ],
+      "replacement": null,
+      "example": {
+        "path": "docs/design-system/catalog/examples/recommended.tsx",
+        "exportName": "PreferenceExample"
+      },
+      "evidence": [
+        {
+          "kind": "test-source",
+          "path": "src/__tests__/unit/accessibilitySettingsPanel.test.tsx",
+          "scope": "Preference control/panel contracts with isolated ownership inputs."
+        }
+      ],
+      "implementation": {
+        "path": "src/design-system/patterns/PreferenceToggle.tsx",
+        "line": 14
+      },
+      "documentation": "A text-labelled switch with a real 44px button and one clickable label area.",
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "({ label, description, checked, onCheckedChange, disabled }: PreferenceToggleProps): JSX.Element",
+          "propsType": "PreferenceToggleProps",
+          "properties": [
+            {
+              "name": "checked",
+              "type": "boolean",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PreferenceToggle.tsx",
+                  "line": 8
+                }
+              ]
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PreferenceToggle.tsx",
+                  "line": 7
+                }
+              ]
+            },
+            {
+              "name": "disabled",
+              "type": "boolean | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PreferenceToggle.tsx",
+                  "line": 10
+                }
+              ]
+            },
+            {
+              "name": "label",
+              "type": "string",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PreferenceToggle.tsx",
+                  "line": 6
+                }
+              ]
+            },
+            {
+              "name": "onCheckedChange",
+              "type": "(checked: boolean) => void",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/PreferenceToggle.tsx",
+                  "line": 9
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 0,
+            "sources": [],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    },
+    {
+      "id": "section-header",
+      "exportName": "SectionHeader",
+      "canonicalImport": "@/design-system/patterns",
+      "purpose": "Section heading with optional decorative icon, description and caller-owned actions.",
+      "status": "recommended-scoped",
+      "constraints": [
+        "Select the heading level appropriate to the surrounding document; nested action groups own their layout."
+      ],
+      "requiredStates": [
+        "long heading/actions",
+        "LTR/RTL",
+        "enlarged text"
+      ],
+      "replacement": null,
+      "example": {
+        "path": "docs/design-system/catalog/examples/recommended.tsx",
+        "exportName": "ReadingSurfaceExample"
+      },
+      "evidence": [
+        {
+          "kind": "test-source",
+          "path": "src/__tests__/unit/designSystemPatterns.test.tsx",
+          "scope": "Heading composition contracts, not universal heading hierarchy certification."
+        }
+      ],
+      "implementation": {
+        "path": "src/design-system/patterns/SectionHeader.tsx",
+        "line": 29
+      },
+      "documentation": null,
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "({ icon: Icon, title, description, action, as: Heading, className, }: SectionHeaderProps): JSX.Element",
+          "propsType": "SectionHeaderProps",
+          "properties": [
+            {
+              "name": "action",
+              "type": "ReactNode",
+              "optional": true,
+              "documentation": "Trailing action, inline-end aligned when space allows.",
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/SectionHeader.tsx",
+                  "line": 16
+                }
+              ]
+            },
+            {
+              "name": "as",
+              "type": "\"h2\" | \"h3\" | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/SectionHeader.tsx",
+                  "line": 17
+                }
+              ]
+            },
+            {
+              "name": "className",
+              "type": "string | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/SectionHeader.tsx",
+                  "line": 18
+                }
+              ]
+            },
+            {
+              "name": "description",
+              "type": "string | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/SectionHeader.tsx",
+                  "line": 14
+                }
+              ]
+            },
+            {
+              "name": "icon",
+              "type": "LucideIcon | undefined",
+              "optional": true,
+              "documentation": "Optional decorative icon on a transparent surface.",
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/SectionHeader.tsx",
+                  "line": 12
+                }
+              ]
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/SectionHeader.tsx",
+                  "line": 13
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 0,
+            "sources": [],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    },
+    {
+      "id": "state-panel",
+      "exportName": "StatePanel",
+      "canonicalImport": "@/design-system/patterns",
+      "purpose": "Localized loading, empty, error, partial and permission presentation with caller-owned actions.",
+      "status": "recommended-scoped",
+      "constraints": [
+        "Choose a truthful state from domain/query results; the component does not infer authorization or invent missing data."
+      ],
+      "requiredStates": [
+        "loading",
+        "empty",
+        "error",
+        "partial",
+        "permission",
+        "EN/AR",
+        "action outside announcement"
+      ],
+      "replacement": null,
+      "example": {
+        "path": "docs/design-system/catalog/examples/recommended.tsx",
+        "exportName": "StateExample"
+      },
+      "evidence": [
+        {
+          "kind": "test-source",
+          "path": "src/__tests__/unit/designSystemPatterns.test.tsx",
+          "scope": "Localized variants and action/announcement contracts; not live data or whole-app accessibility."
+        }
+      ],
+      "implementation": {
+        "path": "src/design-system/patterns/StatePanel.tsx",
+        "line": 21
+      },
+      "documentation": null,
+      "jsDocTags": [],
+      "api": [
+        {
+          "signature": "({ variant, message, className, action }: StatePanelProps): JSX.Element",
+          "propsType": "StatePanelProps",
+          "properties": [
+            {
+              "name": "action",
+              "type": "ReactNode",
+              "optional": true,
+              "documentation": "Caller-owned Button/Link controls (or a Fragment); nested groups own layout.",
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/StatePanel.tsx",
+                  "line": 18
+                }
+              ]
+            },
+            {
+              "name": "className",
+              "type": "string | undefined",
+              "optional": true,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/StatePanel.tsx",
+                  "line": 16
+                }
+              ]
+            },
+            {
+              "name": "message",
+              "type": "string | undefined",
+              "optional": true,
+              "documentation": "State message; overrides the localized default, including loading.",
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/StatePanel.tsx",
+                  "line": 15
+                }
+              ]
+            },
+            {
+              "name": "variant",
+              "type": "\"loading\" | \"error\" | \"empty\" | \"partial\" | \"permission\"",
+              "optional": false,
+              "documentation": null,
+              "declarations": [
+                {
+                  "path": "src/design-system/patterns/StatePanel.tsx",
+                  "line": 13
+                }
+              ]
+            }
+          ],
+          "inheritedNative": {
+            "omittedCount": 0,
+            "sources": [],
+            "note": "Native React/DOM properties are not expanded here. Consult the source types; this is a partial API summary."
+          }
+        }
+      ]
+    }
+  ]
+}

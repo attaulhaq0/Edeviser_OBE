@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MIN_COHORT_THRESHOLD } from "@/hooks/useAdminAnalytics";
+import { classifyPloAttainment } from "@/lib/ploAttainmentBand";
 
 // Mock Supabase
 vi.mock("@/lib/supabase", () => ({
@@ -43,20 +44,13 @@ describe("Admin Analytics & Institution Scoping Tests", () => {
     expect(total).toBe(40);
   });
 
-  it("maps PLO attainment percentages to correct status bands", () => {
-    const getStatusBand = (attainment: number) => {
-      if (attainment < 0) return "unmeasured";
-      if (attainment >= 85) return "excellent";
-      if (attainment >= 70) return "satisfactory";
-      if (attainment >= 50) return "developing";
-      return "notYet";
-    };
-
-    expect(getStatusBand(88)).toBe("excellent");
-    expect(getStatusBand(76)).toBe("satisfactory");
-    expect(getStatusBand(63)).toBe("developing");
-    expect(getStatusBand(47)).toBe("notYet");
-    expect(getStatusBand(-1)).toBe("unmeasured");
+  it("uses the real PLO classifier rather than a repeated test-only threshold", () => {
+    expect(classifyPloAttainment(88)).toBe("excellent");
+    expect(classifyPloAttainment(76)).toBe("satisfactory");
+    expect(classifyPloAttainment(63)).toBe("developing");
+    expect(classifyPloAttainment(47)).toBe("notYet");
+    expect(classifyPloAttainment(0)).toBe("notYet");
+    expect(classifyPloAttainment(-1)).toBe("unmeasured");
   });
 
   it("handles AI Co-Pilot performance empty state honestly without fake percentages", () => {

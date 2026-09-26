@@ -4,13 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#3b82f6" />
+    <!-- Initial light canvas; ThemeProvider keeps browser chrome in sync. -->
+    <meta name="theme-color" content="#F3F7FB" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Edeviser — Outcome-Based Education Platform</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <!-- One small critical Latin body face also serves Latin text in Arabic UI.
+         Vite fingerprints this same source URL in HTML and CSS. Other subsets,
+         headings, italics and reading faces stay on demand. /font-licenses.txt -->
+    <link rel="preload" href="/src/assets/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <!--
       Warm the TCP+TLS connection to the Supabase origin during initial HTML
       parse, in parallel with JS bundle download. On a cold first load the very

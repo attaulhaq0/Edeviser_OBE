@@ -1,15 +1,10 @@
 /**
- * Pixel-parity gate: screenshots each REBUILT app route and diffs it against the
- * committed prototype reference. Fails when the diff ratio exceeds the screen's
- * threshold, writing an annotated diff PNG to test-results/visual-diffs/.
- *
- * Activates row by row: only screens with `rebuilt: true` + `appPath` in
- * screen-map.ts are asserted. Today none are rebuilt, so this suite is green and
- * simply reports the harness is ready.
+ * Bounded historical prototype comparison, NOT application visual approval.
+ * Missing references/role sessions and no active rows are explicit failures;
+ * captured prototype images are migration aids, not current design authority.
  */
-import fs from "node:fs";
-import path from "node:path";
 import { test, expect } from "@playwright/test";
+import { loadStorageState } from "../tests/e2e/_helpers/auth.ts";
 import {
   SCREENS,
   VIEWPORTS,
@@ -25,74 +20,97 @@ import {
 
 const FREEZE_ANIMATIONS =
   "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}";
-
-const storageStateFor = (role?: string): string | undefined => {
-  if (!role) return undefined;
-  const p = path.join(
-    process.cwd(),
-    "tests",
-    "e2e",
-    "_fixtures",
-    "storage-states",
-    `${role}.json`
-  );
-  return fs.existsSync(p) ? p : undefined;
-};
-
-const active = SCREENS.filter((s) => s.rebuilt && s.appPath);
+const active = SCREENS.filter((screen) => screen.rebuilt && screen.appPath);
 
 if (active.length === 0) {
-  test("visual parity — harness ready (no rebuilt screens yet)", () => {
-    test.info().annotations.push({
-      type: "note",
-      value:
-        "Set `rebuilt: true` + `appPath` on a screen in visual/screen-map.ts to activate its pixel-parity check.",
-    });
-    expect(active.length).toBe(0);
+  test("historical prototype comparison has no declared app route coverage", () => {
+    throw new Error(
+      "No active application comparison rows. A green empty suite is not visual evidence."
+    );
   });
 }
 
 for (const screen of active) {
   test.describe(screen.id, () => {
-    const ss = storageStateFor(screen.role);
-    if (ss) test.use({ storageState: ss });
-
-    for (const vp of VIEWPORTS) {
-      test(`@ ${vp.name} (${vp.width}x${vp.height})`, async ({ page }) => {
-        test.skip(
-          !hasReference(screen.id, vp.name),
-          `No reference for ${screen.id}@${vp.name} — run npm run test:visual:capture`
+    for (const viewport of VIEWPORTS) {
+      test(`@ ${viewport.name} (${viewport.width}x${viewport.height})`, async ({
+        page,
+      }, testInfo) => {
+        if (
+          testInfo.config.updateSnapshots !== "none" ||
+          testInfo.project.ignoreSnapshots
+        )
+          throw new Error(
+            "Visual verification may not update or ignore snapshots"
+          );
+        if (!hasReference(screen.id, viewport.name))
+          throw new Error(
+            `Historical reference missing for ${screen.id}@${viewport.name}; candidate capture and human review are separate.`
+          );
+        if (!screen.appPath)
+          throw new Error(`No routed application path for ${screen.id}`);
+        const protectedRoute =
+          /^\/(admin|coordinator|teacher|student|parent)(?:\/|$)/.test(
+            screen.appPath
+          );
+        if (protectedRoute && !screen.role)
+          throw new Error(
+            `Protected route ${screen.appPath} needs a verified role storageState`
+          );
+        // readStorageStateFile rejects missing/empty/unauthenticated state. No
+        // silent fallback to an anonymous login page for protected comparisons.
+        if (screen.role) await loadStorageState(page.context(), screen.role);
+        await page.addInitScript(() => {
+          localStorage.setItem("edeviser-language", "en");
+          localStorage.setItem("theme", "light");
+        });
+        await page.setViewportSize({
+          width: viewport.width,
+          height: viewport.height,
+        });
+        await page.goto(screen.appPath, { waitUntil: "networkidle" });
+        await expect
+          .poll(() => new URL(page.url()).pathname)
+          .toBe(screen.appPath);
+        await expect(page.locator("html")).toHaveAttribute(
+          "lang",
+          /^en(?:-|$)/i
         );
-
-        await page.setViewportSize({ width: vp.width, height: vp.height });
-        await page.goto(screen.appPath as string, { waitUntil: "networkidle" });
+        await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+        await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
         await page.addStyleTag({ content: FREEZE_ANIMATIONS });
-        await page
-          .evaluate(async () => {
-            await (
-              document as unknown as { fonts?: { ready?: Promise<unknown> } }
-            ).fonts?.ready;
-          })
-          .catch(() => {});
+        await expect
+          .poll(() =>
+            page.evaluate(async () => {
+              await document.fonts.ready;
+              return document.fonts.status;
+            })
+          )
+          .toBe("loaded");
+        expect(new URL(page.url()).pathname).toBe(screen.appPath);
 
         const actual = await page.screenshot();
+        expect(new URL(page.url()).pathname).toBe(screen.appPath);
         const max = screen.maxDiffRatio ?? DEFAULT_MAX_DIFF_RATIO;
         const result = comparePng(
           actual,
-          referencePath(screen.id, vp.name),
-          diffOutputPath(screen.id, vp.name),
+          referencePath(screen.id, viewport.name),
+          diffOutputPath(screen.id, viewport.name),
           PIXELMATCH_THRESHOLD
         );
-
         expect(
           result.dimensionMismatch,
-          `size mismatch vs reference (ref ${result.width}x${result.height}) — check viewport/dpr`
+          `Reference size ${result.width}x${result.height} differs from current scene`
         ).toBe(false);
         expect(
           result.diffRatio,
-          `pixel diff ${(result.diffRatio * 100).toFixed(2)}% exceeds ${(
-            max * 100
-          ).toFixed(0)}%${result.diffPath ? ` — see ${result.diffPath}` : ""}`
+          `Historical prototype diff ${(result.diffRatio * 100).toFixed(
+            2
+          )}% exceeds declared ${(max * 100).toFixed(
+            0
+          )}%; this is not approved app visual evidence${
+            result.diffPath ? ` — ${result.diffPath}` : ""
+          }`
         ).toBeLessThanOrEqual(max);
       });
     }

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type ColumnDef,
   type SortingState,
+  type OnChangeFn,
+  type TableOptions,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -22,54 +24,88 @@ import { ArrowUpDown } from "lucide-react";
 import { Shimmer } from "@/design-system";
 import type { ReactNode } from "react";
 
-interface DataTableProps<TData, TValue> {
+type SortingControl =
+  | { sorting?: undefined; onSortingChange?: undefined; manualSorting?: false }
+  | {
+      sorting: SortingState;
+      onSortingChange: OnChangeFn<SortingState>;
+      manualSorting?: boolean;
+    };
+
+type DataTableProps<TData, TValue> = SortingControl & {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
   /**
    * True while a background refetch is in flight (e.g. a page/filter change with
    * `placeholderData: keepPreviousData`). The previous rows stay visible but are
-   * dimmed + marked `aria-busy` so the pending state is perceivable without a
+   * marked `aria-busy` so the pending state is perceivable without a
    * skeleton flash (dashboard-and-ux-performance Req 5.1). Distinct from
    * `isLoading`, which is the first-load skeleton.
    */
   isFetching?: boolean;
+  /** Supplied rows still belong to the preceding page/filter/sort request. */
+  isPlaceholderData?: boolean;
   page?: number;
   pageSize?: number;
   totalCount?: number;
+  /** Opt-in stable identity for stateful cells across sorting/paging. */
+  getRowId?: TableOptions<TData>["getRowId"];
   onPageChange?: (page: number) => void;
   emptyState?: ReactNode;
-}
+};
 
 function DataTable<TData, TValue>({
   columns,
   data,
   isLoading = false,
   isFetching = false,
+  isPlaceholderData = false,
+  sorting: controlledSorting,
+  onSortingChange,
+  manualSorting = false,
   page,
   pageSize,
   totalCount,
+  getRowId,
   onPageChange,
   emptyState,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation("common");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const descriptionId = useId();
+  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
+  const sorting = controlledSorting ?? internalSorting;
 
-  const isServerPaginated =
-    page !== undefined &&
+  const isServerPaginated = page !== undefined && onPageChange !== undefined;
+  const totalPages =
+    isServerPaginated &&
     totalCount !== undefined &&
-    onPageChange !== undefined;
-  const totalPages = isServerPaginated
-    ? Math.max(1, Math.ceil(totalCount / (pageSize ?? 25)))
-    : undefined;
+    Number.isFinite(totalCount) &&
+    totalCount >= 0
+      ? Math.max(1, Math.ceil(totalCount / (pageSize ?? 25)))
+      : undefined;
+  const pageOnlySorting =
+    page !== undefined && onPageChange !== undefined && !manualSorting;
+  const descriptions =
+    [
+      pageOnlySorting ? `${descriptionId}-page-only` : undefined,
+      isPlaceholderData || isFetching
+        ? `${descriptionId}-previous-results`
+        : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   const table = useReactTable({
     data,
     columns,
+    getRowId,
+    manualPagination: isServerPaginated,
     state: { sorting },
-    onSortingChange: setSorting,
+    onSortingChange: onSortingChange ?? setInternalSorting,
+    manualSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
     ...(isServerPaginated
       ? {}
       : { getPaginationRowModel: getPaginationRowModel() }),
@@ -77,7 +113,14 @@ function DataTable<TData, TValue>({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div
+        role="status"
+        aria-label={t("tableSorting.loading")}
+        aria-live="polite"
+        aria-busy="true"
+        className="space-y-3"
+      >
+        <span className="sr-only">{t("tableSorting.loading")}</span>
         {Array.from({ length: 5 }).map((_, i) => (
           <Shimmer key={i} className="h-12 rounded-lg" />
         ))}
@@ -91,112 +134,159 @@ function DataTable<TData, TValue>({
   }
 
   return (
-    <div
-      className={`space-y-4 transition-opacity duration-200 ${
-        isFetching ? "opacity-60" : ""
-      }`}
-      aria-busy={isFetching || undefined}
-    >
-      <div className="rounded-lg border bg-background">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+    <>
+      {(isPlaceholderData || isFetching) && (
+        <p
+          id={`${descriptionId}-previous-results`}
+          role="status"
+          className="mb-3 text-sm text-muted-foreground [overflow-wrap:anywhere]"
+        >
+          {t(
+            isPlaceholderData
+              ? "tableSorting.previousResults"
+              : "tableSorting.updatingResults"
+          )}
+        </p>
+      )}
+      <div
+        className="space-y-4"
+        aria-busy={isFetching || isPlaceholderData || undefined}
+      >
+        {pageOnlySorting && (
+          <p
+            id={`${descriptionId}-page-only`}
+            className="text-sm text-muted-foreground [overflow-wrap:anywhere]"
+          >
+            {t("tableSorting.pageOnly")}
+          </p>
+        )}
+        <div className="min-w-0 rounded-lg border bg-background">
+          <Table aria-describedby={descriptions}>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      aria-sort={
+                        header.isPlaceholder ||
+                        header.subHeaders.length > 0 ||
+                        !header.column.getCanSort() ||
+                        isPlaceholderData
+                          ? undefined
+                          : header.column.getIsSorted() === "asc"
+                          ? "ascending"
+                          : header.column.getIsSorted() === "desc"
+                          ? "descending"
+                          : undefined
+                      }
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-gray-500"
-                >
-                  {t("pagination.noResults", "No results found.")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    {t("pagination.noResults", "No results found.")}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-      {/* Pagination */}
-      {isServerPaginated ? (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {t("pagination.pageOf", { page, total: totalPages })}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(page - 1)}
-              disabled={page <= 1}
-            >
-              {t("buttons.back", "Previous")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= (totalPages ?? 1)}
-            >
-              {t("buttons.next", "Next")}
-            </Button>
+        {/* Pagination */}
+        {isServerPaginated ? (
+          <div
+            data-slot="data-table-pagination"
+            className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:gap-4"
+          >
+            <p className="min-w-0 max-w-full flex-1 text-sm text-muted-foreground tabular-nums [overflow-wrap:anywhere]">
+              {totalPages === undefined
+                ? t("tableSorting.pageUnknownCount", { page })
+                : t("pagination.pageOf", { page, total: totalPages })}
+            </p>
+            <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
+                onClick={() => onPageChange(page - 1)}
+                disabled={page <= 1}
+              >
+                {t("buttons.back", "Previous")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
+                onClick={() => onPageChange(page + 1)}
+                disabled={totalPages === undefined || page >= totalPages}
+              >
+                {t("buttons.next", "Next")}
+              </Button>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {t("pagination.pageOf", {
-              page: table.getState().pagination.pageIndex + 1,
-              total: table.getPageCount() || 1,
-            })}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              {t("buttons.back", "Previous")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              {t("buttons.next", "Next")}
-            </Button>
+        ) : (
+          <div
+            data-slot="data-table-pagination"
+            className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:gap-4"
+          >
+            <p className="min-w-0 max-w-full flex-1 text-sm text-muted-foreground tabular-nums [overflow-wrap:anywhere]">
+              {t("pagination.pageOf", {
+                page: table.getState().pagination.pageIndex + 1,
+                total: table.getPageCount() || 1,
+              })}
+            </p>
+            <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                {t("buttons.back", "Previous")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                {t("buttons.next", "Next")}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 }
 

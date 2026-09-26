@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import RouteLoadingState from "@/components/shared/RouteLoadingState";
 import type { UserRole } from "@/types/app";
 
 const ROLE_DASHBOARD_MAP: Record<UserRole, string> = {
@@ -18,11 +19,12 @@ interface RouteGuardProps {
 
 const RouteGuard = ({ allowedRoles, children }: RouteGuardProps) => {
   const { user, role, isLoading } = useAuth();
+  const { t } = useTranslation("common");
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="flex min-h-dvh min-w-0 items-center justify-center bg-background p-6">
+        <RouteLoadingState message={t("routeState.checkingAccess")} />
       </div>
     );
   }

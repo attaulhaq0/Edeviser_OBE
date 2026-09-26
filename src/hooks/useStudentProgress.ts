@@ -12,7 +12,7 @@
 // _Requirements: 25.1, 25.2, 25.3, 25.3a, 25.4_
 // =============================================================================
 
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -23,12 +23,15 @@ export interface CourseProgress {
   course_name: string;
   course_code: string;
   attainment_percent: number;
+  /** Matching attainment rows exist, including recorded zero with zero samples. */
+  attainmentRecorded: boolean;
   clo_count: number;
   evidence_count: number;
 }
 
 export interface ProgressSummary {
   totalCourses: number;
+  recordedCourseCount: number;
   averageAttainment: number;
   excellentCount: number;
   satisfactoryCount: number;
@@ -39,6 +42,7 @@ export interface ProgressSummary {
 
 const emptySummary = (): ProgressSummary => ({
   totalCourses: 0,
+  recordedCourseCount: 0,
   averageAttainment: 0,
   excellentCount: 0,
   satisfactoryCount: 0,
@@ -49,8 +53,9 @@ const emptySummary = (): ProgressSummary => ({
 
 // ─── useStudentProgress ───────────────────────────────────────────────────────
 
-export const useStudentProgress = (studentId: string | undefined) => {
-  return useQuery({
+// One canonical base read, reusable without a second React query observer.
+const studentProgressOptions = (studentId: string | undefined) =>
+  queryOptions({
     queryKey: queryKeys.outcomeAttainment.list({ studentId, view: "progress" }),
     queryFn: async (): Promise<ProgressSummary> => {
       if (!studentId) return emptySummary();
@@ -120,6 +125,7 @@ export const useStudentProgress = (studentId: string | undefined) => {
           course_name: course.name,
           course_code: course.code,
           attainment_percent: avg,
+          attainmentRecorded: (att?.count ?? 0) > 0,
           clo_count: cloCountMap.get(course.id) ?? 0,
           evidence_count: att?.samples ?? 0,
         };
@@ -148,6 +154,7 @@ export const useStudentProgress = (studentId: string | undefined) => {
 
       return {
         totalCourses,
+        recordedCourseCount: perCourse.filter((course) => course.attainmentRecorded).length,
         averageAttainment,
         excellentCount,
         satisfactoryCount,
@@ -159,12 +166,15 @@ export const useStudentProgress = (studentId: string | undefined) => {
     enabled: !!studentId,
     staleTime: 60_000,
   });
-};
+
+export const useStudentProgress = (studentId: string | undefined) =>
+  useQuery(studentProgressOptions(studentId));
 
 // ─── StudentAcademicSummary ──────────────────────────────────────────────────
 
 export interface StudentAcademicSummary {
   activeCourseCount: number;
+  recordedCourseCount: number;
   averageMastery: number | null;
   excellentCount: number;
   satisfactoryCount: number;
@@ -201,16 +211,17 @@ export interface StudentAcademicSummary {
 }
 
 export const useStudentAcademicSummary = (studentId: string | undefined) => {
-  const progress = useStudentProgress(studentId);
+  const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ["student-academic-summary", studentId ?? ""],
-    enabled: !!studentId && !!progress.data,
+    queryKey: queryKeys.outcomeAttainment.list({ studentId, view: "academic-summary" }),
+    enabled: !!studentId,
     staleTime: 60_000,
     queryFn: async (): Promise<StudentAcademicSummary> => {
-      if (!studentId || !progress.data) {
+      if (!studentId) {
         return {
           activeCourseCount: 0,
+          recordedCourseCount: 0,
           averageMastery: null,
           excellentCount: 0,
           satisfactoryCount: 0,
@@ -220,7 +231,12 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
         };
       }
 
-      const pData = progress.data;
+      // Refetch the base read inside this query so failures/retries belong to the
+      // public result and an explicit refresh cannot reuse a fresh-but-old base.
+      const pData = await queryClient.fetchQuery({
+        ...studentProgressOptions(studentId),
+        staleTime: 0,
+      });
       const sorted = [...pData.perCourse].sort(
         (a, b) => b.attainment_percent - a.attainment_percent
       );
@@ -271,7 +287,7 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
       let nextDeadline: StudentAcademicSummary["nextDeadline"] | undefined =
         undefined;
       if (courseIds.length > 0) {
-        const { data: assignData } = await supabase
+        const { data: assignData, error: assignmentError } = await supabase
           .from("assignments")
           .select("id, title, due_date, course_id")
           .in("course_id", courseIds)
@@ -279,6 +295,7 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
           .order("due_date", { ascending: true })
           .limit(1);
 
+        if (assignmentError) throw assignmentError;
         if (assignData && assignData.length > 0 && assignData[0]) {
           const aRow = assignData[0];
           const matchedCourse = pData.perCourse.find(
@@ -295,6 +312,7 @@ export const useStudentAcademicSummary = (studentId: string | undefined) => {
 
       return {
         activeCourseCount: pData.totalCourses,
+        recordedCourseCount: pData.recordedCourseCount,
         averageMastery: pData.averageAttainment,
         excellentCount: pData.excellentCount,
         satisfactoryCount: pData.satisfactoryCount,

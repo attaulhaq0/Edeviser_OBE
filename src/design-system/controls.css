@@ -1,0 +1,42 @@
+/* Consumed control geometry and keyboard indication. No role/page palette fork.
+   Generated primitive custody stays intact; exact public slots are the boundary. */
+@layer base {
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="select-item"] {
+    min-block-size: max(44px, 2.75rem);
+  }
+}
+
+/* Generated half-alpha focus rings measure only 1.986:1 on the white surface.
+   One opaque 3px outline uses the canonical ring (4.258:1 there), without adding
+   an outer offset that could clip header/scrollport edges. No priority-override contest. */
+/* Radix asChild can replace data-slot (e.g. button -> dialog-close). Native
+   control semantics survive that composition; inset menu rules below win. */
+:where(button, input, textarea, select, a[href]):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 0;
+}
+
+/* RadioItem's first child span is its generated absolute indicator. Reset the
+   physical defaults before applying logical geometry for both directions. */
+[data-slot="dropdown-menu-radio-item"] {
+  padding-inline-start: 2rem;
+  padding-inline-end: 0.5rem;
+}
+[data-slot="dropdown-menu-radio-item"] > span:first-child {
+  left: auto;
+  right: auto;
+  inset-inline-start: 0.5rem;
+}
+[data-slot="dropdown-menu-sub-trigger"]:dir(rtl) > svg:last-child {
+  transform: rotate(180deg);
+}
+:is([data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"], [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="select-item"]):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}

@@ -8,7 +8,7 @@
 // 3. Writes AUDIT_RUN_ID to process.env so globalTeardown can use it.
 
 import { chromium, type FullConfig } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import {
@@ -16,6 +16,10 @@ import {
   assertRoleClaim,
   type AuditRole,
 } from "../_helpers/auth.ts";
+import {
+  fixtureProjectMode,
+  verifyGitLinkedPreview,
+} from "../_helpers/previewFixtureTarget.ts";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
 const AUDIT_INSTITUTION_ID = "a1b2c3d4-e5f6-4a7b-8c9d-000000000001";
@@ -73,38 +77,64 @@ const SEED_CREDENTIALS: SeedCredential[] = [
   },
 ];
 
-const writeEmptyStorageStates = (): void => {
-  mkdirSync(STORAGE_STATES_DIR, { recursive: true });
-  for (const { storageName } of SEED_CREDENTIALS) {
-    writeFileSync(
-      resolve(STORAGE_STATES_DIR, `${storageName}.json`),
-      JSON.stringify({ cookies: [], origins: [] }),
-      "utf8"
+export default async function globalSetup(config: FullConfig): Promise<void> {
+  // Never reinterpret a previous process run id as evidence for this setup.
+  delete process.env.AUDIT_FIXTURE_STARTED;
+  delete process.env.AUDIT_PREVIEW_REF;
+  delete process.env.AUDIT_RUN_ID;
+  const selected = fixtureProjectMode(
+    config.projects.map((project) => project.name)
+  );
+  if (selected === "legacy") {
+    console.log(
+      "[globalSetup] Legacy smoke selected; no role states or Preview fixtures created"
     );
-  }
-};
-
-export default async function globalSetup(_config: FullConfig): Promise<void> {
-  const isPreviewFixtureRun =
-    process.env.E2E_FIXTURES_ENABLED === "true" &&
-    process.env.SUPABASE_DB_ENV === "preview";
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!isPreviewFixtureRun || !supabaseUrl || !anonKey) {
-    console.warn(
-      "[globalSetup] E2E fixtures are disabled. Set E2E_FIXTURES_ENABLED=true, SUPABASE_DB_ENV=preview, VITE_SUPABASE_URL, and VITE_SUPABASE_ANON_KEY to run against a preview database."
-    );
-    writeEmptyStorageStates();
     return;
+  }
+
+  // This read-only Management API lookup must independently match BOTH the PR
+  // branch and number before creating a directory, posting seed, or opening Chrome.
+  const target = await verifyGitLinkedPreview(process.env);
+  const appUrl = new URL(BASE_URL);
+  if (
+    appUrl.protocol !== "http:" ||
+    !["localhost", "127.0.0.1"].includes(appUrl.hostname) ||
+    appUrl.port !== "5173" ||
+    appUrl.pathname !== "/" ||
+    appUrl.username ||
+    appUrl.password
+  )
+    throw new Error(
+      "Audit application URL must be the controlled local Vite origin"
+    );
+
+  const prior = lstatSync(STORAGE_STATES_DIR, { throwIfNoEntry: false });
+  if (prior && (!prior.isDirectory() || prior.isSymbolicLink()))
+    throw new Error(
+      "Role storage-state directory is not a normal owned directory"
+    );
+  for (const { storageName } of SEED_CREDENTIALS) {
+    if (
+      lstatSync(resolve(STORAGE_STATES_DIR, `${storageName}.json`), {
+        throwIfNoEntry: false,
+      })
+    )
+      throw new Error(
+        "Existing authenticated role state must be preserved; use a fresh isolated worktree"
+      );
   }
 
   const runId = randomUUID();
   process.env.AUDIT_RUN_ID = runId;
+  process.env.AUDIT_PREVIEW_REF = target.ref;
+  process.env.AUDIT_PREVIEW_BRANCH = target.branch;
+  process.env.AUDIT_PREVIEW_PR_NUMBER = target.prNumber;
+  process.env.AUDIT_FIXTURE_STARTED = "true";
+  const supabaseUrl = target.url;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY!;
   const auditFixturesUrl = `${supabaseUrl}/functions/v1/audit-fixtures`;
 
   mkdirSync(STORAGE_STATES_DIR, { recursive: true });
-
   // Step 1: Preview fixture runs are invalid unless every requested entity is
   // provisioned. A missing fixture capability is a hard failure, never a skip.
   const seedRes = await fetch(`${auditFixturesUrl}/seed`, {
@@ -120,11 +150,8 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
     }),
   });
   if (!seedRes.ok) {
-    const responseText = await seedRes.text();
     throw new Error(
-      `[globalSetup] audit-fixtures/seed returned ${
-        seedRes.status
-      }: ${responseText.slice(0, 500)}`
+      `[globalSetup] audit-fixtures/seed returned HTTP ${seedRes.status}`
     );
   }
 
@@ -136,12 +163,12 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
     seedData.ok !== true
   ) {
     throw new Error(
-      `[globalSetup] audit-fixtures/seed reported an incomplete seed: ${JSON.stringify(
-        seedData
-      )}`
+      "[globalSetup] audit-fixtures/seed reported an incomplete response"
     );
   }
-  console.log(`[globalSetup] Seed complete. runId=${runId}`);
+  console.log(
+    "[globalSetup] Preview fixture seed acknowledged for verified Git-linked branch"
+  );
 
   // Step 2: Sign in as each role and persist storageState.
   const browser = await chromium.launch();

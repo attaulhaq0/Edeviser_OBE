@@ -133,5 +133,8 @@ describe("NAV ↔ ROUTE parity (continuous-verification regression guard)", () =
     // DepartmentManager — the sidebar must expose exactly one of them.
     expect(adminDests).not.toContain("/admin/settings/institution");
     expect(adminDests).toContain("/admin/departments");
+    // Configuration is a distinct real page, not the DepartmentManager alias.
+    expect(adminDests).toContain("/admin/settings/configuration");
+    expect(definedRoutes.has("/admin/settings/configuration")).toBe(true);
   });
 });

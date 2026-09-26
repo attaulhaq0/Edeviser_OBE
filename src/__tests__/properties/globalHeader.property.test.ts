@@ -5,7 +5,7 @@
  *
  * Verifies:
  * 1. GlobalHeader is full-width (no max-w-* wrapper)
- * 2. Primary nav is present as Row 2
+ * 2. Shared responsive navigation and desktop sidebar-brand ownership are preserved
  * 3. No legacy sidebar (<aside>) in any role layout
  * 4. Exactly one settings entry point (ProfileDropdown "Profile Settings" item)
  * 5. No standalone Settings icon button in the header row
@@ -18,12 +18,11 @@ import * as path from "path";
 
 const projectRoot = path.resolve(__dirname, "../../..");
 
-const readFileSafe = (relPath: string): string | null => {
-  try {
-    return fs.readFileSync(path.join(projectRoot, relPath), "utf-8");
-  } catch {
-    return null;
-  }
+const readSource = (relPath: string): string => {
+  // Missing/unreadable/empty source must fail, never silently skip a contract.
+  const content = fs.readFileSync(path.join(projectRoot, relPath), "utf-8");
+  if (!content.trim()) throw new Error(`Empty source contract: ${relPath}`);
+  return content;
 };
 
 const ROLE_LAYOUTS = [
@@ -35,14 +34,17 @@ const ROLE_LAYOUTS = [
 ] as const;
 
 describe("globalHeader.property.test — full-width header + single settings entry (clauses 2.27, 2.28, 3.27, 3.28)", () => {
+  it("fails rather than skipping a missing source contract", () => {
+    expect(() => readSource("src/__tests__/fixtures/__missing_header_source__.tsx")).toThrow();
+  });
   /**
    * Property: Every role layout uses the shared shell (which owns GlobalHeader)
    */
   it("every role layout uses RoleAppShell and has no sidebar <aside>", () => {
     fc.assert(
       fc.property(fc.constantFrom(...ROLE_LAYOUTS), (layout) => {
-        const content = readFileSafe(layout.file);
-        if (!content) return;
+        const content = readSource(layout.file);
+        expect(content.length).toBeGreaterThan(0);
 
         // The shared shell owns GlobalHeader so all roles receive the exact
         // same chrome without duplicating header composition per layout.
@@ -60,7 +62,7 @@ describe("globalHeader.property.test — full-width header + single settings ent
   });
 
   it("RoleAppShell owns the shared GlobalHeader", () => {
-    const shell = readFileSafe("src/app/RoleAppShell.tsx");
+    const shell = readSource("src/app/RoleAppShell.tsx");
     expect(shell).not.toBeNull();
     expect(shell).toContain("GlobalHeader");
   });
@@ -69,8 +71,8 @@ describe("globalHeader.property.test — full-width header + single settings ent
    * Property: GlobalHeader has no max-w-* wrapper (full-width, clause 2.27)
    */
   it("GlobalHeader has no max-w-* constraint on its container", () => {
-    const content = readFileSafe("src/components/shared/GlobalHeader.tsx");
-    if (!content) return;
+    const content = readSource("src/components/shared/GlobalHeader.tsx");
+    expect(content.length).toBeGreaterThan(0);
 
     // The header element itself should not have max-w-* classes
     // Check that no max-w-* appears on the header or its direct row divs
@@ -94,23 +96,28 @@ describe("globalHeader.property.test — full-width header + single settings ent
    * Property: GlobalHeader has data-tour="top-bar", Sidebar has data-tour="primary-nav"
    */
   it("exposes data-tour attributes on header and sidebar", () => {
-    const header = readFileSafe("src/components/shared/GlobalHeader.tsx");
-    if (!header) return;
+    const header = readSource("src/components/shared/GlobalHeader.tsx");
+    expect(header.length).toBeGreaterThan(0);
     expect(header).toContain('data-tour="top-bar"');
 
-    const sidebar = readFileSafe("src/components/shared/Sidebar.tsx");
-    if (!sidebar) return;
+    const sidebar = readSource("src/components/shared/Sidebar.tsx");
+    expect(sidebar.length).toBeGreaterThan(0);
     expect(sidebar).toContain('data-tour="primary-nav"');
   });
 
   it("keeps the desktop sidebar brand above the full-width header", () => {
-    const header = readFileSafe("src/components/shared/GlobalHeader.tsx");
-    const sidebar = readFileSafe("src/components/shared/Sidebar.tsx");
+    const header = readSource("src/components/shared/GlobalHeader.tsx");
+    const sidebar = readSource("src/components/shared/Sidebar.tsx");
 
     expect(header).not.toBeNull();
     expect(sidebar).not.toBeNull();
     expect(header).toContain("z-[100]");
-    expect(sidebar).toContain("min-[640px]:z-[110]");
+    // The desktop aside is now conditionally mounted, not hidden offscreen.
+    // Actual brand hit-testing and one exposed link are verified in Chromium.
+    expect(sidebar).toContain("if (isDesktop)");
+    expect(sidebar).toContain("z-[110]");
+    expect(sidebar).toContain("<RoleBrandLink");
+    expect(header).toContain('className="min-[640px]:hidden"');
   });
 
   /**
@@ -118,8 +125,8 @@ describe("globalHeader.property.test — full-width header + single settings ent
    * and no standalone Settings icon button in the header
    */
   it('ProfileDropdown has data-tour="settings" on the Profile Settings item', () => {
-    const content = readFileSafe("src/components/shared/ProfileDropdown.tsx");
-    if (!content) return;
+    const content = readSource("src/components/shared/ProfileDropdown.tsx");
+    expect(content.length).toBeGreaterThan(0);
 
     // Must have data-tour="settings" on the Profile Settings item
     expect(content).toContain('data-tour="settings"');
@@ -133,8 +140,8 @@ describe("globalHeader.property.test — full-width header + single settings ent
    * (settings is now only in ProfileDropdown)
    */
   it("GlobalHeader does not contain a standalone Settings icon link", () => {
-    const content = readFileSafe("src/components/shared/GlobalHeader.tsx");
-    if (!content) return;
+    const content = readSource("src/components/shared/GlobalHeader.tsx");
+    expect(content.length).toBeGreaterThan(0);
 
     // Should not have a standalone Settings icon (it's in ProfileDropdown now)
     // The header should not import Settings from lucide-react for a standalone link
@@ -150,8 +157,8 @@ describe("globalHeader.property.test — full-width header + single settings ent
   it("no role layout defines its own navItems array", () => {
     fc.assert(
       fc.property(fc.constantFrom(...ROLE_LAYOUTS), (layout) => {
-        const content = readFileSafe(layout.file);
-        if (!content) return;
+        const content = readSource(layout.file);
+        expect(content.length).toBeGreaterThan(0);
 
         // navItems should not be defined inline in layouts anymore
         expect(content).not.toMatch(/const navItems\s*=/);

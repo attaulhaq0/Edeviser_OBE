@@ -1,0 +1,1 @@
+Storybook uses this empty envDir; never copy .env.local here.

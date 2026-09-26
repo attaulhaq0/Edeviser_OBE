@@ -110,4 +110,15 @@ describe("NotificationsFeedPage", () => {
     fireEvent.click(screen.getByTestId("notif-delete-n2"));
     expect(hoisted.deleteNotification.mutate).toHaveBeenCalledWith("n2");
   });
+  it("names only unread items and keeps its status dot decorative", () => {
+    hoisted.list.data = notifications;
+    render(<NotificationsFeedPage />);
+    const unread = screen.getByTestId("notif-n1");
+    const read = screen.getByTestId("notif-n2");
+    expect(unread).toHaveTextContent("Unread");
+    expect(read).not.toHaveTextContent("Unread");
+    const dot = unread.querySelector("span.bg-primary[aria-hidden='true']");
+    expect(dot).not.toBeNull();
+    expect(dot).not.toHaveClass("bg-transparent0");
+  });
 });

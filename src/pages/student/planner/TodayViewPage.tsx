@@ -4,7 +4,7 @@
 // and today's scheduled reviews
 // =============================================================================
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
@@ -87,6 +87,8 @@ const TodayViewPage = () => {
   // ─── Dialog State ─────────────────────────────────────────────────────────
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
+  const taskOpenerRef = useRef<HTMLButtonElement>(null);
+  const sessionOpenerRef = useRef<HTMLButtonElement>(null);
 
   // ─── Today's date ─────────────────────────────────────────────────────────
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
@@ -276,6 +278,7 @@ const TodayViewPage = () => {
             variant="outline"
             size="sm"
             className="h-9 gap-1.5 text-xs"
+            ref={taskOpenerRef}
             onClick={() => setQuickAddOpen(true)}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -287,6 +290,7 @@ const TodayViewPage = () => {
             size="sm"
             variant="tactile"
             className="h-9 gap-1.5 text-xs"
+            ref={sessionOpenerRef}
             onClick={() => setSessionDialogOpen(true)}
           >
             <Play className="h-3.5 w-3.5" />
@@ -444,6 +448,7 @@ const TodayViewPage = () => {
       {/* Quick Add Task Dialog */}
       <CreateTaskDialog
         open={quickAddOpen}
+        returnFocusRef={taskOpenerRef}
         onOpenChange={setQuickAddOpen}
         defaultDate={todayStr}
         courses={courseOptions}
@@ -452,6 +457,7 @@ const TodayViewPage = () => {
       />
       <CreateSessionDialog
         open={sessionDialogOpen}
+        returnFocusRef={sessionOpenerRef}
         onOpenChange={setSessionDialogOpen}
         defaultDate={todayStr}
         courses={courseOptions}

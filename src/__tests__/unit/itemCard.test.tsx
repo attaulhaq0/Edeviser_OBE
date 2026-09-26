@@ -2,6 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "@/lib/i18n";
 import ItemCard from "@/pages/student/marketplace/ItemCard";
 import type { MarketplaceItem } from "@/hooks/useMarketplace";
 
@@ -99,6 +100,8 @@ describe("ItemCard", () => {
     expect(screen.getByText("500")).toBeTruthy();
     // Discounted price
     expect(screen.getByText(/375 XP/)).toBeTruthy();
+    // The active sale chip stays attached to this actual card, with a finite localized value.
+    expect(screen.getByText("25% Off")).toBeInTheDocument();
   });
 
   it("shows out-of-stock state for limited items with zero stock", () => {
