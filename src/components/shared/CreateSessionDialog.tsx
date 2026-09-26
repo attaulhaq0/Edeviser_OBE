@@ -4,6 +4,7 @@
 // course select, CLO multi-select, description
 // =============================================================================
 
+import type { RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,12 +13,12 @@ import {
 } from "@/lib/schemas/planner";
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { LocalizedDialogContent as DialogContent } from "@/components/shared/LocalizedDialogContent";
 import {
   Form,
   FormField,
@@ -49,6 +50,7 @@ interface CourseOption {
 interface CreateSessionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
   defaultDate?: string;
   courses: CourseOption[];
   onSubmit: (data: CreateStudySessionInput) => void;
@@ -60,6 +62,7 @@ const DURATION_OPTIONS = Array.from({ length: 16 }, (_, i) => (i + 1) * 15);
 const CreateSessionDialog = ({
   open,
   onOpenChange,
+  returnFocusRef,
   defaultDate,
   courses,
   onSubmit,
@@ -103,7 +106,7 @@ const CreateSessionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent returnFocusRef={returnFocusRef} className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-blue-600" />
@@ -117,7 +120,7 @@ const CreateSessionDialog = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
+            className="min-w-0 space-y-4"
           >
             {/* Title */}
             <FormField
@@ -135,15 +138,15 @@ const CreateSessionDialog = ({
             />
 
             {/* Date + Start Time */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="plannedDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="min-w-0 grid-cols-[minmax(0,1fr)]">
                     <FormLabel>Date</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" className="min-w-0 max-w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,10 +156,10 @@ const CreateSessionDialog = ({
                 control={form.control}
                 name="plannedStartTime"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="min-w-0 grid-cols-[minmax(0,1fr)]">
                     <FormLabel>Start Time</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" className="min-w-0 max-w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -165,7 +168,7 @@ const CreateSessionDialog = ({
             </div>
 
             {/* Duration + Timer Mode */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="plannedDurationMinutes"
@@ -305,11 +308,12 @@ const CreateSessionDialog = ({
               <Button
                 type="button"
                 variant="outline"
+                className="min-h-11"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} variant="tactile">
+              <Button type="submit" disabled={isPending} variant="tactile" className="min-h-11">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Create Session
               </Button>

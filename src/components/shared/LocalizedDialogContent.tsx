@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import { useRef, type ComponentProps, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,19 +12,50 @@ import { cn } from "@/lib/utils";
 type Props = Omit<
   ComponentProps<typeof PrimitiveDialogContent>,
   "showCloseButton"
->;
+> & {
+  /** Controlled external triggers can supply the exact safe focus return. */
+  returnFocusRef?: RefObject<HTMLElement | null>;
+};
 
 export const LocalizedDialogContent = ({
   children,
   className,
+  returnFocusRef,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   ...props
 }: Props) => {
   const { t } = useTranslation("common");
+  const opener = useRef<HTMLElement | null>(null);
   return (
     <PrimitiveDialogContent
       {...props}
       showCloseButton={false}
-      className={cn("[&_[data-slot=dialog-header]]:pe-14", className)}
+      onOpenAutoFocus={(event) => {
+        const active = document.activeElement;
+        opener.current =
+          active instanceof HTMLElement &&
+          active !== document.body &&
+          !active.closest("[data-slot=dialog-content]")
+            ? active
+            : null;
+        onOpenAutoFocus?.(event);
+      }}
+      onCloseAutoFocus={(event) => {
+        onCloseAutoFocus?.(event);
+        if (event.defaultPrevented) return;
+        const target = opener.current?.isConnected
+          ? opener.current
+          : returnFocusRef?.current?.isConnected
+          ? returnFocusRef.current
+          : document.getElementById("main-content");
+        opener.current = null;
+        if (target?.isConnected) {
+          event.preventDefault();
+          target.focus();
+        }
+      }}
+      className={cn("min-w-0 grid-cols-[minmax(0,1fr)] [&_[data-slot=dialog-header]]:pe-14", className)}
     >
       {children}
       <DialogClose asChild>
