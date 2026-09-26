@@ -1,11 +1,11 @@
 import { Ruler } from "lucide-react";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LocalizedDialogContent as DialogContent } from "@/components/shared/LocalizedDialogContent";
 import { Shimmer } from "@/design-system";
 import { InlineEmpty } from "@/components/shared/EmptyState";
 import RubricPreview from "@/components/shared/RubricPreview";

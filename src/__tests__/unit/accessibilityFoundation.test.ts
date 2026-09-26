@@ -192,6 +192,13 @@ describe("shared accessibility/portal adoption ownership", () => {
       expect(found).toBe(true);
     }
     const allowedSelectors = inventory.map(([, slot]) => `[data-slot="${slot}"]`);
+    // The only reviewed generated overrides remain exact-slot/class guarded.
+    const headerSelector = "[data-slot=\"dialog-header\"][class~=\"sm:text-left\"]";
+    const closeSelector = "[data-slot=\"dialog-content\"]:dir(rtl) > [data-slot=\"dialog-close\"][class~=\"right-4\"]";
+    allowedSelectors.push(headerSelector, closeSelector);
+    const scopedRules: string[] = [];
+    root.walkRules((rule) => { if (rule.selector === headerSelector || rule.selector === closeSelector) scopedRules.push(rule.selector); });
+    expect(scopedRules.sort()).toEqual([headerSelector, closeSelector].sort());
     root.walkRules((rule) => {
       for (const selector of rule.selectors) expect(allowedSelectors).toContain(selector);
       expect(rule.selector).not.toMatch(/popover|alert-dialog|context-menu|hover-card|menubar|role=|style\*/);
@@ -204,6 +211,19 @@ describe("shared accessibility/portal adoption ownership", () => {
     root.walkDecls((decl) => {
       expect(decl.important).not.toBe(true);
       if (decl.prop === "z-index") return;
+      const scopedRule = decl.parent;
+      if (scopedRule?.type === "rule" && scopedRule.selector === "[data-slot=\"dialog-header\"][class~=\"sm:text-left\"]") {
+        expect(decl.prop).toBe("text-align");
+        expect(decl.value).toBe("start");
+        expect(scopedRule.parent?.type).toBe("atrule");
+        if (scopedRule.parent?.type === "atrule") expect(scopedRule.parent.params).toBe("(min-width: 40rem)");
+        return;
+      }
+      if (scopedRule?.type === "rule" && scopedRule.selector === "[data-slot=\"dialog-content\"]:dir(rtl) > [data-slot=\"dialog-close\"][class~=\"right-4\"]") {
+        expect({ right: "auto", left: "1rem" }[decl.prop as "right" | "left"]).toBe(decl.value);
+        expect(scopedRule.parent?.type).toBe("root");
+        return;
+      }
       expect(["max-block-size", "overflow-y", "overscroll-behavior"]).toContain(decl.prop);
       const rule = decl.parent;
       expect(rule?.type).toBe("rule");
@@ -214,6 +234,10 @@ describe("shared accessibility/portal adoption ownership", () => {
       expect(rule.parent.name).toBe("layer");
       expect(rule.parent.params).toBe("base");
     });
+    const generated = readFileSync(resolve("src/components/ui/dialog.tsx"), "utf8");
+    expect(generated).toContain("sm:text-left");
+    expect(generated).toContain("right-4");
+    expect(generated).toContain("data-slot=\"dialog-close\"");
     let smallerBound = false;
     compiled.walkDecls("max-height", (decl) => { if (decl.value === "50vh") smallerBound = true; });
     expect(smallerBound).toBe(true);

@@ -77,6 +77,7 @@ These are repository-source relationships, not a deployment attestation.
 | Public design-system exports | [index.ts](./index.ts) |
 | Shared role shell and responsive navigation ownership | [RoleAppShell.tsx](../app/RoleAppShell.tsx) |
 | Shared responsive brand/destination contract | [RoleBrandLink.tsx](../components/shared/RoleBrandLink.tsx) |
+| One localized default-close generated Dialog adoption (pilot) | [LocalizedDialogContent.tsx](../components/shared/LocalizedDialogContent.tsx) |
 
 ```text
 src/main.tsx
@@ -99,6 +100,7 @@ src/main.tsx
 | Basic controls and surfaces | `@/design-system/primitives` | This facade adopts generated Shadcn; it is not a second implementation. Existing direct `ui/*` imports remain migration work, not proof of a fork by themselves. |
 | Reusable presentation | `@/design-system/patterns` | Prefer reviewed patterns such as PCard, SectionHeader and StatePanel. Not every exported pattern is fully migrated; check its source and ledger scope. |
 | Cross-feature behavior | The relevant `@/components/shared/*` component | This directory is not uniformly legacy: account-menu, reading-dialog and other shared behavior belong here. Do not rebuild them separately per role. |
+| Dismissible default-close dialogs | `@/components/shared/LocalizedDialogContent` | Uses the generated DialogContent with `showCloseButton={false}` and one localized logical 44px close. Intentional no-close approval/consent/celebration dialogs keep their existing owner; not every caller has migrated. |
 | Domain feature | Its public `@/features/<domain>` barrel | Do not reach into another feature's internals or move academic decisions into generic UI. |
 | Compatibility exports | Existing Hawdex/Admin/older facades only when required by the current consumer | A name is not proof of duplication. Inventory behavior and callers before replacing or retiring it; do not use an unreviewed compatibility implementation as a new default. |
 

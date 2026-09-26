@@ -10,11 +10,11 @@
 
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { LocalizedDialogContent as DialogContent } from "@/components/shared/LocalizedDialogContent";
 import { Badge } from "@/components/ui/badge";
 import { Shimmer } from "@/design-system";
 import { useSectionDrillDown } from "@/hooks/useSectionAttainment";

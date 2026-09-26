@@ -527,9 +527,11 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* ─── PER-ROLE ACCENT SCOPES ───────────────────────────── */
-[data-role="student"]     { --role-accent: var(--brand-secondary); }
-[data-role="teacher"]     { --role-accent: var(--brand-primary); }
-[data-role="coordinator"] { --role-accent: #6D28D9; }
-[data-role="parent"]      { --role-accent: #0D9488; }
-[data-role="admin"]       { --role-accent: var(--brand-neutral); }
+/* ─── PER-ROLE ACCENT SCOPES ─────────────────────────────
+   Portalled dialog content inherits from body, not the role shell. Mirror the
+   SAME token owner for a single mounted role shell without copying color values. */
+[data-role="student"], body:has(.role-app-shell[data-role="student"]) [data-slot="dialog-content"] { --role-accent: var(--brand-secondary); }
+[data-role="teacher"], body:has(.role-app-shell[data-role="teacher"]) [data-slot="dialog-content"] { --role-accent: var(--brand-primary); }
+[data-role="coordinator"], body:has(.role-app-shell[data-role="coordinator"]) [data-slot="dialog-content"] { --role-accent: #6D28D9; }
+[data-role="parent"], body:has(.role-app-shell[data-role="parent"]) [data-slot="dialog-content"] { --role-accent: #0D9488; }
+[data-role="admin"], body:has(.role-app-shell[data-role="admin"]) [data-slot="dialog-content"] { --role-accent: var(--brand-neutral); }

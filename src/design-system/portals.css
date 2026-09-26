@@ -27,7 +27,7 @@
 
 /* Low-priority defaults, deliberately NOT unlayered: caller max-height/overflow
    utilities retain ownership (including smaller existing bounds). No width,
-   transform, placement, paint, footer or floating-widget sizing is overridden.
+   transform, generic placement, paint, footer or floating-widget sizing is overridden; the reviewed generated RTL close placement is separate.
    Close controls scroll normally; long dialogs need a reachable footer action. */
 @layer base {
   [data-slot="dialog-content"] {
@@ -41,4 +41,17 @@
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+}
+
+/* Adopt generated slots without editing Shadcn custody. The RTL close fix
+   targets ONLY its physical right-4 default, never the logical shared close. */
+@media (min-width: 40rem) {
+  [data-slot="dialog-header"][class~="sm:text-left"] {
+    text-align: start;
+  }
+}
+
+[data-slot="dialog-content"]:dir(rtl) > [data-slot="dialog-close"][class~="right-4"] {
+  right: auto;
+  left: 1rem;
 }
