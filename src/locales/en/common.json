@@ -238,6 +238,7 @@
     "validation": "Please check the form for errors."
   },
   "tableSorting": {
+    "loading": "Loading results…",
     "pageOnly": "Sorting applies to this page only, not all results.",
     "previousResults": "Updating results. The rows shown belong to the previous request.",
     "pageUnknownCount": "Page {{page}} · total unavailable",

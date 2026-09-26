@@ -113,7 +113,14 @@ function DataTable<TData, TValue>({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div
+        role="status"
+        aria-label={t("tableSorting.loading")}
+        aria-live="polite"
+        aria-busy="true"
+        className="space-y-3"
+      >
+        <span className="sr-only">{t("tableSorting.loading")}</span>
         {Array.from({ length: 5 }).map((_, i) => (
           <Shimmer key={i} className="h-12 rounded-lg" />
         ))}
@@ -153,7 +160,7 @@ function DataTable<TData, TValue>({
             {t("tableSorting.pageOnly")}
           </p>
         )}
-        <div className="rounded-lg border bg-background">
+        <div className="min-w-0 rounded-lg border bg-background">
           <Table aria-describedby={descriptions}>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -215,17 +222,20 @@ function DataTable<TData, TValue>({
 
         {/* Pagination */}
         {isServerPaginated ? (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div
+            data-slot="data-table-pagination"
+            className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:gap-4"
+          >
+            <p className="min-w-0 max-w-full flex-1 text-sm text-muted-foreground tabular-nums [overflow-wrap:anywhere]">
               {totalPages === undefined
                 ? t("tableSorting.pageUnknownCount", { page })
                 : t("pagination.pageOf", { page, total: totalPages })}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-auto min-h-11 min-w-11 whitespace-normal px-3 py-2"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
                 onClick={() => onPageChange(page - 1)}
                 disabled={page <= 1}
               >
@@ -234,7 +244,7 @@ function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-auto min-h-11 min-w-11 whitespace-normal px-3 py-2"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
                 onClick={() => onPageChange(page + 1)}
                 disabled={totalPages === undefined || page >= totalPages}
               >
@@ -243,18 +253,21 @@ function DataTable<TData, TValue>({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div
+            data-slot="data-table-pagination"
+            className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:gap-4"
+          >
+            <p className="min-w-0 max-w-full flex-1 text-sm text-muted-foreground tabular-nums [overflow-wrap:anywhere]">
               {t("pagination.pageOf", {
                 page: table.getState().pagination.pageIndex + 1,
                 total: table.getPageCount() || 1,
               })}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-auto min-h-11 min-w-11 whitespace-normal px-3 py-2"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
@@ -263,7 +276,7 @@ function DataTable<TData, TValue>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-auto min-h-11 min-w-11 whitespace-normal px-3 py-2"
+                className="h-auto min-h-11 w-full min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere] px-3 py-2 sm:w-auto sm:min-w-11"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >

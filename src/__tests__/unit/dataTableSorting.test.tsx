@@ -133,6 +133,9 @@ describe("DataTable sorting ownership", () => {
     expect(names()).toEqual(["Alpha", "Bravo", "Charlie"]);
     expect(onPageChange).not.toHaveBeenCalled();
     expect(screen.getByText(view.i18n.t("pagination.pageOf", { page: 2, total: 3 }))).toBeTruthy();
+    const pager = view.container.querySelector("[data-slot=\"data-table-pagination\"]");
+    expect(pager).toHaveClass("flex-wrap", "min-w-0");
+    expect(pager?.querySelector(".grid-cols-2")).not.toBeNull();
     await userEvent.click(screen.getByRole("button", { name: view.i18n.t("buttons.next") }));
     expect(onPageChange).toHaveBeenCalledWith(3);
     view.update({ page: 3, data: [{ name: "Zulu", id: "z" }, { name: "Delta", id: "d" }] });
@@ -207,6 +210,9 @@ describe("DataTable sorting ownership", () => {
     const onSortingChange = vi.fn<OnChangeFn<SortingState>>();
     const view = await mount({ manualSorting: true, sorting: ascending, onSortingChange,
       isLoading: true, data: [] }, language);
+    const loading = screen.getByRole("status", { name: view.i18n.t("tableSorting.loading") });
+    expect(loading).toHaveAttribute("aria-busy", "true");
+    expect(loading.querySelectorAll("[aria-hidden=\"true\"]")).toHaveLength(5);
     expect(screen.queryByRole("table")).toBeNull();
     expect(screen.queryByText(view.i18n.t("pagination.noResults"))).toBeNull();
     view.update({ isLoading: false });
