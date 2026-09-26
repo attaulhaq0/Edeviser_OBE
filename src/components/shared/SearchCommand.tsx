@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
+  DialogClose,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ import {
   Target,
   Users,
   Search,
+  X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { UserRole } from "@/types/app";
@@ -35,11 +37,17 @@ const DEBOUNCE_MS = 300;
 
 const categoryConfig: Record<
   SearchResult["type"],
-  { label: string; icon: typeof BookOpen }
+  {
+    labelKey:
+      | "header.searchType.course"
+      | "header.searchType.assignment"
+      | "header.searchType.announcement";
+    icon: typeof BookOpen;
+  }
 > = {
-  course: { label: "Courses", icon: BookOpen },
-  assignment: { label: "Assignments", icon: FileText },
-  announcement: { label: "Announcements", icon: Megaphone },
+  course: { labelKey: "header.searchType.course", icon: BookOpen },
+  assignment: { labelKey: "header.searchType.assignment", icon: FileText },
+  announcement: { labelKey: "header.searchType.announcement", icon: Megaphone },
 };
 
 interface SearchCommandProps {
@@ -64,7 +72,7 @@ const commandsByRole: Record<UserRole, RoleCommand[]> = {
     {
       section: "goTo",
       labelKey: "header.commands.learningPath",
-      to: "/student/courses",
+      to: "/student/learning-path",
       icon: BookOpen,
     },
     {
@@ -186,13 +194,13 @@ const commandsByRole: Record<UserRole, RoleCommand[]> = {
     {
       section: "goTo",
       labelKey: "header.commands.analytics",
-      to: "/admin/reports",
+      to: "/admin/analytics",
       icon: BarChart3,
     },
     {
       section: "goTo",
       labelKey: "header.commands.aiGovernance",
-      to: "/admin/security",
+      to: "/admin/governance",
       icon: ShieldAlert,
     },
     {
@@ -212,6 +220,8 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
   const { role } = useAuth();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
 
   const { data: results, isLoading } = useGlobalSearch(debouncedQuery, role);
   const roleCommands = commandsByRole[role ?? "student"];
@@ -225,41 +235,50 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
     return () => clearTimeout(timer);
   }, [input]);
 
-  // Keyboard shortcut: Cmd+K / Ctrl+K
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-      e.preventDefault();
-      setOpen((prev) => !prev);
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    if (nextOpen) {
+      const active = document.activeElement;
+      openerRef.current =
+        active instanceof HTMLElement && active !== document.body
+          ? active
+          : triggerRef.current;
+    }
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setInput("");
+      setDebouncedQuery("");
     }
   }, []);
+  // Keyboard shortcut: Cmd+K / Ctrl+K
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        if (!e.repeat) handleOpenChange(!open);
+      }
+    },
+    [handleOpenChange, open]
+  );
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Focus input when dialog opens; reset state on close via onOpenChange
+  // Keep delayed focus owned by this open instance; a rapid close cancels it.
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+    if (!open) return;
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
+    return () => window.clearTimeout(timer);
   }, [open]);
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setInput("");
-      setDebouncedQuery("");
-    }
-  };
-
   const handleSelect = (result: SearchResult) => {
-    setOpen(false);
+    handleOpenChange(false);
     navigate(result.url);
   };
 
   const handleCommandSelect = (command: RoleCommand) => {
-    setOpen(false);
+    handleOpenChange(false);
     navigate(command.to);
   };
 
@@ -277,7 +296,8 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
         <Button
           type="button"
           variant="ghost"
-          onClick={() => setOpen(true)}
+          ref={triggerRef}
+          onClick={() => handleOpenChange(true)}
           className="top-search h-auto justify-start"
           aria-label={t("header.openGlobalSearch")}
         >
@@ -289,23 +309,67 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
         </Button>
       ) : null}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0">
+        <DialogContent
+          showCloseButton={false}
+          aria-describedby={undefined}
+          className="sm:max-w-lg p-0 gap-0"
+          onCloseAutoFocus={(event) => {
+            const target = openerRef.current?.isConnected
+              ? openerRef.current
+              : triggerRef.current ?? document.getElementById("main-content");
+            openerRef.current = null;
+            if (target?.isConnected) {
+              event.preventDefault();
+              target.focus();
+            }
+          }}
+        >
           <DialogHeader className="sr-only">
             <DialogTitle>{t("header.search")}</DialogTitle>
           </DialogHeader>
 
-          <div className="flex items-center gap-2 border-b px-4 py-3">
-            <Search className="h-4 w-4 text-gray-400 shrink-0" />
+          <div className="flex min-w-0 flex-wrap items-center gap-2 border-b px-4 py-3 focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring">
+            <Search
+              className="h-4 w-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               ref={inputRef}
+              name="global-search"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label={t("header.search")}
               placeholder={t("header.searchPlaceholder")}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="border-0 shadow-none focus-visible:ring-0 p-0 h-auto text-sm"
+              className="h-auto min-w-0 flex-1 border-0 p-0 text-sm shadow-none focus-visible:ring-0"
             />
             {isLoading && (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              <span
+                role="status"
+                aria-label={t("header.searchLoading")}
+                className="inline-flex shrink-0 items-center"
+              >
+                <Loader2
+                  className="h-4 w-4 animate-spin text-muted-foreground motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+                <span className="sr-only">{t("header.searchLoading")}</span>
+              </span>
             )}
+            <div className="flex w-full min-w-0 justify-end sm:w-auto">
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-11 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label={t("buttons.close")}
+                >
+                  <X className="size-5" aria-hidden="true" />
+                </Button>
+              </DialogClose>
+            </div>
           </div>
 
           <div className="max-h-80 overflow-y-auto p-2">
@@ -313,7 +377,7 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
               !isLoading &&
               Object.keys(grouped).length === 0 &&
               matchingCommands.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-6">
+                <p className="text-sm text-muted-foreground text-center py-6">
                   {t("header.searchEmpty", { q: input })}
                 </p>
               )}
@@ -325,7 +389,7 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
               if (commands.length === 0) return null;
               return (
                 <div key={section} className="mb-2">
-                  <p className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <p className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     {t(`header.commandSection.${section}`)}
                   </p>
                   {commands.map((command) => {
@@ -356,8 +420,8 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
               const Icon = config.icon;
               return (
                 <div key={type} className="mb-2">
-                  <p className="text-[10px] font-black tracking-widest uppercase text-gray-400 px-2 py-1">
-                    {config.label}
+                  <p className="text-[10px] font-black tracking-widest uppercase text-muted-foreground px-2 py-1">
+                    {t(config.labelKey)}
                   </p>
                   {items.map((item) => (
                     <Button
@@ -367,13 +431,16 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
                       onClick={() => handleSelect(item)}
                       className="h-auto w-full justify-start gap-3 px-3 py-2 text-start text-sm"
                     >
-                      <Icon className="h-4 w-4 text-gray-400 shrink-0" />
+                      <Icon
+                        className="h-4 w-4 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-900 truncate">
+                        <p className="font-medium text-foreground truncate">
                           {item.title}
                         </p>
                         {item.description && (
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-muted-foreground truncate">
                             {item.description}
                           </p>
                         )}
@@ -385,11 +452,9 @@ const SearchCommand = ({ showTrigger = false }: SearchCommandProps) => {
             })}
 
             {!input && (
-              <p className="text-sm text-gray-400 text-center py-6">
+              <p className="text-sm text-muted-foreground text-center py-6">
                 {t("header.searchPrompt")}{" "}
-                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-xs">
-                  ⌘K
-                </kbd>
+                <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">⌘K</kbd>
               </p>
             )}
           </div>

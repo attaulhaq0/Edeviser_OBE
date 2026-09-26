@@ -500,7 +500,7 @@
   "user": "User",
   "skipToMain": "Skip to main content",
   "search": "Search",
-  "searchPlaceholder": "Search courses, assignments, announcements...",
+  "searchPlaceholder": "Search courses, assignments, announcements…",
   "searchLoading": "Searching…",
   "searchEmpty": "No results for “{{q}}”",
   "searchType": {
@@ -523,7 +523,7 @@
     "languageMenu": "Language: {{language}}",
     "user": "User",
     "search": "Search",
-    "searchPlaceholder": "Search courses, assignments, announcements...",
+    "searchPlaceholder": "Search courses, assignments, announcements…",
     "searchLoading": "Searching…",
     "searchEmpty": "No results for “{{q}}”",
     "searchType": {

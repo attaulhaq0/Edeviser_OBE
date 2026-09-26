@@ -500,7 +500,7 @@
   "user": "المستخدم",
   "skipToMain": "التخطي إلى المحتوى الرئيسي",
   "search": "بحث",
-  "searchPlaceholder": "ابحث في المقررات والتكليفات والإعلانات...",
+  "searchPlaceholder": "ابحث في المقررات والتكليفات والإعلانات…",
   "searchLoading": "جاري البحث…",
   "searchEmpty": "لا توجد نتائج لـ “{{q}}”",
   "searchType": {
@@ -523,7 +523,7 @@
     "languageMenu": "اللغة: {{language}}",
     "user": "المستخدم",
     "search": "بحث",
-    "searchPlaceholder": "ابحث في المقررات والتكليفات والإعلانات...",
+    "searchPlaceholder": "ابحث في المقررات والتكليفات والإعلانات…",
     "searchLoading": "جاري البحث…",
     "searchEmpty": "لا توجد نتائج لـ “{{q}}”",
     "searchType": {
