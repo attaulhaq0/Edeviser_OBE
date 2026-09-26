@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import RouteGuard from "@/router/RouteGuard";
 import type { UserRole } from "@/types/app";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 // ---------------------------------------------------------------------------
 // Mock useAuth
@@ -30,41 +32,46 @@ const buildAuth = (overrides: Record<string, unknown> = {}) => ({
 
 const renderGuard = (allowedRoles: UserRole[], initialPath: string) => {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/admin/dashboard" element={<div>Admin Dashboard</div>} />
-        <Route
-          path="/student/dashboard"
-          element={<div>Student Dashboard</div>}
-        />
-        <Route
-          path="/teacher/dashboard"
-          element={<div>Teacher Dashboard</div>}
-        />
-        <Route
-          path="/coordinator/dashboard"
-          element={<div>Coordinator Dashboard</div>}
-        />
-        <Route path="/parent/dashboard" element={<div>Parent Dashboard</div>} />
-        <Route
-          path="/admin/*"
-          element={
-            <RouteGuard allowedRoles={allowedRoles}>
-              <div>Protected Admin Content</div>
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/student/*"
-          element={
-            <RouteGuard allowedRoles={allowedRoles}>
-              <div>Protected Student Content</div>
-            </RouteGuard>
-          }
-        />
-      </Routes>
-    </MemoryRouter>
+    <I18nextProvider i18n={i18n}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route path="/login" element={<div>Login Page</div>} />
+          <Route path="/admin/dashboard" element={<div>Admin Dashboard</div>} />
+          <Route
+            path="/student/dashboard"
+            element={<div>Student Dashboard</div>}
+          />
+          <Route
+            path="/teacher/dashboard"
+            element={<div>Teacher Dashboard</div>}
+          />
+          <Route
+            path="/coordinator/dashboard"
+            element={<div>Coordinator Dashboard</div>}
+          />
+          <Route
+            path="/parent/dashboard"
+            element={<div>Parent Dashboard</div>}
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <RouteGuard allowedRoles={allowedRoles}>
+                <div>Protected Admin Content</div>
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/student/*"
+            element={
+              <RouteGuard allowedRoles={allowedRoles}>
+                <div>Protected Student Content</div>
+              </RouteGuard>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    </I18nextProvider>
   );
 };
 
@@ -72,17 +79,31 @@ const renderGuard = (allowedRoles: UserRole[], initialPath: string) => {
 // Tests
 // ---------------------------------------------------------------------------
 describe("RouteGuard", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    await i18n.changeLanguage("en");
   });
 
-  it("shows loading spinner while auth is loading", () => {
+  it("announces access checks without exposing guarded children", () => {
     mockUseAuth.mockReturnValue(buildAuth({ isLoading: true }));
     renderGuard(["admin"], "/admin/test");
     expect(
       screen.queryByText("Protected Admin Content")
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Login Page")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: "Checking access…" })
+    ).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("announces the same guarded loading state in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    mockUseAuth.mockReturnValue(buildAuth({ isLoading: true }));
+    renderGuard(["student"], "/student/test");
+    expect(
+      screen.getByRole("status", { name: "جارٍ التحقق من صلاحية الوصول…" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Protected Student Content")).toBeNull();
   });
 
   it("redirects to /login when user is not authenticated", () => {

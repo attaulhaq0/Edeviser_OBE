@@ -8,7 +8,13 @@ import ts from "typescript";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const GROUPS = ["admin", "coordinator", "teacher", "student", "parent"];
-const wrappers = new Set(["RouteGuard", "PublicMain", "Fragment", "Suspense"]);
+const wrappers = new Set([
+  "RouteGuard",
+  "PublicMain",
+  "RouteContentBoundary",
+  "Fragment",
+  "Suspense",
+]);
 
 function parse(name, source, kind) {
   const file = ts.createSourceFile(

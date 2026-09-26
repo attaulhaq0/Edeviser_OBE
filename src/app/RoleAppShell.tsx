@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from "react";
 import GlobalHeader from "@/components/shared/GlobalHeader";
 import Sidebar from "@/components/shared/Sidebar";
 import MobileTabBar from "@/components/shared/MobileTabBar";
+import RouteContentBoundary from "@/components/shared/RouteContentBoundary";
 import { SidebarProvider } from "@/components/shared/SidebarContext";
 import GuidedTour from "@/components/shared/GuidedTour";
 import EmailVerificationBanner from "@/components/shared/EmailVerificationBanner";
@@ -67,11 +68,13 @@ const RoleAppShell = ({ userRole, children, rail }: RoleAppShellProps) => {
                   hasRail && "max-w-(--app-content-max) mx-auto"
                 )}
               >
-                {children}
+                <RouteContentBoundary>{children}</RouteContentBoundary>
               </div>
             </main>
           </div>
-          {rail}
+          {hasRail ? (
+            <RouteContentBoundary compact>{rail}</RouteContentBoundary>
+          ) : null}
         </div>
         <GuidedTour />
         {intelligenceUiEnabled ? (

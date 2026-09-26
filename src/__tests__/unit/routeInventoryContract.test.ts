@@ -180,7 +180,7 @@ describe("G01 read-only declared route inventory ratchet", () => {
   it("checks the standalone student's actual guard role, not only its URL prefix", () => {
     const rootRoute = '<Route path="/" element={<Navigate to="/login" />} />';
     const focus =
-      '<Route path="/student/focus/:sessionId" element={<RouteGuard allowedRoles={["student"]}><FocusModePage /></RouteGuard>} />';
+      '<Route path="/student/focus/:sessionId" element={<RouteGuard allowedRoles={["student"]}><RouteContentBoundary immersive><FocusModePage /></RouteContentBoundary></RouteGuard>} />';
     const withFocus = router.replace(
       rootRoute,
       `${focus}
@@ -196,6 +196,12 @@ describe("G01 read-only declared route inventory ratchet", () => {
     expect(
       compareRouteInventory(withFocus, segments, ledgerWithFocus).findings
     ).toEqual([]);
+    expect(() =>
+      readDeclaredRoutes(
+        withFocus.replace(/RouteContentBoundary/g, "UnknownBoundary"),
+        segments
+      )
+    ).toThrow("Route element has ambiguous owner/guard");
     const wrongRole = withFocus.replace(
       'allowedRoles={["student"]}',
       'allowedRoles={["teacher"]}'

@@ -194,6 +194,13 @@
     "download": "Download",
     "upload": "Upload"
   },
+  "routeState": {
+    "loading": "Loading page…",
+    "checkingAccess": "Checking access…",
+    "title": "Page unavailable",
+    "message": "Reload this page to try again. If it still fails, return to another page.",
+    "reload": "Reload page"
+  },
   "status": {
     "active": "Active",
     "inactive": "Inactive",

@@ -1,8 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
-const state = vi.hoisted(() => ({ onboarded: true }));
+const state = vi.hoisted(() => ({
+  onboarded: true,
+  wizardThrows: false,
+  adaptiveThrows: false,
+  analytics: vi.fn(),
+}));
+vi.mock("@/lib/analyticsConsent", () => ({
+  captureAnalyticsEvent: state.analytics,
+}));
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
     profile: { role: "student", onboarding_completed: state.onboarded },
@@ -47,10 +57,16 @@ vi.mock("@/features/student/rails/StudentSettingsRail", () => ({
   default: () => <div>Settings rail</div>,
 }));
 vi.mock("@/pages/student/onboarding/OnboardingWizard", () => ({
-  default: () => <div>Owned onboarding wizard</div>,
+  default: () => {
+    if (state.wizardThrows) throw new Error("PRIVATE_ONBOARDING_ERROR");
+    return <div>Owned onboarding wizard</div>;
+  },
 }));
 
 import StudentLayout from "@/pages/student/StudentLayout";
+const BrokenAdaptive = () => {
+  throw new Error("PRIVATE_ADAPTIVE_ERROR");
+};
 const paths = [
   "journal",
   "journal/new",
@@ -66,17 +82,31 @@ const paths = [
 const mount = (path: string) => {
   const routes = paths.map((child) => ({
     path: child,
-    element: <p data-testid="child">{child}</p>,
+    element:
+      child === "quizzes/quiz-id/adaptive" && state.adaptiveThrows ? (
+        <BrokenAdaptive />
+      ) : (
+        <p data-testid="child">{child}</p>
+      ),
   }));
   const router = createMemoryRouter(
     [{ path: "/student/*", element: <StudentLayout />, children: routes }],
     { initialEntries: [`/student/${path}`] }
   );
-  return render(<RouterProvider router={router} />);
+  return render(
+    <I18nextProvider i18n={i18n}>
+      <RouterProvider router={router} />
+    </I18nextProvider>
+  );
 };
-beforeEach(() => {
+beforeEach(async () => {
   state.onboarded = true;
+  state.wizardThrows = false;
+  state.adaptiveThrows = false;
+  state.analytics.mockClear();
+  await i18n.changeLanguage("en");
 });
+afterEach(() => vi.restoreAllMocks());
 
 describe("S06 student journal route owns reflection body without duplicate rail", () => {
   it.each(["journal", "journal/new", "journal/entry-id"])(
@@ -123,5 +153,33 @@ describe("S06 student journal route owns reflection body without duplicate rail"
     ).toBeInTheDocument();
     expect(screen.queryByTestId("role-shell")).toBeNull();
     expect(screen.queryByTestId("layout-rail")).toBeNull();
+  });
+  it("keeps the onboarding flow but announces its owned failure without exposing internal detail", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    state.onboarded = false;
+    state.wizardThrows = true;
+    mount("journal");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Reload this page to try again"
+    );
+    expect(
+      screen.getByRole("button", { name: "Reload page" })
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("role-shell")).toBeNull();
+    expect(document.body).not.toHaveTextContent("PRIVATE_ONBOARDING_ERROR");
+    expect(state.analytics).toHaveBeenCalledWith("route_error_shown", {
+      path: "/student/journal",
+    });
+  });
+  it("retains immersive chrome when a nested adaptive quiz leaf fails", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    state.adaptiveThrows = true;
+    mount("quizzes/quiz-id/adaptive");
+    expect(document.querySelector("[data-immersive]")).not.toBeNull();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Reload this page to try again"
+    );
+    expect(screen.queryByTestId("role-shell")).toBeNull();
+    expect(document.body).not.toHaveTextContent("PRIVATE_ADAPTIVE_ERROR");
   });
 });

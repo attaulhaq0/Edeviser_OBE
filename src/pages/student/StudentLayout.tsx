@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RoleAppShell from "@/app/RoleAppShell";
+import RouteContentBoundary from "@/components/shared/RouteContentBoundary";
 import StudentDashboardRail from "@/features/student/dashboard/StudentDashboardRail";
 import StudentLearnRail from "@/features/student/rails/StudentLearnRail";
 import StudentProgressRail from "@/features/student/rails/StudentProgressRail";
@@ -44,9 +45,9 @@ const StudentLayout = () => {
 
   if (showOnboarding) {
     return (
-      <Suspense fallback={<div className="fixed inset-0 z-50 bg-white" />}>
+      <RouteContentBoundary immersive>
         <OnboardingWizard isDay1 />
-      </Suspense>
+      </RouteContentBoundary>
     );
   }
 
@@ -62,7 +63,9 @@ const StudentLayout = () => {
         data-immersive
         className="min-h-screen bg-background px-[var(--app-gutter-mobile)] py-6 min-[640px]:px-[var(--app-gutter)]"
       >
-        <Outlet />
+        <RouteContentBoundary immersive>
+          <Outlet />
+        </RouteContentBoundary>
       </div>
     );
   }
